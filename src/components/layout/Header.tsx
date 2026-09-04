@@ -12,6 +12,7 @@ import {
   LogOut, 
   Sparkles,
   Check,
+  MessageSquareHeart,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -22,6 +23,8 @@ interface HeaderProps {
   onOpenMobileMenu: () => void;
   onNavigate: (route: string) => void;
   onOpenAdminPanel?: () => void;
+  adminBadgeCount?: number;
+  onOpenFeedbackModal?: () => void;
 }
 
 // Hook to detect click outside
@@ -63,6 +66,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenMobileMenu,
   onNavigate,
   onOpenAdminPanel,
+  adminBadgeCount = 0,
+  onOpenFeedbackModal,
 }) => {
   const { profile, logout } = useAuth();
   const { 
@@ -420,8 +425,16 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 text-xs transition-colors cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-cyan-950/80 border border-orange-200 dark:border-cyan-500/50 text-orange-700 dark:text-cyan-300 font-bold flex items-center justify-center text-xs">
+            <div className="relative w-8 h-8 rounded-full bg-orange-100 dark:bg-cyan-950/80 border border-orange-200 dark:border-cyan-500/50 text-orange-700 dark:text-cyan-300 font-bold flex items-center justify-center text-xs">
               {profile?.displayName?.charAt(0) || 'G'}
+              {isAdmin && adminBadgeCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex items-center justify-center rounded-full h-3.5 w-3.5 bg-rose-600 text-[8px] font-black text-white">
+                    {adminBadgeCount > 9 ? '9+' : adminBadgeCount}
+                  </span>
+                </span>
+              )}
             </div>
             <div className="text-left hidden md:block">
               <div className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-none">
@@ -437,7 +450,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Profile Dropdown Menu */}
           {showUserDropdown && (
             <div 
-              className="absolute right-0 mt-2 w-60 rounded-2xl bg-white dark:bg-[#141722] p-2 shadow-2xl border border-slate-200 dark:border-[#232838] z-50 animate-in fade-in slide-in-from-top-2"
+              className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#141722] p-2 shadow-2xl border border-slate-200 dark:border-[#232838] z-50 animate-in fade-in slide-in-from-top-2"
             >
               <div className="p-3 border-b border-slate-100 dark:border-[#232838] mb-1">
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{profile?.displayName}</p>
@@ -457,10 +470,31 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     onOpenAdminPanel();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-orange-700 dark:text-cyan-300 hover:bg-orange-50 dark:hover:bg-cyan-950/50 font-semibold transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs text-orange-700 dark:text-cyan-300 hover:bg-orange-50 dark:hover:bg-cyan-950/50 font-semibold transition-colors text-left cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-cyan-400" />
-                  <span>Panel Admin & Kuota DB</span>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-cyan-400 shrink-0" />
+                    <span>Panel Admin</span>
+                  </div>
+                  {adminBadgeCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
+                      {adminBadgeCount}
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {!isAdmin && onOpenFeedbackModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    onOpenFeedbackModal();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
+                >
+                  <MessageSquareHeart className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
+                  <span>Kirim Masukan & Lapor Bug</span>
                 </button>
               )}
 
@@ -472,7 +506,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
               >
-                <Settings className="w-4 h-4 text-slate-400" />
+                <Settings className="w-4 h-4 text-slate-400 shrink-0" />
                 Pengaturan Profil & Madrasah
               </button>
 

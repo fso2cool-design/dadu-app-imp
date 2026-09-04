@@ -133,9 +133,30 @@
         "note": { "type": "string" }
       },
       "required": ["assessmentItemId", "studentId", "score"]
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "User bug reports, improvement suggestions, and feature requests",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "type": { "type": "string", "enum": ["BUG", "FEATURE", "IMPROVEMENT", "OTHER"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["NEW", "IN_PROGRESS", "RESOLVED"] },
+        "adminReply": { "type": "string" },
+        "resolvedAt": { "type": "string" }
+      },
+      "required": ["userId", "userName", "userEmail", "type", "title", "description", "status"]
     }
   },
   "firestore": {
+    "/feedbacks/{feedbackId}": {
+      "schema": "Feedback",
+      "description": "User feedback and issue reports"
+    },
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User account document"

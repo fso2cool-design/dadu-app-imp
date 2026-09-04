@@ -6,6 +6,8 @@ import {
   Printer, 
   Database,
   Sliders,
+  ShieldCheck,
+  MessageSquareHeart,
   X,
   PanelLeftClose,
   PanelLeftOpen,
@@ -21,6 +23,10 @@ interface SidebarProps {
   onCloseMobile: () => void;
   isCompact?: boolean;
   onToggleCompact?: () => void;
+  isAdmin?: boolean;
+  adminBadgeCount?: number;
+  onOpenAdminPanel?: () => void;
+  onOpenFeedbackModal?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +36,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   isCompact = false,
   onToggleCompact,
+  isAdmin = false,
+  adminBadgeCount = 0,
+  onOpenAdminPanel,
+  onOpenFeedbackModal,
 }) => {
   const { activeTheme } = useAppTheme();
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
@@ -70,11 +80,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'master', label: 'Data Master', icon: Database },
         { id: 'settings', label: 'Pengaturan', icon: Sliders },
+        ...(isAdmin ? [{ id: 'admin-panel', label: 'Panel Admin', icon: ShieldCheck, badgeCount: adminBadgeCount }] : []),
       ],
     },
+    ...(!isAdmin ? [{
+      groupTitle: 'BANTUAN & SARAN',
+      items: [
+        { id: 'feedback-modal', label: 'Kirim Masukan', icon: MessageSquareHeart },
+      ],
+    }] : []),
   ];
 
   const handleItemClick = (id: string) => {
+    if (id === 'admin-panel') {
+      if (onOpenAdminPanel) onOpenAdminPanel();
+      onCloseMobile();
+      return;
+    }
+    if (id === 'feedback-modal') {
+      if (onOpenFeedbackModal) onOpenFeedbackModal();
+      onCloseMobile();
+      return;
+    }
     onNavigate(id);
     onCloseMobile();
   };
@@ -230,7 +257,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }`}
                   >
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? '' : 'text-slate-400'}`} />
-                    {!compact && <span className="truncate">{item.label}</span>}
+                    {!compact && (
+                      <div className="flex items-center justify-between flex-1 min-w-0">
+                        <span className="truncate">{item.label}</span>
+                        {'badgeCount' in item && typeof (item as any).badgeCount === 'number' && (item as any).badgeCount > 0 ? (
+                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
+                            {(item as any).badgeCount}
+                          </span>
+                        ) : null}
+                      </div>
+                    )}
+                    {compact && 'badgeCount' in item && typeof (item as any).badgeCount === 'number' && (item as any).badgeCount > 0 ? (
+                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-900 animate-pulse" />
+                    ) : null}
                   </button>
                 </div>
               );

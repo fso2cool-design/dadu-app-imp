@@ -15,6 +15,8 @@ import { ReportsHubPage } from './features/reports/ReportsHubPage';
 import { SettingsPage } from './features/settings/SettingsPage';
 import { PhaseShellPage } from './components/common/PhaseShellPage';
 import { LoadingScreen } from './components/common/LoadingScreen';
+import { FeedbackModal } from './components/common/FeedbackModal';
+import { getUnreadFeedbackCount } from './services/firestore/feedbacks';
 
 function MainApp() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -22,8 +24,19 @@ function MainApp() {
   const [currentRoute, setCurrentRoute] = useState<string>('dashboard');
   const [routeState, setRouteState] = useState<any>(null);
   const [isAdminView, setIsAdminView] = useState<boolean | null>(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
+  const [adminBadgeCount, setAdminBadgeCount] = useState<number>(0);
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
+
+  // Quota-friendly unread count check: only run once on load if admin
+  useEffect(() => {
+    if (isAdmin) {
+      getUnreadFeedbackCount()
+        .then(count => setAdminBadgeCount(count))
+        .catch(err => console.warn('Unread feedback count check failed:', err));
+    }
+  }, [isAdmin]);
 
   // Reset current route to dashboard when user logs out or session changes
   useEffect(() => {
@@ -139,13 +152,25 @@ function MainApp() {
   };
 
   return (
-    <AppLayout 
-      currentRoute={currentRoute} 
-      onNavigate={handleNavigate}
-      onOpenAdminPanel={isAdmin ? () => setIsAdminView(true) : undefined}
-    >
-      {renderPage()}
-    </AppLayout>
+    <>
+      <AppLayout 
+        currentRoute={currentRoute} 
+        onNavigate={handleNavigate}
+        isAdmin={isAdmin}
+        adminBadgeCount={adminBadgeCount}
+        onOpenAdminPanel={isAdmin ? () => setIsAdminView(true) : undefined}
+        onOpenFeedbackModal={() => setShowFeedbackModal(true)}
+      >
+        {renderPage()}
+      </AppLayout>
+
+      {showFeedbackModal && (
+        <FeedbackModal
+          isOpen={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+        />
+      )}
+    </>
   );
 }
 

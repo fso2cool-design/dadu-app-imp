@@ -8,6 +8,9 @@ interface AppLayoutProps {
   onNavigate: (route: string) => void;
   children: ReactNode;
   onOpenAdminPanel?: () => void;
+  isAdmin?: boolean;
+  adminBadgeCount?: number;
+  onOpenFeedbackModal?: () => void;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -15,6 +18,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onNavigate,
   children,
   onOpenAdminPanel,
+  isAdmin = false,
+  adminBadgeCount = 0,
+  onOpenFeedbackModal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -55,6 +61,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         onCloseMobile={() => setMobileMenuOpen(false)}
         isCompact={isSidebarCompact}
         onToggleCompact={handleToggleSidebarCompact}
+        isAdmin={isAdmin}
+        adminBadgeCount={adminBadgeCount}
+        onOpenAdminPanel={onOpenAdminPanel}
+        onOpenFeedbackModal={onOpenFeedbackModal}
       />
 
       {/* Main Container */}
@@ -64,6 +74,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
           onNavigate={onNavigate}
           onOpenAdminPanel={onOpenAdminPanel}
+          adminBadgeCount={adminBadgeCount}
+          onOpenFeedbackModal={onOpenFeedbackModal}
         />
 
         {/* Content Area with clean padding and ample workspace */}

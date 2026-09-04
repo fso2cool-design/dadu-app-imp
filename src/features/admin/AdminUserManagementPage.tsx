@@ -4,9 +4,14 @@ import {
   getAllUsers, 
   setAccountStatus, 
   purgeEntireUserWorkspace, 
+  purgeOrphanedResiduals,
+  scanOrphanResiduals,
+  OrphanResidualItem,
   getUserStorageStats,
   UserStorageStats 
 } from '../../services/firestore/users';
+import { getUnreadFeedbackCount } from '../../services/firestore/feedbacks';
+import { AdminFeedbackTab } from './AdminFeedbackTab';
 import { UserProfile } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
@@ -28,7 +33,9 @@ import {
   Check,
   X,
   UserCheck,
-  AlertCircle
+  AlertCircle,
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 
 interface AdminUserManagementPageProps {
@@ -45,6 +52,20 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+
+  // Admin section tabs: USERS vs FEEDBACK
+  const [activeAdminTab, setActiveAdminTab] = useState<'USERS' | 'FEEDBACK'>('USERS');
+  const [unreadFeedbackCount, setUnreadFeedbackCount] = useState<number>(0);
+
+  // Sweep orphaned residuals state
+  const [showResidualSweepModal, setShowResidualSweepModal] = useState<boolean>(false);
+  const [residualUidInput, setResidualUidInput] = useState<string>('');
+  const [sweepingResidual, setSweepingResidual] = useState<boolean>(false);
+  const [sweepResult, setSweepResult] = useState<{ success: boolean; count: number; message: string } | null>(null);
+  const [scanningOrphans, setScanningOrphans] = useState<boolean>(false);
+  const [detectedOrphans, setDetectedOrphans] = useState<OrphanResidualItem[]>([]);
+  const [hasScanned, setHasScanned] = useState<boolean>(false);
+  const [sweepingAll, setSweepingAll] = useState<boolean>(false);
 
   // Stats inspecting state
   const [inspectingUser, setInspectingUser] = useState<UserProfile | null>(null);
@@ -65,6 +86,15 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
     }
   };
 
+  const loadUnreadFeedbackCount = async () => {
+    try {
+      const count = await getUnreadFeedbackCount();
+      setUnreadFeedbackCount(count);
+    } catch (err) {
+      console.warn('Failed to load feedback unread count:', err);
+    }
+  };
+
   const loadAllUsers = async () => {
     setLoading(true);
     try {
@@ -80,7 +110,102 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
   useEffect(() => {
     loadAllUsers();
+    loadUnreadFeedbackCount();
   }, []);
+
+  const handleAutoScanOrphans = async () => {
+    setScanningOrphans(true);
+    setSweepResult(null);
+    try {
+      const found = await scanOrphanResiduals();
+      setDetectedOrphans(found);
+      setHasScanned(true);
+      if (found.length === 0) {
+        showToast('success', 'Database Bersih! Tidak ada residu akun yatim terdeteksi di Firestore.');
+      } else {
+        showToast('success', `Deteksi selesai: Ditemukan ${found.length} akun terhapus dengan sisa dokumen.`);
+      }
+    } catch (err: any) {
+      console.error('Scan orphans error:', err);
+      showToast('error', 'Gagal memindai residu: ' + (err.message || 'Periksa aturan Firestore'));
+    } finally {
+      setScanningOrphans(false);
+    }
+  };
+
+  const handleSweepDetectedOrphan = async (targetUid: string) => {
+    setSweepingResidual(true);
+    try {
+      const count = await purgeOrphanedResiduals(targetUid);
+      setDetectedOrphans(prev => prev.filter(o => o.uid !== targetUid));
+      showToast('success', `Berhasil menyapu ${count} dokumen residu dari UID: ${targetUid.substring(0, 10)}...`);
+      setSweepResult({
+        success: true,
+        count,
+        message: `UID ${targetUid} berhasil disapu bersih (${count} dokumen terhapus).`,
+      });
+    } catch (err: any) {
+      console.error('Error sweeping detected orphan:', err);
+      showToast('error', 'Gagal menyapu: ' + err.message);
+    } finally {
+      setSweepingResidual(false);
+    }
+  };
+
+  const handleSweepAllDetectedOrphans = async () => {
+    if (detectedOrphans.length === 0) return;
+    setSweepingAll(true);
+    let totalPurged = 0;
+    try {
+      for (const orphan of detectedOrphans) {
+        const count = await purgeOrphanedResiduals(orphan.uid);
+        totalPurged += count;
+      }
+      setDetectedOrphans([]);
+      setSweepResult({
+        success: true,
+        count: totalPurged,
+        message: `Seluruh residu (${totalPurged} dokumen dari ${detectedOrphans.length} akun) telah disapu bersih dari Firestore.`,
+      });
+      showToast('success', `Sapu massal tuntas: ${totalPurged} dokumen terhapus.`);
+    } catch (err: any) {
+      console.error('Error sweeping all orphans:', err);
+      showToast('error', 'Gagal sapu massal: ' + err.message);
+    } finally {
+      setSweepingAll(false);
+    }
+  };
+
+  const handleSweepResidualByUid = async () => {
+    const trimmedUid = residualUidInput.trim();
+    if (!trimmedUid) {
+      showToast('error', 'Silakan masukkan UID target terlebih dahulu.');
+      return;
+    }
+
+    setSweepingResidual(true);
+    setSweepResult(null);
+    try {
+      const count = await purgeOrphanedResiduals(trimmedUid);
+      setSweepResult({
+        success: true,
+        count,
+        message: `Pembersihan residu tuntas! Sebanyak ${count} dokumen telah dihapus dari seluruh 14 sub-koleksi Firestore.`,
+      });
+      showToast('success', `Berhasil membersihkan ${count} dokumen residu dari UID: ${trimmedUid}`);
+      loadAllUsers();
+    } catch (err: any) {
+      console.error('Error sweeping residuals:', err);
+      setSweepResult({
+        success: false,
+        count: 0,
+        message: 'Gagal menyapu residu: ' + (err.message || 'Periksa izin aturan Firestore'),
+      });
+      showToast('error', 'Gagal menyapu residu: ' + err.message);
+    } finally {
+      setSweepingResidual(false);
+    }
+  };
 
   const handleToggleStatus = async (targetUser: UserProfile) => {
     const newStatus = targetUser.accountStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
@@ -196,100 +321,152 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
-        {/* Database Quota Information Banner */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 block">Total Akun Terdaftar</span>
-              <span className="text-2xl font-black text-white">{totalUsers}</span>
-              <span className="text-[11px] text-slate-500 block">di database Firestore</span>
-            </div>
-          </div>
+        {/* Admin Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('USERS')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeAdminTab === 'USERS'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            <span>Pengguna & Kuota DB</span>
+          </button>
 
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-              <UserCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 block">Akun Aktif (Active)</span>
-              <span className="text-2xl font-black text-emerald-400">{activeCount}</span>
-              <span className="text-[11px] text-slate-500 block">Dapat login & input data</span>
-            </div>
-          </div>
-
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-              <UserX className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 block">Akun Ditangguhkan</span>
-              <span className="text-2xl font-black text-amber-400">{suspendedCount}</span>
-              <span className="text-[11px] text-slate-500 block">Akses masuk diblokir</span>
-            </div>
-          </div>
-
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
-              <HardDrive className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 block">Optimasi Kuota DB</span>
-              <span className="text-sm font-bold text-cyan-300">Spark Free Tier</span>
-              <span className="text-[11px] text-slate-400 block">Gunakan Purge untuk bersihkan sampah</span>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setActiveAdminTab('FEEDBACK')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
+              activeAdminTab === 'FEEDBACK'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Pusat Masukan & Laporan</span>
+            {unreadFeedbackCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                {unreadFeedbackCount}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Action & Filter Toolbar */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari nama guru, email, atau NIP..."
-                className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
-              />
+        {activeAdminTab === 'FEEDBACK' ? (
+          <AdminFeedbackTab onFeedbackCountChange={loadUnreadFeedbackCount} />
+        ) : (
+          <>
+            {/* Database Quota Information Banner */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Total Akun Terdaftar</span>
+                  <span className="text-2xl font-black text-white">{totalUsers}</span>
+                  <span className="text-[11px] text-slate-500 block">di database Firestore</span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <UserCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Akun Aktif (Active)</span>
+                  <span className="text-2xl font-black text-emerald-400">{activeCount}</span>
+                  <span className="text-[11px] text-slate-500 block">Dapat login & input data</span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                  <UserX className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Akun Ditangguhkan</span>
+                  <span className="text-2xl font-black text-amber-400">{suspendedCount}</span>
+                  <span className="text-[11px] text-slate-500 block">Akses masuk diblokir</span>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                  <HardDrive className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Optimasi Kuota DB</span>
+                  <span className="text-sm font-bold text-cyan-300">Spark Free Tier</span>
+                  <span className="text-[11px] text-slate-400 block">Gunakan Purge untuk bersihkan sampah</span>
+                </div>
+              </div>
             </div>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
-            >
-              <option value="ALL">Semua Status</option>
-              <option value="ACTIVE">Hanya Aktif</option>
-              <option value="SUSPENDED">Hanya Ditangguhkan (Suspend)</option>
-            </select>
+            {/* Action & Filter Toolbar */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari nama guru, email, atau NIP..."
+                    className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
+                  />
+                </div>
 
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
-            >
-              <option value="ALL">Semua Peran</option>
-              <option value="ADMIN">Hanya Admin</option>
-              <option value="TEACHER">Hanya Guru</option>
-            </select>
-          </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="ALL">Semua Status</option>
+                  <option value="ACTIVE">Hanya Aktif</option>
+                  <option value="SUSPENDED">Hanya Ditangguhkan (Suspend)</option>
+                </select>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <button
-              type="button"
-              onClick={loadAllUsers}
-              disabled={loading}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh Data</span>
-            </button>
-          </div>
-        </div>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="ALL">Semua Peran</option>
+                  <option value="ADMIN">Hanya Admin</option>
+                  <option value="TEACHER">Hanya Guru</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResidualSweepModal(true);
+                    setResidualUidInput('');
+                    setSweepResult(null);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1.5 border border-amber-500/30 transition-colors cursor-pointer"
+                  title="Bersihkan data orphan / residu akun yang sudah dihapus"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Sapu Residu Yatim (UID)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={loadAllUsers}
+                  disabled={loading}
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  <span>Refresh Data</span>
+                </button>
+              </div>
+            </div>
 
         {/* Users Table */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -448,6 +625,8 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </table>
           </div>
         </div>
+          </>
+        )}
       </main>
 
       {/* INSPECT STORAGE STATS MODAL */}
@@ -582,6 +761,196 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     <span>Hapus Total Sekarang</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* SWEEP ORPHANED RESIDUALS MODAL (AUTO-DETECTION & UID) */}
+      {showResidualSweepModal && (
+        <Modal
+          isOpen={showResidualSweepModal}
+          onClose={() => {
+            if (!sweepingResidual && !sweepingAll && !scanningOrphans) {
+              setShowResidualSweepModal(false);
+              setResidualUidInput('');
+              setSweepResult(null);
+            }
+          }}
+          title="🧹 Pembersih Residu Database (Auto-Scan & Sapu Yatim)"
+          size="lg"
+        >
+          <div className="space-y-4 text-slate-800">
+            <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-800 font-bold">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                <span>Pembersihan Residu Yatim Otomatis (Orphan Subcollections)</span>
+              </div>
+              <p className="text-amber-900 leading-relaxed">
+                Di Firestore, akun yang dihapus dari Firebase Auth Console sering kali masih meninggalkan data di 14 sub-koleksi (seperti nilai, absensi, atau siswa). Fitur ini dapat mendeteksi seluruh residu tersebut secara otomatis tanpa Anda perlu membuka console.
+              </p>
+            </div>
+
+            {/* AUTO SCAN SECTION */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <Search className="w-3.5 h-3.5 text-amber-600" />
+                    Deteksi Otomatis Dokumen Yatim
+                  </h4>
+                  <p className="text-[11px] text-slate-500">
+                    Pindai seluruh sub-koleksi untuk mencari ID akun yang sudah terhapus
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAutoScanOrphans}
+                  disabled={scanningOrphans || sweepingResidual || sweepingAll}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm shadow-amber-600/30 transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                >
+                  {scanningOrphans ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Memindai Firestore...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-3.5 h-3.5" />
+                      <span>{hasScanned ? 'Pindai Ulang Database' : 'Mulai Pindai Residu Otomatis'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Scan Results */}
+              {hasScanned && detectedOrphans.length === 0 && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center gap-2 text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div>
+                    <span className="font-bold">Database Bersih & Rapi! </span>
+                    <span className="text-[11px] text-emerald-700">Tidak ada residu akun yatim yang terdeteksi di Firestore. Seluruh dokumen terhubung dengan akun pengguna aktif.</span>
+                  </div>
+                </div>
+              )}
+
+              {detectedOrphans.length > 0 && (
+                <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
+                      <AlertCircle className="w-4 h-4 text-rose-600" />
+                      Terdeteksi {detectedOrphans.length} Akun Yatim Berisi Dokumen:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSweepAllDetectedOrphans}
+                      disabled={sweepingAll || sweepingResidual}
+                      className="px-3 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1 shadow-sm shadow-rose-600/30 cursor-pointer disabled:opacity-50"
+                    >
+                      {sweepingAll ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Menyapu Seluruh Akun...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Sapu Bersih Semua Sekaligus</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                    {detectedOrphans.map(item => (
+                      <div key={item.uid} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs">
+                        <div className="min-w-0">
+                          <div className="font-mono text-xs font-bold text-slate-800 truncate">
+                            UID: <span className="text-indigo-600">{item.uid}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
+                              ~{item.detectedDocCount} dokumen terdeteksi
+                            </span>
+                            <span className="text-slate-400">di koleksi:</span>
+                            <span className="font-mono text-slate-600 font-medium">
+                              {item.sampleCollections.join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleSweepDetectedOrphan(item.uid)}
+                          disabled={sweepingResidual || sweepingAll}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                        >
+                          {sweepingResidual ? 'Menyapu...' : 'Sapu UID Ini'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* MANUAL UID SECTION */}
+            <div className="pt-2 border-t border-slate-200 space-y-2">
+              <label className="block text-xs font-bold text-slate-700">
+                Atau Masukkan UID Manual (Opsional):
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={residualUidInput}
+                  onChange={(e) => setResidualUidInput(e.target.value)}
+                  placeholder="Contoh: E4iMZEZoZTWuOy11SxLq8Qw..."
+                  disabled={sweepingResidual || sweepingAll}
+                  className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold text-slate-900 focus:outline-hidden focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleSweepResidualByUid}
+                  disabled={sweepingResidual || sweepingAll || !residualUidInput.trim()}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                >
+                  {sweepingResidual ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyapu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Sapu UID Manual</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {sweepResult && (
+              <div className={`p-3 rounded-xl border text-xs ${
+                sweepResult.success
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-medium'
+                  : 'bg-rose-50 border-rose-200 text-rose-800'
+              }`}>
+                {sweepResult.message}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResidualSweepModal(false);
+                  setResidualUidInput('');
+                  setSweepResult(null);
+                }}
+                disabled={sweepingResidual || sweepingAll || scanningOrphans}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+              >
+                Tutup
               </button>
             </div>
           </div>

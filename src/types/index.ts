@@ -314,3 +314,25 @@ export interface AttendanceSettings {
   holidays: CustomHoliday[];
   updatedAt?: any;
 }
+
+// -------------------------------------------------------------
+// FEEDBACK & SYSTEM ISSUE REPORTING
+// -------------------------------------------------------------
+
+export type FeedbackType = 'BUG' | 'FEATURE' | 'IMPROVEMENT' | 'OTHER';
+export type FeedbackStatus = 'NEW' | 'IN_PROGRESS' | 'RESOLVED';
+
+export interface FeedbackItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  type: FeedbackType;
+  title: string;
+  description: string;
+  status: FeedbackStatus;
+  adminReply?: string;
+  resolvedAt?: any;
+  createdAt: any;
+  updatedAt: any;
+}

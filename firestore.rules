@@ -51,6 +51,39 @@ service cloud.firestore {
         allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
       }
     }
+
+    // Feedback and Bug Reports collection
+    match /feedbacks/{feedbackId} {
+      // Any authenticated user can submit feedback with their own uid
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // User can read their own feedback, super admin can read all
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      // Only Super Admin can update status, write reply, or delete
+      allow update, delete: if request.auth != null && isSuperAdmin();
+    }
+
+    // Allow Super Admin to query collection groups across workspaces for orphan detection
+    match /{path=**}/classes/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/students/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/academicYears/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/subjects/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/teachingAssignments/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/dailyAttendanceSessions/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/attendanceRecords/{docId} {
+      allow read: if isSuperAdmin();
+    }
   }
 }
 
