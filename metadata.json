@@ -1,0 +1,6 @@
+{
+  "name": "Dadu (Digitalisasi Data Guru)",
+  "description": "Aplikasi Digitalisasi Data Guru untuk manajemen KBM, presensi mapel & harian, jurnal mengajar, penilaian kurikulum merdeka, dan legger rapor siswa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

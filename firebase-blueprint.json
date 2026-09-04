@@ -1,0 +1,180 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profile and metadata of the teacher/user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["TEACHER", "ADMIN"] },
+        "accountStatus": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "SUSPENDED"] },
+        "isOnboarded": { "type": "boolean" }
+      },
+      "required": ["uid", "displayName", "email", "role"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Master student entity stored per teacher workspace",
+      "type": "object",
+      "properties": {
+        "nis": { "type": "string", "maxLength": 30 },
+        "nisn": { "type": "string", "maxLength": 30 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "gender": { "type": "string", "enum": ["L", "P"] },
+        "birthPlace": { "type": "string" },
+        "birthDate": { "type": "string" },
+        "phone": { "type": "string" },
+        "parentName": { "type": "string" },
+        "parentPhone": { "type": "string" },
+        "address": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "GRADUATED", "TRANSFERRED"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["fullName", "gender", "status"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student placement in a specific class and academic year with roll number",
+      "type": "object",
+      "properties": {
+        "academicYearId": { "type": "string" },
+        "classId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "rollNumber": { "type": "number" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "TRANSFERRED", "GRADUATED"] }
+      },
+      "required": ["academicYearId", "classId", "studentId", "rollNumber", "status"]
+    },
+    "Meeting": {
+      "title": "Meeting",
+      "description": "Teaching meeting session journal and learning topic",
+      "type": "object",
+      "properties": {
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "teachingAssignmentId": { "type": "string" },
+        "classId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "date": { "type": "string" },
+        "meetingNumber": { "type": "number" },
+        "topic": { "type": "string" },
+        "learningObjectives": { "type": "string" },
+        "activities": { "type": "string" },
+        "method": { "type": "string" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "SCHEDULED", "COMPLETED", "CANCELLED", "SUBSTITUTE"] }
+      },
+      "required": ["academicYearId", "semester", "teachingAssignmentId", "classId", "subjectId", "date", "meetingNumber", "topic", "status"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Student subject attendance record for a meeting",
+      "type": "object",
+      "properties": {
+        "meetingId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "rollNumber": { "type": "number" },
+        "studentName": { "type": "string" },
+        "status": { "type": "string", "enum": ["PRESENT", "SICK", "PERMITTED", "ABSENT", "DISPENSATION"] },
+        "note": { "type": "string" }
+      },
+      "required": ["meetingId", "studentId", "status"]
+    },
+    "StudentNote": {
+      "title": "StudentNote",
+      "description": "Student character, behavioral, academic guidance and counseling notes",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "rollNumber": { "type": "number" },
+        "classId": { "type": "string" },
+        "className": { "type": "string" },
+        "academicYearId": { "type": "string" },
+        "date": { "type": "string" },
+        "category": { "type": "string", "enum": ["ACADEMIC", "ATTENDANCE", "ACHIEVEMENT", "BEHAVIOR", "ADMINISTRATIVE", "OTHER"] },
+        "note": { "type": "string" },
+        "actionPlan": { "type": "string" },
+        "parentFollowUp": { "type": "string" },
+        "isImportant": { "type": "boolean" }
+      },
+      "required": ["studentId", "classId", "academicYearId", "date", "category", "note"]
+    },
+    "AssessmentItem": {
+      "title": "AssessmentItem",
+      "description": "Grading and assessment columns created for a teaching assignment",
+      "type": "object",
+      "properties": {
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "teachingAssignmentId": { "type": "string" },
+        "classId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["ASSIGNMENT", "QUIZ", "PRACTICE", "PROJECT", "MIDTERM", "FINAL", "OTHER"] },
+        "assessmentDate": { "type": "string" },
+        "maxScore": { "type": "number" },
+        "weight": { "type": "number" },
+        "isIncludedInFinalScore": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "required": ["academicYearId", "semester", "teachingAssignmentId", "classId", "subjectId", "name", "category"]
+    },
+    "Score": {
+      "title": "Score",
+      "description": "Student score record for an assessment item",
+      "type": "object",
+      "properties": {
+        "assessmentItemId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "score": { "type": "number" },
+        "note": { "type": "string" }
+      },
+      "required": ["assessmentItemId", "studentId", "score"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User account document"
+    },
+    "/users/{userId}/students/{studentId}": {
+      "schema": "Student",
+      "description": "Master students of the teacher"
+    },
+    "/users/{userId}/enrollments/{enrollmentId}": {
+      "schema": "Enrollment",
+      "description": "Class enrollment records per academic year"
+    },
+    "/users/{userId}/meetings/{meetingId}": {
+      "schema": "Meeting",
+      "description": "Teaching meeting journals"
+    },
+    "/users/{userId}/attendanceRecords/{recordId}": {
+      "schema": "AttendanceRecord",
+      "description": "Subject attendance records per meeting"
+    },
+    "/users/{userId}/dailyAttendanceSessions/{sessionId}": {
+      "schema": "DailyAttendanceSession",
+      "description": "Homeroom daily attendance sessions"
+    },
+    "/users/{userId}/dailyAttendanceRecords/{recordId}": {
+      "schema": "DailyAttendanceRecord",
+      "description": "Homeroom daily attendance individual records"
+    },
+    "/users/{userId}/studentNotes/{noteId}": {
+      "schema": "StudentNote",
+      "description": "Student character, behavioral, academic guidance and counseling notes"
+    },
+    "/users/{userId}/assessmentItems/{assessmentItemId}": {
+      "schema": "AssessmentItem",
+      "description": "Assessment columns for grading"
+    },
+    "/users/{userId}/scores/{scoreId}": {
+      "schema": "Score",
+      "description": "Student assessment score values"
+    }
+  }
+}

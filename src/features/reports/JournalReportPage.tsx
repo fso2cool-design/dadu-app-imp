@@ -1,0 +1,313 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { useWorkspace } from '../../context/WorkspaceContext';
+import { PrintDocumentLayout } from './PrintDocumentLayout';
+import { Badge } from '../../components/common/Badge';
+import { getMeetings } from '../../services/firestore/meetings';
+import { TeachingAssignment, Meeting } from '../../types';
+import { formatDateWithDay } from '../../utils/date';
+import * as XLSX from 'xlsx';
+import { 
+  CalendarCheck2, 
+  Search, 
+  BookOpen, 
+  Layers, 
+  Calendar, 
+  CheckCircle2, 
+  FileSpreadsheet, 
+  Clock,
+  Sparkles
+} from 'lucide-react';
+
+export const JournalReportPage: React.FC = () => {
+  const { user } = useAuth();
+  const { 
+    activeAcademicYear, 
+    activeSemester, 
+    teachingAssignments, 
+    selectedAssignment, 
+    setSelectedAssignment 
+  } = useWorkspace();
+
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Initialize selected assignment
+  useEffect(() => {
+    if (teachingAssignments.length > 0 && !selectedAssignment) {
+      setSelectedAssignment(teachingAssignments[0]);
+    }
+  }, [teachingAssignments, selectedAssignment]);
+
+  // Fetch meetings
+  useEffect(() => {
+    if (!user || !activeAcademicYear || !selectedAssignment) return;
+
+    const fetchJournalData = async () => {
+      setLoading(true);
+      try {
+        const mets = await getMeetings(user.uid, { teachingAssignmentId: selectedAssignment.id });
+        mets.sort((a, b) => (a.meetingNumber || 0) - (b.meetingNumber || 0));
+        setMeetings(mets);
+      } catch (err) {
+        console.error('Error fetching journal report data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJournalData();
+  }, [user, activeAcademicYear, selectedAssignment]);
+
+  // Filtered meetings
+  const filteredMeetings = useMemo(() => {
+    if (!searchQuery.trim()) return meetings;
+    const q = searchQuery.toLowerCase();
+    return meetings.filter(m => 
+      (m.topic || '').toLowerCase().includes(q) ||
+      (m.learningObjectives || '').toLowerCase().includes(q) ||
+      (m.activities || '').toLowerCase().includes(q) ||
+      (m.notes || '').toLowerCase().includes(q)
+    );
+  }, [meetings, searchQuery]);
+
+  // Formatted date helper
+  const formatDate = (dateStr: string) => formatDateWithDay(dateStr);
+
+  // Export Excel
+  const handleExportExcel = () => {
+    if (meetings.length === 0) return;
+
+    const sheetData: any[] = [];
+
+    // Title & Metadata
+    sheetData.push(['BUKU AGENDA JURNAL GURU MENGAJAR']);
+    sheetData.push([`Tahun Ajaran: ${activeAcademicYear?.label || '-'} (${activeSemester})`]);
+    sheetData.push([`Kelas: ${selectedAssignment?.className || '-'}`]);
+    sheetData.push([`Mata Pelajaran: ${selectedAssignment?.subjectName || '-'}`]);
+    sheetData.push([`Total Pertemuan: ${meetings.length} Pertemuan`]);
+    sheetData.push([]); // Empty row
+
+    // Table Header
+    sheetData.push([
+      'No',
+      'Pertemuan Ke',
+      'Hari & Tanggal',
+      'Jam Ke',
+      'Pokok Bahasan / Tujuan Pembelajaran',
+      'Uraian Kegiatan Pembelajaran',
+      'Kehadiran Siswa (H/S/I/A)',
+      '% Hadir',
+      'Catatan / Refleksi Guru'
+    ]);
+
+    // Rows
+    filteredMeetings.forEach((m, idx) => {
+      const summary = m.attendanceSummary;
+      const presensiStr = summary 
+        ? `H: ${summary.present}, S: ${summary.sick}, I: ${summary.permitted}, A: ${summary.absent}` 
+        : '-';
+      const pctStr = summary ? `${summary.presentPercentage}%` : '-';
+
+      sheetData.push([
+        idx + 1,
+        m.meetingNumber || idx + 1,
+        formatDate(m.date),
+        m.timeSlot || '-',
+        m.topic || m.learningObjectives || '-',
+        m.activities || '-',
+        presensiStr,
+        pctStr,
+        m.notes || '-'
+      ]);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Jurnal Mengajar');
+
+    const fileName = `Jurnal_Mengajar_${selectedAssignment?.subjectName || 'Mapel'}_${selectedAssignment?.className || 'Kelas'}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
+  const metaItems = [
+    { label: 'Tahun Ajaran', value: `${activeAcademicYear?.label || '-'} (${activeSemester})` },
+    { label: 'Kelas / Rombel', value: selectedAssignment?.className || '-' },
+    { label: 'Mata Pelajaran', value: selectedAssignment?.subjectName || '-' },
+    { label: 'Total Sesi KBM', value: `${meetings.length} Pertemuan` },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+            <CalendarCheck2 className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+            Laporan Jurnal Agenda Mengajar
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+            Dokumen resmi rekapitulasi pelaksanaan pembelajaran (KBM), materi, dan absensi per semester.
+          </p>
+        </div>
+      </div>
+
+      {/* Control & Filter Bar (Hidden on Print) */}
+      <div className="no-print bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-600">Pilih Mapel & Kelas:</label>
+            <select
+              value={selectedAssignment?.id || ''}
+              onChange={(e) => {
+                const asg = teachingAssignments.find(a => a.id === e.target.value);
+                if (asg) setSelectedAssignment(asg);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500"
+            >
+              {teachingAssignments.map(asg => (
+                <option key={asg.id} value={asg.id}>
+                  {asg.className} — {asg.subjectName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Search Input */}
+          <div className="relative min-w-[220px]">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari materi atau topik..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Statistical Overview */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+          <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-indigo-700 block">Pertemuan Terselenggara</span>
+              <span className="text-lg font-black text-indigo-950">{meetings.length} <span className="text-xs font-normal text-indigo-700">Sesi</span></span>
+            </div>
+            <Calendar className="w-6 h-6 text-indigo-400" />
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-emerald-700 block">Presensi Lengkap</span>
+              <span className="text-lg font-black text-emerald-950">
+                {meetings.filter(m => m.attendanceSummary && m.attendanceSummary.total > 0).length} <span className="text-xs font-normal text-emerald-700">Pertemuan</span>
+              </span>
+            </div>
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between col-span-2 sm:col-span-1">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-slate-600 block">Rata-rata Kehadiran KBM</span>
+              <span className="text-lg font-black text-slate-900">
+                {meetings.length > 0
+                  ? Math.round(meetings.reduce((a, m) => a + (m.attendanceSummary?.presentPercentage || 0), 0) / meetings.length)
+                  : 0}%
+              </span>
+            </div>
+            <Clock className="w-6 h-6 text-slate-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Printable Document Section */}
+      <PrintDocumentLayout
+        title="BUKU JURNAL AGENDA MENGAJAR GURU"
+        metaItems={metaItems}
+        onExportExcel={handleExportExcel}
+        excelExportDisabled={meetings.length === 0}
+        signatureType="TEACHER_AND_HEADMASTER"
+        customTeacherRole="Guru Mata Pelajaran"
+      >
+        {loading ? (
+          <div className="py-16 text-center text-slate-400 text-xs">
+            Memuat daftar jurnal agenda mengajar...
+          </div>
+        ) : filteredMeetings.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
+            Belum ada catatan pertemuan untuk kelas dan mata pelajaran ini.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse border border-slate-900">
+              <thead>
+                <tr className="bg-slate-100 text-slate-950 font-bold border-b-2 border-slate-900 text-center">
+                  <th className="border border-slate-900 px-2 py-2 w-10">Ke-</th>
+                  <th className="border border-slate-900 px-2.5 py-2 w-32">Hari / Tanggal</th>
+                  <th className="border border-slate-900 px-2 py-2 w-16">Jam Ke</th>
+                  <th className="border border-slate-900 px-3 py-2 text-left w-48">Materi & Tujuan Pembelajaran</th>
+                  <th className="border border-slate-900 px-3 py-2 text-left">Uraian Kegiatan Pembelajaran</th>
+                  <th className="border border-slate-900 px-2 py-2 w-28">Presensi Siswa</th>
+                  <th className="border border-slate-900 px-3 py-2 text-left w-36">Catatan & Refleksi</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-300">
+                {filteredMeetings.map((m, idx) => {
+                  const summary = m.attendanceSummary;
+                  return (
+                    <tr 
+                      key={m.id} 
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        idx % 2 === 1 ? 'bg-slate-50/30' : 'bg-white'
+                      }`}
+                    >
+                      <td className="border border-slate-900 px-2 py-2 text-center font-mono font-bold">
+                        {m.meetingNumber || idx + 1}
+                      </td>
+                      <td className="border border-slate-900 px-2.5 py-2 text-center text-[11px]">
+                        <div className="font-semibold text-slate-900">{formatDate(m.date)}</div>
+                      </td>
+                      <td className="border border-slate-900 px-2 py-2 text-center font-mono text-[11px]">
+                        {m.timeSlot || '-'}
+                      </td>
+                      <td className="border border-slate-900 px-3 py-2 text-slate-900">
+                        <div className="font-bold">{m.topic || 'Pertemuan KBM'}</div>
+                        {m.learningObjectives && (
+                          <div className="text-[10px] text-slate-600 mt-0.5 line-clamp-2">
+                            TP: {m.learningObjectives}
+                          </div>
+                        )}
+                      </td>
+                      <td className="border border-slate-900 px-3 py-2 text-slate-800 text-[11px] leading-relaxed">
+                        {m.activities || '-'}
+                      </td>
+                      <td className="border border-slate-900 px-2 py-2 text-center font-mono text-[11px]">
+                        {summary ? (
+                          <div className="space-y-0.5">
+                            <div className="font-bold text-slate-900">
+                              <span className="text-emerald-700">H:{summary.present}</span> | <span className="text-amber-700">S:{summary.sick}</span> | <span className="text-blue-700">I:{summary.permitted}</span> | <span className="text-rose-700">A:{summary.absent}</span>
+                            </div>
+                            <div className="text-[9px] text-slate-500">
+                              ({summary.presentPercentage}% hadir)
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 italic">Belum diisi</span>
+                        )}
+                      </td>
+                      <td className="border border-slate-900 px-3 py-2 text-slate-700 text-[11px] italic">
+                        {m.notes || '-'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </PrintDocumentLayout>
+    </div>
+  );
+};

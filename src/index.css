@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark-crimson"], [data-theme="dark-crimson"] *));
+
+/* Theme CSS Variables & Ergonomic Foundations */
+:root {
+  --app-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --accent-color: #f97316;
+  --accent-lime: #16a34a;
+  --accent-glow: rgba(249, 115, 22, 0.25);
+  --interactive-border: #e2e8f0;
+  --focus-ring: #f97316;
+}
+
+[data-theme="light"] {
+  --app-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --accent-color: #f97316;
+  --accent-lime: #16a34a;
+  --accent-glow: rgba(249, 115, 22, 0.25);
+  --interactive-border: #cbd5e1;
+  --focus-ring: #f97316;
+}
+
+/* Tron Cyber Grid & Obsidian Theme (Ergonomic Eye-Safe Dark) */
+.dark, [data-theme="dark-crimson"] {
+  color-scheme: dark;
+  --app-bg: #0c0e15;
+  --card-bg: #141722;
+  --card-border: #232838;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent-color: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.35);
+  --interactive-border: rgba(0, 229, 255, 0.35);
+  --focus-ring: #00e5ff;
+}
+
+/* Base Body Application */
+body {
+  background-color: var(--app-bg);
+  color: var(--text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark Mode Global Overrides for Tron Cyber Obsidian & Luminescent Accents */
+.dark body, [data-theme="dark-crimson"] body {
+  background-color: #0c0e15 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .bg-white, [data-theme="dark-crimson"] .bg-white {
+  background-color: #141722 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .bg-slate-50, [data-theme="dark-crimson"] .bg-slate-50 {
+  background-color: #0c0e15 !important;
+}
+
+.dark .bg-slate-100, [data-theme="dark-crimson"] .bg-slate-100 {
+  background-color: #1b1f2e !important;
+}
+
+.dark .bg-slate-900, [data-theme="dark-crimson"] .bg-slate-900 {
+  background-color: #08090f !important;
+}
+
+.dark .border-slate-200, 
+.dark .border-slate-200\/80, 
+.dark .border-slate-100,
+.dark .border-slate-800,
+[data-theme="dark-crimson"] .border-slate-200, 
+[data-theme="dark-crimson"] .border-slate-200\/80, 
+[data-theme="dark-crimson"] .border-slate-100,
+[data-theme="dark-crimson"] .border-slate-800 {
+  border-color: #232838 !important;
+}
+
+.dark .text-slate-800, 
+.dark .text-slate-900,
+[data-theme="dark-crimson"] .text-slate-800, 
+[data-theme="dark-crimson"] .text-slate-900 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700,
+.dark .text-slate-600,
+[data-theme="dark-crimson"] .text-slate-700, 
+[data-theme="dark-crimson"] .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500, 
+.dark .text-slate-400,
+[data-theme="dark-crimson"] .text-slate-500, 
+[data-theme="dark-crimson"] .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Tron Cyber Luminescent Glow Utilities */
+.neon-glow-tron {
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
+}
+
+.dark .interactive-neon,
+[data-theme="dark-crimson"] .interactive-neon {
+  border-color: rgba(0, 229, 255, 0.45) !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus,
+[data-theme="dark-crimson"] input:focus,
+[data-theme="dark-crimson"] select:focus,
+[data-theme="dark-crimson"] textarea:focus {
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 0 1.5px #00e5ff, 0 0 12px rgba(0, 229, 255, 0.3) !important;
+}
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  nav, sidebar, header, aside, .no-print, button:not(.printable-btn) {
+    display: none !important;
+  }
+
+  .printable-document {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  .page-break-after {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+  .avoid-page-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+/* Mobile Safe Area & Smooth Touch Foundations */
+.safe-area-pb {
+  padding-bottom: calc(0.375rem + env(safe-area-inset-bottom, 0px));
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

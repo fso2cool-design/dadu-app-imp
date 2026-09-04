@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to check if current authenticated user is Super Admin
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'johanrovian90@gmail.com'
+      );
+    }
+
+    match /users/{userId} {
+      // Allow reading user profiles (admin can list all users to manage accounts)
+      allow list: if request.auth != null && (isSuperAdmin() || request.auth.uid == userId);
+      allow get: if request.auth != null && (isSuperAdmin() || request.auth.uid == userId);
+      
+      // Allow create user profile during onboarding/signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow update by owner (without privilege escalation) or by Super Admin
+      allow update: if request.auth != null && (
+        isSuperAdmin() || 
+        (request.auth.uid == userId && 
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'accountStatus']) 
+           || (resource.data.role == request.resource.data.role && resource.data.accountStatus == request.resource.data.accountStatus)))
+      );
+      
+      // Allow Super Admin to delete/purge accounts to manage free quota
+      allow delete: if request.auth != null && isSuperAdmin();
+
+      // Granular subcollection validation
+      match /scores/{scoreId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('score' in request.resource.data) || (request.resource.data.score is number && request.resource.data.score >= 0 && request.resource.data.score <= 100));
+      }
+
+      match /attendanceRecords/{recordId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+      }
+
+      match /dailyAttendanceRecords/{recordId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+      }
+
+      // Match all other subcollections in user workspace
+      match /{allSubcollections=**} {
+        allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      }
+    }
+  }
+}
+
+
