@@ -187,9 +187,9 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Version Sub-footer */}
-            <div className="flex items-center justify-start text-[10px] text-slate-500 pt-3">
-              <span>{APP_CONFIG.shortName} {APP_CONFIG.versionDisplay}</span>
+            {/* Version Sub-footer with developer signature */}
+            <div className="flex items-center justify-start text-[10px] text-slate-400 pt-3">
+              <span className="font-mono tracking-tight text-slate-400">Dadu ver. 1.0-JRA</span>
             </div>
           </div>
 
