@@ -13,6 +13,7 @@ import {
   Sparkles,
   Check,
   MessageSquareHeart,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -470,15 +471,19 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     onOpenAdminPanel();
                   }}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs text-orange-700 dark:text-cyan-300 hover:bg-orange-50 dark:hover:bg-cyan-950/50 font-semibold transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-orange-800 dark:text-cyan-300 bg-orange-500/10 dark:bg-cyan-500/10 hover:bg-orange-500/20 dark:hover:bg-cyan-500/20 border border-orange-500/20 dark:border-cyan-500/30 transition-all text-left cursor-pointer my-1 shadow-2xs"
                 >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-cyan-400 shrink-0" />
-                    <span>Panel Admin</span>
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-orange-600 dark:text-cyan-400 shrink-0" />
+                    <span>Panel Administrator</span>
                   </div>
-                  {adminBadgeCount > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
-                      {adminBadgeCount}
+                  {adminBadgeCount > 0 ? (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0 shadow-xs shadow-rose-600/50">
+                      {adminBadgeCount} Baru
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-orange-700/70 dark:text-cyan-400/70">
+                      Kelola
                     </span>
                   )}
                 </button>

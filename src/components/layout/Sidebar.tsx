@@ -80,7 +80,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'master', label: 'Data Master', icon: Database },
         { id: 'settings', label: 'Pengaturan', icon: Sliders },
-        ...(isAdmin ? [{ id: 'admin-panel', label: 'Panel Admin', icon: ShieldCheck, badgeCount: adminBadgeCount }] : []),
       ],
     },
     ...(!isAdmin ? [{
@@ -92,11 +91,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const handleItemClick = (id: string) => {
-    if (id === 'admin-panel') {
-      if (onOpenAdminPanel) onOpenAdminPanel();
-      onCloseMobile();
-      return;
-    }
     if (id === 'feedback-modal') {
       if (onOpenFeedbackModal) onOpenFeedbackModal();
       onCloseMobile();
