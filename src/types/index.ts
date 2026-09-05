@@ -49,6 +49,8 @@ export interface ClassItem {
   major?: string; // e.g. "MIPA", "IPS", "Umum"
   classTeacherId?: string; // homeroom teacher uid
   isActive: boolean;
+  isArchived?: boolean;
+  archivedAt?: any;
   createdAt: any;
   updatedAt: any;
 }

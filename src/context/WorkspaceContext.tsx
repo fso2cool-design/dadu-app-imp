@@ -200,11 +200,12 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       const sem = prefs?.defaultSemester || currentActiveYear?.currentSemester || profile?.defaultSemester || 'GANJIL';
       setActiveSemesterState(sem);
 
-      // Determine default selected class
+      // Determine default selected class (prefer active non-archived classes)
       let initialClassId = '';
       if (classesList.length > 0) {
-        const prefClass = classesList.find(c => c.id === prefs?.defaultClassId);
-        initialClassId = prefClass ? prefClass.id : classesList[0].id;
+        const activeClasses = classesList.filter(c => !c.isArchived);
+        const prefClass = activeClasses.find(c => c.id === prefs?.defaultClassId);
+        initialClassId = prefClass ? prefClass.id : (activeClasses[0]?.id || classesList[0].id);
         setSelectedClassId(initialClassId);
       }
 

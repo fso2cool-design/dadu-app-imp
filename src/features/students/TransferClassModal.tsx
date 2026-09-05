@@ -82,7 +82,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
             onChange={e => setTargetClassId(e.target.value)}
             className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 font-medium"
           >
-            {classes.map(c => (
+            {classes.filter(c => !c.isArchived && c.id !== enrollment.classId).map(c => (
               <option key={c.id} value={c.id}>
                 Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'})
               </option>

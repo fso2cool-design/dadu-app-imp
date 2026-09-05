@@ -28,6 +28,17 @@ service cloud.firestore {
       allow delete: if request.auth != null && isSuperAdmin();
 
       // Granular subcollection validation
+      match /classes/{classId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.name is string
+          && request.resource.data.academicYearId is string;
+        // Enforce academicYearId immutability on update to preserve historical academic ties
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
+              || resource.data.academicYearId == request.resource.data.academicYearId);
+      }
+
       match /scores/{scoreId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())

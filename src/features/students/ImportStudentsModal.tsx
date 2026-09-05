@@ -269,7 +269,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">-- Jangan Enroll ke Kelas (Hanya Simpan Master) --</option>
-              {classes.map(c => (
+              {classes.filter(c => !c.isArchived).map(c => (
                 <option key={c.id} value={c.id}>
                   Enroll langsung ke Kelas {c.name} (Tingkat {c.gradeLevel})
                 </option>

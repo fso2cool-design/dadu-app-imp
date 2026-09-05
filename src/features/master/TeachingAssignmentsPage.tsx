@@ -258,8 +258,8 @@ export const TeachingAssignmentsPage: React.FC = () => {
               onChange={e => setSelectedClassId(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500"
             >
-              {classes.map(c => (
-                <option key={c.id} value={c.id}>Kelas {c.name} (Tingkat {c.gradeLevel})</option>
+              {classes.filter(c => !c.isArchived || c.id === editingAssignment?.classId).map(c => (
+                <option key={c.id} value={c.id}>Kelas {c.name} (Tingkat {c.gradeLevel}){c.isArchived ? ' [Diarsipkan]' : ''}</option>
               ))}
             </select>
           </div>

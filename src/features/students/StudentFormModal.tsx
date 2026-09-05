@@ -311,9 +311,9 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-medium cursor-pointer"
                 >
                   <option value="">-- Belum Ditempatkan ke Kelas --</option>
-                  {classes.map(c => (
+                  {classes.filter(c => !c.isArchived || c.id === existingEnrollment?.classId).map(c => (
                     <option key={c.id} value={c.id}>
-                      Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'})
+                      Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'}){c.isArchived ? ' [Diarsipkan]' : ''}
                     </option>
                   ))}
                 </select>
