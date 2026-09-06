@@ -9,7 +9,7 @@ import {
   updateProfile as updateFirebaseProfile
 } from 'firebase/auth';
 import { auth } from '../../services/firebase/config';
-import { getUserProfile, createUserProfile } from '../../services/firestore/users';
+import { getUserProfile, createUserProfile, recordUserLastLogin } from '../../services/firestore/users';
 import { UserProfile } from '../../types';
 
 interface AuthContextType {
@@ -54,6 +54,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        // Record last login once per browser session/device
+        try {
+          if (sessionStorage.getItem('login_session_recorded') !== currentUser.uid) {
+            recordUserLastLogin(currentUser.uid);
+            sessionStorage.setItem('login_session_recorded', currentUser.uid);
+          }
+        } catch {}
         await fetchProfile(currentUser);
       } else {
         setProfile(null);
@@ -66,6 +73,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, pass: string) => {
     const res = await signInWithEmailAndPassword(auth, email, pass);
+    await recordUserLastLogin(res.user.uid);
+    try {
+      sessionStorage.setItem('login_session_recorded', res.user.uid);
+    } catch {}
     await fetchProfile(res.user);
   };
 
@@ -82,6 +93,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       defaultSemester: 'GANJIL',
       isOnboarded: false,
     });
+    await recordUserLastLogin(res.user.uid);
+    try {
+      sessionStorage.setItem('login_session_recorded', res.user.uid);
+    } catch {}
     setProfile(initialProfile);
   };
 

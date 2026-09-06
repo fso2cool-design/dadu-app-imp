@@ -98,6 +98,14 @@ export async function saveDailyAttendance(
   sessionNotes?: string
 ): Promise<AttendanceSummary> {
   return trackSync((async () => {
+    // 1. Check if academic year is archived
+    if (academicYearId) {
+      const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
+      if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+        throw new Error('Tidak dapat mengubah presensi pada Tahun Ajaran yang telah diarsipkan (read-only).');
+      }
+    }
+
     const sessionsColRef = collection(db, 'users', uid, 'dailyAttendanceSessions');
     const recordsColRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
 

@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from '../features/auth/AuthContext';
+import { updateUserThemePreference } from '../services/firestore/users';
 
 export type ThemeKey = 'light' | 'dark-crimson';
 
@@ -54,18 +56,38 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTheme, setActiveTheme] = useState<ThemeKey>(() => {
+  const { user, profile } = useAuth();
+  
+  // Default is strictly 'light' for unauthenticated/guest users
+  const [activeTheme, setActiveTheme] = useState<ThemeKey>('light');
+
+  // Synchronize theme based on authenticated user preference
+  useEffect(() => {
+    if (!user) {
+      // Not logged in -> always use global default light theme
+      setActiveTheme('light');
+      return;
+    }
+
+    // Logged in: resolve user theme preference
+    // 1. Profile preference from Firestore
+    if (profile?.themePreference === 'dark-crimson' || profile?.themePreference === 'light') {
+      setActiveTheme(profile.themePreference);
+      return;
+    }
+
+    // 2. Local storage preference tied to this user's UID
     try {
-      const saved = localStorage.getItem('app_theme');
-      if (saved === 'dark-crimson' || saved?.startsWith('dark')) {
-        return 'dark-crimson';
-      }
-      if (saved === 'light' || saved?.startsWith('light')) {
-        return 'light';
+      const userSaved = localStorage.getItem(`app_theme_${user.uid}`);
+      if (userSaved === 'dark-crimson' || userSaved === 'light') {
+        setActiveTheme(userSaved);
+        return;
       }
     } catch {}
-    return 'dark-crimson';
-  });
+
+    // Default to 'light' if no preference saved
+    setActiveTheme('light');
+  }, [user, profile?.themePreference]);
 
   const isDark = activeTheme === 'dark-crimson';
 
@@ -82,9 +104,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const applyAndSaveTheme = (theme: ThemeKey) => {
     setActiveTheme(theme);
-    try {
-      localStorage.setItem('app_theme', theme);
-    } catch {}
+    if (user) {
+      try {
+        localStorage.setItem(`app_theme_${user.uid}`, theme);
+      } catch {}
+      // Persist to user Firestore profile so it stays synced across devices/sessions
+      updateUserThemePreference(user.uid, theme);
+    }
   };
 
   return (

@@ -1,6 +1,7 @@
 import { 
   collection, 
   doc, 
+  getDoc,
   getDocs, 
   query, 
   where, 
@@ -48,6 +49,20 @@ export async function saveMeetingAttendance(
     throw new Error('Data presensi tidak valid: ID Siswa wajib diisi.');
   }
 
+  // 1. Relational & Archive Integrity Verification
+  const meetingDoc = await getDoc(doc(db, 'users', uid, 'meetings', meetingId));
+  if (!meetingDoc.exists()) {
+    throw new Error('Pertemuan tidak ditemukan.');
+  }
+  const meetingData = meetingDoc.data() as any;
+
+  if (meetingData?.academicYearId) {
+    const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', meetingData.academicYearId));
+    if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+      throw new Error('Tidak dapat mengubah presensi pada Tahun Ajaran yang telah diarsipkan (read-only).');
+    }
+  }
+
   return trackSync((async () => {
     const colRef = collection(db, 'users', uid, 'attendanceRecords');
     const batch = writeBatch(db);
@@ -76,6 +91,10 @@ export async function saveMeetingAttendance(
       batch.set(docRef, {
         meetingId,
         studentId: item.studentId,
+        teachingAssignmentId: meetingData.teachingAssignmentId || '',
+        classId: meetingData.classId || '',
+        subjectId: meetingData.subjectId || '',
+        academicYearId: meetingData.academicYearId || '',
         rollNumber: item.rollNumber || 0,
         studentName: item.studentName || '',
         gender: item.gender || 'L',

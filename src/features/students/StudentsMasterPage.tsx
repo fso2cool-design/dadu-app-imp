@@ -108,7 +108,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       setStudents(allStuds);
 
       if (currentClassId && activeAcademicYear) {
-        const classEnrolls = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId);
+        const classEnrolls = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId, { status: 'ALL' });
         setEnrollments(classEnrolls);
       } else {
         setEnrollments([]);
@@ -133,8 +133,12 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       // Gender filter
       if (genderFilter !== 'ALL' && stud.gender !== genderFilter) return false;
 
-      // Status filter
-      if (statusFilter !== 'ALL' && stud.status !== statusFilter) return false;
+      // Status filter (match enrollment status or student master status)
+      if (statusFilter !== 'ALL') {
+        if (item.status !== statusFilter && stud.status !== statusFilter) {
+          return false;
+        }
+      }
 
       // Search query
       if (searchQuery.trim()) {
@@ -637,9 +641,22 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                           )}
                         </td>
                         <td className="py-3 px-3.5 text-center">
-                          <Badge variant={stud.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">
-                            {stud.status === 'ACTIVE' ? 'Aktif' : stud.status}
-                          </Badge>
+                          {en.status === 'TRANSFERRED' ? (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Badge variant="warning" size="sm">
+                                Mutasi Rombel
+                              </Badge>
+                              {en.transferredToClassName && (
+                                <span className="text-[10px] text-slate-500 font-medium">
+                                  ke {en.transferredToClassName}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant={en.status === 'ACTIVE' && stud.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">
+                              {en.status === 'ACTIVE' && stud.status === 'ACTIVE' ? 'Aktif' : en.status || stud.status}
+                            </Badge>
+                          )}
                         </td>
                         <td className="py-3 px-3.5 text-right">
                           <div className="flex items-center justify-end gap-1">
@@ -656,17 +673,19 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               <Eye className="w-3.5 h-3.5" />
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedEnrollment(en);
-                                setTransferModalOpen(true);
-                              }}
-                              className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600"
-                              title="Pindah / Mutasi Kelas"
-                            >
-                              <ArrowRightLeft className="w-3.5 h-3.5" />
-                            </button>
+                            {en.status === 'ACTIVE' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedEnrollment(en);
+                                  setTransferModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600"
+                                title="Pindah / Mutasi Kelas"
+                              >
+                                <ArrowRightLeft className="w-3.5 h-3.5" />
+                              </button>
+                            )}
 
                             <button
                               type="button"
@@ -681,14 +700,16 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               <Edit className="w-3.5 h-3.5" />
                             </button>
 
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteStudent(stud.id, en.id, stud.fullName)}
-                              className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600"
-                              title="Hapus dari Kelas"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {en.status !== 'TRANSFERRED' && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteStudent(stud.id, en.id, stud.fullName)}
+                                className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                                title="Hapus dari Kelas"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>

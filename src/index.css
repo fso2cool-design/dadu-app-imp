@@ -127,15 +127,20 @@ body {
 }
 
 @media print {
+  @page {
+    size: auto;
+    margin: 12mm 10mm;
+  }
+
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
-    font-size: 11pt;
+    font-size: 10pt;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  nav, sidebar, header, aside, .no-print, button:not(.printable-btn) {
+  nav, sidebar, header, aside, .no-print, button:not(.printable-btn), [role="dialog"] > div:first-child:not(.printable-document) {
     display: none !important;
   }
 
@@ -148,17 +153,32 @@ body {
     max-width: 100% !important;
   }
 
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  tr, .avoid-page-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
   .page-break-before {
     page-break-before: always !important;
     break-before: page !important;
   }
+
   .page-break-after {
     page-break-after: always !important;
     break-after: page !important;
-  }
-  .avoid-page-break {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
 }
 

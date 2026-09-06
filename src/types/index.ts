@@ -26,6 +26,8 @@ export interface UserProfile {
   defaultAcademicYearId?: string;
   defaultSemester: SemesterType;
   isOnboarded?: boolean;
+  themePreference?: 'light' | 'dark-crimson';
+  lastLoginAt?: any;
   createdAt: any;
   updatedAt: any;
 }
@@ -89,6 +91,13 @@ export interface Enrollment {
   student?: Student; // Denormalized or joined in memory
   className?: string;
   academicYearLabel?: string;
+  // Audit trail for class transfers / mutations
+  transferredAt?: any;
+  transferredToClassId?: string;
+  transferredToClassName?: string;
+  transferredFromClassId?: string;
+  transferredFromClassName?: string;
+  transferReason?: string;
   createdAt: any;
   updatedAt: any;
 }

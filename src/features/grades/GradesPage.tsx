@@ -77,11 +77,16 @@ export const GradesPage: React.FC = () => {
 
   // Scores state: Key is `${studentId}_${assessmentItemId}`
   const [scoresMap, setScoresMap] = useState<Record<string, number | string>>({});
+  const [initialScoresMap, setInitialScoresMap] = useState<Record<string, number | string>>({});
   const [notesMap, setNotesMap] = useState<Record<string, string>>({});
 
   // Preferences / Formulas
   const [calculationMethod, setCalculationMethod] = useState<CalculationMethod>('WEIGHTED_AVERAGE');
   const [passingGrade, setPassingGrade] = useState<number>(DEFAULT_KKM); // KKM / KKTP
+  const [missingScoreTreatment, setMissingScoreTreatment] = useState<'PRO_RATA' | 'ZERO_PENALTY'>('PRO_RATA');
+
+  // Archive check
+  const isArchivedYear = Boolean(activeAcademicYear?.isArchived || selectedAssignment?.isArchived);
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,9 +187,11 @@ export const GradesPage: React.FC = () => {
         });
 
         setScoresMap(newScoresMap);
+        setInitialScoresMap(newScoresMap);
         setNotesMap(newNotesMap);
       } else {
         setScoresMap({});
+        setInitialScoresMap({});
         setNotesMap({});
       }
     } catch (err) {
@@ -200,6 +207,7 @@ export const GradesPage: React.FC = () => {
 
   // Score change handler
   const handleScoreChange = (studentId: string, assessmentItemId: string, valStr: string) => {
+    if (isArchivedYear) return;
     const key = `${studentId}_${assessmentItemId}`;
     if (valStr === '') {
       setScoresMap(prev => ({ ...prev, [key]: '' }));
@@ -217,7 +225,7 @@ export const GradesPage: React.FC = () => {
 
   // Note change handler
   const handleSaveNote = (noteText: string) => {
-    if (!noteTarget) return;
+    if (isArchivedYear || !noteTarget) return;
     const key = `${noteTarget.studentId}_${noteTarget.assessmentItemId}`;
     setNotesMap(prev => ({ ...prev, [key]: noteText }));
     setIsDirty(true);
@@ -226,34 +234,54 @@ export const GradesPage: React.FC = () => {
   // Save all changes to Firestore
   const handleSaveAll = async () => {
     if (!user || !activeAssignment) return;
+    if (isArchivedYear) {
+      toastWarning('Tidak dapat menyimpan: Tahun Ajaran ini berstatus diarsipkan (read-only).');
+      return;
+    }
+
     try {
       setSaving(true);
       triggerSyncFeedback('syncing', `Menyimpan nilai ${activeAssignment.subjectName} - Kelas ${activeAssignment.className}...`);
+      
       const scoresToSave: Array<{
         assessmentItemId: string;
         studentId: string;
-        score: number;
+        score: number | null;
         note?: string;
+        isDeleted?: boolean;
       }> = [];
 
       enrollments.forEach(enr => {
         assessmentItems.forEach(item => {
           const key = `${enr.studentId}_${item.id}`;
-          const val = scoresMap[key];
+          const currentVal = scoresMap[key];
+          const initialVal = initialScoresMap[key];
           const note = notesMap[key] || '';
 
-          if (val !== undefined && val !== '' && val !== null) {
+          const hasCurrent = currentVal !== undefined && currentVal !== '' && currentVal !== null;
+          const hadInitial = initialVal !== undefined && initialVal !== '' && initialVal !== null;
+
+          if (hasCurrent) {
             scoresToSave.push({
               assessmentItemId: item.id,
               studentId: enr.studentId,
-              score: Number(val),
+              score: Number(currentVal),
               note: note || undefined,
+            });
+          } else if (hadInitial) {
+            // Previously had a score in database, now cleared by teacher -> delete document
+            scoresToSave.push({
+              assessmentItemId: item.id,
+              studentId: enr.studentId,
+              score: null,
+              isDeleted: true,
             });
           }
         });
       });
 
       await saveMatrixScores(user.uid, scoresToSave);
+      setInitialScoresMap({ ...scoresMap });
       setIsDirty(false);
       triggerSyncFeedback('saved', 'Nilai siswa berhasil disimpan ke cloud!');
       setSaveSuccessMessage('Semua perubahan nilai berhasil disimpan.');
@@ -308,11 +336,15 @@ export const GradesPage: React.FC = () => {
 
   // Delete assessment column
   const handleDeleteItem = (itemId: string, itemName: string) => {
+    if (isArchivedYear) {
+      toastWarning('Tahun Ajaran ini telah diarsipkan. Kolom nilai tidak dapat dihapus.');
+      return;
+    }
     setItemToDelete({ id: itemId, name: itemName });
   };
 
   const executeDeleteItem = async () => {
-    if (!user || !itemToDelete) return;
+    if (!user || !itemToDelete || isArchivedYear) return;
     setDeletingItem(true);
     try {
       triggerSyncFeedback('syncing', `Menghapus kolom penilaian ${itemToDelete.name}...`);
@@ -332,6 +364,7 @@ export const GradesPage: React.FC = () => {
 
   // Apply pasted scores from modal
   const handleApplyPastedScores = (scores: Record<string, number>, targetItemId: string) => {
+    if (isArchivedYear) return;
     setScoresMap(prev => {
       const updated = { ...prev };
       Object.entries(scores).forEach(([studentId, scoreVal]) => {
@@ -344,6 +377,22 @@ export const GradesPage: React.FC = () => {
     setTimeout(() => setSaveSuccessMessage(null), 4000);
   };
 
+  // Active students only (exclude transferred/inactive from statistics)
+  const activeEnrollments = useMemo(() => {
+    return enrollments.filter(e => e.status === 'ACTIVE');
+  }, [enrollments]);
+
+  // Assessment items that are active and have at least 1 score entered in class
+  const conductedItems = useMemo(() => {
+    const included = assessmentItems.filter(i => i.isIncludedInFinalScore !== false);
+    return included.filter(item => {
+      return enrollments.some(enr => {
+        const val = scoresMap[`${enr.studentId}_${item.id}`];
+        return val !== undefined && val !== '' && val !== null;
+      });
+    });
+  }, [assessmentItems, enrollments, scoresMap]);
+
   // Calculate final grade for each student
   const studentCalculations = useMemo(() => {
     const calcs: Record<string, {
@@ -352,20 +401,24 @@ export const GradesPage: React.FC = () => {
       predicateLabel: string;
       isPassed: boolean;
       filledCount: number;
+      conductedFilledCount: number;
+      conductedTotalCount: number;
+      isIncomplete: boolean;
     }> = {};
 
-    const includedItems = assessmentItems.filter(i => i.isIncludedInFinalScore);
-    const totalWeight = includedItems.reduce((sum, i) => sum + (Number(i.weight) || 1), 0);
+    const includedItems = assessmentItems.filter(i => i.isIncludedInFinalScore !== false);
 
     enrollments.forEach(enr => {
       let weightedSum = 0;
       let usedWeight = 0;
       let simpleSum = 0;
       let filledCount = 0;
+      let conductedFilledCount = 0;
 
       includedItems.forEach(item => {
         const key = `${enr.studentId}_${item.id}`;
         const rawVal = scoresMap[key];
+        const isConducted = conductedItems.some(ci => ci.id === item.id);
 
         if (rawVal !== undefined && rawVal !== '' && rawVal !== null) {
           const num = Number(rawVal);
@@ -374,6 +427,11 @@ export const GradesPage: React.FC = () => {
           usedWeight += w;
           simpleSum += num;
           filledCount += 1;
+          if (isConducted) conductedFilledCount += 1;
+        } else if (isConducted && missingScoreTreatment === 'ZERO_PENALTY') {
+          // Uncompleted assessment that has been conducted is treated as 0
+          const w = Number(item.weight) || 1;
+          usedWeight += w;
         }
       });
 
@@ -381,28 +439,34 @@ export const GradesPage: React.FC = () => {
       if (calculationMethod === 'WEIGHTED_AVERAGE') {
         finalScore = usedWeight > 0 ? Math.round((weightedSum / usedWeight) * 10) / 10 : 0;
       } else {
-        finalScore = filledCount > 0 ? Math.round((simpleSum / filledCount) * 10) / 10 : 0;
+        const denom = missingScoreTreatment === 'ZERO_PENALTY' ? Math.max(1, conductedItems.length) : filledCount;
+        finalScore = denom > 0 ? Math.round((simpleSum / denom) * 10) / 10 : 0;
       }
 
       const scale = getGradeScale(finalScore, passingGrade);
       const predicate = scale.predicate;
       const predicateLabel = scale.label;
+      const conductedTotalCount = conductedItems.length;
+      const isIncomplete = conductedTotalCount > 0 && conductedFilledCount < conductedTotalCount;
 
       calcs[enr.studentId] = {
         finalScore,
         predicate,
         predicateLabel,
-        isPassed: finalScore >= passingGrade && filledCount > 0,
+        isPassed: finalScore >= passingGrade && filledCount > 0 && !isIncomplete,
         filledCount,
+        conductedFilledCount,
+        conductedTotalCount,
+        isIncomplete,
       };
     });
 
     return calcs;
-  }, [enrollments, assessmentItems, scoresMap, calculationMethod, passingGrade]);
+  }, [enrollments, assessmentItems, conductedItems, scoresMap, calculationMethod, passingGrade, missingScoreTreatment]);
 
-  // Summary statistics for class
+  // Summary statistics for class (calculated solely on ACTIVE students)
   const classStats = useMemo(() => {
-    const totalStudents = enrollments.length;
+    const totalStudents = activeEnrollments.length;
     if (totalStudents === 0) {
       return {
         avgScore: 0,
@@ -410,6 +474,7 @@ export const GradesPage: React.FC = () => {
         lowestScore: 0,
         passedCount: 0,
         remedialCount: 0,
+        incompleteCount: 0,
         passPercentage: 0,
         distribution: { A: 0, B: 0, C: 0, D: 0 },
       };
@@ -419,10 +484,11 @@ export const GradesPage: React.FC = () => {
     let highest = 0;
     let lowest = 100;
     let passedCount = 0;
+    let incompleteCount = 0;
     let activeWithScores = 0;
     const distribution = { A: 0, B: 0, C: 0, D: 0 };
 
-    enrollments.forEach(enr => {
+    activeEnrollments.forEach(enr => {
       const c = studentCalculations[enr.studentId];
       if (c && c.filledCount > 0) {
         sum += c.finalScore;
@@ -430,6 +496,7 @@ export const GradesPage: React.FC = () => {
         if (c.finalScore > highest) highest = c.finalScore;
         if (c.finalScore < lowest) lowest = c.finalScore;
         if (c.isPassed) passedCount++;
+        if (c.isIncomplete) incompleteCount++;
         distribution[c.predicate]++;
       } else if (c) {
         distribution.D++;
@@ -445,10 +512,11 @@ export const GradesPage: React.FC = () => {
       lowestScore: activeWithScores > 0 ? lowest : 0,
       passedCount,
       remedialCount: totalStudents - passedCount,
+      incompleteCount,
       passPercentage,
       distribution,
     };
-  }, [enrollments, studentCalculations]);
+  }, [activeEnrollments, studentCalculations]);
 
   // Filtered & Sorted student list
   const displayedEnrollments = useMemo(() => {
@@ -671,11 +739,13 @@ export const GradesPage: React.FC = () => {
             onChange={handleImportExcel}
             accept=".xlsx, .xls"
             className="hidden"
+            disabled={isArchivedYear}
           />
           <button
             type="button"
+            disabled={isArchivedYear}
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Import Excel</span>
@@ -688,8 +758,8 @@ export const GradesPage: React.FC = () => {
               setEditingItem(null);
               setIsItemModalOpen(true);
             }}
-            disabled={!activeAssignment}
-            className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            disabled={!activeAssignment || isArchivedYear}
+            className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Kolom Nilai</span>
@@ -699,9 +769,11 @@ export const GradesPage: React.FC = () => {
           <button
             type="button"
             onClick={handleSaveAll}
-            disabled={saving || !isDirty}
+            disabled={saving || !isDirty || isArchivedYear}
             className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
-              isDirty 
+              isArchivedYear
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                : isDirty 
                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white animate-pulse' 
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-60'
             }`}
@@ -711,6 +783,22 @@ export const GradesPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Archive Warning Banner */}
+      {isArchivedYear && (
+        <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 rounded-2xl flex items-center justify-between text-xs animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div>
+              <span className="font-bold block">Mode Arsip Historis (Read-Only)</span>
+              <span className="text-[11px] text-amber-700 dark:text-amber-300">
+                Tahun Ajaran ini telah diarsipkan. Seluruh data asesmen dan nilai siswa berstatus terkunci permanen untuk menjaga integritas data historis.
+              </span>
+            </div>
+          </div>
+          <Badge variant="warning">Terkunci</Badge>
+        </div>
+      )}
 
       {/* Save Success Toast Banner */}
       {saveSuccessMessage && (
@@ -771,6 +859,19 @@ export const GradesPage: React.FC = () => {
               >
                 <option value="WEIGHTED_AVERAGE">Rata-rata Berbobot</option>
                 <option value="SIMPLE_AVERAGE">Rata-rata Sederhana</option>
+              </select>
+            </div>
+
+            {/* Missing score treatment */}
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Nilai Kosong:</span>
+              <select
+                value={missingScoreTreatment}
+                onChange={(e) => setMissingScoreTreatment(e.target.value as any)}
+                className="font-semibold text-slate-700 dark:text-slate-300 bg-transparent focus:outline-hidden cursor-pointer"
+              >
+                <option value="PRO_RATA">Abaikan (Pro-rata)</option>
+                <option value="ZERO_PENALTY">Hitung 0</option>
               </select>
             </div>
 
@@ -844,8 +945,16 @@ export const GradesPage: React.FC = () => {
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tuntas KKTP</span>
             </div>
             <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-              <strong className="text-emerald-700 dark:text-emerald-400">{classStats.passedCount}</strong> Tuntas /{' '}
-              <strong className="text-rose-600 dark:text-rose-400">{classStats.remedialCount}</strong> Remedial
+              <div>
+                <strong className="text-emerald-700 dark:text-emerald-400">{classStats.passedCount}</strong> Tuntas /{' '}
+                <strong className="text-rose-600 dark:text-rose-400">{classStats.remedialCount}</strong> Remedial
+              </div>
+              {classStats.incompleteCount > 0 && (
+                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                  <span>{classStats.incompleteCount} siswa tagihan belum lengkap</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/40 flex items-center justify-center">
@@ -997,43 +1106,47 @@ export const GradesPage: React.FC = () => {
                       </div>
 
                       {/* Header quick actions on hover */}
-                      <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[#141722]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[#232838]">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingItem(item);
-                            setIsItemModalOpen(true);
-                          }}
-                          className="p-1 text-slate-400 hover:text-orange-600 dark:hover:text-cyan-400 rounded"
-                          title="Edit Kolom"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteItem(item.id, item.name)}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                          title="Hapus Kolom"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
+                      {!isArchivedYear && (
+                        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[#141722]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[#232838]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingItem(item);
+                              setIsItemModalOpen(true);
+                            }}
+                            className="p-1 text-slate-400 hover:text-orange-600 dark:hover:text-cyan-400 rounded"
+                            title="Edit Kolom"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteItem(item.id, item.name)}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                            title="Hapus Kolom"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </th>
                   ))}
 
                   {/* Empty Add Column Button Header */}
                   <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[#232838]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingItem(null);
-                        setIsItemModalOpen(true);
-                      }}
-                      className="w-7 h-7 rounded-lg border border-dashed border-orange-300 dark:border-cyan-500/50 text-orange-600 dark:text-cyan-400 hover:bg-orange-50 dark:hover:bg-cyan-950/40 flex items-center justify-center mx-auto transition-colors cursor-pointer"
-                      title="Tambah Kolom Penilaian Baru"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
+                    {!isArchivedYear && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingItem(null);
+                          setIsItemModalOpen(true);
+                        }}
+                        className="w-7 h-7 rounded-lg border border-dashed border-orange-300 dark:border-cyan-500/50 text-orange-600 dark:text-cyan-400 hover:bg-orange-50 dark:hover:bg-cyan-950/40 flex items-center justify-center mx-auto transition-colors cursor-pointer"
+                        title="Tambah Kolom Penilaian Baru"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    )}
                   </th>
 
                   {/* Final Score Calculated Header */}
@@ -1069,8 +1182,15 @@ export const GradesPage: React.FC = () => {
 
                       {/* Sticky Student Name & NIS */}
                       <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] px-4 py-2 border-r border-slate-200 dark:border-[#232838]">
-                        <div className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
-                          {enr.student?.fullName || 'Nama Siswa'}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
+                            {enr.student?.fullName || 'Nama Siswa'}
+                          </span>
+                          {enr.status !== 'ACTIVE' && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1c2030] text-slate-500 shrink-0">
+                              {enr.status === 'TRANSFERRED' ? 'Mutasi' : 'Non-Aktif'}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                           <span>NIS: {enr.student?.nis || '-'}</span>
@@ -1098,10 +1218,11 @@ export const GradesPage: React.FC = () => {
                                 min={0}
                                 max={item.maxScore || 100}
                                 step="0.5"
+                                disabled={isArchivedYear}
                                 value={rawVal ?? ''}
                                 placeholder="-"
                                 onChange={(e) => handleScoreChange(enr.studentId, item.id, e.target.value)}
-                                className={`w-16 h-8 text-center py-1 font-mono font-bold text-xs rounded-lg border transition-all focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 ${
+                                className={`w-16 h-8 text-center py-1 font-mono font-bold text-xs rounded-lg border transition-all focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-70 disabled:cursor-not-allowed ${
                                   isScoreLow
                                     ? 'bg-rose-100 dark:bg-rose-950/60 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
                                     : numVal !== null
@@ -1113,6 +1234,7 @@ export const GradesPage: React.FC = () => {
                               {/* Note icon button */}
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => {
                                   setNoteTarget({
                                     studentId: enr.studentId,
@@ -1124,7 +1246,7 @@ export const GradesPage: React.FC = () => {
                                   });
                                   setIsNoteModalOpen(true);
                                 }}
-                                className={`p-1 rounded-md transition-all cursor-pointer ${
+                                className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
                                   note 
                                     ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
                                     : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
@@ -1168,12 +1290,21 @@ export const GradesPage: React.FC = () => {
                       {/* Status Ketuntasan */}
                       <td className="px-3 py-2 text-center bg-orange-50/30 dark:bg-cyan-950/20">
                         {calc && calc.filledCount > 0 ? (
-                          calc.isPassed ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          calc.isIncomplete ? (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                Belum Lengkap ({calc.conductedFilledCount}/{calc.conductedTotalCount})
+                              </span>
+                              <span className="text-[9px] text-slate-400">
+                                {calc.isPassed ? 'Sementara Tuntas' : 'Sementara Remedial'}
+                              </span>
+                            </div>
+                          ) : calc.isPassed ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                               Tuntas
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                               Remedial
                             </span>
                           )
@@ -1190,12 +1321,12 @@ export const GradesPage: React.FC = () => {
               <tfoot className="bg-slate-100/90 font-semibold text-slate-700 border-t-2 border-slate-200 sticky bottom-0 z-20">
                 <tr>
                   <td colSpan={2} className="sticky left-0 z-30 bg-slate-100 px-4 py-2.5 font-bold text-slate-800 border-r border-slate-200">
-                    Rata-rata Kelas per Kolom
+                    Rata-rata Kelas per Kolom ({activeEnrollments.length} Siswa Aktif)
                   </td>
                   {assessmentItems.map(item => {
                     let colSum = 0;
                     let count = 0;
-                    enrollments.forEach(enr => {
+                    activeEnrollments.forEach(enr => {
                       const val = scoresMap[`${enr.studentId}_${item.id}`];
                       if (val !== undefined && val !== '' && val !== null) {
                         colSum += Number(val);

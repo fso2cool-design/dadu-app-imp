@@ -5,6 +5,7 @@ import { getMeetings } from '../../services/firestore/meetings';
 import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
 import { 
   getAttendanceRecordsByMeeting, 
+  getAttendanceRecordsByMeetingIds,
   saveMeetingAttendance, 
   SaveAttendanceItem 
 } from '../../services/firestore/attendance';
@@ -46,6 +47,7 @@ interface StudentRow {
 export const SubjectAttendancePage: React.FC = () => {
   const { user } = useAuth();
   const { teachingAssignments, activeAcademicYear, activeSemester, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
+  const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'TAKE' | 'MATRIX'>('TAKE');
@@ -210,10 +212,17 @@ export const SubjectAttendancePage: React.FC = () => {
         );
         setAllEnrollments(enrollments.filter(e => e.status === 'ACTIVE' && e.student));
 
+        // Efficient batch retrieval of records
+        const meetingIds = meetings.map(m => m.id);
+        const allRecords = await getAttendanceRecordsByMeetingIds(user.uid, meetingIds);
         const recordsMap: Record<string, AttendanceRecord[]> = {};
         for (const m of meetings) {
-          const recs = await getAttendanceRecordsByMeeting(user.uid, m.id);
-          recordsMap[m.id] = recs;
+          recordsMap[m.id] = [];
+        }
+        for (const rec of allRecords) {
+          if (recordsMap[rec.meetingId]) {
+            recordsMap[rec.meetingId].push(rec);
+          }
         }
         setAllMeetingRecords(recordsMap);
       } catch (err) {
@@ -225,6 +234,15 @@ export const SubjectAttendancePage: React.FC = () => {
 
     loadMatrixData();
   }, [activeTab, user, activeAcademicYear, currentAssignment, meetings]);
+
+  // List of meetings that have actually been conducted / have attendance filled
+  const conductedMeetings = useMemo(() => {
+    return meetings.filter(m => 
+      m.status === 'COMPLETED' || 
+      ((m.attendanceSummary?.totalRecords || m.attendanceSummary?.total || 0) > 0) ||
+      ((allMeetingRecords[m.id]?.length || 0) > 0)
+    );
+  }, [meetings, allMeetingRecords]);
 
   // Real-time counter metrics for current meeting
   const stats = useMemo(() => {
@@ -433,7 +451,7 @@ export const SubjectAttendancePage: React.FC = () => {
       row['Total Alpa (A)'] = countA;
       row['Total Dispen (D)'] = countD;
 
-      const totalMeet = meetings.length;
+      const totalMeet = conductedMeetings.length > 0 ? conductedMeetings.length : meetings.length;
       const pct = totalMeet > 0 ? Math.round(((countH + countD) / totalMeet) * 100) : 0;
       row['% Kehadiran'] = `${pct}%`;
 
@@ -450,6 +468,16 @@ export const SubjectAttendancePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Historical Archive Banner */}
+      {isArchivedYear && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs">
+          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <span className="font-bold">Mode Arsip Historis (Read-Only):</span> Tahun Ajaran ini telah diarsipkan. Seluruh data presensi tatap muka dan matriks rekap dikunci permanen demi integritas riwayat akademik.
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
         <div>
@@ -523,9 +551,10 @@ export const SubjectAttendancePage: React.FC = () => {
 
                 <button
                   type="button"
+                  disabled={isArchivedYear}
                   onClick={() => setIsMeetingModalOpen(true)}
-                  className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1"
-                  title="Buat Pertemuan Baru"
+                  className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Buat Pertemuan Baru'}
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Pertemuan</span>
@@ -551,8 +580,8 @@ export const SubjectAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={handleSetAllPresent}
-              disabled={studentRows.length === 0}
-              className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-500/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              disabled={studentRows.length === 0 || isArchivedYear}
+              className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-500/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Set Semua Hadir (H)
@@ -561,11 +590,12 @@ export const SubjectAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveAttendance}
-              disabled={savingAttendance || studentRows.length === 0}
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+              disabled={savingAttendance || studentRows.length === 0 || isArchivedYear}
+              title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
+              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              {savingAttendance ? 'Menyimpan...' : 'Simpan Presensi'}
+              {savingAttendance ? 'Menyimpan...' : (isArchivedYear ? 'Terkunci (Arsip)' : 'Simpan Presensi')}
             </button>
           </div>
         ) : (
@@ -751,8 +781,9 @@ export const SubjectAttendancePage: React.FC = () => {
                             <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0c0e15] rounded-xl border border-slate-200/60 dark:border-[#232838]">
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => handleStatusChange(row.studentId, 'PRESENT')}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   row.status === 'PRESENT'
                                     ? 'bg-emerald-600 text-white shadow-xs'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-emerald-600 dark:hover:text-emerald-400'
@@ -763,8 +794,9 @@ export const SubjectAttendancePage: React.FC = () => {
                               </button>
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => handleStatusChange(row.studentId, 'SICK')}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   row.status === 'SICK'
                                     ? 'bg-amber-500 text-white shadow-xs'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-amber-600 dark:hover:text-amber-400'
@@ -775,8 +807,9 @@ export const SubjectAttendancePage: React.FC = () => {
                               </button>
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => handleStatusChange(row.studentId, 'PERMITTED')}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   row.status === 'PERMITTED'
                                     ? 'bg-sky-600 text-white shadow-xs'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-sky-600 dark:hover:text-sky-400'
@@ -787,8 +820,9 @@ export const SubjectAttendancePage: React.FC = () => {
                               </button>
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => handleStatusChange(row.studentId, 'ABSENT')}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   row.status === 'ABSENT'
                                     ? 'bg-rose-600 text-white shadow-xs'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-rose-600 dark:hover:text-rose-400'
@@ -799,8 +833,9 @@ export const SubjectAttendancePage: React.FC = () => {
                               </button>
                               <button
                                 type="button"
+                                disabled={isArchivedYear}
                                 onClick={() => handleStatusChange(row.studentId, 'DISPENSATION')}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   row.status === 'DISPENSATION'
                                     ? 'bg-indigo-600 text-white shadow-xs'
                                     : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-indigo-600 dark:hover:text-indigo-400'
@@ -814,10 +849,11 @@ export const SubjectAttendancePage: React.FC = () => {
                           <td className="py-3 px-4">
                             <input
                               type="text"
+                              disabled={isArchivedYear}
                               value={row.note}
                               onChange={e => handleNoteChange(row.studentId, e.target.value)}
-                              placeholder="Keterangan..."
-                              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-1 focus:ring-orange-500 dark:focus:ring-cyan-500"
+                              placeholder={isArchivedYear ? '-' : 'Keterangan...'}
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-1 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-60 disabled:cursor-not-allowed"
                             />
                           </td>
                         </tr>
@@ -899,7 +935,7 @@ export const SubjectAttendancePage: React.FC = () => {
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-sky-700 dark:text-sky-400 bg-sky-50/70 dark:bg-sky-950/40 w-10">I</th>
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-rose-700 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-950/40 w-10">A</th>
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-indigo-700 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 w-10">D</th>
-                    <th className="py-2.5 px-3 text-center bg-orange-50 dark:bg-cyan-950/60 text-orange-800 dark:text-cyan-300 font-bold w-16">%</th>
+                    <th className="py-2.5 px-3 text-center bg-orange-50 dark:bg-cyan-950/60 text-orange-800 dark:text-cyan-300 font-bold w-16" title={`Dihitung dari ${conductedMeetings.length} pertemuan terlaksana`}>%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-[#232838]">
@@ -981,7 +1017,7 @@ export const SubjectAttendancePage: React.FC = () => {
                           {countD}
                         </td>
                         <td className="py-2 px-3 text-center font-bold text-orange-700 dark:text-cyan-400 bg-orange-50/50 dark:bg-cyan-950/30">
-                          {meetings.length > 0 ? Math.round(((countH + countD) / meetings.length) * 100) : 0}%
+                          {conductedMeetings.length > 0 ? Math.round(((countH + countD) / conductedMeetings.length) * 100) : 0}%
                         </td>
                       </tr>
                     );

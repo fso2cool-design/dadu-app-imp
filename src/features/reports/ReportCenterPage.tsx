@@ -20,7 +20,8 @@ import {
   Building2,
   Download,
   Settings,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 
 interface ReportCenterPageProps {
@@ -83,6 +84,16 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
   };
 
   const reportCards = [
+    {
+      id: 'reports-rapor',
+      title: 'Cetak Rapor & Hasil Belajar Siswa',
+      category: 'Rapor Resmi Madrasah',
+      desc: 'Lembar resmi Rapor Semester dan Rapor Sisipan (STS) per siswa atau batch cetak 1 kelas lengkap dengan Kop 4-Tingkat dan tanda tangan 3 pihak.',
+      icon: GraduationCap,
+      badge: 'Prioritas',
+      badgeColor: 'emerald',
+      route: 'reports-rapor',
+    },
     {
       id: 'reports-attendance',
       title: 'Laporan Rekap Presensi',

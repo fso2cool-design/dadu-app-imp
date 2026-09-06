@@ -47,6 +47,8 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
     triggerSyncFeedback
   } = useWorkspace();
 
+  const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
+
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>(initialAssignmentId || selectedAssignment?.id || '');
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -199,6 +201,16 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
   return (
     <div className="space-y-5">
+      {/* Historical Archive Banner */}
+      {isArchivedYear && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs">
+          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <span className="font-bold">Mode Arsip Historis (Read-Only):</span> Tahun Ajaran ini telah diarsipkan. Seluruh agenda jurnal KBM dan rekaman presensi dikunci demi integritas riwayat akademik.
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-6 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
         <div>
@@ -228,11 +240,13 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
           <button
             id="btn-create-new-meeting"
+            disabled={isArchivedYear}
             onClick={() => {
               setMeetingToEdit(null);
               setIsFormModalOpen(true);
             }}
-            className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Catat Pertemuan Baru'}
+            className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Catat Pertemuan Baru
@@ -476,27 +490,29 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         setIsAttendanceModalOpen(true);
                       }}
                       className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
-                      title="Input / Edit Presensi"
+                      title={isArchivedYear ? 'Lihat Rekap Presensi (Read-Only)' : 'Input / Edit Presensi'}
                     >
                       <CheckSquare className="w-3.5 h-3.5" />
-                      Presensi
+                      {isArchivedYear ? 'Lihat Presensi' : 'Presensi'}
                     </button>
 
                     <button
+                      disabled={isArchivedYear}
                       onClick={() => {
                         setMeetingToEdit(meeting);
                         setIsFormModalOpen(true);
                       }}
-                      className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer"
-                      title="Edit Jurnal Pertemuan"
+                      className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Edit Jurnal Pertemuan'}
                     >
                       <Edit className="w-4 h-4" />
                     </button>
 
                     <button
+                      disabled={isArchivedYear}
                       onClick={() => setMeetingToDelete(meeting)}
-                      className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all cursor-pointer"
-                      title="Hapus Pertemuan"
+                      className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Hapus Pertemuan'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -521,8 +537,24 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Apakah Anda yakin ingin menghapus <strong className="text-slate-900 dark:text-white">Pertemuan #{meetingToDelete.meetingNumber} ({meetingToDelete.topic})</strong>? 
-              Catatan jurnal dan seluruh rekaman presensi untuk pertemuan ini akan dihapus secara permanen.
             </p>
+
+            {/* Attendance Dependency Warning */}
+            {meetingToDelete.attendanceSummary && (meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total) > 0 ? (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Peringatan Data Terkait</span>
+                </div>
+                <p>
+                  Pertemuan ini telah memiliki <strong>{meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total} rekaman presensi siswa</strong>. Menghapus pertemuan ini akan menghapus seluruh rekaman presensi tersebut dari cloud.
+                </p>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Pertemuan ini belum memiliki rekaman presensi siswa.
+              </p>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <button

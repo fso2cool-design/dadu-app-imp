@@ -150,8 +150,11 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
     }));
   };
 
+  const isArchived = Boolean(activeAcademicYear?.isArchived);
+
   // Quick Action: Mark all present
   const handleSetAllPresent = () => {
+    if (isArchived) return;
     setRows(prev => prev.map(r => ({ ...r, status: 'PRESENT' })));
   };
 
@@ -229,14 +232,20 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={handleSetAllPresent}
-              className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              Set Semua Hadir (H)
-            </button>
+            {!isArchived ? (
+              <button
+                type="button"
+                onClick={handleSetAllPresent}
+                className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                Set Semua Hadir (H)
+              </button>
+            ) : (
+              <span className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+                🔒 Mode Arsip Historis (Read-Only)
+              </span>
+            )}
           </div>
         </div>
 
@@ -340,8 +349,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                         <div className="inline-flex items-center gap-1 p-0.5 bg-slate-100 rounded-xl">
                           <button
                             type="button"
+                            disabled={isArchived}
                             onClick={() => handleStatusChange(row.studentId, 'PRESENT')}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'PRESENT'
                                 ? 'bg-emerald-600 text-white shadow-2xs'
                                 : 'text-slate-600 hover:bg-white hover:text-emerald-700'
@@ -352,8 +362,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                           </button>
                           <button
                             type="button"
+                            disabled={isArchived}
                             onClick={() => handleStatusChange(row.studentId, 'SICK')}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'SICK'
                                 ? 'bg-amber-500 text-white shadow-2xs'
                                 : 'text-slate-600 hover:bg-white hover:text-amber-700'
@@ -364,8 +375,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                           </button>
                           <button
                             type="button"
+                            disabled={isArchived}
                             onClick={() => handleStatusChange(row.studentId, 'PERMITTED')}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'PERMITTED'
                                 ? 'bg-blue-600 text-white shadow-2xs'
                                 : 'text-slate-600 hover:bg-white hover:text-blue-700'
@@ -376,8 +388,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                           </button>
                           <button
                             type="button"
+                            disabled={isArchived}
                             onClick={() => handleStatusChange(row.studentId, 'ABSENT')}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'ABSENT'
                                 ? 'bg-rose-600 text-white shadow-2xs'
                                 : 'text-slate-600 hover:bg-white hover:text-rose-700'
@@ -388,8 +401,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                           </button>
                           <button
                             type="button"
+                            disabled={isArchived}
                             onClick={() => handleStatusChange(row.studentId, 'DISPENSATION')}
-                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'DISPENSATION'
                                 ? 'bg-purple-600 text-white shadow-2xs'
                                 : 'text-slate-600 hover:bg-white hover:text-purple-700'
@@ -403,10 +417,11 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                       <td className="py-2 px-3">
                         <input
                           type="text"
+                          disabled={isArchived}
                           value={row.note}
                           onChange={e => handleNoteChange(row.studentId, e.target.value)}
-                          placeholder="Catatan..."
-                          className="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                          placeholder={isArchived ? '-' : 'Catatan...'}
+                          className="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                         />
                       </td>
                     </tr>
@@ -429,17 +444,19 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-medium cursor-pointer"
             >
-              Tutup
+              {isArchived ? 'Tutup' : 'Batal'}
             </button>
-            <button
-              type="button"
-              disabled={saving || rows.length === 0}
-              onClick={handleSave}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <Save className="w-3.5 h-3.5" />
-              {saving ? 'Menyimpan...' : 'Simpan Presensi'}
-            </button>
+            {!isArchived && (
+              <button
+                type="button"
+                disabled={saving || rows.length === 0}
+                onClick={handleSave}
+                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-3.5 h-3.5" />
+                {saving ? 'Menyimpan...' : 'Simpan Presensi'}
+              </button>
+            )}
           </div>
         </div>
       </div>

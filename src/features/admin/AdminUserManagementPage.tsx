@@ -35,8 +35,63 @@ import {
   UserCheck,
   AlertCircle,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Clock
 } from 'lucide-react';
+
+const formatLastLoginDate = (timestamp: any): string => {
+  if (!timestamp) return '';
+  try {
+    let date: Date;
+    if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+};
+
+const formatRelativeTime = (timestamp: any): string => {
+  if (!timestamp) return '';
+  try {
+    let date: Date;
+    if (timestamp.toDate && typeof timestamp.toDate === 'function') {
+      date = timestamp.toDate();
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    if (isNaN(date.getTime())) return '';
+
+    const diffMs = Date.now() - date.getTime();
+    if (diffMs < 0) return 'Baru saja';
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 60) return 'Baru saja';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} mnt lalu`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} jam lalu`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays} hari lalu`;
+    return '';
+  } catch {
+    return '';
+  }
+};
 
 interface AdminUserManagementPageProps {
   onSwitchToTeacherApp?: () => void;
@@ -478,6 +533,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <th className="py-3.5 px-4">Email & NIP</th>
                   <th className="py-3.5 px-4">Peran (Role)</th>
                   <th className="py-3.5 px-4 text-center">Status Akun</th>
+                  <th className="py-3.5 px-4 text-center">Terakhir Login</th>
                   <th className="py-3.5 px-4 text-center">Penggunaan DB</th>
                   <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
                 </tr>
@@ -485,7 +541,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               <tbody className="divide-y divide-slate-800/80">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
                       <div className="inline-flex items-center gap-2">
                         <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
                         <span>Memuat data pengguna dari Firestore...</span>
@@ -494,7 +550,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <td colSpan={7} className="py-12 text-center text-slate-400">
                       <p className="text-xs mb-2">Tidak ada akun pengguna yang cocok dengan kriteria filter/pencarian.</p>
                       {(searchQuery || statusFilter !== 'ALL' || roleFilter !== 'ALL') && (
                         <button
@@ -563,6 +619,32 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             <span className={`w-1.5 h-1.5 rounded-full ${isSuspended ? 'bg-amber-400' : 'bg-emerald-400'}`} />
                             {isSuspended ? 'Ditangguhkan' : 'Aktif'}
                           </span>
+                        </td>
+
+                        <td className="py-3.5 px-4 text-center">
+                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[10px] font-semibold">
+                              <Shield className="w-3 h-3 text-indigo-400 shrink-0" />
+                              <span>Administrator</span>
+                            </span>
+                          ) : u.lastLoginAt ? (
+                            <div className="flex flex-col items-center justify-center gap-0.5">
+                              <span className="text-white font-semibold text-[11px] inline-flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                                <span>{formatLastLoginDate(u.lastLoginAt)}</span>
+                              </span>
+                              {formatRelativeTime(u.lastLoginAt) && (
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  ({formatRelativeTime(u.lastLoginAt)})
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-medium">
+                              <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+                              <span>Belum Pernah Login</span>
+                            </span>
+                          )}
                         </td>
 
                         <td className="py-3.5 px-4 text-center">

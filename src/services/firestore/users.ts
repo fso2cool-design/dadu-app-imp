@@ -58,6 +58,30 @@ export async function updateUserProfile(uid: string, data: Partial<UserProfile>)
   });
 }
 
+export async function recordUserLastLogin(uid: string): Promise<void> {
+  const docRef = doc(db, 'users', uid);
+  try {
+    await updateDoc(docRef, {
+      lastLoginAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Could not record user last login:', err);
+  }
+}
+
+export async function updateUserThemePreference(uid: string, theme: 'light' | 'dark-crimson'): Promise<void> {
+  const docRef = doc(db, 'users', uid);
+  try {
+    await updateDoc(docRef, {
+      themePreference: theme,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Could not update user theme preference:', err);
+  }
+}
+
 // -------------------------------------------------------------
 // ADMIN MANAGEMENT & STORAGE QUOTA OPTIMIZATION FUNCTIONS
 // -------------------------------------------------------------

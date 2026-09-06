@@ -7,7 +7,24 @@ import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services
 import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
 import { getSubjects } from '../../services/firestore/subjects';
 import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { TeachingAssignment, AssessmentItem, Score, Enrollment, Subject, DailyAttendanceRecord } from '../../types';
+import { getStudentNotesByClass } from '../../services/firestore/studentNotes';
+import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
+import { getUserProfile } from '../../services/firestore/users';
+import { StudentRaporModal } from './StudentRaporModal';
+import { BatchRaporPrintModal } from './BatchRaporPrintModal';
+import { StudentRaporData } from './StudentRaporSheet';
+import { DEFAULT_KKM } from '../../constants/grading';
+import { 
+  TeachingAssignment, 
+  AssessmentItem, 
+  Score, 
+  Enrollment, 
+  Subject, 
+  DailyAttendanceRecord, 
+  StudentNote, 
+  SchoolSettings, 
+  DocumentSettings 
+} from '../../types';
 import * as XLSX from 'xlsx';
 import { 
   Table, 
@@ -21,7 +38,11 @@ import {
   Sparkles,
   CalendarCheck,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  Printer,
+  FileText,
+  Filter,
+  GraduationCap
 } from 'lucide-react';
 
 interface StudentLeggerRow {
@@ -32,6 +53,7 @@ interface StudentLeggerRow {
   nisn: string;
   name: string;
   gender: 'L' | 'P';
+  status: string;
   subjectScores: Record<string, number | null>; // subjectId -> final score for that subject
   totalScore: number;
   averageScore: number;
@@ -41,10 +63,11 @@ interface StudentLeggerRow {
   absentCount: number;
   dispensationCount: number;
   totalAbsent: number;
+  enrollment: Enrollment;
 }
 
 export const LeggerReportPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -58,10 +81,21 @@ export const LeggerReportPage: React.FC = () => {
   const [assessmentItems, setAssessmentItems] = useState<AssessmentItem[]>([]);
   const [scores, setScores] = useState<Score[]>([]);
   const [dailyAttendanceRecords, setDailyAttendanceRecords] = useState<DailyAttendanceRecord[]>([]);
+  const [studentNotes, setStudentNotes] = useState<StudentNote[]>([]);
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
+  const [docSettings, setDocSettings] = useState<DocumentSettings | null>(null);
+  const [homeroomTeacher, setHomeroomTeacher] = useState<{ name: string; nip: string } | null>(null);
+
   const [showAttendanceColumns, setShowAttendanceColumns] = useState<boolean>(true);
+  const [statusFilter, setStatusFilter] = useState<'ACTIVE' | 'ALL'>('ACTIVE');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'ROLL_NUMBER' | 'RANK'>('ROLL_NUMBER');
+
+  // Modal States
+  const [isRaporModalOpen, setIsRaporModalOpen] = useState(false);
+  const [selectedRaporData, setSelectedRaporData] = useState<StudentRaporData | null>(null);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
   // Initialize selected class
   useEffect(() => {
@@ -70,15 +104,21 @@ export const LeggerReportPage: React.FC = () => {
     }
   }, [classes, selectedClassId]);
 
-  // Fetch subjects, enrollments, assessments, scores, and daily attendance for the class
+  // Fetch subjects, enrollments, assessments, scores, daily attendance, notes, and settings
   const fetchClassLeggerData = async () => {
     if (!user || !activeAcademicYear || !selectedClassId) return;
     setLoading(true);
     try {
-      // 1. Fetch subjects
-      const subs = await getSubjects(user.uid);
+      // 1. Fetch subjects & settings
+      const [subs, sch, docS] = await Promise.all([
+        getSubjects(user.uid),
+        getSchoolSettings(user.uid),
+        getDocumentSettings(user.uid),
+      ]);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
+      if (sch) setSchoolSettings(sch);
+      if (docS) setDocSettings(docS);
 
       // 2. Fetch class enrollments
       const enrs = await getEnrollmentsByClass(
@@ -109,6 +149,34 @@ export const LeggerReportPage: React.FC = () => {
       // 5. Fetch all daily homeroom attendance records for this class
       const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId);
       setDailyAttendanceRecords(attRecs);
+
+      // 6. Fetch student notes for this class
+      const notes = await getStudentNotesByClass(user.uid, activeAcademicYear.id, selectedClassId);
+      setStudentNotes(notes);
+
+      // 7. Homeroom teacher lookup
+      const currentClass = classes.find(c => c.id === selectedClassId);
+      if (currentClass?.classTeacherId) {
+        if (currentClass.classTeacherId === user.uid && profile) {
+          setHomeroomTeacher({
+            name: profile.displayName || 'Wali Kelas',
+            nip: profile.nip || '-',
+          });
+        } else {
+          const tProfile = await getUserProfile(currentClass.classTeacherId);
+          if (tProfile) {
+            setHomeroomTeacher({
+              name: tProfile.displayName || 'Wali Kelas',
+              nip: tProfile.nip || '-',
+            });
+          }
+        }
+      } else if (profile) {
+        setHomeroomTeacher({
+          name: profile.displayName || 'Wali Kelas',
+          nip: profile.nip || '-',
+        });
+      }
     } catch (err) {
       console.error('Error fetching legger data:', err);
     } finally {
@@ -126,7 +194,6 @@ export const LeggerReportPage: React.FC = () => {
   }, [teachingAssignments, selectedClassId]);
 
   const classSubjects = useMemo(() => {
-    // If there are specific assignments, use their subjects; else show all available subjects that have assessments
     const assignedSubjectIds = new Set(activeClassAssignments.map(a => a.subjectId));
     const assessedSubjectIds = new Set(assessmentItems.map(a => a.subjectId));
     
@@ -145,7 +212,6 @@ export const LeggerReportPage: React.FC = () => {
       let countWithScore = 0;
 
       classSubjects.forEach(subject => {
-        // Find items for this subject
         const subjectItems = assessmentItems.filter(
           it => it.subjectId === subject.id && it.isIncludedInFinalScore !== false
         );
@@ -188,10 +254,11 @@ export const LeggerReportPage: React.FC = () => {
       let dCount = 0;
 
       studentDailyRecs.forEach(r => {
-        if (r.status === 'SICK') sCount++;
-        else if (r.status === 'PERMITTED') iCount++;
-        else if (r.status === 'ABSENT') aCount++;
-        else if (r.status === 'DISPENSATION') dCount++;
+        const st = r.status as string;
+        if (st === 'SICK' || st === 'S') sCount++;
+        else if (st === 'PERMITTED' || st === 'I') iCount++;
+        else if (st === 'ABSENT' || st === 'A') aCount++;
+        else if (st === 'DISPENSATION' || st === 'D') dCount++;
       });
 
       return {
@@ -201,31 +268,40 @@ export const LeggerReportPage: React.FC = () => {
         nis: enr.student?.nis || '-',
         nisn: enr.student?.nisn || '-',
         name: enr.student?.fullName || 'Siswa',
-        gender: enr.student?.gender || 'L',
+        gender: (enr.student?.gender || 'L') as 'L' | 'P',
+        status: enr.status || 'ACTIVE',
         subjectScores: studentSubjectScores,
         totalScore: Math.round(total * 10) / 10,
         averageScore: avg,
-        rank: 0, // Will compute next
+        rank: 0,
         sickCount: sCount,
         permittedCount: iCount,
         absentCount: aCount,
         dispensationCount: dCount,
         totalAbsent: sCount + iCount + aCount,
+        enrollment: enr,
       };
     });
 
-    // Compute ranks based on averageScore descending
-    const sortedForRank = [...rows].sort((a, b) => b.averageScore - a.averageScore || b.totalScore - a.totalScore);
+    // Compute ranks only for ACTIVE students
+    const activeStudents = rows.filter(r => r.status === 'ACTIVE');
+    const sortedForRank = [...activeStudents].sort((a, b) => b.averageScore - a.averageScore || b.totalScore - a.totalScore);
     sortedForRank.forEach((r, idx) => {
       r.rank = idx + 1;
     });
 
-    // Return sorted according to user preference
+    // Return filtered rows based on statusFilter
+    const filteredByStatus = statusFilter === 'ACTIVE' ? rows.filter(r => r.status === 'ACTIVE') : rows;
+
     if (sortBy === 'RANK') {
-      return rows.sort((a, b) => a.rank - b.rank);
+      return [...filteredByStatus].sort((a, b) => {
+        if (a.rank === 0) return 1;
+        if (b.rank === 0) return -1;
+        return a.rank - b.rank;
+      });
     }
-    return rows.sort((a, b) => a.rollNumber - b.rollNumber);
-  }, [enrollments, classSubjects, assessmentItems, scores, dailyAttendanceRecords, sortBy]);
+    return [...filteredByStatus].sort((a, b) => a.rollNumber - b.rollNumber);
+  }, [enrollments, classSubjects, assessmentItems, scores, dailyAttendanceRecords, sortBy, statusFilter]);
 
   // Filtered rows by search query
   const filteredRows = useMemo(() => {
@@ -242,18 +318,70 @@ export const LeggerReportPage: React.FC = () => {
 
   // Statistics
   const classStats = useMemo(() => {
-    if (calculatedRows.length === 0) return { overallAvg: 0, topStudent: '-', highestAvg: 0 };
+    if (calculatedRows.length === 0) return { overallAvg: 0, topStudent: '-', highestAvg: 0, passedCount: 0 };
     const averages = calculatedRows.map(r => r.averageScore).filter(a => a > 0);
     const overallAvg = averages.length > 0 
       ? Math.round((averages.reduce((a, b) => a + b, 0) / averages.length) * 10) / 10 
       : 0;
     const top = calculatedRows.find(r => r.rank === 1);
+    const passed = calculatedRows.filter(r => r.averageScore >= DEFAULT_KKM).length;
     return {
       overallAvg,
       topStudent: top?.name || '-',
       highestAvg: top?.averageScore || 0,
+      passedCount: passed,
     };
   }, [calculatedRows]);
+
+  // Construct StudentRaporData for batch printing or single student modal
+  const allStudentsRaporData = useMemo<StudentRaporData[]>(() => {
+    return calculatedRows.map(row => {
+      const subjectScoresList = classSubjects.map(sub => ({
+        subjectId: sub.id,
+        subjectName: sub.name,
+        subjectCode: sub.code,
+        score: row.subjectScores[sub.id],
+        kkm: DEFAULT_KKM,
+      }));
+
+      const notes = studentNotes.filter(n => n.studentId === row.studentId);
+      const hadirCount = dailyAttendanceRecords.filter(
+        r => r.studentId === row.studentId && (r.status === 'PRESENT' || (r.status as any) === 'H')
+      ).length;
+
+      const totalDays = hadirCount + row.sickCount + row.permittedCount + row.absentCount + row.dispensationCount;
+      const attendanceRate = totalDays > 0 
+        ? Math.round(((hadirCount + row.dispensationCount) / totalDays) * 100) 
+        : 100;
+
+      return {
+        enrollment: row.enrollment,
+        rank: row.rank,
+        totalStudents: calculatedRows.filter(r => r.status === 'ACTIVE').length,
+        subjectScores: subjectScoresList,
+        averageScore: row.averageScore,
+        totalScore: row.totalScore,
+        attendanceStats: {
+          hadir: hadirCount,
+          sakit: row.sickCount,
+          izin: row.permittedCount,
+          alpa: row.absentCount,
+          dispensasi: row.dispensationCount,
+          attendanceRate,
+        },
+        notes,
+      };
+    });
+  }, [calculatedRows, classSubjects, studentNotes, dailyAttendanceRecords]);
+
+  // Open single student rapor modal
+  const handleOpenStudentRapor = (enrollmentId: string) => {
+    const data = allStudentsRaporData.find(d => d.enrollment.id === enrollmentId);
+    if (data) {
+      setSelectedRaporData(data);
+      setIsRaporModalOpen(true);
+    }
+  };
 
   // Handle Export Excel Legger
   const handleExportExcel = () => {
@@ -261,11 +389,17 @@ export const LeggerReportPage: React.FC = () => {
 
     const sheetData: any[] = [];
 
-    // Title & Metadata
+    // Official Header
+    if (schoolSettings?.schoolName) {
+      sheetData.push([schoolSettings.schoolName.toUpperCase()]);
+      sheetData.push([schoolSettings.address || '']);
+      sheetData.push([]);
+    }
     sheetData.push(['LEGGER NILAI AKADEMIK ROMBONGAN BELAJAR']);
-    sheetData.push([`Tahun Ajaran: ${activeAcademicYear?.label || '-'} (${activeSemester})`]);
+    sheetData.push([`Tahun Ajaran: ${activeAcademicYear?.label || '-'} (Semester ${activeSemester === 'GANJIL' ? 'Ganjil' : 'Genap'})`]);
     sheetData.push([`Kelas / Rombel: ${selectedClassObj?.name || '-'}`]);
-    sheetData.push([`Jumlah Siswa: ${enrollments.length} Orang`]);
+    sheetData.push([`Wali Kelas: ${homeroomTeacher?.name || schoolSettings?.teacherName || '-'}`]);
+    sheetData.push([`Jumlah Siswa: ${filteredRows.length} Orang`]);
     sheetData.push([]); // Empty row
 
     // Table Header
@@ -276,6 +410,7 @@ export const LeggerReportPage: React.FC = () => {
       'NISN',
       'Nama Siswa',
       'L/P',
+      'Status',
     ];
 
     classSubjects.forEach(s => {
@@ -305,6 +440,7 @@ export const LeggerReportPage: React.FC = () => {
         r.nisn || '-',
         r.name,
         r.gender,
+        r.status,
       ];
 
       classSubjects.forEach(s => {
@@ -314,7 +450,7 @@ export const LeggerReportPage: React.FC = () => {
 
       rowData.push(r.totalScore);
       rowData.push(r.averageScore);
-      rowData.push(r.rank);
+      rowData.push(r.rank > 0 ? r.rank : '-');
 
       if (showAttendanceColumns) {
         rowData.push(r.sickCount || 0);
@@ -327,6 +463,40 @@ export const LeggerReportPage: React.FC = () => {
       sheetData.push(rowData);
     });
 
+    // Class average footer
+    const footerRow: any[] = ['', '', '', '', 'RERATA KELAS', '', ''];
+    classSubjects.forEach(sub => {
+      const validScores = calculatedRows
+        .map(r => r.subjectScores[sub.id])
+        .filter((v): v is number => typeof v === 'number' && v > 0);
+      const avg = validScores.length > 0 
+        ? Math.round((validScores.reduce((a, b) => a + b, 0) / validScores.length) * 10) / 10 
+        : '';
+      footerRow.push(avg);
+    });
+    footerRow.push('-');
+    footerRow.push(classStats.overallAvg);
+    footerRow.push('-');
+    if (showAttendanceColumns) {
+      footerRow.push(calculatedRows.reduce((acc, r) => acc + r.sickCount, 0));
+      footerRow.push(calculatedRows.reduce((acc, r) => acc + r.permittedCount, 0));
+      footerRow.push(calculatedRows.reduce((acc, r) => acc + r.absentCount, 0));
+      footerRow.push(calculatedRows.reduce((acc, r) => acc + r.dispensationCount, 0));
+      footerRow.push(calculatedRows.reduce((acc, r) => acc + r.totalAbsent, 0));
+    }
+    sheetData.push(footerRow);
+
+    // Signatures in Excel
+    sheetData.push([]);
+    sheetData.push([]);
+    const regency = schoolSettings?.regency || 'Kota';
+    sheetData.push(['', '', 'Mengetahui,', '', '', '', '', '', `${regency}, ${new Date().toLocaleDateString('id-ID')}`]);
+    sheetData.push(['', '', 'Kepala Madrasah,', '', '', '', '', '', 'Wali Kelas,']);
+    sheetData.push([]);
+    sheetData.push([]);
+    sheetData.push(['', '', schoolSettings?.headmasterName || 'Kepala Madrasah', '', '', '', '', '', homeroomTeacher?.name || schoolSettings?.teacherName || 'Wali Kelas']);
+    sheetData.push(['', '', `NIP. ${schoolSettings?.headmasterNip || '-'}`, '', '', '', '', '', `NIP. ${homeroomTeacher?.nip || schoolSettings?.teacherNip || '-'}`]);
+
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Legger Nilai');
@@ -338,8 +508,8 @@ export const LeggerReportPage: React.FC = () => {
   const metaItems = [
     { label: 'Tahun Ajaran', value: `${activeAcademicYear?.label || '-'} (${activeSemester})` },
     { label: 'Kelas / Rombel', value: selectedClassObj?.name || '-' },
-    { label: 'Jumlah Siswa', value: `${enrollments.length} Siswa` },
-    { label: 'Jumlah Mapel', value: `${classSubjects.length} Mata Pelajaran` },
+    { label: 'Wali Kelas', value: homeroomTeacher?.name || schoolSettings?.teacherName || '-' },
+    { label: 'Jumlah Siswa', value: `${filteredRows.length} Siswa` },
   ];
 
   return (
@@ -352,8 +522,21 @@ export const LeggerReportPage: React.FC = () => {
             Legger Nilai Akademik Rombel
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Rekapitulasi nilai terpadu seluruh mata pelajaran, total nilai, rata-rata rapor, dan ranking kelas.
+            Rekapitulasi nilai terpadu seluruh mata pelajaran, total nilai, rata-rata rapor, ranking kelas, dan cetak lembar rapor siswa.
           </p>
+        </div>
+
+        {/* Quick Batch Action */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsBatchModalOpen(true)}
+            disabled={calculatedRows.length === 0}
+            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span>Cetak Rapor Rombel (Batch)</span>
+          </button>
         </div>
       </div>
 
@@ -361,6 +544,7 @@ export const LeggerReportPage: React.FC = () => {
       <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
+            {/* Class Selector */}
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Pilih Kelas:</label>
               <select
@@ -376,15 +560,29 @@ export const LeggerReportPage: React.FC = () => {
               </select>
             </div>
 
+            {/* Status Filter */}
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Urutkan Berdasarkan:</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
+              >
+                <option value="ACTIVE">Hanya Siswa Aktif</option>
+                <option value="ALL">Semua Siswa</option>
+              </select>
+            </div>
+
+            {/* Sort Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Urutkan:</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
               >
                 <option value="ROLL_NUMBER">Nomor Absen Siswa</option>
-                <option value="RANK">Peringkat / Ranking Kelas</option>
+                <option value="RANK">Peringkat / Ranking</option>
               </select>
             </div>
 
@@ -448,18 +646,22 @@ export const LeggerReportPage: React.FC = () => {
           <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] flex items-center justify-between">
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 block">Total Siswa Terdaftar</span>
-              <span className="text-lg font-black text-slate-900 dark:text-slate-100">{enrollments.length} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">Siswa</span></span>
+              <span className="text-lg font-black text-slate-900 dark:text-slate-100">
+                {filteredRows.length} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">Siswa</span>
+              </span>
             </div>
             <Users className="w-6 h-6 text-slate-400" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-500/40 flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">Presensi Terhubung</span>
+              <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">Ketuntasan KKTP ({DEFAULT_KKM})</span>
               <span className="text-sm font-bold text-emerald-950 dark:text-emerald-200 block">
-                {dailyAttendanceRecords.length > 0 ? `${dailyAttendanceRecords.length} Catatan Harian` : 'Otomatis Real-time'}
+                {classStats.passedCount} dari {filteredRows.length} Siswa
               </span>
-              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">Tersinkron ke Legger</span>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                {filteredRows.length > 0 ? `${Math.round((classStats.passedCount / filteredRows.length) * 100)}% Tuntas` : '0%'}
+              </span>
             </div>
             <CheckCircle2 className="w-6 h-6 text-emerald-500" />
           </div>
@@ -474,6 +676,8 @@ export const LeggerReportPage: React.FC = () => {
         excelExportDisabled={calculatedRows.length === 0}
         signatureType="HOMEROOM_AND_HEADMASTER"
         customTeacherRole="Wali Kelas"
+        customTeacherName={homeroomTeacher?.name || schoolSettings?.teacherName}
+        customTeacherNip={homeroomTeacher?.nip || schoolSettings?.teacherNip}
         paperOrientation="LANDSCAPE"
         paperSize="F4"
       >
@@ -487,7 +691,7 @@ export const LeggerReportPage: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse border border-slate-900 min-w-[800px]">
+            <table className="w-full text-left text-xs border-collapse border border-slate-900 min-w-[850px]">
               <thead>
                 <tr className="bg-slate-100 text-slate-950 font-bold border-b-2 border-slate-900 text-center">
                   <th className="border border-slate-900 px-2 py-2 w-8">No</th>
@@ -518,12 +722,15 @@ export const LeggerReportPage: React.FC = () => {
                       <th className="border border-slate-900 px-1.5 py-2 w-10 bg-slate-100 text-slate-800" title="Total Tidak Hadir (S+I+A)">Jml</th>
                     </>
                   )}
+
+                  {/* Action Column (Hidden on Print) */}
+                  <th className="border border-slate-900 px-2 py-2 w-18 text-center no-print">Aksi Rapor</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-slate-300">
                 {filteredRows.map((r, idx) => {
-                  const isTopThree = r.rank <= 3 && r.averageScore > 0;
+                  const isTopThree = r.rank <= 3 && r.rank > 0 && r.averageScore > 0;
                   return (
                     <tr 
                       key={r.enrollmentId} 
@@ -534,9 +741,16 @@ export const LeggerReportPage: React.FC = () => {
                       <td className="border border-slate-900 px-2 py-1 text-center font-mono">{idx + 1}</td>
                       <td className="border border-slate-900 px-2 py-1 text-center font-mono font-bold">{r.rollNumber || '-'}</td>
                       <td className="border border-slate-900 px-2 py-1 text-center font-mono text-[11px]">{r.nis}</td>
-                      <td className="border border-slate-900 px-3 py-1 font-semibold text-slate-900 flex items-center gap-1.5">
-                        {isTopThree && <Sparkles className="w-3 h-3 text-amber-500 shrink-0 no-print" />}
-                        <span>{r.name}</span>
+                      <td className="border border-slate-900 px-3 py-1 font-semibold text-slate-900 flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          {isTopThree && <Sparkles className="w-3 h-3 text-amber-500 shrink-0 no-print" />}
+                          <span>{r.name}</span>
+                        </div>
+                        {r.status !== 'ACTIVE' && (
+                          <span className="text-[9px] px-1 py-0.2 bg-slate-200 text-slate-700 rounded font-normal">
+                            {r.status}
+                          </span>
+                        )}
                       </td>
                       <td className="border border-slate-900 px-2 py-1 text-center font-mono">{r.gender}</td>
 
@@ -567,7 +781,7 @@ export const LeggerReportPage: React.FC = () => {
                       <td className={`border border-slate-900 px-2 py-1 text-center font-mono font-bold ${
                         isTopThree ? 'bg-amber-100/70 text-amber-900' : 'text-slate-700'
                       }`}>
-                        {r.averageScore > 0 ? r.rank : '-'}
+                        {r.averageScore > 0 && r.rank > 0 ? r.rank : '-'}
                       </td>
 
                       {/* Synced Attendance Columns */}
@@ -591,6 +805,19 @@ export const LeggerReportPage: React.FC = () => {
                           </td>
                         </>
                       )}
+
+                      {/* Action Column */}
+                      <td className="border border-slate-900 px-2 py-1 text-center no-print">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenStudentRapor(r.enrollmentId)}
+                          className="px-2 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/40 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 text-[10px] font-bold flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer shadow-2xs"
+                          title="Lihat dan cetak lembar rapor siswa ini"
+                        >
+                          <FileText className="w-3 h-3" />
+                          <span>Rapor</span>
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -639,6 +866,8 @@ export const LeggerReportPage: React.FC = () => {
                       </td>
                     </>
                   )}
+
+                  <td className="border border-slate-900 px-2 py-2 font-mono no-print">-</td>
                 </tr>
               </tfoot>
             </table>
@@ -661,6 +890,37 @@ export const LeggerReportPage: React.FC = () => {
           </div>
         )}
       </PrintDocumentLayout>
+
+      {/* Single Student Rapor Modal */}
+      <StudentRaporModal
+        isOpen={isRaporModalOpen}
+        onClose={() => {
+          setIsRaporModalOpen(false);
+          setSelectedRaporData(null);
+        }}
+        data={selectedRaporData}
+        schoolSettings={schoolSettings}
+        documentSettings={docSettings}
+        academicYearLabel={activeAcademicYear?.label || '2026/2027'}
+        semester={activeSemester}
+        className={selectedClassObj?.name || 'Kelas'}
+        homeroomTeacherName={homeroomTeacher?.name}
+        homeroomTeacherNip={homeroomTeacher?.nip}
+      />
+
+      {/* Batch Rapor Print Modal */}
+      <BatchRaporPrintModal
+        isOpen={isBatchModalOpen}
+        onClose={() => setIsBatchModalOpen(false)}
+        studentsRaporData={allStudentsRaporData}
+        schoolSettings={schoolSettings}
+        documentSettings={docSettings}
+        academicYearLabel={activeAcademicYear?.label || '2026/2027'}
+        semester={activeSemester}
+        className={selectedClassObj?.name || 'Kelas'}
+        homeroomTeacherName={homeroomTeacher?.name}
+        homeroomTeacherNip={homeroomTeacher?.nip}
+      />
     </div>
   );
 };

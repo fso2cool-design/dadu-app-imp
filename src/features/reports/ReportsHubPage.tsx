@@ -5,13 +5,15 @@ import { AttendanceReportPage } from './AttendanceReportPage';
 import { GradesReportPage } from './GradesReportPage';
 import { LeggerReportPage } from './LeggerReportPage';
 import { JournalReportPage } from './JournalReportPage';
+import { StudentReportsPage } from './StudentReportsPage';
 import { 
   Printer, 
   LayoutGrid, 
   BarChart3, 
   FileText, 
   Table, 
-  BookMarked 
+  BookMarked,
+  GraduationCap
 } from 'lucide-react';
 
 interface ReportsHubPageProps {
@@ -19,7 +21,7 @@ interface ReportsHubPageProps {
   onNavigate?: (route: string, state?: any) => void;
 }
 
-type ReportTab = 'center' | 'attendance' | 'grades' | 'legger' | 'journal';
+type ReportTab = 'center' | 'rapor' | 'legger' | 'grades' | 'attendance' | 'journal';
 
 export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
   initialTab = 'center',
@@ -31,7 +33,7 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
   useEffect(() => {
     if (initialTab) {
       const clean = initialTab.replace('reports-', '') as ReportTab;
-      if (['center', 'attendance', 'grades', 'legger', 'journal'].includes(clean)) {
+      if (['center', 'rapor', 'legger', 'grades', 'attendance', 'journal'].includes(clean)) {
         setActiveTab(clean);
       }
     }
@@ -39,9 +41,10 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
 
   const tabs: Array<{ id: ReportTab; label: string; icon: any }> = [
     { id: 'center', label: 'Katalog Laporan', icon: LayoutGrid },
-    { id: 'attendance', label: 'Rekap Presensi', icon: BarChart3 },
-    { id: 'grades', label: 'Daftar Nilai', icon: FileText },
+    { id: 'rapor', label: 'Cetak Rapor Siswa', icon: GraduationCap },
     { id: 'legger', label: 'Legger Nilai', icon: Table },
+    { id: 'grades', label: 'Daftar Nilai', icon: FileText },
+    { id: 'attendance', label: 'Rekap Presensi', icon: BarChart3 },
     { id: 'journal', label: 'Jurnal Mengajar', icon: BookMarked },
   ];
 
@@ -80,7 +83,7 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
             onNavigate={(route) => {
               if (route.startsWith('reports-')) {
                 const sub = route.replace('reports-', '') as ReportTab;
-                if (['attendance', 'grades', 'legger', 'journal'].includes(sub)) {
+                if (['center', 'rapor', 'attendance', 'grades', 'legger', 'journal'].includes(sub)) {
                   setActiveTab(sub);
                   return;
                 }
@@ -89,6 +92,7 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
             }} 
           />
         )}
+        {activeTab === 'rapor' && <StudentReportsPage onNavigate={onNavigate} />}
         {activeTab === 'attendance' && <AttendanceReportPage />}
         {activeTab === 'grades' && <GradesReportPage />}
         {activeTab === 'legger' && <LeggerReportPage />}
