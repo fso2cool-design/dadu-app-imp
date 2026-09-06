@@ -2,17 +2,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getStudents, deleteStudent } from '../../services/firestore/students';
+import { getStudents, deleteStudent, canDeleteStudent } from '../../services/firestore/students';
 import { 
   getEnrollmentsByClass, 
   deleteEnrollment, 
-  batchReorderRollNumbers 
+  batchReorderRollNumbers,
+  canDeleteEnrollment 
 } from '../../services/firestore/enrollments';
 import { Student, Enrollment, GenderType, StudentStatus } from '../../types';
 import { ImportStudentsModal } from './ImportStudentsModal';
 import { StudentFormModal } from './StudentFormModal';
 import { StudentDetailModal } from './StudentDetailModal';
 import { TransferClassModal } from './TransferClassModal';
+import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
@@ -83,6 +85,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   // Confirm dialog states
   const [confirmReorderOpen, setConfirmReorderOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<{ studentId: string; enrollmentId?: string; name: string } | null>(null);
+  const [deleteBlockedModal, setDeleteBlockedModal] = useState<{
+    name: string;
+    reason: string;
+    isEnrollment: boolean;
+  } | null>(null);
   const [deletingStudent, setDeletingStudent] = useState(false);
 
   // Sync selected class with workspace
@@ -255,12 +262,40 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   };
 
   // Delete handler
-  const handleDeleteStudent = (studentId: string, enrollmentId?: string, name?: string) => {
-    setStudentToDelete({
-      studentId,
-      enrollmentId,
-      name: name || 'Siswa ini',
-    });
+  const handleDeleteStudent = async (studentId: string, enrollmentId?: string, name?: string) => {
+    if (!user) return;
+    try {
+      if (enrollmentId) {
+        const check = await canDeleteEnrollment(user.uid, enrollmentId);
+        if (!check.canDelete) {
+          setDeleteBlockedModal({
+            name: name || 'Siswa ini',
+            reason: check.reason || 'Penempatan kelas memiliki catatan presensi harian.',
+            isEnrollment: true,
+          });
+          return;
+        }
+      } else {
+        const check = await canDeleteStudent(user.uid, studentId);
+        if (!check.canDelete) {
+          setDeleteBlockedModal({
+            name: name || 'Siswa ini',
+            reason: check.reason || 'Siswa memiliki rekam akademik (penempatan kelas, presensi, atau nilai).',
+            isEnrollment: false,
+          });
+          return;
+        }
+      }
+
+      setStudentToDelete({
+        studentId,
+        enrollmentId,
+        name: name || 'Siswa ini',
+      });
+    } catch (err: any) {
+      console.error('Error verifying delete student:', err);
+      toastError('Gagal memeriksa status data: ' + err.message);
+    }
   };
 
   const executeDeleteStudent = async () => {
@@ -444,7 +479,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               >
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>
-                    Kelas {c.name} (Tingkat {c.gradeLevel})
+                    Kelas {c.name} (Tingkat {c.gradeLevel}){c.isArchived ? ' [Diarsipkan]' : ''}
                   </option>
                 ))}
               </select>
@@ -841,11 +876,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         message={
           studentToDelete?.enrollmentId ? (
             <>
-              Apakah Anda yakin ingin menghapus penempatan kelas untuk <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{studentToDelete.name}&quot;</strong>? Siswa akan tetap tersimpan di Master Data Siswa.
+              Apakah Anda yakin ingin menghapus penempatan kelas untuk <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{studentToDelete.name}&quot;</strong>? Siswa ini belum memiliki presensi di kelas ini dan akan tetap tersimpan di Master Data Siswa.
             </>
           ) : (
             <>
-              Apakah Anda yakin ingin menghapus data siswa <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{studentToDelete?.name}&quot;</strong> secara permanen? Seluruh riwayat presensi dan nilai siswa ini juga akan dihapus.
+              Apakah Anda yakin ingin menghapus master siswa <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{studentToDelete?.name}&quot;</strong> secara permanen? Siswa ini belum memiliki riwayat akademik dan aman untuk dihapus.
             </>
           )
         }
@@ -853,6 +888,45 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         variant="danger"
         isLoading={deletingStudent}
       />
+
+      {/* Delete Blocked Dialog */}
+      <Modal
+        isOpen={!!deleteBlockedModal}
+        onClose={() => setDeleteBlockedModal(null)}
+        title={deleteBlockedModal?.isEnrollment ? 'Penempatan Kelas Tidak Dapat Dihapus' : 'Data Siswa Dilindungi Tata Kelola'}
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800 dark:text-amber-300">
+              <p className="font-bold">Penghapusan Diblokir demi Integritas Data</p>
+              <p className="mt-1 leading-relaxed">
+                {deleteBlockedModal?.reason}
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+            Menghapus data ini akan menyebabkan riwayat absensi, asesmen nilai, atau catatan bimbingan menjadi yatim (orphan) dan merusak rekapan rapor.
+            Sebagai solusi yang aman:
+          </p>
+          <ul className="list-disc list-inside text-xs text-slate-600 dark:text-zinc-400 space-y-1 pl-1">
+            <li>Untuk siswa yang pindah rombel, gunakan menu <strong>&quot;Mutasi / Pindah Kelas&quot;</strong>.</li>
+            <li>Untuk siswa yang sudah lulus atau pindah sekolah, ubah status siswa menjadi <strong>&quot;Lulus&quot;</strong> atau <strong>&quot;Pindah&quot;</strong> melalui menu Edit Siswa.</li>
+          </ul>
+
+          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-neutral-800">
+            <button
+              type="button"
+              onClick={() => setDeleteBlockedModal(null)}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold cursor-pointer"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

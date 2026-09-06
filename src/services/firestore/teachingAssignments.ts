@@ -2,6 +2,7 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDoc,
   addDoc, 
   updateDoc, 
   deleteDoc,
@@ -11,6 +12,47 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { TeachingAssignment, SemesterType } from '../../types';
+
+export interface TeachingAssignmentUsageSummary {
+  isUsed: boolean;
+  canDelete: boolean;
+  reasons: string[];
+  counts: {
+    meetings: number;
+    assessmentItems: number;
+  };
+}
+
+export async function checkTeachingAssignmentUsage(
+  uid: string, 
+  assignmentId: string
+): Promise<TeachingAssignmentUsageSummary> {
+  const [meetSnap, aiSnap] = await Promise.all([
+    getDocs(query(collection(db, 'users', uid, 'meetings'), where('teachingAssignmentId', '==', assignmentId))),
+    getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('teachingAssignmentId', '==', assignmentId))),
+  ]);
+
+  const counts = {
+    meetings: meetSnap.size,
+    assessmentItems: aiSnap.size,
+  };
+
+  const reasons: string[] = [];
+  if (counts.meetings > 0) {
+    reasons.push(`Memiliki ${counts.meetings} rekam jurnal pertemuan tatap muka`);
+  }
+  if (counts.assessmentItems > 0) {
+    reasons.push(`Memiliki ${counts.assessmentItems} format/kolom penilaian siswa`);
+  }
+
+  const isUsed = reasons.length > 0;
+  return {
+    isUsed,
+    canDelete: !isUsed,
+    reasons,
+    counts,
+  };
+}
 
 export async function getTeachingAssignments(
   uid: string, 
@@ -45,6 +87,7 @@ export async function createTeachingAssignment(
     subjectId: data.subjectId,
     teacherId: uid, // Strictly from authenticated user
     isActive: data.isActive ?? true,
+    isArchived: false,
     dayOfWeek: data.dayOfWeek || '',
     timeSlot: data.timeSlot || '',
     room: data.room || '',
@@ -65,9 +108,41 @@ export async function updateTeachingAssignment(
   data: Partial<TeachingAssignment>
 ): Promise<void> {
   const docRef = doc(db, 'users', uid, 'teachingAssignments', id);
+  const currentSnap = await getDoc(docRef);
+  if (!currentSnap.exists()) {
+    throw new Error('Data tugas mengajar tidak ditemukan.');
+  }
+  const currentData = currentSnap.data() as TeachingAssignment;
+
+  // Check usage before updating identity fields
+  const usage = await checkTeachingAssignmentUsage(uid, id);
+  if (usage.isUsed) {
+    const isTeacherChanged = data.teacherId !== undefined && data.teacherId !== currentData.teacherId;
+    const isSubjectChanged = data.subjectId !== undefined && data.subjectId !== currentData.subjectId;
+    const isClassChanged = data.classId !== undefined && data.classId !== currentData.classId;
+    const isYearChanged = data.academicYearId !== undefined && data.academicYearId !== currentData.academicYearId;
+    const isSemesterChanged = data.semester !== undefined && data.semester !== currentData.semester;
+
+    if (isTeacherChanged || isSubjectChanged || isClassChanged || isYearChanged || isSemesterChanged) {
+      throw new Error(
+        'Field inti penugasan (teacherId, subjectId, classId, academicYearId, semester) bersifat immutable dan tidak dapat diubah karena penugasan telah memiliki riwayat transaksi historis (jurnal tatap muka atau nilai). Hanya jadwal operasional (hari, jam, ruang) yang diizinkan untuk diperbarui.'
+      );
+    }
+
+    // Strip immutable fields from update payload to guarantee absolute immutability in Firestore
+    delete data.teacherId;
+    delete data.subjectId;
+    delete data.classId;
+    delete data.academicYearId;
+    delete data.semester;
+    delete data.className;
+    delete data.subjectName;
+    delete data.subjectCode;
+  }
+
   await updateDoc(docRef, {
     ...data,
-    teacherId: uid, // Ensure teacherId is not tampered
+    teacherId: uid, // Strictly preserve owner identity
     updatedAt: serverTimestamp(),
   });
 }
@@ -76,6 +151,34 @@ export async function archiveTeachingAssignment(uid: string, id: string): Promis
   const docRef = doc(db, 'users', uid, 'teachingAssignments', id);
   await updateDoc(docRef, {
     isActive: false,
+    isArchived: true,
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function unarchiveTeachingAssignment(
+  uid: string, 
+  id: string, 
+  activeAcademicYearId?: string
+): Promise<void> {
+  const docRef = doc(db, 'users', uid, 'teachingAssignments', id);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error('Data penugasan mengajar tidak ditemukan.');
+  }
+  const data = snap.data() as TeachingAssignment;
+
+  if (activeAcademicYearId && data.academicYearId !== activeAcademicYearId) {
+    throw new Error(
+      'Tugas mengajar ini berasal dari tahun ajaran yang berbeda dan tidak dapat diaktifkan kembali. Untuk tahun ajaran baru, silakan buat penugasan mengajar baru.'
+    );
+  }
+
+  await updateDoc(docRef, {
+    isActive: true,
+    isArchived: false,
+    archivedAt: null,
     updatedAt: serverTimestamp(),
   });
 }
@@ -83,30 +186,17 @@ export async function archiveTeachingAssignment(uid: string, id: string): Promis
 export async function canDeleteTeachingAssignment(
   uid: string, 
   assignmentId: string
-): Promise<{ canDelete: boolean; reason?: string }> {
-  // Check meetings
-  const meetSnap = await getDocs(
-    query(collection(db, 'users', uid, 'meetings'), where('teachingAssignmentId', '==', assignmentId))
-  );
-  if (!meetSnap.empty) {
+): Promise<{ canDelete: boolean; reason?: string; details?: TeachingAssignmentUsageSummary }> {
+  const usage = await checkTeachingAssignmentUsage(uid, assignmentId);
+  if (usage.isUsed) {
     return {
       canDelete: false,
-      reason: `Tugas mengajar memiliki ${meetSnap.size} rekam jurnal tatap muka. Nonaktifkan tugas mengajar untuk menjaga riwayat pembelajaran.`
+      reason: `Tugas mengajar tidak dapat dihapus: ${usage.reasons.join(', ')}. Arsipkan penugasan alih-alih menghapus data.`,
+      details: usage,
     };
   }
 
-  // Check assessment items
-  const aiSnap = await getDocs(
-    query(collection(db, 'users', uid, 'assessmentItems'), where('teachingAssignmentId', '==', assignmentId))
-  );
-  if (!aiSnap.empty) {
-    return {
-      canDelete: false,
-      reason: `Tugas mengajar memiliki ${aiSnap.size} format penilaian siswa. Nonaktifkan tugas mengajar untuk melindungi nilai siswa.`
-    };
-  }
-
-  return { canDelete: true };
+  return { canDelete: true, details: usage };
 }
 
 export async function deleteTeachingAssignment(

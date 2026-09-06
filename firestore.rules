@@ -39,6 +39,32 @@ service cloud.firestore {
               || resource.data.academicYearId == request.resource.data.academicYearId);
       }
 
+      match /students/{studentId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.fullName is string;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      }
+
+      match /teachingAssignments/{assignmentId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.academicYearId is string
+          && request.resource.data.classId is string
+          && request.resource.data.subjectId is string;
+        // Enforce academicYearId immutability on update to preserve historical academic ties
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
+              || resource.data.academicYearId == request.resource.data.academicYearId);
+      }
+
+      match /academicYears/{academicYearId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.label is string;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      }
+
       match /scores/{scoreId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())

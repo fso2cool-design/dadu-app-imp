@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { createStudent, updateStudent } from '../../services/firestore/students';
+import { 
+  createStudent, 
+  updateStudent, 
+  checkStudentUsage, 
+  StudentUsageSummary 
+} from '../../services/firestore/students';
 import { createEnrollment, updateEnrollment } from '../../services/firestore/enrollments';
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment } from '../../types';
-import { User, Phone, MapPin, BookOpen, AlertCircle } from 'lucide-react';
+import { User, Phone, MapPin, BookOpen, AlertCircle, Lock } from 'lucide-react';
 
 interface StudentFormModalProps {
   isOpen: boolean;
@@ -50,6 +55,20 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
   const [rollNumber, setRollNumber] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [studentUsage, setStudentUsage] = useState<StudentUsageSummary | null>(null);
+  const isIdentityLocked = Boolean(studentToEdit && studentUsage?.isUsed);
+
+  useEffect(() => {
+    if (studentToEdit && user && isOpen) {
+      checkStudentUsage(user.uid, studentToEdit.id).then(usage => {
+        setStudentUsage(usage);
+      }).catch(err => {
+        console.error('Error checking student usage:', err);
+      });
+    } else {
+      setStudentUsage(null);
+    }
+  }, [studentToEdit, user, isOpen]);
 
   useEffect(() => {
     if (studentToEdit) {
@@ -227,17 +246,33 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         {/* Tab 1: Data Identitas Siswa */}
         {activeTab === 'IDENTITY' && (
           <div className="space-y-3 animate-in fade-in duration-150">
+            {isIdentityLocked && (
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs">
+                <Lock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <div>
+                  <p className="font-bold">Identitas Siswa Terkunci (Riwayat Akademik Aktif)</p>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
+                    Siswa telah memiliki data akademik ({studentUsage?.reasons.join(', ')}). Nama, NIS, NISN, Jenis Kelamin, dan Tanggal Lahir dikunci demi melindungi keabsahan historis rapor & buku induk. Anda tetap dapat memperbarui data kontak dan status.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Nama Lengkap Siswa <span className="text-rose-500">*</span>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                <span>Nama Lengkap Siswa <span className="text-rose-500">*</span></span>
+                {isIdentityLocked && <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-semibold"><Lock className="w-3 h-3" /> Terkunci</span>}
               </label>
               <input
                 type="text"
                 required
+                disabled={isIdentityLocked}
                 value={formData.fullName}
                 onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                 placeholder="Contoh: Muhammad Farhan"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 font-medium"
+                className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 font-medium ${
+                  isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                }`}
               />
             </div>
 
@@ -246,28 +281,37 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIS (Nomor Induk)</label>
                 <input
                   type="text"
+                  disabled={isIdentityLocked}
                   value={formData.nis}
                   onChange={e => setFormData(f => ({ ...f, nis: e.target.value }))}
                   placeholder="20261001"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono ${
+                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN</label>
                 <input
                   type="text"
+                  disabled={isIdentityLocked}
                   value={formData.nisn}
                   onChange={e => setFormData(f => ({ ...f, nisn: e.target.value }))}
                   placeholder="0081234567"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono ${
+                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
                 <select
+                  disabled={isIdentityLocked}
                   value={formData.gender}
                   onChange={e => setFormData(f => ({ ...f, gender: e.target.value as GenderType }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer ${
+                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 >
                   <option value="L">Laki-laki (L)</option>
                   <option value="P">Perempuan (P)</option>
@@ -280,19 +324,25 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
                 <input
                   type="text"
+                  disabled={isIdentityLocked}
                   value={formData.birthPlace}
                   onChange={e => setFormData(f => ({ ...f, birthPlace: e.target.value }))}
                   placeholder="Kota Kelahiran"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs ${
+                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
                 <input
                   type="date"
+                  disabled={isIdentityLocked}
                   value={formData.birthDate}
                   onChange={e => setFormData(f => ({ ...f, birthDate: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs ${
+                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 />
               </div>
             </div>
@@ -302,20 +352,37 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         {/* Tab 2: Penempatan Kelas & Rombel */}
         {activeTab === 'ENROLLMENT' && (
           <div className="space-y-3 animate-in fade-in duration-150">
+            {existingEnrollment && (
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                  <p className="font-bold">Penempatan Rombel Terkunci</p>
+                  <p className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">
+                    Siswa sudah ditempatkan di rombel ini. Untuk memindahkan siswa ke rombel lain, gunakan menu <strong>"Mutasi / Pindah Kelas"</strong> pada halaman siswa agar riwayat kelas sebelumnya tetap tersimpan secara historis.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelas Rombel</label>
                 <select
+                  disabled={Boolean(existingEnrollment)}
                   value={enrollClassId}
                   onChange={e => setEnrollClassId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-medium cursor-pointer"
+                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-medium cursor-pointer ${
+                    existingEnrollment ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
+                  }`}
                 >
                   <option value="">-- Belum Ditempatkan ke Kelas --</option>
-                  {classes.filter(c => !c.isArchived || c.id === existingEnrollment?.classId).map(c => (
-                    <option key={c.id} value={c.id}>
-                      Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'}){c.isArchived ? ' [Diarsipkan]' : ''}
-                    </option>
-                  ))}
+                  {classes
+                    .filter(c => (c.academicYearId === activeAcademicYear?.id && !c.isArchived) || c.id === existingEnrollment?.classId)
+                    .map(c => (
+                      <option key={c.id} value={c.id}>
+                        Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'}){c.isArchived ? ' [Diarsipkan]' : ''}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>

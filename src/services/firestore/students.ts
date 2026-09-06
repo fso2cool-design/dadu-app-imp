@@ -62,12 +62,80 @@ export async function createStudent(
   return { id: docRef.id, ...studentData } as Student;
 }
 
+export interface StudentUsageSummary {
+  isUsed: boolean;
+  canDelete: boolean;
+  reasons: string[];
+  counts: {
+    enrollments: number;
+    scores: number;
+    attendanceRecords: number;
+    dailyAttendanceRecords: number;
+    studentNotes: number;
+  };
+}
+
+export async function checkStudentUsage(uid: string, studentId: string): Promise<StudentUsageSummary> {
+  const [enrSnap, scoreSnap, attSnap, dailyAttSnap, notesSnap] = await Promise.all([
+    getDocs(query(collection(db, 'users', uid, 'enrollments'), where('studentId', '==', studentId))),
+    getDocs(query(collection(db, 'users', uid, 'scores'), where('studentId', '==', studentId))),
+    getDocs(query(collection(db, 'users', uid, 'attendanceRecords'), where('studentId', '==', studentId))),
+    getDocs(query(collection(db, 'users', uid, 'dailyAttendanceRecords'), where('studentId', '==', studentId))),
+    getDocs(query(collection(db, 'users', uid, 'studentNotes'), where('studentId', '==', studentId))),
+  ]);
+
+  const counts = {
+    enrollments: enrSnap.size,
+    scores: scoreSnap.size,
+    attendanceRecords: attSnap.size,
+    dailyAttendanceRecords: dailyAttSnap.size,
+    studentNotes: notesSnap.size,
+  };
+
+  const reasons: string[] = [];
+  if (counts.enrollments > 0) reasons.push(`Terdaftar dalam ${counts.enrollments} rombongan belajar`);
+  if (counts.scores > 0) reasons.push(`Memiliki ${counts.scores} data nilai asesmen`);
+  if (counts.attendanceRecords > 0) reasons.push(`Memiliki ${counts.attendanceRecords} rekam presensi mapel`);
+  if (counts.dailyAttendanceRecords > 0) reasons.push(`Memiliki ${counts.dailyAttendanceRecords} rekam presensi harian`);
+  if (counts.studentNotes > 0) reasons.push(`Memiliki ${counts.studentNotes} catatan pembinaan siswa`);
+
+  const isUsed = reasons.length > 0;
+  return {
+    isUsed,
+    canDelete: !isUsed,
+    reasons,
+    counts,
+  };
+}
+
 export async function updateStudent(
   uid: string, 
   id: string, 
   data: Partial<Student>
 ): Promise<void> {
   const docRef = doc(db, 'users', uid, 'students', id);
+  const currentSnap = await getDoc(docRef);
+  if (!currentSnap.exists()) {
+    throw new Error('Data siswa tidak ditemukan.');
+  }
+  const currentData = currentSnap.data() as Student;
+
+  // Check usage before updating identity fields
+  const usage = await checkStudentUsage(uid, id);
+  if (usage.isUsed) {
+    const isNameChanged = data.fullName !== undefined && data.fullName.trim() !== currentData.fullName;
+    const isGenderChanged = data.gender !== undefined && data.gender !== currentData.gender;
+    const isNisChanged = data.nis !== undefined && data.nis.trim() !== (currentData.nis || '');
+    const isNisnChanged = data.nisn !== undefined && data.nisn.trim() !== (currentData.nisn || '');
+    const isBirthDateChanged = data.birthDate !== undefined && data.birthDate.trim() !== (currentData.birthDate || '');
+
+    if (isNameChanged || isGenderChanged || isNisChanged || isNisnChanged || isBirthDateChanged) {
+      throw new Error(
+        'Data identitas siswa (Nama, NIS, NISN, Jenis Kelamin, Tanggal Lahir) tidak dapat diubah karena siswa telah memiliki riwayat transaksi akademik (nilai/presensi/catatan). Hanya data kontak dan status yang dapat diperbarui demi menjaga integritas historis rapor dan leger.'
+      );
+    }
+  }
+
   await updateDoc(docRef, {
     ...data,
     updatedAt: serverTimestamp(),
@@ -82,6 +150,21 @@ export async function archiveStudent(
   const docRef = doc(db, 'users', uid, 'students', id);
   await updateDoc(docRef, {
     status,
+    isArchived: true,
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function unarchiveStudent(
+  uid: string, 
+  id: string
+): Promise<void> {
+  const docRef = doc(db, 'users', uid, 'students', id);
+  await updateDoc(docRef, {
+    status: 'ACTIVE',
+    isArchived: false,
+    archivedAt: null,
     updatedAt: serverTimestamp(),
   });
 }
@@ -89,41 +172,17 @@ export async function archiveStudent(
 export async function canDeleteStudent(
   uid: string, 
   studentId: string
-): Promise<{ canDelete: boolean; reason?: string }> {
-  // Check enrollments
-  const enrSnap = await getDocs(
-    query(collection(db, 'users', uid, 'enrollments'), where('studentId', '==', studentId))
-  );
-  if (!enrSnap.empty) {
+): Promise<{ canDelete: boolean; reason?: string; details?: StudentUsageSummary }> {
+  const usage = await checkStudentUsage(uid, studentId);
+  if (usage.isUsed) {
     return {
       canDelete: false,
-      reason: `Siswa terdaftar dalam ${enrSnap.size} rombongan belajar. Ubah status menjadi Lulus/Pindah/Nonaktif alih-alih menghapus.`
+      reason: `Siswa tidak dapat dihapus karena memiliki riwayat akademik: ${usage.reasons.join(', ')}. Silakan ubah status menjadi Lulus/Pindah/Nonaktif alih-alih menghapus data.`,
+      details: usage,
     };
   }
 
-  // Check scores
-  const scoreSnap = await getDocs(
-    query(collection(db, 'users', uid, 'scores'), where('studentId', '==', studentId))
-  );
-  if (!scoreSnap.empty) {
-    return {
-      canDelete: false,
-      reason: `Siswa memiliki ${scoreSnap.size} rekam nilai akademik. Arsipkan data siswa untuk menjaga keabsahan leger/rapor.`
-    };
-  }
-
-  // Check subject attendance
-  const attSnap = await getDocs(
-    query(collection(db, 'users', uid, 'attendanceRecords'), where('studentId', '==', studentId))
-  );
-  if (!attSnap.empty) {
-    return {
-      canDelete: false,
-      reason: `Siswa memiliki riwayat kehadiran mata pelajaran. Arsipkan data siswa untuk melindungi data presensi.`
-    };
-  }
-
-  return { canDelete: true };
+  return { canDelete: true, details: usage };
 }
 
 export async function deleteStudent(uid: string, id: string): Promise<void> {

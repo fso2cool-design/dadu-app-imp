@@ -83,6 +83,11 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       return;
     }
 
+    if (!itemToEdit && assignment.isArchived) {
+      setError('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima penambahan kolom penilaian baru.');
+      return;
+    }
+
     if (!name.trim()) {
       setError('Nama kolom penilaian harus diisi.');
       return;

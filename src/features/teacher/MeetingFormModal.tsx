@@ -102,6 +102,11 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       return;
     }
 
+    if (!meetingToEdit && selectedAssignment.isArchived) {
+      setErrorMsg('Penugasan mengajar ini telah diarsipkan dan tidak dapat digunakan untuk mencatat pertemuan KBM baru.');
+      return;
+    }
+
     try {
       setLoading(true);
       setErrorMsg(null);
@@ -211,11 +216,16 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
               className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">-- Pilih Kelas & Mapel --</option>
-              {teachingAssignments.map(ta => (
-                <option key={ta.id} value={ta.id}>
-                  Kelas {ta.className || 'Kelas'} • {ta.subjectName || 'Mapel'} ({ta.subjectCode})
-                </option>
-              ))}
+              {teachingAssignments
+                .filter(ta => {
+                  if (meetingToEdit && ta.id === meetingToEdit.teachingAssignmentId) return true;
+                  return !ta.isArchived && ta.isActive !== false && (!activeAcademicYear || ta.academicYearId === activeAcademicYear.id);
+                })
+                .map(ta => (
+                  <option key={ta.id} value={ta.id}>
+                    Kelas {ta.className || 'Kelas'} • {ta.subjectName || 'Mapel'} ({ta.subjectCode})
+                  </option>
+                ))}
             </select>
           </div>
 

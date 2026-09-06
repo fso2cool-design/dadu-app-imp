@@ -37,6 +37,8 @@ export interface AcademicYear {
   endYear: number;
   currentSemester: SemesterType;
   isActive: boolean;
+  isArchived?: boolean;
+  archivedAt?: any;
   createdAt: any;
   updatedAt: any;
 }
@@ -71,6 +73,8 @@ export interface Student {
   address?: string;
   notes?: string;
   status: StudentStatus;
+  isArchived?: boolean;
+  archivedAt?: any;
   createdAt: any;
   updatedAt: any;
 }
@@ -106,6 +110,8 @@ export interface TeachingAssignment {
   subjectId: string;
   teacherId: string;
   isActive: boolean;
+  isArchived?: boolean;
+  archivedAt?: any;
   // Schedule metadata
   dayOfWeek?: string; // e.g. "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"
   timeSlot?: string; // e.g. "07:30 - 09:00" or "Jam 1-2"

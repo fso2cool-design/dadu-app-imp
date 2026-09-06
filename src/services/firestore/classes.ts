@@ -186,8 +186,21 @@ export async function archiveClass(uid: string, id: string): Promise<void> {
   });
 }
 
-export async function unarchiveClass(uid: string, id: string): Promise<void> {
+export async function unarchiveClass(uid: string, id: string, activeAcademicYearId?: string): Promise<void> {
   const docRef = doc(db, 'users', uid, 'classes', id);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error('Data kelas tidak ditemukan.');
+  }
+
+  const classData = snap.data();
+  // Validasi tata kelola unarchive: Kelas hanya boleh diaktifkan kembali jika berasal dari tahun ajaran aktif
+  if (activeAcademicYearId && classData.academicYearId && classData.academicYearId !== activeAcademicYearId) {
+    throw new Error(
+      'Kelas ini berasal dari tahun ajaran yang berbeda dan tidak dapat diaktifkan kembali. Untuk tahun ajaran baru, silakan buat Kelas/Rombel baru.'
+    );
+  }
+
   await updateDoc(docRef, {
     isActive: true,
     isArchived: false,

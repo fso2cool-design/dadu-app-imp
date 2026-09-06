@@ -20,7 +20,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
   enrollment,
 }) => {
   const { user } = useAuth();
-  const { classes, triggerSyncFeedback } = useWorkspace();
+  const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
 
   const [targetClassId, setTargetClassId] = useState(classes[0]?.id || '');
   const [newRollNumber, setNewRollNumber] = useState(1);
@@ -82,7 +82,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
             onChange={e => setTargetClassId(e.target.value)}
             className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 font-medium"
           >
-            {classes.filter(c => !c.isArchived && c.id !== enrollment.classId).map(c => (
+            {classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived && c.id !== enrollment.classId).map(c => (
               <option key={c.id} value={c.id}>
                 Kelas {c.name} (Tingkat {c.gradeLevel} - {c.major || 'Umum'})
               </option>

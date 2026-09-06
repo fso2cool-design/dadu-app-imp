@@ -196,7 +196,7 @@ export const ClassesPage: React.FC = () => {
     try {
       setActionLoading(true);
       triggerSyncFeedback('syncing', `Mengaktifkan kembali kelas ${unarchiveModalCls.name}...`);
-      await unarchiveClass(user.uid, unarchiveModalCls.id);
+      await unarchiveClass(user.uid, unarchiveModalCls.id, activeAcademicYear?.id);
       triggerSyncFeedback('saved', `Kelas ${unarchiveModalCls.name} kembali aktif.`);
       toastSuccess(`Kelas ${unarchiveModalCls.name} berhasil diaktifkan kembali.`);
       await reloadWorkspaceData();
@@ -204,7 +204,7 @@ export const ClassesPage: React.FC = () => {
     } catch (err: any) {
       console.error('Error unarchiving class:', err);
       triggerSyncFeedback('synced');
-      toastError('Gagal mengaktifkan kelas: ' + (err.message || 'Error'));
+      toastError(err.message || 'Gagal mengaktifkan kelas');
     } finally {
       setActionLoading(false);
     }
@@ -638,9 +638,21 @@ export const ClassesPage: React.FC = () => {
         maxWidth="md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Kelas <strong>{unarchiveModalCls?.name}</strong> akan kembali aktif dan dapat dipilih untuk pembuatan tugas mengajar maupun penempatan siswa.
-          </p>
+          {unarchiveModalCls && activeAcademicYear && unarchiveModalCls.academicYearId !== activeAcademicYear.id ? (
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-rose-900 dark:text-rose-200 space-y-1">
+                <p className="font-bold">Tidak Dapat Mengaktifkan Kelas Lintas Tahun Ajaran</p>
+                <p className="text-[11px] leading-relaxed text-rose-800 dark:text-rose-300">
+                  Kelas ini berasal dari tahun ajaran yang berbeda dan tidak dapat diaktifkan kembali. Untuk tahun ajaran baru, silakan buat Kelas/Rombel baru.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Kelas <strong>{unarchiveModalCls?.name}</strong> akan kembali aktif dan dapat dipilih untuk pembuatan tugas mengajar maupun penempatan siswa pada tahun ajaran aktif saat ini.
+            </p>
+          )}
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
@@ -648,17 +660,19 @@ export const ClassesPage: React.FC = () => {
               onClick={() => setUnarchiveModalCls(null)}
               className="px-3.5 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium cursor-pointer"
             >
-              Batal
+              {unarchiveModalCls && activeAcademicYear && unarchiveModalCls.academicYearId !== activeAcademicYear.id ? 'Tutup' : 'Batal'}
             </button>
-            <button
-              type="button"
-              disabled={actionLoading}
-              onClick={handleConfirmUnarchive}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-1.5"
-            >
-              <ArchiveRestore className="w-3.5 h-3.5" />
-              {actionLoading ? 'Mengaktifkan...' : 'Aktifkan Kelas'}
-            </button>
+            {(!unarchiveModalCls || !activeAcademicYear || unarchiveModalCls.academicYearId === activeAcademicYear.id) && (
+              <button
+                type="button"
+                disabled={actionLoading}
+                onClick={handleConfirmUnarchive}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-1.5"
+              >
+                <ArchiveRestore className="w-3.5 h-3.5" />
+                {actionLoading ? 'Mengaktifkan...' : 'Aktifkan Kelas'}
+              </button>
+            )}
           </div>
         </div>
       </Modal>

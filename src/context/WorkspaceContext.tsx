@@ -200,20 +200,26 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       const sem = prefs?.defaultSemester || currentActiveYear?.currentSemester || profile?.defaultSemester || 'GANJIL';
       setActiveSemesterState(sem);
 
-      // Determine default selected class (prefer active non-archived classes)
+      // Determine default selected class (prefer active non-archived classes matching active academic year)
       let initialClassId = '';
       if (classesList.length > 0) {
-        const activeClasses = classesList.filter(c => !c.isArchived);
+        const activeClasses = classesList.filter(
+          c => (!currentActiveYear || c.academicYearId === currentActiveYear.id) && !c.isArchived
+        );
+        const fallbackActive = classesList.filter(c => !c.isArchived);
         const prefClass = activeClasses.find(c => c.id === prefs?.defaultClassId);
-        initialClassId = prefClass ? prefClass.id : (activeClasses[0]?.id || classesList[0].id);
+        initialClassId = prefClass ? prefClass.id : (activeClasses[0]?.id || fallbackActive[0]?.id || classesList[0].id);
         setSelectedClassId(initialClassId);
       }
 
-      // Determine default selected assignment
+      // Determine default selected assignment (prefer active unarchived matching active academic year)
       if (sortedAssignments.length > 0) {
+        const activeAssignments = sortedAssignments.filter(
+          a => (!currentActiveYear || a.academicYearId === currentActiveYear.id) && !a.isArchived && a.isActive !== false
+        );
         // Try matching with preference class first
-        const matchByClass = sortedAssignments.find(a => a.classId === initialClassId);
-        setSelectedAssignment(matchByClass || sortedAssignments[0]);
+        const matchByClass = activeAssignments.find(a => a.classId === initialClassId);
+        setSelectedAssignment(matchByClass || activeAssignments[0] || sortedAssignments[0]);
       }
 
       setSyncStatus('synced');
