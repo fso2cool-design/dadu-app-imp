@@ -42,6 +42,13 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
     }
   }, [initialTab]);
 
+  const handleTabChange = (tabId: HomeroomTab) => {
+    setActiveTab(tabId);
+    if (onNavigate) {
+      onNavigate(`homeroom-${tabId}`);
+    }
+  };
+
   const tabs: Array<{ id: HomeroomTab; label: string; icon: any }> = [
     { id: 'dashboard', label: 'Dashboard Binaan', icon: LayoutDashboard },
     { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDays },
@@ -63,7 +70,7 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
                 key={tab.id}
                 id={`tab-homeroom-${tab.id}`}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 shadow-sm'

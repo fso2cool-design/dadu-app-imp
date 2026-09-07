@@ -333,55 +333,57 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Navbar */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
-            <ShieldCheck className="w-6 h-6" />
+      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-3.5 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 shrink-0">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-white tracking-tight">Admin & Database Storage Panel</h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">Panel Admin</h1>
+              <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
                 SUPER ADMIN
               </span>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-[11px] text-slate-400 truncate hidden sm:block">
               Pengelolaan Akun Pengguna & Efisiensi Kuota Database Firestore
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {onSwitchToTeacherApp && (
             <button
               type="button"
               onClick={onSwitchToTeacherApp}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+              title="Buka Mode Guru (Workspace)"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
             >
               <GraduationCap className="w-4 h-4 text-indigo-400" />
-              <span>Buka Mode Guru (Workspace)</span>
+              <span className="hidden sm:inline">Buka Mode Guru</span>
+              <span className="inline sm:hidden">Mode Guru</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Keluar</span>
+            <span className="hidden sm:inline">Keluar</span>
           </button>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-8 space-y-6 pb-20">
         {/* Admin Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto [scrollbar-width:none]">
           <button
             type="button"
             onClick={() => setActiveAdminTab('USERS')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeAdminTab === 'USERS'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
@@ -394,7 +396,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <button
             type="button"
             onClick={() => setActiveAdminTab('FEEDBACK')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
               activeAdminTab === 'FEEDBACK'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
@@ -462,9 +464,9 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
 
             {/* Action & Filter Toolbar */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex flex-1 items-center gap-3 w-full sm:w-auto">
-                <div className="relative flex-1 max-w-md">
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+                <div className="relative flex-1 min-w-[200px]">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
@@ -475,28 +477,30 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   />
                 </div>
 
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
-                >
-                  <option value="ALL">Semua Status</option>
-                  <option value="ACTIVE">Hanya Aktif</option>
-                  <option value="SUSPENDED">Hanya Ditangguhkan (Suspend)</option>
-                </select>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="ALL">Semua Status</option>
+                    <option value="ACTIVE">Hanya Aktif</option>
+                    <option value="SUSPENDED">Hanya Suspend</option>
+                  </select>
 
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
-                >
-                  <option value="ALL">Semua Peran</option>
-                  <option value="ADMIN">Hanya Admin</option>
-                  <option value="TEACHER">Hanya Guru</option>
-                </select>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option value="ALL">Semua Peran</option>
+                    <option value="ADMIN">Hanya Admin</option>
+                    <option value="TEACHER">Hanya Guru</option>
+                  </select>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <div className="flex items-center gap-2 w-full lg:w-auto justify-start lg:justify-end overflow-x-auto pb-1 sm:pb-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -504,29 +508,33 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     setResidualUidInput('');
                     setSweepResult(null);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1.5 border border-amber-500/30 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1.5 border border-amber-500/30 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                   title="Bersihkan data orphan / residu akun yang sudah dihapus"
                 >
                   <Trash2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Sapu Residu Yatim (UID)</span>
+                  <span>Sapu Residu (UID)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={loadAllUsers}
                   disabled={loading}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                  <span>Refresh Data</span>
+                  <span>Refresh</span>
                 </button>
               </div>
             </div>
 
         {/* Users Table */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="sm:hidden px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span className="font-semibold text-slate-300">Daftar Akun ({filteredUsers.length})</span>
+            <span className="text-indigo-400 font-medium">Geser ke kanan →</span>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full min-w-[780px] text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                   <th className="py-3.5 px-4">Nama Guru / Staf</th>

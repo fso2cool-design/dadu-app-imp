@@ -31,13 +31,23 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
   useEffect(() => {
     if (initialTab) {
       const clean = initialTab.replace('teacher-', '');
-      if (clean === 'classes' || clean === 'teaching-classes') setActiveTab('classes');
+      if (clean === 'classes' || clean === 'teaching-classes' || clean === 'teacher') setActiveTab('classes');
       else if (clean === 'meetings' || clean === 'journal') setActiveTab('journal');
       else if (clean === 'attendance-subject' || clean === 'attendance') setActiveTab('attendance');
       else if (clean === 'grades') setActiveTab('grades');
-      else if (clean === 'teacher') setActiveTab('classes');
     }
   }, [initialTab]);
+
+  const handleTabChange = (tabId: TeacherTab, state?: any) => {
+    setActiveTab(tabId);
+    if (onNavigate) {
+      let targetRoute = 'teaching-classes';
+      if (tabId === 'journal') targetRoute = 'meetings';
+      else if (tabId === 'attendance') targetRoute = 'attendance-subject';
+      else if (tabId === 'grades') targetRoute = 'grades';
+      onNavigate(targetRoute, state);
+    }
+  };
 
   const tabs: Array<{ id: TeacherTab; label: string; icon: any }> = [
     { id: 'classes', label: 'Rombel Ampuan', icon: Layers },
@@ -59,7 +69,7 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
                 key={tab.id}
                 id={`tab-teacher-${tab.id}`}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 shadow-sm'
@@ -79,9 +89,9 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
         {activeTab === 'classes' && (
           <TeachingClassesPage 
             onNavigate={(route, state) => {
-              if (route === 'meetings') setActiveTab('journal');
-              else if (route === 'attendance-subject') setActiveTab('attendance');
-              else if (route === 'grades') setActiveTab('grades');
+              if (route === 'meetings') handleTabChange('journal', state);
+              else if (route === 'attendance-subject') handleTabChange('attendance', state);
+              else if (route === 'grades') handleTabChange('grades', state);
               else onNavigate?.(route, state);
             }} 
           />
