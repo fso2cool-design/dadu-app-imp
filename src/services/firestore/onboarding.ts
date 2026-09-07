@@ -12,6 +12,7 @@ export interface OnboardingData {
   school: {
     schoolName: string;
     schoolShortName?: string;
+    schoolLevel?: 'MI' | 'MTs' | 'MA' | 'MAK' | 'SD' | 'SMP' | 'SMA' | 'SMK' | 'LAINNYA';
     nsm?: string;
     npsn?: string;
     address?: string;
@@ -83,6 +84,7 @@ export async function submitOnboarding(uid: string, email: string, data: Onboard
   const schoolData: SchoolSettings = {
     schoolName: data.school.schoolName.trim(),
     schoolShortName: data.school.schoolShortName?.trim() || '',
+    schoolLevel: data.school.schoolLevel || 'MA',
     nsm: data.school.nsm?.trim() || '',
     npsn: data.school.npsn?.trim() || '',
     address: data.school.address?.trim() || '',

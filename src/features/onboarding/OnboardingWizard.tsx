@@ -15,10 +15,13 @@ import {
   Plus, 
   Trash2, 
   Sparkles,
-  AlertCircle
+  AlertCircle,
+  GraduationCap
 } from 'lucide-react';
 import { DaduLogo } from '../../components/common/DaduLogo';
 import { APP_CONFIG } from '../../constants/app';
+
+export type LevelPresetKey = 'MA_SMA' | 'MTS_SMP' | 'MI_SD' | 'SMK_MAK' | 'CUSTOM';
 
 export const OnboardingWizard: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -27,6 +30,7 @@ export const OnboardingWizard: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState<LevelPresetKey>('MA_SMA');
 
   // Form State
   const [formData, setFormData] = useState<OnboardingData>({
@@ -39,6 +43,7 @@ export const OnboardingWizard: React.FC = () => {
     school: {
       schoolName: '',
       schoolShortName: '',
+      schoolLevel: 'MA',
       nsm: '',
       npsn: '',
       address: '',
@@ -54,6 +59,8 @@ export const OnboardingWizard: React.FC = () => {
     classes: [
       { name: 'X-A', gradeLevel: '10', major: 'Umum', isHomeroom: false },
       { name: 'X-B', gradeLevel: '10', major: 'Umum', isHomeroom: false },
+      { name: 'XI-1', gradeLevel: '11', major: 'Umum', isHomeroom: false },
+      { name: 'XII-1', gradeLevel: '12', major: 'Umum', isHomeroom: false },
     ],
     subjects: [
       { code: 'ENG', name: 'Bahasa Inggris' },
@@ -61,6 +68,8 @@ export const OnboardingWizard: React.FC = () => {
     assignments: [
       { classIndex: 0, subjectIndex: 0 },
       { classIndex: 1, subjectIndex: 0 },
+      { classIndex: 2, subjectIndex: 0 },
+      { classIndex: 3, subjectIndex: 0 },
     ],
   });
 
@@ -96,17 +105,94 @@ export const OnboardingWizard: React.FC = () => {
     }
   };
 
+  // Apply quick level presets
+  const applyLevelPreset = (preset: LevelPresetKey) => {
+    setActivePreset(preset);
+    let templateClasses: Array<{ name: string; gradeLevel: string; major?: string; isHomeroom: boolean }> = [];
+
+    switch (preset) {
+      case 'MTS_SMP':
+        templateClasses = [
+          { name: 'VII-A', gradeLevel: '7', major: 'Umum', isHomeroom: false },
+          { name: 'VII-B', gradeLevel: '7', major: 'Umum', isHomeroom: false },
+          { name: 'VIII-A', gradeLevel: '8', major: 'Umum', isHomeroom: false },
+          { name: 'IX-A', gradeLevel: '9', major: 'Umum', isHomeroom: false },
+        ];
+        break;
+      case 'MI_SD':
+        templateClasses = [
+          { name: 'I-A', gradeLevel: '1', major: 'Umum', isHomeroom: false },
+          { name: 'II-A', gradeLevel: '2', major: 'Umum', isHomeroom: false },
+          { name: 'III-A', gradeLevel: '3', major: 'Umum', isHomeroom: false },
+          { name: 'IV-A', gradeLevel: '4', major: 'Umum', isHomeroom: false },
+          { name: 'V-A', gradeLevel: '5', major: 'Umum', isHomeroom: false },
+          { name: 'VI-A', gradeLevel: '6', major: 'Umum', isHomeroom: false },
+        ];
+        break;
+      case 'SMK_MAK':
+        templateClasses = [
+          { name: 'X-1', gradeLevel: '10', major: 'Kejuruan', isHomeroom: false },
+          { name: 'XI-1', gradeLevel: '11', major: 'Kejuruan', isHomeroom: false },
+          { name: 'XII-1', gradeLevel: '12', major: 'Kejuruan', isHomeroom: false },
+        ];
+        break;
+      case 'CUSTOM':
+        templateClasses = [
+          { name: '', gradeLevel: '', major: 'Umum', isHomeroom: false },
+        ];
+        break;
+      case 'MA_SMA':
+      default:
+        templateClasses = [
+          { name: 'X-A', gradeLevel: '10', major: 'Umum', isHomeroom: false },
+          { name: 'X-B', gradeLevel: '10', major: 'Umum', isHomeroom: false },
+          { name: 'XI-1', gradeLevel: '11', major: 'Umum', isHomeroom: false },
+          { name: 'XII-1', gradeLevel: '12', major: 'Umum', isHomeroom: false },
+        ];
+        break;
+    }
+
+    setFormData(prev => {
+      const newAssignments: Array<{ classIndex: number; subjectIndex: number }> = [];
+      templateClasses.forEach((_, cIdx) => {
+        if (prev.subjects.length > 0) {
+          newAssignments.push({ classIndex: cIdx, subjectIndex: 0 });
+        }
+      });
+      return {
+        ...prev,
+        classes: templateClasses,
+        assignments: newAssignments,
+      };
+    });
+  };
+
   // Helper to add/remove classes
   const addClass = () => {
-    setFormData(prev => ({
-      ...prev,
-      classes: [...prev.classes, { name: '', gradeLevel: '10', major: 'Umum', isHomeroom: false }],
-    }));
+    const defaultGrade = activePreset === 'MTS_SMP' ? '7' : activePreset === 'MI_SD' ? '1' : '10';
+    setFormData(prev => {
+      const newClasses = [...prev.classes, { name: '', gradeLevel: defaultGrade, major: 'Umum', isHomeroom: false }];
+      const newAssignments = [...prev.assignments];
+      if (prev.subjects.length > 0) {
+        newAssignments.push({ classIndex: newClasses.length - 1, subjectIndex: 0 });
+      }
+      return {
+        ...prev,
+        classes: newClasses,
+        assignments: newAssignments,
+      };
+    });
   };
 
   const removeClass = (index: number) => {
-    if (formData.classes.length <= 1) return;
     setFormData(prev => {
+      if (prev.classes.length <= 1) {
+        // Clear instead of blocking delete
+        return {
+          ...prev,
+          classes: [{ name: '', gradeLevel: '', major: 'Umum', isHomeroom: false }],
+        };
+      }
       const newClasses = prev.classes.filter((_, i) => i !== index);
       const newAssignments = prev.assignments
         .filter(a => a.classIndex !== index)
@@ -339,6 +425,45 @@ export const OnboardingWizard: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Jenjang Satuan Pendidikan
+                </label>
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                  {(['MA', 'SMA', 'MTs', 'SMP', 'MI', 'SD', 'SMK', 'MAK'] as const).map(lvl => {
+                    const isSelected = (formData.school.schoolLevel || 'MA') === lvl;
+                    return (
+                      <button
+                        key={lvl}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            school: { ...prev.school, schoolLevel: lvl }
+                          }));
+                          if (['MTs', 'SMP'].includes(lvl)) {
+                            applyLevelPreset('MTS_SMP');
+                          } else if (['MI', 'SD'].includes(lvl)) {
+                            applyLevelPreset('MI_SD');
+                          } else if (['SMK', 'MAK'].includes(lvl)) {
+                            applyLevelPreset('SMK_MAK');
+                          } else {
+                            applyLevelPreset('MA_SMA');
+                          }
+                        }}
+                        className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
+                          isSelected
+                            ? 'bg-orange-500 text-white border-orange-500 ring-2 ring-orange-500/40 shadow-sm'
+                            : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
+                        }`}
+                      >
+                        {lvl}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Nama Resmi Madrasah / Sekolah <span className="text-rose-400">*</span>
                 </label>
                 <input
@@ -529,14 +654,14 @@ export const OnboardingWizard: React.FC = () => {
           {/* STEP 4: Kelas */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="border-b border-slate-800 pb-3 mb-4 flex items-center justify-between">
+              <div className="border-b border-slate-800 pb-3 mb-2 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
                     <Layers className="w-5 h-5 text-orange-400" />
                     4. Daftar Rombongan Belajar (Kelas)
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Tambahkan kelas yang Anda ajar. Tandai "Wali Kelas" hanya jika Anda ditugaskan membina kelas tersebut.
+                    Pilih preset jenjang atau kelola kelas secara mandiri (tambah, ubah nama/tingkat, hapus).
                   </p>
                 </div>
                 <button
@@ -546,6 +671,48 @@ export const OnboardingWizard: React.FC = () => {
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Kelas
                 </button>
+              </div>
+
+              {/* Preset Jenjang Quick Selector */}
+              <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-orange-400" />
+                    Preset Jenjang / Format Kelas Cepat:
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Bisa diubah & dihapus mandiri
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { id: 'MA_SMA', label: 'MA / SMA', desc: 'Tingkat 10, 11, 12' },
+                    { id: 'MTS_SMP', label: 'MTs / SMP', desc: 'Tingkat 7, 8, 9' },
+                    { id: 'MI_SD', label: 'MI / SD', desc: 'Tingkat 1 s/d 6' },
+                    { id: 'SMK_MAK', label: 'SMK / MAK', desc: 'Kejuruan 10-12' },
+                    { id: 'CUSTOM', label: 'Kustom', desc: 'Mulai Kosong' },
+                  ].map(p => {
+                    const isActive = activePreset === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => applyLevelPreset(p.id as LevelPresetKey)}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isActive
+                            ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500 shadow-sm'
+                            : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
+                        }`}
+                      >
+                        <div className="font-bold text-xs flex items-center justify-between">
+                          {p.label}
+                          {isActive && <Check className="w-3 h-3 text-orange-400" />}
+                        </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">{p.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Homeroom guidance badge */}
@@ -591,8 +758,8 @@ export const OnboardingWizard: React.FC = () => {
                             classes: prev.classes.map((c, i) => i === idx ? { ...c, name: val } : c)
                           }));
                         }}
-                        placeholder="Nama Kelas (misal: X-A)"
-                        className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:ring-1 focus:ring-orange-500"
+                        placeholder="Nama Kelas (misal: VII-A, 8B, X-1)"
+                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:ring-1 focus:ring-orange-500 placeholder-slate-500"
                       />
                       <input
                         type="text"
@@ -604,8 +771,8 @@ export const OnboardingWizard: React.FC = () => {
                             classes: prev.classes.map((c, i) => i === idx ? { ...c, gradeLevel: val } : c)
                           }));
                         }}
-                        placeholder="Tingkat (misal: 10 / 11 / 12)"
-                        className="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:ring-1 focus:ring-orange-500"
+                        placeholder="Tingkat (1-12, misal: 7 / 10)"
+                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs focus:ring-1 focus:ring-orange-500 placeholder-slate-500"
                       />
                       <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
                         <input
@@ -624,18 +791,26 @@ export const OnboardingWizard: React.FC = () => {
                         <span className="truncate font-medium">Wali Kelas di sini</span>
                       </label>
                     </div>
-                    {formData.classes.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeClass(idx)}
-                        className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeClass(idx)}
+                      title={formData.classes.length <= 1 ? 'Kosongkan baris kelas ini' : 'Hapus kelas ini'}
+                      className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
+
+              {/* Bottom Add Class button */}
+              <button
+                type="button"
+                onClick={addClass}
+                className="w-full py-2.5 rounded-xl border border-dashed border-slate-700 hover:border-orange-500 text-slate-400 hover:text-orange-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer bg-slate-900/40"
+              >
+                <Plus className="w-4 h-4" /> Tambah Kelas Lainnya
+              </button>
             </div>
           )}
 
