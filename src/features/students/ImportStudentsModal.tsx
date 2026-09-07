@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { atomicImportStudentsWithEnrollment, ImportStudentItem } from '../../services/firestore/students';
+import { atomicImportStudentsWithEnrollment, ImportStudentItem, getStudents } from '../../services/firestore/students';
 import { Modal } from '../../components/common/Modal';
 import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check } from 'lucide-react';
 import { Student, GenderType } from '../../types';
@@ -105,7 +105,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     setSuccessCount(null);
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
         const bstr = evt.target?.result;
         const wb = XLSX.read(bstr, { type: 'binary' });
@@ -117,6 +117,24 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           setErrorMsg('File Excel / CSV kosong atau format tidak sesuai.');
           return;
         }
+
+        // Ambil data siswa yang sudah ada untuk validasi NISN database
+        let existingNisnMap = new Map<string, string>();
+        if (user) {
+          try {
+            const currentStudents = await getStudents(user.uid);
+            currentStudents.forEach(s => {
+              if (s.nisn && !s.isArchived) {
+                existingNisnMap.set(s.nisn.trim(), s.fullName);
+              }
+            });
+          } catch (e) {
+            console.error('Error fetching existing students for NISN check:', e);
+          }
+        }
+
+        // Lacak duplikasi NISN internal di berkas
+        const seenNisnsInFile = new Set<string>();
 
         const rows: ParsedRow[] = rawJson.map((row, idx) => {
           // Normalize column keys
@@ -133,8 +151,22 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           const parentPhone = String(row['No HP Ortu'] || row['HP Ortu'] || '').trim();
           const address = String(row['Alamat'] || '').trim();
 
-          const isValid = !!name;
-          const validationError = !name ? 'Nama lengkap wajib diisi' : undefined;
+          let isValid = !!name;
+          let validationError = !name ? 'Nama lengkap wajib diisi' : undefined;
+
+          if (nisn) {
+            if (seenNisnsInFile.has(nisn)) {
+              isValid = false;
+              validationError = `Duplikasi NISN "${nisn}" di dalam berkas impor`;
+            } else {
+              seenNisnsInFile.add(nisn);
+            }
+
+            if (isValid && existingNisnMap.has(nisn)) {
+              isValid = false;
+              validationError = `NISN sudah terdaftar pada siswa "${existingNisnMap.get(nisn)}"`;
+            }
+          }
 
           return {
             rollNumber: rollNo,

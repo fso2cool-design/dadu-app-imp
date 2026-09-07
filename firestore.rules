@@ -71,16 +71,33 @@ service cloud.firestore {
           && request.resource.data.academicYearId is string
           && request.resource.data.classId is string
           && request.resource.data.studentId is string;
-        // Enforce immutability of academicYearId and studentId on update to preserve identity and historical ties
+        // Enforce immutability of academicYearId and studentId on normal updates to preserve identity and historical ties.
+        // Governed recovery/re-link allows studentId correction ONLY if academicYearId is unchanged and relinkedAt is supplied.
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'studentId'])
-              || (resource.data.academicYearId == request.resource.data.academicYearId && resource.data.studentId == request.resource.data.studentId));
+          && (
+            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'studentId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId && resource.data.studentId == request.resource.data.studentId))
+            || (resource.data.academicYearId == request.resource.data.academicYearId && ('relinkedAt' in request.resource.data))
+          );
       }
 
       match /scores/{scoreId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.assessmentItemId is string
+          && request.resource.data.studentId is string
           && (!('score' in request.resource.data) || (request.resource.data.score is number && request.resource.data.score >= 0 && request.resource.data.score <= 100));
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('score' in request.resource.data) || (request.resource.data.score is number && request.resource.data.score >= 0 && request.resource.data.score <= 100))
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['assessmentItemId'])
+            || resource.data.assessmentItemId == request.resource.data.assessmentItemId
+          )
+          && (
+            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
+              || resource.data.studentId == request.resource.data.studentId)
+            || ('relinkedAt' in request.resource.data)
+          );
       }
 
       match /meetings/{meetingId} {
@@ -107,8 +124,11 @@ service cloud.firestore {
           && request.resource.data.studentId is string
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['meetingId', 'studentId'])
+          && (
+            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['meetingId', 'studentId'])
               || (resource.data.meetingId == request.resource.data.meetingId && resource.data.studentId == request.resource.data.studentId))
+            || (resource.data.meetingId == request.resource.data.meetingId && ('relinkedAt' in request.resource.data))
+          )
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
       }
 
@@ -126,11 +146,25 @@ service cloud.firestore {
           && (!('maxScore' in request.resource.data) || (request.resource.data.maxScore > 0 && request.resource.data.maxScore <= 1000));
       }
 
-      // Student Scores
-      match /scores/{scoreId} {
+      // Student Notes / Guidance
+      match /studentNotes/{noteId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!('score' in request.resource.data) || (request.resource.data.score >= 0 && request.resource.data.score <= 1000));
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.studentId is string
+          && request.resource.data.classId is string
+          && request.resource.data.academicYearId is string;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          // academicYearId and classId are strictly immutable
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
+              || resource.data.academicYearId == request.resource.data.academicYearId)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId'])
+              || resource.data.classId == request.resource.data.classId)
+          // studentId is immutable on update, except in governed re-link with relinkedAt
+          && (
+            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
+              || resource.data.studentId == request.resource.data.studentId)
+            || ('relinkedAt' in request.resource.data)
+          );
       }
 
       // Match all other subcollections in user workspace

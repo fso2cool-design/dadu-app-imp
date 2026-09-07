@@ -58,6 +58,7 @@ import {
 import * as XLSX from 'xlsx';
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { RelationshipRecoverySection } from './RelationshipRecoverySection';
 
 interface SettingsPageProps {
   initialTab?: string;
@@ -67,7 +68,7 @@ type TabType = 'profile' | 'school' | 'document' | 'preferences' | 'backup' | 's
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profile' }) => {
   const { user, profile, refreshProfile } = useAuth();
-  const { academicYears, activeAcademicYear, activeSemester, reloadWorkspaceData, triggerSyncFeedback, attendanceSettings } = useWorkspace();
+  const { classes, academicYears, activeAcademicYear, activeSemester, reloadWorkspaceData, triggerSyncFeedback, attendanceSettings } = useWorkspace();
   const { activeTheme, applyAndSaveTheme } = useAppTheme();
   const { success: toastSuccess, error: toastError } = useToast();
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>(activeTheme);
@@ -1571,6 +1572,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Relationship Recovery & Identity Governance Section */}
+            {user && (
+              <RelationshipRecoverySection
+                uid={user.uid}
+                classes={classes}
+                academicYears={academicYears}
+                userDisplayName={profile?.displayName || user.displayName || undefined}
+                onRefreshStats={loadDatabaseStats}
+              />
             )}
           </div>
         )}

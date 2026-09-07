@@ -10,7 +10,7 @@ import {
 import { createEnrollment, updateEnrollment } from '../../services/firestore/enrollments';
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment } from '../../types';
-import { User, Phone, MapPin, BookOpen, AlertCircle, Lock } from 'lucide-react';
+import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck } from 'lucide-react';
 
 interface StudentFormModalProps {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [studentUsage, setStudentUsage] = useState<StudentUsageSummary | null>(null);
-  const isIdentityLocked = Boolean(studentToEdit && studentUsage?.isUsed);
+  const hasAcademicHistory = Boolean(studentToEdit && studentUsage?.isUsed);
 
   useEffect(() => {
     if (studentToEdit && user && isOpen) {
@@ -246,13 +246,13 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         {/* Tab 1: Data Identitas Siswa */}
         {activeTab === 'IDENTITY' && (
           <div className="space-y-3 animate-in fade-in duration-150">
-            {isIdentityLocked && (
-              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs">
-                <Lock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            {hasAcademicHistory && (
+              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div>
-                  <p className="font-bold">Identitas Siswa Terkunci (Riwayat Akademik Aktif)</p>
-                  <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5">
-                    Siswa telah memiliki data akademik ({studentUsage?.reasons.join(', ')}). Nama, NIS, NISN, Jenis Kelamin, dan Tanggal Lahir dikunci demi melindungi keabsahan historis rapor & buku induk. Anda tetap dapat memperbarui data kontak dan status.
+                  <p className="font-bold">Koreksi Administratif Diizinkan</p>
+                  <p className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">
+                    Siswa telah memiliki data akademik ({studentUsage?.reasons.join(', ')}). Koreksi nama atau NISN tetap aman dan tidak akan memutus riwayat nilai, presensi, maupun leger rapor karena relasi terikat pada ID unik internal.
                   </p>
                 </div>
               </div>
@@ -261,18 +261,14 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
                 <span>Nama Lengkap Siswa <span className="text-rose-500">*</span></span>
-                {isIdentityLocked && <span className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-semibold"><Lock className="w-3 h-3" /> Terkunci</span>}
               </label>
               <input
                 type="text"
                 required
-                disabled={isIdentityLocked}
                 value={formData.fullName}
                 onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                 placeholder="Contoh: Muhammad Farhan"
-                className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 font-medium ${
-                  isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                }`}
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 font-medium"
               />
             </div>
 
@@ -281,37 +277,28 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIS (Nomor Induk)</label>
                 <input
                   type="text"
-                  disabled={isIdentityLocked}
                   value={formData.nis}
                   onChange={e => setFormData(f => ({ ...f, nis: e.target.value }))}
                   placeholder="20261001"
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono ${
-                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NISN (10 Digit)</label>
                 <input
                   type="text"
-                  disabled={isIdentityLocked}
                   value={formData.nisn}
                   onChange={e => setFormData(f => ({ ...f, nisn: e.target.value }))}
                   placeholder="0081234567"
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono ${
-                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
                 <select
-                  disabled={isIdentityLocked}
                   value={formData.gender}
                   onChange={e => setFormData(f => ({ ...f, gender: e.target.value as GenderType }))}
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer ${
-                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer"
                 >
                   <option value="L">Laki-laki (L)</option>
                   <option value="P">Perempuan (P)</option>
@@ -324,25 +311,19 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
                 <input
                   type="text"
-                  disabled={isIdentityLocked}
                   value={formData.birthPlace}
                   onChange={e => setFormData(f => ({ ...f, birthPlace: e.target.value }))}
                   placeholder="Kota Kelahiran"
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs ${
-                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
                 <input
                   type="date"
-                  disabled={isIdentityLocked}
                   value={formData.birthDate}
                   onChange={e => setFormData(f => ({ ...f, birthDate: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs ${
-                    isIdentityLocked ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
-                  }`}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
                 />
               </div>
             </div>

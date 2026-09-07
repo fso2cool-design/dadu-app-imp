@@ -98,6 +98,14 @@ export interface Enrollment {
   transferredFromClassId?: string;
   transferredFromClassName?: string;
   transferReason?: string;
+  // Audit trail for relationship recovery & re-link
+  relinkedAt?: any;
+  relinkedBy?: string;
+  relinkedFromId?: string;
+  relinkedToId?: string;
+  relinkReason?: string;
+  isOrphaned?: boolean;
+  orphanReason?: string;
   createdAt: any;
   updatedAt: any;
 }

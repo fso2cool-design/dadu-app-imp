@@ -34,15 +34,56 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
   return { id: snap.id, ...(snap.data() as any) } as Student;
 }
 
+/**
+ * Validasi ketersediaan NISN untuk siswa aktif di ruang kerja pengguna.
+ * Jika NISN kosong/belum ada, dianggap valid (tidak dipaksakan unik).
+ */
+export async function checkNisnAvailability(
+  uid: string,
+  nisn: string,
+  excludeStudentId?: string
+): Promise<{ isAvailable: boolean; conflictingStudent?: Student }> {
+  const cleanNisn = nisn?.trim();
+  if (!cleanNisn) {
+    return { isAvailable: true };
+  }
+
+  const colRef = collection(db, 'users', uid, 'students');
+  const q = query(colRef, where('nisn', '==', cleanNisn));
+  const snap = await getDocs(q);
+
+  for (const docSnap of snap.docs) {
+    if (excludeStudentId && docSnap.id === excludeStudentId) {
+      continue;
+    }
+    const student = { id: docSnap.id, ...(docSnap.data() as any) } as Student;
+    if (!student.isArchived) {
+      return { isAvailable: false, conflictingStudent: student };
+    }
+  }
+
+  return { isAvailable: true };
+}
+
 export async function createStudent(
   uid: string, 
   data: Omit<Student, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<Student> {
+  const cleanNisn = data.nisn?.trim() || '';
+  if (cleanNisn) {
+    const check = await checkNisnAvailability(uid, cleanNisn);
+    if (!check.isAvailable) {
+      throw new Error(
+        `NISN "${cleanNisn}" sudah terdaftar pada siswa "${check.conflictingStudent?.fullName || ''}". Setiap siswa aktif harus memiliki NISN unik.`
+      );
+    }
+  }
+
   const colRef = collection(db, 'users', uid, 'students');
   const now = serverTimestamp();
   const studentData = {
     nis: data.nis?.trim() || '',
-    nisn: data.nisn?.trim() || '',
+    nisn: cleanNisn,
     fullName: data.fullName.trim(),
     gender: data.gender || 'L',
     birthPlace: data.birthPlace?.trim() || '',
@@ -120,26 +161,30 @@ export async function updateStudent(
   }
   const currentData = currentSnap.data() as Student;
 
-  // Check usage before updating identity fields
-  const usage = await checkStudentUsage(uid, id);
-  if (usage.isUsed) {
-    const isNameChanged = data.fullName !== undefined && data.fullName.trim() !== currentData.fullName;
-    const isGenderChanged = data.gender !== undefined && data.gender !== currentData.gender;
-    const isNisChanged = data.nis !== undefined && data.nis.trim() !== (currentData.nis || '');
-    const isNisnChanged = data.nisn !== undefined && data.nisn.trim() !== (currentData.nisn || '');
-    const isBirthDateChanged = data.birthDate !== undefined && data.birthDate.trim() !== (currentData.birthDate || '');
-
-    if (isNameChanged || isGenderChanged || isNisChanged || isNisnChanged || isBirthDateChanged) {
-      throw new Error(
-        'Data identitas siswa (Nama, NIS, NISN, Jenis Kelamin, Tanggal Lahir) tidak dapat diubah karena siswa telah memiliki riwayat transaksi akademik (nilai/presensi/catatan). Hanya data kontak dan status yang dapat diperbarui demi menjaga integritas historis rapor dan leger.'
-      );
+  // Validasi keunikan NISN jika diubah dan tidak kosong
+  if (data.nisn !== undefined) {
+    const cleanNisn = data.nisn.trim();
+    if (cleanNisn && cleanNisn !== (currentData.nisn || '').trim()) {
+      const check = await checkNisnAvailability(uid, cleanNisn, id);
+      if (!check.isAvailable) {
+        throw new Error(
+          `NISN "${cleanNisn}" sudah terdaftar pada siswa "${check.conflictingStudent?.fullName || ''}". Koreksi NISN dibatalkan demi mencegah duplikasi data.`
+        );
+      }
     }
   }
 
-  await updateDoc(docRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
+  // Student Identity Governance:
+  // studentId adalah immutable internal identity.
+  // Koreksi nama dan NISN diperbolehkan tanpa memutus relasi transaksi akademik
+  // karena seluruh transaksi (enrollment, nilai, presensi) terikat pada studentId.
+  const cleanData: any = { ...data };
+  if (cleanData.fullName) cleanData.fullName = cleanData.fullName.trim();
+  if (cleanData.nis !== undefined) cleanData.nis = cleanData.nis.trim();
+  if (cleanData.nisn !== undefined) cleanData.nisn = cleanData.nisn.trim();
+  cleanData.updatedAt = serverTimestamp();
+
+  await updateDoc(docRef, cleanData);
 }
 
 export async function archiveStudent(
@@ -247,6 +292,38 @@ export async function atomicImportStudentsWithEnrollment(
   }
 ): Promise<{ count: number }> {
   if (studentsList.length === 0) return { count: 0 };
+
+  // 1. Validasi duplikasi NISN internal di dalam berkas impor
+  const seenNisns = new Set<string>();
+  for (const item of studentsList) {
+    const cleanNisn = item.nisn?.trim();
+    if (cleanNisn) {
+      if (seenNisns.has(cleanNisn)) {
+        throw new Error(`Terdapat duplikasi NISN "${cleanNisn}" di dalam berkas impor. Pastikan setiap siswa memiliki NISN unik.`);
+      }
+      seenNisns.add(cleanNisn);
+    }
+  }
+
+  // 2. Validasi duplikasi NISN terhadap data master siswa yang sudah ada di database
+  if (seenNisns.size > 0) {
+    const existingStudents = await getStudents(uid);
+    const existingNisnMap = new Map<string, Student>();
+    existingStudents.forEach(s => {
+      if (s.nisn && !s.isArchived) {
+        existingNisnMap.set(s.nisn.trim(), s);
+      }
+    });
+
+    for (const nisn of Array.from(seenNisns)) {
+      if (existingNisnMap.has(nisn)) {
+        const existing = existingNisnMap.get(nisn)!;
+        throw new Error(
+          `NISN "${nisn}" sudah terdaftar di database atas nama siswa "${existing.fullName}". Impor dibatalkan untuk mencegah data siswa ganda.`
+        );
+      }
+    }
+  }
 
   const studentsColRef = collection(db, 'users', uid, 'students');
   const enrollmentsColRef = collection(db, 'users', uid, 'enrollments');
