@@ -2,6 +2,8 @@ import React, { useState, useEffect, ReactNode, useRef } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
+import { ChangeLogModal } from '../common/ChangeLogModal';
+import { CHANGELOG_STORAGE_KEY } from '../../constants/changelog';
 
 interface AppLayoutProps {
   currentRoute: string;
@@ -23,7 +25,31 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onOpenFeedbackModal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [changeLogOpen, setChangeLogOpen] = useState(false);
+  const [isManualChangeLog, setIsManualChangeLog] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
+
+  // Periksa apakah guru sudah pernah melihat change log untuk versi rilis saat ini
+  useEffect(() => {
+    try {
+      const seen = localStorage.getItem(CHANGELOG_STORAGE_KEY);
+      if (!seen) {
+        // Tampilkan pop-up setelah render awal
+        const timer = setTimeout(() => {
+          setIsManualChangeLog(false);
+          setChangeLogOpen(true);
+        }, 600);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // Ignore storage error
+    }
+  }, []);
+
+  const handleOpenManualChangeLog = () => {
+    setIsManualChangeLog(true);
+    setChangeLogOpen(true);
+  };
 
   const [isSidebarCompact, setIsSidebarCompact] = useState<boolean>(() => {
     try {
@@ -65,6 +91,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         adminBadgeCount={adminBadgeCount}
         onOpenAdminPanel={onOpenAdminPanel}
         onOpenFeedbackModal={onOpenFeedbackModal}
+        onOpenChangeLog={handleOpenManualChangeLog}
       />
 
       {/* Main Container */}
@@ -94,6 +121,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
         />
       </div>
+
+      {/* Pop-up Catatan Pembaruan (Release Notes & Change Log) */}
+      <ChangeLogModal
+        isOpen={changeLogOpen}
+        onClose={() => setChangeLogOpen(false)}
+        isManualTrigger={isManualChangeLog}
+      />
     </div>
   );
 };

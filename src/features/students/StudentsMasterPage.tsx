@@ -38,8 +38,10 @@ import {
   Sparkles,
   Printer,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet
 } from 'lucide-react';
+import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 
 interface StudentsMasterPageProps {
   isHomeroomView?: boolean;
@@ -361,6 +363,15 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5 text-indigo-600" /> Import Excel
+          </button>
+
+          <button
+            type="button"
+            onClick={() => downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived))}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Unduh format template Excel untuk data siswa beserta contoh kolom kelas"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" /> Unduh Template
           </button>
 
           <button

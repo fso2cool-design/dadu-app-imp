@@ -58,6 +58,8 @@ import {
 import * as XLSX from 'xlsx';
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { ChangeLogModal } from '../../components/common/ChangeLogModal';
+import { APP_CONFIG } from '../../constants/app';
 import { RelationshipRecoverySection } from './RelationshipRecoverySection';
 
 interface SettingsPageProps {
@@ -160,6 +162,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   const [resetAcademicYearId, setResetAcademicYearId] = useState<string>('');
   const [confirmResetText, setConfirmResetText] = useState<string>('');
   const [isResetting, setIsResetting] = useState(false);
+  const [isChangeLogModalOpen, setIsChangeLogModalOpen] = useState(false);
 
   useEffect(() => {
     if (initialTab) {
@@ -1789,6 +1792,32 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   Pilihan tema akan langsung disimpan ke browser Anda. Klik tombol <strong>Terapkan & Simpan Tema</strong> untuk mengaktifkannya.
                 </p>
               </div>
+
+              {/* Versi & Catatan Pembaruan Card */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Versi Aplikasi: {APP_CONFIG.versionDisplay}
+                    </span>
+                    <span className="text-[10px] bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold border border-indigo-100 dark:border-slate-700">
+                      Rilis 7 Sept 2026
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Buka jendela Catatan Pembaruan (Change Log) untuk membaca fitur-fitur baru di versi ini.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsChangeLogModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-700 dark:text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-indigo-200/80 dark:border-slate-700"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Lihat Catatan Rilis</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1915,6 +1944,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       <AttendanceHolidaysModal
         isOpen={isHolidayModalOpen}
         onClose={() => setIsHolidayModalOpen(false)}
+      />
+
+      {/* Change Log Modal */}
+      <ChangeLogModal
+        isOpen={isChangeLogModalOpen}
+        onClose={() => setIsChangeLogModalOpen(false)}
+        isManualTrigger={true}
       />
     </div>
   );

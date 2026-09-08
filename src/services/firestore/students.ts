@@ -279,6 +279,8 @@ export async function batchCreateStudents(
 
 export interface ImportStudentItem extends Omit<Student, 'id' | 'createdAt' | 'updatedAt'> {
   rollNumber?: number;
+  classId?: string;
+  className?: string;
 }
 
 export async function atomicImportStudentsWithEnrollment(
@@ -286,12 +288,12 @@ export async function atomicImportStudentsWithEnrollment(
   studentsList: ImportStudentItem[],
   enrollmentConfig?: {
     academicYearId: string;
-    classId: string;
-    className: string;
-    academicYearLabel: string;
+    classId?: string;
+    className?: string;
+    academicYearLabel?: string;
   }
-): Promise<{ count: number }> {
-  if (studentsList.length === 0) return { count: 0 };
+): Promise<{ count: number; enrolledCount: number }> {
+  if (studentsList.length === 0) return { count: 0, enrolledCount: 0 };
 
   // 1. Validasi duplikasi NISN internal di dalam berkas impor
   const seenNisns = new Set<string>();
@@ -325,17 +327,51 @@ export async function atomicImportStudentsWithEnrollment(
     }
   }
 
+  // 3. Hitung penomoran absen (rollNumber) per-kelas dengan menghormati urutan data berkas (A-Z)
+  const rollCounters = new Map<string, number>();
+  let enrolledCount = 0;
+
+  const preparedList = studentsList.map((item, globalIdx) => {
+    const targetClassId = item.classId || enrollmentConfig?.classId;
+    const targetClassName = item.className || enrollmentConfig?.className || '';
+
+    let assignedRollNumber = item.rollNumber;
+    if (targetClassId) {
+      enrolledCount++;
+      if (!assignedRollNumber || assignedRollNumber <= 0) {
+        const nextRoll = (rollCounters.get(targetClassId) || 0) + 1;
+        rollCounters.set(targetClassId, nextRoll);
+        assignedRollNumber = nextRoll;
+      } else {
+        // Update current highest counter if provided rollNumber is larger
+        const currentHighest = rollCounters.get(targetClassId) || 0;
+        if (assignedRollNumber > currentHighest) {
+          rollCounters.set(targetClassId, assignedRollNumber);
+        }
+      }
+    } else {
+      assignedRollNumber = assignedRollNumber && assignedRollNumber > 0 ? assignedRollNumber : globalIdx + 1;
+    }
+
+    return {
+      ...item,
+      targetClassId,
+      targetClassName,
+      assignedRollNumber,
+    };
+  });
+
   const studentsColRef = collection(db, 'users', uid, 'students');
   const enrollmentsColRef = collection(db, 'users', uid, 'enrollments');
   const now = serverTimestamp();
 
   // Process in chunks of 200 (since 200 students + 200 enrollments = 400 operations, well within 500 limit)
   const chunkSize = 200;
-  for (let i = 0; i < studentsList.length; i += chunkSize) {
-    const chunk = studentsList.slice(i, i + chunkSize);
+  for (let i = 0; i < preparedList.length; i += chunkSize) {
+    const chunk = preparedList.slice(i, i + chunkSize);
     const batch = writeBatch(db);
 
-    chunk.forEach((item, index) => {
+    chunk.forEach((item) => {
       const studentDocRef = doc(studentsColRef);
       const studentData = {
         nis: item.nis?.trim() || '',
@@ -357,15 +393,15 @@ export async function atomicImportStudentsWithEnrollment(
       };
       batch.set(studentDocRef, studentData);
 
-      if (enrollmentConfig && enrollmentConfig.classId && enrollmentConfig.academicYearId) {
+      if (item.targetClassId && enrollmentConfig?.academicYearId) {
         const enrollmentDocRef = doc(enrollmentsColRef);
         const enrollmentData = {
           academicYearId: enrollmentConfig.academicYearId,
-          classId: enrollmentConfig.classId,
+          classId: item.targetClassId,
           studentId: studentDocRef.id,
-          rollNumber: item.rollNumber || (i + index + 1),
+          rollNumber: item.assignedRollNumber,
           status: 'ACTIVE',
-          className: enrollmentConfig.className || '',
+          className: item.targetClassName,
           academicYearLabel: enrollmentConfig.academicYearLabel || '',
           createdAt: now,
           updatedAt: now,
@@ -377,6 +413,6 @@ export async function atomicImportStudentsWithEnrollment(
     await batch.commit();
   }
 
-  return { count: studentsList.length };
+  return { count: studentsList.length, enrolledCount };
 }
 

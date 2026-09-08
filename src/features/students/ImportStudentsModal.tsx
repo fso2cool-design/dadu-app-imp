@@ -1,11 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { atomicImportStudentsWithEnrollment, ImportStudentItem, getStudents } from '../../services/firestore/students';
 import { Modal } from '../../components/common/Modal';
-import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check } from 'lucide-react';
-import { Student, GenderType } from '../../types';
+import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle } from 'lucide-react';
+import { GenderType, ClassItem } from '../../types';
+import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 
 interface ImportStudentsModalProps {
   isOpen: boolean;
@@ -15,8 +16,13 @@ interface ImportStudentsModalProps {
 }
 
 interface ParsedRow {
+  originalIndex: number;
   rollNumber: number;
   fullName: string;
+  rawClassName: string;
+  targetClassId: string; // ID rombel tujuan, atau '' jika tanpa rombel
+  targetClassName: string;
+  classMatchStatus: 'MATCHED' | 'UNMATCHED' | 'UNASSIGNED';
   nis: string;
   nisn: string;
   gender: GenderType;
@@ -40,60 +46,60 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectedClassId, setSelectedClassId] = useState(targetClassId || classes[0]?.id || '');
+  const activeClasses = useMemo(() => {
+    return classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived);
+  }, [classes, activeAcademicYear]);
+
+  const [defaultClassId, setDefaultClassId] = useState<string>(targetClassId || activeClasses[0]?.id || '');
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successCount, setSuccessCount] = useState<number | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{ total: number; enrolled: number } | null>(null);
 
-  const handleDownloadTemplate = () => {
-    const templateData = [
-      {
-        'No Absen': 1,
-        'Nama Lengkap': 'Ahmad Fauzi',
-        'NIS': '20261001',
-        'NISN': '0081234567',
-        'Jenis Kelamin (L/P)': 'L',
-        'Tempat Lahir': 'Bukittinggi',
-        'Tanggal Lahir (YYYY-MM-DD)': '2009-05-14',
-        'No HP Siswa': '081234567890',
-        'Nama Orang Tua / Wali': 'H. Syahril',
-        'No HP Ortu': '081398765432',
-        'Alamat': 'Jl. Sudirman No. 12',
-      },
-      {
-        'No Absen': 2,
-        'Nama Lengkap': 'Aisyah Putri Rahma',
-        'NIS': '20261002',
-        'NISN': '0087654321',
-        'Jenis Kelamin (L/P)': 'P',
-        'Tempat Lahir': 'Padang',
-        'Tanggal Lahir (YYYY-MM-DD)': '2009-08-20',
-        'No HP Siswa': '081298765432',
-        'Nama Orang Tua / Wali': 'Drs. Ridwan',
-        'No HP Ortu': '081234123412',
-        'Alamat': 'Jl. M. Yamin No. 5',
-      },
-      {
-        'No Absen': 3,
-        'Nama Lengkap': 'Budi Santoso',
-        'NIS': '20261003',
-        'NISN': '0089988776',
-        'Jenis Kelamin (L/P)': 'L',
-        'Tempat Lahir': 'Jakarta',
-        'Tanggal Lahir (YYYY-MM-DD)': '2009-02-10',
-        'No HP Siswa': '',
-        'Nama Orang Tua / Wali': 'Bambang',
-        'No HP Ortu': '085211223344',
-        'Alamat': 'Kompleks Asri Blok C-3',
-      }
-    ];
+  // Helper pencocokan cerdas nama kelas dari Excel ke rombel sistem
+  const matchClassByName = (rawName: string, availableClasses: ClassItem[]): ClassItem | null => {
+    const trimmed = rawName.trim();
+    if (!trimmed) return null;
 
-    const ws = XLSX.utils.json_to_sheet(templateData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template Siswa');
-    XLSX.writeFile(wb, 'Template_Import_Siswa_TeacherWorkspace.xlsx');
+    // 1. Pencocokan tepat (case-insensitive)
+    const exact = availableClasses.find(c => c.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (exact) return exact;
+
+    // 2. Normalisasi karakter (hapus tanda baca dan spasi berlebih)
+    const cleanStr = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    const cleanRaw = cleanStr(trimmed);
+    const stripped = availableClasses.find(c => cleanStr(c.name) === cleanRaw);
+    if (stripped) return stripped;
+
+    // 3. Konversi angka romawi vs desimal (VII <-> 7, X <-> 10, dll)
+    const toDigit = (s: string) => s.toLowerCase()
+      .replace(/\bvii\b/g, '7')
+      .replace(/\bviii\b/g, '8')
+      .replace(/\bix\b/g, '9')
+      .replace(/\bx\b/g, '10')
+      .replace(/\bxi\b/g, '11')
+      .replace(/\bxii\b/g, '12');
+
+    const toRoman = (s: string) => s.toLowerCase()
+      .replace(/\b7\b/g, 'vii')
+      .replace(/\b8\b/g, 'viii')
+      .replace(/\b9\b/g, 'ix')
+      .replace(/\b10\b/g, 'x')
+      .replace(/\b11\b/g, 'xi')
+      .replace(/\b12\b/g, 'xii');
+
+    const dMatch = availableClasses.find(c => toDigit(c.name.trim()) === toDigit(trimmed));
+    if (dMatch) return dMatch;
+
+    const rMatch = availableClasses.find(c => toRoman(c.name.trim()) === toRoman(trimmed));
+    if (rMatch) return rMatch;
+
+    return null;
+  };
+
+  const handleDownload = () => {
+    downloadStudentExcelTemplate(activeClasses);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +108,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
 
     setFileName(file.name);
     setErrorMsg(null);
-    setSuccessCount(null);
+    setSuccessInfo(null);
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
@@ -114,7 +120,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         const rawJson: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
 
         if (!rawJson || rawJson.length === 0) {
-          setErrorMsg('File Excel / CSV kosong atau format tidak sesuai.');
+          setErrorMsg('File Excel / CSV kosong atau format baris tidak terbaca.');
           return;
         }
 
@@ -133,23 +139,60 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           }
         }
 
-        // Lacak duplikasi NISN internal di berkas
+        // Lacak duplikasi NISN internal di dalam file
         const seenNisnsInFile = new Set<string>();
+        const defaultClassObj = activeClasses.find(c => c.id === defaultClassId);
 
         const rows: ParsedRow[] = rawJson.map((row, idx) => {
-          // Normalize column keys
           const name = String(row['Nama Lengkap'] || row['Nama'] || row['Full Name'] || row['nama'] || '').trim();
+          const rawClass = String(
+            row['Kelas'] || row['Rombel'] || row['Kelas / Rombel'] || row['Class'] || row['Rombongan Belajar'] || ''
+          ).trim();
           const nis = String(row['NIS'] || row['Nis'] || row['nis'] || '').trim();
           const nisn = String(row['NISN'] || row['Nisn'] || row['nisn'] || '').trim();
           const rawGender = String(row['Jenis Kelamin (L/P)'] || row['Jenis Kelamin'] || row['Gender'] || row['JK'] || 'L').trim().toUpperCase();
           const gender: GenderType = rawGender.startsWith('P') || rawGender.startsWith('W') ? 'P' : 'L';
-          const rollNo = Number(row['No Absen'] || row['Absen'] || row['No'] || idx + 1) || (idx + 1);
+          
+          // Nomor absen dari berkas jika ada
+          const rawRoll = Number(row['No Absen'] || row['Absen'] || row['No Urut'] || 0);
+          const rollNo = !isNaN(rawRoll) && rawRoll > 0 ? rawRoll : 0;
+
           const birthPlace = String(row['Tempat Lahir'] || '').trim();
           const birthDate = String(row['Tanggal Lahir (YYYY-MM-DD)'] || row['Tanggal Lahir'] || '').trim();
           const phone = String(row['No HP Siswa'] || row['HP Siswa'] || row['Phone'] || '').trim();
           const parentName = String(row['Nama Orang Tua / Wali'] || row['Nama Ortu'] || row['Orang Tua'] || '').trim();
           const parentPhone = String(row['No HP Ortu'] || row['HP Ortu'] || '').trim();
           const address = String(row['Alamat'] || '').trim();
+
+          // Deteksi Kelas Otomatis
+          let targetId = '';
+          let targetName = '';
+          let matchStatus: 'MATCHED' | 'UNMATCHED' | 'UNASSIGNED' = 'UNASSIGNED';
+
+          if (rawClass) {
+            const matched = matchClassByName(rawClass, activeClasses);
+            if (matched) {
+              targetId = matched.id;
+              targetName = matched.name;
+              matchStatus = 'MATCHED';
+            } else {
+              matchStatus = 'UNMATCHED';
+              // Fallback ke default class jika disetel
+              if (defaultClassObj) {
+                targetId = defaultClassObj.id;
+                targetName = defaultClassObj.name;
+              }
+            }
+          } else {
+            // Kolom kelas kosong di Excel
+            if (defaultClassObj) {
+              targetId = defaultClassObj.id;
+              targetName = defaultClassObj.name;
+              matchStatus = 'MATCHED';
+            } else {
+              matchStatus = 'UNASSIGNED';
+            }
+          }
 
           let isValid = !!name;
           let validationError = !name ? 'Nama lengkap wajib diisi' : undefined;
@@ -169,8 +212,13 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           }
 
           return {
+            originalIndex: idx,
             rollNumber: rollNo,
             fullName: name,
+            rawClassName: rawClass,
+            targetClassId: targetId,
+            targetClassName: targetName,
+            classMatchStatus: matchStatus,
             nis,
             nisn,
             gender,
@@ -194,6 +242,78 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     reader.readAsBinaryString(file);
   };
 
+  // Hitung penomoran absen A-Z secara dinamis per-kelas untuk pratinjau
+  const rowsWithComputedRoll = useMemo(() => {
+    const classRollCounters = new Map<string, number>();
+    return parsedRows.map((r, globalIdx) => {
+      let computedRoll = r.rollNumber;
+      if (r.targetClassId) {
+        if (!computedRoll || computedRoll <= 0) {
+          const next = (classRollCounters.get(r.targetClassId) || 0) + 1;
+          classRollCounters.set(r.targetClassId, next);
+          computedRoll = next;
+        } else {
+          const cur = classRollCounters.get(r.targetClassId) || 0;
+          if (computedRoll > cur) classRollCounters.set(r.targetClassId, computedRoll);
+        }
+      } else {
+        computedRoll = computedRoll && computedRoll > 0 ? computedRoll : globalIdx + 1;
+      }
+
+      return {
+        ...r,
+        computedRoll,
+      };
+    });
+  }, [parsedRows]);
+
+  // Daftar nama kelas mentah yang tidak cocok dengan kelas terdaftar
+  const unmatchedClassGroups = useMemo(() => {
+    const map = new Map<string, number>();
+    parsedRows.forEach(r => {
+      if (r.classMatchStatus === 'UNMATCHED' && r.rawClassName) {
+        map.set(r.rawClassName, (map.get(r.rawClassName) || 0) + 1);
+      }
+    });
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  }, [parsedRows]);
+
+  // Bulk map: Petakan seluruh siswa dengan nama kelas mentah tertentu ke kelas sistem
+  const handleBulkMapClass = (rawName: string, newTargetClassId: string) => {
+    const targetCls = activeClasses.find(c => c.id === newTargetClassId);
+    setParsedRows(prev =>
+      prev.map(r => {
+        if (r.rawClassName === rawName) {
+          return {
+            ...r,
+            targetClassId: newTargetClassId,
+            targetClassName: targetCls?.name || '',
+            classMatchStatus: newTargetClassId ? 'MATCHED' : 'UNASSIGNED',
+          };
+        }
+        return r;
+      })
+    );
+  };
+
+  // Ubah kelas per-baris siswa
+  const handleRowClassChange = (index: number, newTargetClassId: string) => {
+    const targetCls = activeClasses.find(c => c.id === newTargetClassId);
+    setParsedRows(prev =>
+      prev.map((r, i) => {
+        if (i === index) {
+          return {
+            ...r,
+            targetClassId: newTargetClassId,
+            targetClassName: targetCls?.name || '',
+            classMatchStatus: newTargetClassId ? 'MATCHED' : 'UNASSIGNED',
+          };
+        }
+        return r;
+      })
+    );
+  };
+
   const handleSaveImport = async () => {
     if (!user || parsedRows.length === 0 || !activeAcademicYear) return;
 
@@ -206,17 +326,10 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     try {
       setLoading(true);
       setErrorMsg(null);
-      triggerSyncFeedback('syncing', `Mengimpor ${validRows.length} data siswa secara terpadu...`);
+      triggerSyncFeedback('syncing', `Mengimpor ${validRows.length} siswa secara terpadu...`);
 
-      const targetCls = selectedClassId ? classes.find(c => c.id === selectedClassId) : undefined;
-      const enrollmentConfig = (selectedClassId && targetCls) ? {
-        academicYearId: activeAcademicYear.id,
-        classId: selectedClassId,
-        className: targetCls.name,
-        academicYearLabel: activeAcademicYear.label,
-      } : undefined;
-
-      const studentsToImport: ImportStudentItem[] = validRows.map((r, idx) => ({
+      // Susun item siswa untuk atomic batch import
+      const studentsToImport: ImportStudentItem[] = validRows.map((r) => ({
         nis: r.nis,
         nisn: r.nisn,
         fullName: r.fullName,
@@ -227,15 +340,20 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         parentName: r.parentName,
         parentPhone: r.parentPhone,
         address: r.address,
-        notes: 'Diimpor via Excel',
+        notes: r.rawClassName ? `Diimpor via Excel (Kelas asal: ${r.rawClassName})` : 'Diimpor via Excel',
         status: 'ACTIVE' as const,
-        rollNumber: r.rollNumber || (idx + 1),
+        rollNumber: r.rollNumber,
+        classId: r.targetClassId || undefined,
+        className: r.targetClassName || undefined,
       }));
 
-      const res = await atomicImportStudentsWithEnrollment(user.uid, studentsToImport, enrollmentConfig);
+      const res = await atomicImportStudentsWithEnrollment(user.uid, studentsToImport, {
+        academicYearId: activeAcademicYear.id,
+        academicYearLabel: activeAcademicYear.label,
+      });
 
-      triggerSyncFeedback('saved', `${res.count} siswa berhasil diimpor terpadu!`);
-      setSuccessCount(res.count);
+      triggerSyncFeedback('saved', `${res.count} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`);
+      setSuccessInfo({ total: res.count, enrolled: res.enrolledCount });
       setTimeout(() => {
         onSuccess();
         onClose();
@@ -253,9 +371,26 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     setParsedRows([]);
     setFileName('');
     setErrorMsg(null);
-    setSuccessCount(null);
+    setSuccessInfo(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Ringkasan kelas dari baris yang terbaca
+  const enrolledSummary = useMemo(() => {
+    const map = new Map<string, number>();
+    let unassignedCount = 0;
+    parsedRows.forEach(r => {
+      if (r.targetClassName) {
+        map.set(r.targetClassName, (map.get(r.targetClassName) || 0) + 1);
+      } else {
+        unassignedCount++;
+      }
+    });
+    return {
+      classes: Array.from(map.entries()),
+      unassignedCount,
+    };
+  }, [parsedRows]);
 
   return (
     <Modal
@@ -264,24 +399,24 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         resetState();
         onClose();
       }}
-      title="Import Data Siswa dari Excel / CSV"
-      maxWidth="3xl"
+      title="Import Data Siswa dari Excel (Multi-Rombel)"
+      maxWidth="4xl"
     >
-      <div className="space-y-5">
-        {/* Step 1: Download template & class placement selection */}
-        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-4">
+        {/* Step 1: Download template & info */}
+        <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              Template Excel Resmi
+              Template Excel Resmi (Dengan Kolom Kelas)
             </h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Unduh template standar dengan header kolom yang sesuai format database.
+            <p className="text-[11px] text-slate-500 mt-0.5 max-w-xl">
+              Template menyertakan kolom <span className="font-semibold text-slate-700">"Kelas"</span> sehingga sistem otomatis memasukkan siswa ke rombel yang sesuai. Format daftar sudah otomatis disesuaikan dengan urutan alfabetis (A-Z).
             </p>
           </div>
           <button
             type="button"
-            onClick={handleDownloadTemplate}
+            onClick={handleDownload}
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all shrink-0 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-indigo-600" />
@@ -289,34 +424,40 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           </button>
         </div>
 
-        {/* Enrollment Target Options */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Global Fallback Class Option */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-3.5 rounded-xl border border-slate-200">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Penempatan Kelas Otomatis
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Rombel Cadangan / Default:
             </label>
+            <p className="text-[10px] text-slate-400 mb-1.5">
+              Digunakan jika kolom "Kelas" di baris Excel kosong atau tidak terisi.
+            </p>
             <select
-              value={selectedClassId}
-              onChange={e => setSelectedClassId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
+              value={defaultClassId}
+              onChange={e => setDefaultClassId(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
             >
-              <option value="">-- Jangan Enroll ke Kelas (Hanya Simpan Master) --</option>
-              {classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived).map(c => (
+              <option value="">-- Jangan Enroll (Simpan Sebagai Siswa Master) --</option>
+              {activeClasses.map(c => (
                 <option key={c.id} value={c.id}>
-                  Enroll langsung ke Kelas {c.name} (Tingkat {c.gradeLevel})
+                  Kelas {c.name} (Tingkat {c.gradeLevel})
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Tahun Ajaran Aktif
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Tahun Ajaran Aktif:
             </label>
+            <p className="text-[10px] text-slate-400 mb-1.5">
+              Target penempatan rombel siswa tahun ajaran ini.
+            </p>
             <input
               type="text"
               disabled
               value={activeAcademicYear?.label || '2026/2027'}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 text-xs text-slate-500 font-medium"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-100 text-xs text-slate-600 font-semibold"
             />
           </div>
         </div>
@@ -325,7 +466,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         {parsedRows.length === 0 ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 rounded-2xl p-8 text-center cursor-pointer transition-all hover:bg-indigo-50/70"
+            className="border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/40 rounded-2xl p-7 text-center cursor-pointer transition-all hover:bg-indigo-50/70"
           >
             <input
               ref={fileInputRef}
@@ -334,64 +475,165 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               onChange={handleFileUpload}
               className="hidden"
             />
-            <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3">
-              <Upload className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-2.5">
+              <Upload className="w-5 h-5" />
             </div>
             <p className="text-xs font-bold text-slate-800">
-              Klik atau Seret file Excel (.xlsx / .csv) ke sini
+              Pilih atau Seret Berkas Excel (.xlsx / .csv) ke Sini
             </p>
             <p className="text-[11px] text-slate-500 mt-1">
-              Mendukung file Excel format Microsoft Excel (.xlsx), Spreadsheet (.xls), atau CSV.
+              File dapat memuat satu atau beberapa kelas sekaligus. Kolom kelas akan dibaca otomatis.
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100">
-              <div className="flex items-center gap-2">
+            {/* Header info bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100 gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
                 <span className="text-xs font-semibold text-indigo-900">{fileName}</span>
-                <span className="text-[11px] bg-white text-indigo-700 px-2 py-0.5 rounded-full font-bold">
-                  {parsedRows.length} Siswa Terbaca
+                <span className="text-[11px] bg-white text-indigo-700 px-2 py-0.5 rounded-full font-bold border border-indigo-200">
+                  {parsedRows.length} Baris Siswa
                 </span>
+                {enrolledSummary.classes.map(([cName, cnt]) => (
+                  <span key={cName} className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-medium">
+                    {cName}: {cnt}
+                  </span>
+                ))}
+                {enrolledSummary.unassignedCount > 0 && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">
+                    Tanpa Rombel: {enrolledSummary.unassignedCount}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
                 onClick={resetState}
-                className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 cursor-pointer shrink-0"
               >
-                <X className="w-3.5 h-3.5" /> Ganti File
+                <X className="w-3.5 h-3.5" /> Ganti Berkas
               </button>
             </div>
 
+            {/* UNMATCHED CLASS RESOLVER BANNER */}
+            {unmatchedClassGroups.length > 0 && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Ditemukan Nama Kelas di Excel yang Belum Terdaftar di Rombel:</span>
+                </div>
+                <p className="text-[11px] text-amber-700">
+                  Sistem menemukan penamaan kelas berikut dalam file. Silakan tentukan kelas tujuan agar seluruh siswa otomatis dialihkan:
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {unmatchedClassGroups.map(group => (
+                    <div key={group.name} className="flex items-center justify-between gap-2 p-2 bg-white rounded-lg border border-amber-200 text-xs">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                          "{group.name}"
+                        </span>
+                        <span className="text-[11px] text-slate-500 shrink-0">({group.count} siswa)</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <ArrowRight className="w-3 h-3 text-amber-500" />
+                        <select
+                          onChange={e => handleBulkMapClass(group.name, e.target.value)}
+                          className="px-2 py-1 rounded text-xs border border-amber-300 bg-amber-50/50 text-slate-800 font-medium focus:ring-1 focus:ring-amber-500"
+                          defaultValue=""
+                        >
+                          <option value="" disabled>-- Pilih Rombel --</option>
+                          <option value="">Simpan Tanpa Rombel</option>
+                          {activeClasses.map(c => (
+                            <option key={c.id} value={c.id}>
+                              Kelas {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Preview Table */}
-            <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
+            <div className="max-h-72 overflow-y-auto border border-slate-200 rounded-xl bg-white">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-100 text-slate-700 sticky top-0 font-semibold border-b border-slate-200">
+                <thead className="bg-slate-100 text-slate-700 sticky top-0 font-semibold border-b border-slate-200 z-10">
                   <tr>
-                    <th className="p-2.5 w-12 text-center">No</th>
-                    <th className="p-2.5">Nama Lengkap</th>
+                    <th className="p-2.5 w-12 text-center">No Absen</th>
+                    <th className="p-2.5 min-w-36">Nama Siswa (A-Z)</th>
+                    <th className="p-2.5 min-w-44">Rombel / Kelas Tujuan</th>
                     <th className="p-2.5 w-24">NIS / NISN</th>
                     <th className="p-2.5 w-14 text-center">L/P</th>
-                    <th className="p-2.5">Ortu / Wali</th>
-                    <th className="p-2.5">Kontak</th>
+                    <th className="p-2.5 min-w-32">Ortu / Kontak</th>
                     <th className="p-2.5 w-20 text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {parsedRows.map((r, i) => (
+                  {rowsWithComputedRoll.map((r, i) => (
                     <tr key={i} className={r.isValid ? 'hover:bg-slate-50' : 'bg-rose-50/50'}>
-                      <td className="p-2 text-center font-mono font-semibold">{r.rollNumber}</td>
-                      <td className="p-2 font-medium text-slate-800">{r.fullName}</td>
+                      {/* Roll number */}
+                      <td className="p-2 text-center font-mono font-semibold text-slate-700">
+                        {r.computedRoll}
+                      </td>
+
+                      {/* Full Name */}
+                      <td className="p-2 font-medium text-slate-900">
+                        {r.fullName}
+                      </td>
+
+                      {/* Class Column with dropdown selector & status indicator */}
+                      <td className="p-2">
+                        <div className="flex items-center gap-1.5">
+                          <select
+                            value={r.targetClassId}
+                            onChange={e => handleRowClassChange(i, e.target.value)}
+                            className={`w-full px-2 py-1 rounded-lg text-xs border font-medium cursor-pointer ${
+                              r.targetClassId
+                                ? 'bg-emerald-50/50 border-emerald-300 text-emerald-900'
+                                : 'bg-slate-50 border-slate-300 text-slate-600'
+                            }`}
+                          >
+                            <option value="">-- Tanpa Rombel (Master Saja) --</option>
+                            {activeClasses.map(c => (
+                              <option key={c.id} value={c.id}>
+                                Kelas {c.name} (Tk. {c.gradeLevel})
+                              </option>
+                            ))}
+                          </select>
+                          {r.classMatchStatus === 'MATCHED' && (
+                            <span title="Cocok otomatis" className="shrink-0 text-emerald-600">
+                              <Check className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                          {r.classMatchStatus === 'UNMATCHED' && (
+                            <span title="Nama kelas tidak ditemukan di sistem, perlu diarahkan" className="shrink-0 text-amber-500">
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* NIS / NISN */}
                       <td className="p-2 font-mono text-[11px] text-slate-500">
                         {r.nis || '-'}{r.nisn ? ` / ${r.nisn}` : ''}
                       </td>
+
+                      {/* Gender */}
                       <td className="p-2 text-center">
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${r.gender === 'L' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'}`}>
                           {r.gender}
                         </span>
                       </td>
-                      <td className="p-2 text-[11px] text-slate-600">{r.parentName || '-'}</td>
-                      <td className="p-2 text-[11px] text-slate-500">{r.parentPhone || r.phone || '-'}</td>
+
+                      {/* Parent & Phone */}
+                      <td className="p-2 text-[11px] text-slate-600">
+                        <div>{r.parentName || '-'}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{r.parentPhone || r.phone || ''}</div>
+                      </td>
+
+                      {/* Status */}
                       <td className="p-2 text-center">
                         {r.isValid ? (
                           <span className="inline-flex items-center text-emerald-600 text-[10px] font-bold">
@@ -419,36 +661,45 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           </div>
         )}
 
-        {successCount !== null && (
+        {successInfo && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-            <span>Berhasil mengimpor {successCount} data siswa ke database!</span>
+            <span>
+              Berhasil mengimpor {successInfo.total} data siswa ({successInfo.enrolled} siswa ditempatkan ke rombel)!
+            </span>
           </div>
         )}
 
         {/* Footer Buttons */}
-        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-          <button
-            type="button"
-            onClick={() => {
-              resetState();
-              onClose();
-            }}
-            className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-medium cursor-pointer"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            disabled={loading || parsedRows.length === 0 || successCount !== null}
-            onClick={handleSaveImport}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            {loading ? 'Menyimpan ke Firestore...' : `Simpan ${parsedRows.length} Siswa`}
-          </button>
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+          <div className="text-[11px] text-slate-400 flex items-center gap-1">
+            <HelpCircle className="w-3.5 h-3.5" />
+            Nomor absen otomatis tersortir per-kelas sesuai urutan A-Z data.
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                resetState();
+                onClose();
+              }}
+              className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-medium cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              disabled={loading || parsedRows.length === 0 || successInfo !== null}
+              onClick={handleSaveImport}
+              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              {loading ? 'Menyimpan ke Firestore...' : `Simpan ${parsedRows.length} Siswa`}
+            </button>
+          </div>
         </div>
       </div>
     </Modal>
   );
 };
+

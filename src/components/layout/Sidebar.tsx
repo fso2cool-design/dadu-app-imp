@@ -27,6 +27,7 @@ interface SidebarProps {
   adminBadgeCount?: number;
   onOpenAdminPanel?: () => void;
   onOpenFeedbackModal?: () => void;
+  onOpenChangeLog?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   adminBadgeCount = 0,
   onOpenAdminPanel,
   onOpenFeedbackModal,
+  onOpenChangeLog,
 }) => {
   const { activeTheme } = useAppTheme();
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
@@ -279,7 +281,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center gap-1.5 font-medium">
               <span className="font-bold text-slate-300 dark:text-slate-200">{APP_CONFIG.name}</span>
               <span className="text-slate-600 dark:text-slate-700">•</span>
-              <span className="font-mono text-[10px] text-slate-400 dark:text-slate-400">{APP_CONFIG.versionDisplay}</span>
+              <button
+                type="button"
+                onClick={onOpenChangeLog}
+                title="Lihat Catatan Pembaruan (Release Notes)"
+                className="font-mono text-[10px] text-slate-400 hover:text-indigo-400 dark:text-slate-400 dark:hover:text-cyan-300 transition-colors underline decoration-dotted cursor-pointer"
+              >
+                {APP_CONFIG.versionDisplay}
+              </button>
               <span 
                 title={`Pengembang: ${APP_CONFIG.developerName}`} 
                 className="px-1.5 py-0.5 rounded-md bg-orange-950/80 dark:bg-cyan-950/80 text-orange-300 dark:text-cyan-300 border border-orange-700/60 dark:border-cyan-500/50 text-[9px] font-mono font-bold tracking-wider uppercase shadow-2xs"
