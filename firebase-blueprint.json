@@ -150,6 +150,23 @@
         "resolvedAt": { "type": "string" }
       },
       "required": ["userId", "userName", "userEmail", "type", "title", "description", "status"]
+    },
+    "TeacherAttendanceRecord": {
+      "title": "TeacherAttendanceRecord",
+      "description": "Subject teacher attendance record recorded by homeroom teacher based on classroom journals",
+      "type": "object",
+      "properties": {
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "classId": { "type": "string" },
+        "date": { "type": "string" },
+        "teachingAssignmentId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "status": { "type": "string", "enum": ["HADIR", "SAKIT", "IZIN", "ALPA", "DINAS"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["academicYearId", "semester", "classId", "date", "teachingAssignmentId", "teacherId", "subjectId", "status"]
     }
   },
   "firestore": {
@@ -184,6 +201,10 @@
     "/users/{userId}/dailyAttendanceRecords/{recordId}": {
       "schema": "DailyAttendanceRecord",
       "description": "Homeroom daily attendance individual records"
+    },
+    "/users/{userId}/teacherAttendanceRecords/{recordId}": {
+      "schema": "TeacherAttendanceRecord",
+      "description": "Subject teacher attendance records per class schedule recorded by homeroom teacher"
     },
     "/users/{userId}/studentNotes/{noteId}": {
       "schema": "StudentNote",

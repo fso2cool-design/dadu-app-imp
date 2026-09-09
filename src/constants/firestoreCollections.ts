@@ -18,6 +18,7 @@ export const WORKSPACE_SUBCOLLECTIONS = [
   'assessmentItems',
   'scores',
   'studentNotes',
+  'teacherAttendanceRecords',
   'settings',
 ] as const;
 

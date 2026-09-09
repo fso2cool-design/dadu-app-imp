@@ -138,6 +138,7 @@ export interface TeachingAssignment {
   className?: string;
   subjectName?: string;
   subjectCode?: string;
+  teacherName?: string;
   createdAt: any;
   updatedAt: any;
 }
@@ -360,4 +361,49 @@ export interface FeedbackItem {
   resolvedAt?: any;
   createdAt: any;
   updatedAt: any;
+}
+
+// -------------------------------------------------------------
+// REKAP KEHADIRAN GURU MAPEL OLEH WALI KELAS
+// -------------------------------------------------------------
+
+export type TeacherAttendanceStatus = 'HADIR' | 'SAKIT' | 'IZIN' | 'ALPA' | 'DINAS';
+
+export interface TeacherAttendanceRecord {
+  id: string; // Deterministic: {academicYearId}_{semester}_{classId}_{date}_{teachingAssignmentId}
+  academicYearId: string;
+  academicYearLabel?: string;
+  semester: SemesterType; // 'GANJIL' | 'GENAP'
+  classId: string;
+  className?: string;
+  date: string; // YYYY-MM-DD
+  teachingAssignmentId: string;
+  teacherId: string;
+  teacherName?: string;
+  subjectId: string;
+  subjectName?: string;
+  subjectCode?: string;
+  dayOfWeek?: number; // 1-7 (Senin-Minggu)
+  status: TeacherAttendanceStatus;
+  notes?: string;
+  createdAt: any;
+  updatedAt: any;
+  createdBy: string;
+  updatedBy: string;
+}
+
+export interface TeacherAttendanceSummaryItem {
+  teachingAssignmentId: string;
+  teacherId: string;
+  teacherName: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode?: string;
+  hadir: number;
+  sakit: number;
+  izin: number;
+  alpa: number;
+  dinas: number;
+  total: number;
+  persentaseHadir: number;
 }

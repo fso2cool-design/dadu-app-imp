@@ -3,6 +3,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { HomeroomDashboardPage } from './HomeroomDashboardPage';
 import { HomeroomDailyAttendancePage } from './HomeroomDailyAttendancePage';
 import { HomeroomMonthlyAttendancePage } from './HomeroomMonthlyAttendancePage';
+import { HomeroomTeacherAttendancePage } from './HomeroomTeacherAttendancePage';
 import { HomeroomStudentsPage } from './HomeroomStudentsPage';
 import { HomeroomNotesPage } from './HomeroomNotesPage';
 import { 
@@ -12,7 +13,8 @@ import {
   CalendarRange, 
   FileSpreadsheet, 
   StickyNote,
-  GraduationCap
+  GraduationCap,
+  UserCheck
 } from 'lucide-react';
 
 interface HomeroomHubPageProps {
@@ -21,7 +23,7 @@ interface HomeroomHubPageProps {
   onNavigate?: (route: string, state?: any) => void;
 }
 
-type HomeroomTab = 'dashboard' | 'daily-attendance' | 'monthly-attendance' | 'students' | 'notes';
+type HomeroomTab = 'dashboard' | 'daily-attendance' | 'monthly-attendance' | 'teacher-attendance' | 'students' | 'notes';
 
 export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
   initialTab = 'dashboard',
@@ -34,9 +36,10 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
   useEffect(() => {
     if (initialTab) {
       const clean = initialTab.replace('homeroom-', '');
-      if (['dashboard', 'attendance-daily', 'daily-attendance', 'attendance-monthly', 'monthly-attendance', 'students', 'notes'].includes(clean)) {
+      if (['dashboard', 'attendance-daily', 'daily-attendance', 'attendance-monthly', 'monthly-attendance', 'teacher-attendance', 'attendance-teacher', 'students', 'notes'].includes(clean)) {
         if (clean === 'attendance-daily') setActiveTab('daily-attendance');
         else if (clean === 'attendance-monthly') setActiveTab('monthly-attendance');
+        else if (clean === 'teacher-attendance' || clean === 'attendance-teacher') setActiveTab('teacher-attendance');
         else setActiveTab(clean as HomeroomTab);
       }
     }
@@ -53,6 +56,7 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
     { id: 'dashboard', label: 'Dashboard Binaan', icon: LayoutDashboard },
     { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDays },
     { id: 'monthly-attendance', label: 'Presensi Bulanan', icon: CalendarRange },
+    { id: 'teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
     { id: 'students', label: 'Data Siswa Kelas', icon: FileSpreadsheet },
     { id: 'notes', label: 'Catatan & Sikap', icon: StickyNote },
   ];
@@ -111,6 +115,9 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
         )}
         {activeTab === 'monthly-attendance' && (
           <HomeroomMonthlyAttendancePage />
+        )}
+        {activeTab === 'teacher-attendance' && (
+          <HomeroomTeacherAttendancePage />
         )}
         {activeTab === 'students' && (
           <HomeroomStudentsPage 

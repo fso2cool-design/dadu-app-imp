@@ -20,7 +20,8 @@ export interface IntegrityIssue {
     | 'DUPLICATE_ACTIVE_ENROLLMENT' 
     | 'DUPLICATE_NISN'
     | 'INVALID_SCORE_RANGE' 
-    | 'ORPHAN_STUDENT_NOTE';
+    | 'ORPHAN_STUDENT_NOTE'
+    | 'ORPHAN_TEACHER_ATTENDANCE';
   severity: 'CRITICAL' | 'WARNING' | 'INFO';
   description: string;
   documentId: string;
@@ -66,7 +67,8 @@ export async function runIntegrityAudit(uid: string): Promise<DiagnosticResult> 
     dailyRecordsSnap,
     assessmentItemsSnap,
     scoresSnap,
-    notesSnap
+    notesSnap,
+    teacherAttendanceSnap
   ] = await Promise.all([
     getDocs(collection(db, 'users', uid, 'students')),
     getDocs(collection(db, 'users', uid, 'classes')),
@@ -80,6 +82,7 @@ export async function runIntegrityAudit(uid: string): Promise<DiagnosticResult> 
     getDocs(collection(db, 'users', uid, 'assessmentItems')),
     getDocs(collection(db, 'users', uid, 'scores')),
     getDocs(collection(db, 'users', uid, 'studentNotes')),
+    getDocs(collection(db, 'users', uid, 'teacherAttendanceRecords')),
   ]);
 
   const studentIds = new Set(studentsSnap.docs.map(d => d.id));
@@ -284,6 +287,30 @@ export async function runIntegrityAudit(uid: string): Promise<DiagnosticResult> 
         description: `Catatan bimbingan merujuk ke ID Siswa (${data.studentId}) yang tidak ditemukan.`,
         documentId: docSnap.id,
         collectionName: 'studentNotes',
+        details: data,
+      });
+    }
+  });
+
+  // Check 7: Orphan Teacher Attendance Records
+  teacherAttendanceSnap.docs.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.classId && !classIds.has(data.classId)) {
+      issues.push({
+        type: 'ORPHAN_TEACHER_ATTENDANCE',
+        severity: 'WARNING',
+        description: `Rekap kehadiran guru mapel merujuk ke ID Kelas (${data.classId}) yang tidak ditemukan.`,
+        documentId: docSnap.id,
+        collectionName: 'teacherAttendanceRecords',
+        details: data,
+      });
+    } else if (data.teachingAssignmentId && !assignmentIds.has(data.teachingAssignmentId)) {
+      issues.push({
+        type: 'ORPHAN_TEACHER_ATTENDANCE',
+        severity: 'INFO',
+        description: `Rekap kehadiran guru mapel merujuk ke ID Penugasan (${data.teachingAssignmentId}) yang telah dihapus permanen.`,
+        documentId: docSnap.id,
+        collectionName: 'teacherAttendanceRecords',
         details: data,
       });
     }

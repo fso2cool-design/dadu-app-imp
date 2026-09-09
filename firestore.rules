@@ -167,6 +167,31 @@ service cloud.firestore {
           );
       }
 
+      // Subject Teacher Attendance Records recorded by Homeroom Teacher
+      match /teacherAttendanceRecords/{recordId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.academicYearId is string
+          && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && request.resource.data.classId is string
+          && request.resource.data.date is string
+          && request.resource.data.teachingAssignmentId is string
+          && (!('status' in request.resource.data) || request.resource.data.status in ['HADIR', 'SAKIT', 'IZIN', 'ALPA', 'DINAS']);
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          // Relational identifiers are strictly immutable
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
+              || resource.data.academicYearId == request.resource.data.academicYearId)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['semester'])
+              || resource.data.semester == request.resource.data.semester)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId'])
+              || resource.data.classId == request.resource.data.classId)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['date'])
+              || resource.data.date == request.resource.data.date)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId'])
+              || resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId)
+          && (!('status' in request.resource.data) || request.resource.data.status in ['HADIR', 'SAKIT', 'IZIN', 'ALPA', 'DINAS']);
+      }
+
       // Match all other subcollections in user workspace
       match /{allSubcollections=**} {
         allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
@@ -203,6 +228,9 @@ service cloud.firestore {
       allow read: if isSuperAdmin();
     }
     match /{path=**}/attendanceRecords/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/teacherAttendanceRecords/{docId} {
       allow read: if isSuperAdmin();
     }
   }
