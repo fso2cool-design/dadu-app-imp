@@ -617,9 +617,18 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                           >
                             {stud.fullName}
                           </button>
-                          <span className="text-[11px] text-slate-400 block">
-                            {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
-                          </span>
+                          <div className="text-[11px] text-slate-400 space-y-0.5">
+                            {(stud.birthPlace || stud.birthDate) && (
+                              <span>
+                                {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
+                              </span>
+                            )}
+                            {stud.address && (
+                              <div className="text-slate-500 truncate max-w-xs text-[10px]" title={stud.address}>
+                                📍 {stud.address}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-3.5 font-mono text-[11px] text-slate-500">
                           <div>{stud.nis || '-'}</div>
@@ -746,9 +755,18 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                           >
                             {stud.fullName}
                           </button>
-                          <span className="text-[11px] text-slate-400 block">
-                            {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
-                          </span>
+                          <div className="text-[11px] text-slate-400 space-y-0.5">
+                            {(stud.birthPlace || stud.birthDate) && (
+                              <span>
+                                {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
+                              </span>
+                            )}
+                            {stud.address && (
+                              <div className="text-slate-500 truncate max-w-xs text-[10px]" title={stud.address}>
+                                📍 {stud.address}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-3.5 font-mono text-[11px] text-slate-500">
                           <div>{stud.nis || '-'}</div>

@@ -7,6 +7,7 @@ import { Modal } from '../../components/common/Modal';
 import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle } from 'lucide-react';
 import { GenderType, ClassItem } from '../../types';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
+import { sanitizeExcelDate, getRowValueByAliases } from '../../utils/excelImportSanitizer';
 
 interface ImportStudentsModalProps {
   isOpen: boolean;
@@ -114,10 +115,10 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     reader.onload = async (evt) => {
       try {
         const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
         const wsName = wb.SheetNames[0];
         const ws = wb.Sheets[wsName];
-        const rawJson: any[] = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        const rawJson: any[] = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
 
         if (!rawJson || rawJson.length === 0) {
           setErrorMsg('File Excel / CSV kosong atau format baris tidak terbaca.');
@@ -157,12 +158,31 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           const rawRoll = Number(row['No Absen'] || row['Absen'] || row['No Urut'] || 0);
           const rollNo = !isNaN(rawRoll) && rawRoll > 0 ? rawRoll : 0;
 
-          const birthPlace = String(row['Tempat Lahir'] || '').trim();
-          const birthDate = String(row['Tanggal Lahir (YYYY-MM-DD)'] || row['Tanggal Lahir'] || '').trim();
-          const phone = String(row['No HP Siswa'] || row['HP Siswa'] || row['Phone'] || '').trim();
-          const parentName = String(row['Nama Orang Tua / Wali'] || row['Nama Ortu'] || row['Orang Tua'] || '').trim();
-          const parentPhone = String(row['No HP Ortu'] || row['HP Ortu'] || '').trim();
-          const address = String(row['Alamat'] || '').trim();
+          const birthPlace = getRowValueByAliases(row, [
+            'Tempat Lahir', 'TempatLahir', 'Tempat Lahir Siswa', 'Kota Lahir', 'Birth Place'
+          ]);
+
+          // Sanitasi cerdas untuk Tanggal Lahir (Mendukung serial Excel, DD/MM/YYYY, teks bulan, dan ISO)
+          const rawBirthDate = getRowValueByAliases(row, [
+            'Tanggal Lahir (YYYY-MM-DD)', 'Tanggal Lahir', 'Tgl Lahir', 'TglLahir', 
+            'TanggalLahir', 'Tgl Lahir Siswa', 'Birth Date', 'DOB'
+          ]) || row['Tanggal Lahir (YYYY-MM-DD)'] || row['Tanggal Lahir'] || row['Tgl Lahir'];
+          const birthDate = sanitizeExcelDate(rawBirthDate);
+
+          const phone = getRowValueByAliases(row, [
+            'No HP Siswa', 'No HP', 'HP Siswa', 'Nomor HP Siswa', 'Telepon Siswa', 'Phone', 'No. HP Siswa'
+          ]);
+          const parentName = getRowValueByAliases(row, [
+            'Nama Orang Tua / Wali', 'Nama Orang Tua', 'Nama Ortu', 'Nama Wali', 'Orang Tua', 'Ortu', 'Nama Ayah', 'Nama Ibu', 'Parent Name'
+          ]);
+          const parentPhone = getRowValueByAliases(row, [
+            'No HP Ortu', 'No HP Orang Tua', 'HP Ortu', 'Nomor HP Ortu', 'No Telp Ortu', 'No. HP Ortu'
+          ]);
+
+          // Pencocokan fleksibel untuk Alamat (Mendukung Alamat, Alamat Siswa, Alamat Rumah, Domisili, dll)
+          const address = getRowValueByAliases(row, [
+            'Alamat', 'Alamat Siswa', 'Alamat Lengkap', 'Alamat Rumah', 'Alamat Domisili', 'Alamat Tinggal', 'Domisili', 'Address'
+          ]);
 
           // Deteksi Kelas Otomatis
           let targetId = '';
@@ -566,6 +586,8 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                     <th className="p-2.5 min-w-44">Rombel / Kelas Tujuan</th>
                     <th className="p-2.5 w-24">NIS / NISN</th>
                     <th className="p-2.5 w-14 text-center">L/P</th>
+                    <th className="p-2.5 min-w-32">TTL (Tgl Lahir)</th>
+                    <th className="p-2.5 min-w-36">Alamat</th>
                     <th className="p-2.5 min-w-32">Ortu / Kontak</th>
                     <th className="p-2.5 w-20 text-center">Status</th>
                   </tr>
@@ -625,6 +647,19 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${r.gender === 'L' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'}`}>
                           {r.gender}
                         </span>
+                      </td>
+
+                      {/* TTL (Tempat & Tanggal Lahir) */}
+                      <td className="p-2 text-[11px] text-slate-600">
+                        <div>{r.birthPlace || '-'}</div>
+                        <div className="font-mono text-[10px] text-indigo-600 font-semibold">
+                          {r.birthDate ? r.birthDate : <span className="text-slate-400 font-normal italic">Tidak ada</span>}
+                        </div>
+                      </td>
+
+                      {/* Alamat */}
+                      <td className="p-2 text-[11px] text-slate-600 max-w-xs truncate" title={r.address}>
+                        {r.address ? r.address : <span className="text-slate-400 italic">-</span>}
                       </td>
 
                       {/* Parent & Phone */}

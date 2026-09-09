@@ -24,6 +24,8 @@ export const APP_CHANGELOGS: ChangeLogItem[] = [
           'Template Excel resmi kini dilengkapi kolom "Kelas/Rombel" untuk pengisian multi-kelas dalam satu berkas.',
           'Deteksi Otomatis Rombel: Sistem otomatis mencocokkan nama kelas di Excel dengan rombel aktif di sistem.',
           'Resolusi Kelas Tidak Ditemukan: Muncul opsi pemetaan cepat dan fleksibel jika penamaan kelas di file belum terdaftar.',
+          'Sanitasi Tanggal Lahir Cerdas: Otomatis mengenali angka seri Excel, format DD/MM/YYYY, teks bulan, dan ISO YYYY-MM-DD.',
+          'Deteksi Alamat Fleksibel: Mendukung berbagai alias kolom alamat (Alamat, Alamat Siswa, Domisili) & penayangan langsung di tabel.',
           'Preservasi Urutan Alfabetis (A–Z): Nomor absen dihitung otomatis per-kelas mengikuti urutan data nama yang sudah terurut.',
           'Tombol cepat "Unduh Template" langsung di halaman utama Data Master Siswa.'
         ]
