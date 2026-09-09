@@ -56,7 +56,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   const [fileName, setFileName] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successInfo, setSuccessInfo] = useState<{ total: number; enrolled: number } | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{ total: number; enrolled: number; created: number; updated: number } | null>(null);
 
   // Helper pencocokan cerdas nama kelas dari Excel ke rombel sistem
   const matchClassByName = (rawName: string, availableClasses: ClassItem[]): ClassItem | null => {
@@ -372,8 +372,12 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         academicYearLabel: activeAcademicYear.label,
       });
 
-      triggerSyncFeedback('saved', `${res.count} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`);
-      setSuccessInfo({ total: res.count, enrolled: res.enrolledCount });
+      const feedbackMsg = res.updatedCount > 0
+        ? `${res.createdCount} siswa baru, ${res.updatedCount} siswa diperbarui (${res.enrolledCount} di rombel)!`
+        : `${res.count} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`;
+
+      triggerSyncFeedback('saved', feedbackMsg);
+      setSuccessInfo({ total: res.count, enrolled: res.enrolledCount, created: res.createdCount, updated: res.updatedCount });
       setTimeout(() => {
         onSuccess();
         onClose();
@@ -700,7 +704,15 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>
-              Berhasil mengimpor {successInfo.total} data siswa ({successInfo.enrolled} siswa ditempatkan ke rombel)!
+              {successInfo.updated > 0 ? (
+                <>
+                  Berhasil memproses <strong>{successInfo.total}</strong> siswa (<strong>{successInfo.created}</strong> siswa baru, <strong>{successInfo.updated}</strong> siswa diperbarui, <strong>{successInfo.enrolled}</strong> ditempatkan di rombel).
+                </>
+              ) : (
+                <>
+                  Berhasil mengimpor <strong>{successInfo.total}</strong> data siswa (<strong>{successInfo.enrolled}</strong> siswa ditempatkan ke rombel)!
+                </>
+              )}
             </span>
           </div>
         )}

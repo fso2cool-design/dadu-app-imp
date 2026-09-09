@@ -283,6 +283,13 @@ export interface ImportStudentItem extends Omit<Student, 'id' | 'createdAt' | 'u
   className?: string;
 }
 
+export interface ImportStudentResult {
+  count: number;
+  enrolledCount: number;
+  createdCount: number;
+  updatedCount: number;
+}
+
 export async function atomicImportStudentsWithEnrollment(
   uid: string,
   studentsList: ImportStudentItem[],
@@ -292,39 +299,43 @@ export async function atomicImportStudentsWithEnrollment(
     className?: string;
     academicYearLabel?: string;
   }
-): Promise<{ count: number; enrolledCount: number }> {
-  if (studentsList.length === 0) return { count: 0, enrolledCount: 0 };
-
-  // 1. Validasi duplikasi NISN internal di dalam berkas impor
-  const seenNisns = new Set<string>();
-  for (const item of studentsList) {
-    const cleanNisn = item.nisn?.trim();
-    if (cleanNisn) {
-      if (seenNisns.has(cleanNisn)) {
-        throw new Error(`Terdapat duplikasi NISN "${cleanNisn}" di dalam berkas impor. Pastikan setiap siswa memiliki NISN unik.`);
-      }
-      seenNisns.add(cleanNisn);
-    }
+): Promise<ImportStudentResult> {
+  if (studentsList.length === 0) {
+    return { count: 0, enrolledCount: 0, createdCount: 0, updatedCount: 0 };
   }
 
-  // 2. Validasi duplikasi NISN terhadap data master siswa yang sudah ada di database
-  if (seenNisns.size > 0) {
-    const existingStudents = await getStudents(uid);
-    const existingNisnMap = new Map<string, Student>();
-    existingStudents.forEach(s => {
-      if (s.nisn && !s.isArchived) {
-        existingNisnMap.set(s.nisn.trim(), s);
-      }
-    });
+  // 1. Ambil data master siswa yang sudah ada di database untuk deteksi upsert / pencegahan duplikasi
+  const existingStudents = await getStudents(uid);
+  const existingByNis = new Map<string, Student>();
+  const existingByNisn = new Map<string, Student>();
+  const existingByName = new Map<string, Student[]>();
 
-    for (const nisn of Array.from(seenNisns)) {
-      if (existingNisnMap.has(nisn)) {
-        const existing = existingNisnMap.get(nisn)!;
-        throw new Error(
-          `NISN "${nisn}" sudah terdaftar di database atas nama siswa "${existing.fullName}". Impor dibatalkan untuk mencegah data siswa ganda.`
-        );
-      }
+  existingStudents.forEach(s => {
+    if (s.nis && s.nis.trim()) {
+      existingByNis.set(s.nis.trim().toLowerCase(), s);
     }
+    if (s.nisn && s.nisn.trim()) {
+      existingByNisn.set(s.nisn.trim().toLowerCase(), s);
+    }
+    const normName = s.fullName.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (normName) {
+      if (!existingByName.has(normName)) existingByName.set(normName, []);
+      existingByName.get(normName)!.push(s);
+    }
+  });
+
+  // 2. Ambil penempatan kelas (enrollment) yang sudah ada pada tahun ajaran ini
+  const existingEnrollmentsMap = new Map<string, { id: string; rollNumber?: number }>();
+  if (enrollmentConfig?.academicYearId) {
+    const enrollmentsColRef = collection(db, 'users', uid, 'enrollments');
+    const enrSnap = await getDocs(
+      query(enrollmentsColRef, where('academicYearId', '==', enrollmentConfig.academicYearId))
+    );
+    enrSnap.docs.forEach(d => {
+      const data = d.data() as any;
+      const key = `${data.studentId}_${data.classId}`;
+      existingEnrollmentsMap.set(key, { id: d.id, rollNumber: data.rollNumber });
+    });
   }
 
   // 3. Hitung penomoran absen (rollNumber) per-kelas dengan menghormati urutan data berkas (A-Z)
@@ -343,7 +354,6 @@ export async function atomicImportStudentsWithEnrollment(
         rollCounters.set(targetClassId, nextRoll);
         assignedRollNumber = nextRoll;
       } else {
-        // Update current highest counter if provided rollNumber is larger
         const currentHighest = rollCounters.get(targetClassId) || 0;
         if (assignedRollNumber > currentHighest) {
           rollCounters.set(targetClassId, assignedRollNumber);
@@ -365,14 +375,124 @@ export async function atomicImportStudentsWithEnrollment(
   const enrollmentsColRef = collection(db, 'users', uid, 'enrollments');
   const now = serverTimestamp();
 
-  // Process in chunks of 200 (since 200 students + 200 enrollments = 400 operations, well within 500 limit)
-  const chunkSize = 200;
-  for (let i = 0; i < preparedList.length; i += chunkSize) {
-    const chunk = preparedList.slice(i, i + chunkSize);
-    const batch = writeBatch(db);
+  type BatchTask =
+    | { type: 'SET'; ref: any; data: any }
+    | { type: 'UPDATE'; ref: any; data: any };
 
-    chunk.forEach((item) => {
+  const batchTasks: BatchTask[] = [];
+  let createdCount = 0;
+  let updatedCount = 0;
+
+  // Lacak entitas yang baru dibuat di batch ini agar tidak bentrok jika file memiliki entri ganda internal
+  const locallyCreatedNis = new Map<string, string>();
+  const locallyCreatedNisn = new Map<string, string>();
+  const locallyCreatedName = new Map<string, string>();
+
+  for (const item of preparedList) {
+    const cleanNis = item.nis?.trim().toLowerCase() || '';
+    const cleanNisn = item.nisn?.trim().toLowerCase() || '';
+    const normName = item.fullName.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Cari kandidat siswa yang sudah ada (Idempotent Matcher)
+    let matchedStudent: Student | null = null;
+    let matchedStudentId: string | null = null;
+
+    if (cleanNis && existingByNis.has(cleanNis)) {
+      matchedStudent = existingByNis.get(cleanNis)!;
+      matchedStudentId = matchedStudent.id;
+    } else if (cleanNisn && existingByNisn.has(cleanNisn)) {
+      matchedStudent = existingByNisn.get(cleanNisn)!;
+      matchedStudentId = matchedStudent.id;
+    } else if (normName && existingByName.has(normName)) {
+      const candidates = existingByName.get(normName)!;
+      if (item.targetClassId) {
+        // Cocokkan apakah salah satu kandidat sudah terdaftar di kelas target
+        const enrolledCandidate = candidates.find(c =>
+          existingEnrollmentsMap.has(`${c.id}_${item.targetClassId}`)
+        );
+        if (enrolledCandidate) {
+          matchedStudent = enrolledCandidate;
+          matchedStudentId = enrolledCandidate.id;
+        } else if (candidates.length === 1) {
+          matchedStudent = candidates[0];
+          matchedStudentId = candidates[0].id;
+        }
+      } else if (candidates.length === 1) {
+        matchedStudent = candidates[0];
+        matchedStudentId = candidates[0].id;
+      }
+    } else if (cleanNis && locallyCreatedNis.has(cleanNis)) {
+      matchedStudentId = locallyCreatedNis.get(cleanNis)!;
+    } else if (cleanNisn && locallyCreatedNisn.has(cleanNisn)) {
+      matchedStudentId = locallyCreatedNisn.get(cleanNisn)!;
+    } else if (normName && locallyCreatedName.has(normName)) {
+      matchedStudentId = locallyCreatedName.get(normName)!;
+    }
+
+    if (matchedStudentId) {
+      // 1. SISWA SUDAH ADA -> Lakukan UPDATE (Smart Merge)
+      updatedCount++;
+      const studentDocRef = doc(studentsColRef, matchedStudentId);
+      const updateData: Record<string, any> = {
+        fullName: item.fullName.trim(),
+        gender: item.gender || matchedStudent?.gender || 'L',
+        updatedAt: now,
+      };
+
+      if (item.nis?.trim()) updateData.nis = item.nis.trim();
+      if (item.nisn?.trim()) updateData.nisn = item.nisn.trim();
+      if (item.birthPlace?.trim()) updateData.birthPlace = item.birthPlace.trim();
+      if (item.birthDate?.trim()) updateData.birthDate = item.birthDate.trim();
+      if (item.address?.trim()) updateData.address = item.address.trim();
+      if (item.parentName?.trim()) updateData.parentName = item.parentName.trim();
+      if (item.parentPhone?.trim()) updateData.parentPhone = item.parentPhone.trim();
+      if (item.phone?.trim()) updateData.phone = item.phone.trim();
+      if (item.email?.trim()) updateData.email = item.email.trim();
+      if (item.religion?.trim()) updateData.religion = item.religion.trim();
+
+      batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
+
+      // Penempatan kelas siswa yang sudah ada
+      if (item.targetClassId && enrollmentConfig?.academicYearId) {
+        const enrKey = `${matchedStudentId}_${item.targetClassId}`;
+        const existingEnr = existingEnrollmentsMap.get(enrKey);
+
+        if (existingEnr) {
+          // Enrollment sudah ada -> Update roll number & updatedAt (JANGAN BUAT DOKUMEN BARU!)
+          const enrDocRef = doc(enrollmentsColRef, existingEnr.id);
+          batchTasks.push({
+            type: 'UPDATE',
+            ref: enrDocRef,
+            data: {
+              rollNumber: item.assignedRollNumber,
+              status: 'ACTIVE',
+              updatedAt: now,
+            },
+          });
+        } else {
+          // Belum terdaftar di kelas ini -> Tambah enrollment baru
+          const newEnrDocRef = doc(enrollmentsColRef);
+          const newEnrData = {
+            academicYearId: enrollmentConfig.academicYearId,
+            classId: item.targetClassId,
+            studentId: matchedStudentId,
+            rollNumber: item.assignedRollNumber,
+            status: 'ACTIVE',
+            className: item.targetClassName,
+            academicYearLabel: enrollmentConfig.academicYearLabel || '',
+            createdAt: now,
+            updatedAt: now,
+          };
+          batchTasks.push({ type: 'SET', ref: newEnrDocRef, data: newEnrData });
+          existingEnrollmentsMap.set(enrKey, { id: newEnrDocRef.id, rollNumber: item.assignedRollNumber });
+        }
+      }
+    } else {
+      // 2. SISWA BELUM ADA -> Buat dokumen baru (CREATE)
+      createdCount++;
       const studentDocRef = doc(studentsColRef);
+      matchedStudentId = studentDocRef.id;
+
       const studentData = {
         nis: item.nis?.trim() || '',
         nisn: item.nisn?.trim() || '',
@@ -391,14 +511,20 @@ export async function atomicImportStudentsWithEnrollment(
         createdAt: now,
         updatedAt: now,
       };
-      batch.set(studentDocRef, studentData);
 
+      batchTasks.push({ type: 'SET', ref: studentDocRef, data: studentData });
+
+      if (cleanNis) locallyCreatedNis.set(cleanNis, matchedStudentId);
+      if (cleanNisn) locallyCreatedNisn.set(cleanNisn, matchedStudentId);
+      if (normName) locallyCreatedName.set(normName, matchedStudentId);
+
+      // Pendaftaran kelas baru
       if (item.targetClassId && enrollmentConfig?.academicYearId) {
         const enrollmentDocRef = doc(enrollmentsColRef);
         const enrollmentData = {
           academicYearId: enrollmentConfig.academicYearId,
           classId: item.targetClassId,
-          studentId: studentDocRef.id,
+          studentId: matchedStudentId,
           rollNumber: item.assignedRollNumber,
           status: 'ACTIVE',
           className: item.targetClassName,
@@ -406,13 +532,37 @@ export async function atomicImportStudentsWithEnrollment(
           createdAt: now,
           updatedAt: now,
         };
-        batch.set(enrollmentDocRef, enrollmentData);
+        batchTasks.push({ type: 'SET', ref: enrollmentDocRef, data: enrollmentData });
+        existingEnrollmentsMap.set(`${matchedStudentId}_${item.targetClassId}`, {
+          id: enrollmentDocRef.id,
+          rollNumber: item.assignedRollNumber,
+        });
+      }
+    }
+  }
+
+  // Eksekusi batch dalam batas Firestore (maksimal 300 tugas per batch)
+  const CHUNK_SIZE = 300;
+  for (let i = 0; i < batchTasks.length; i += CHUNK_SIZE) {
+    const chunk = batchTasks.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+
+    chunk.forEach(task => {
+      if (task.type === 'SET') {
+        batch.set(task.ref, task.data);
+      } else if (task.type === 'UPDATE') {
+        batch.update(task.ref, task.data);
       }
     });
 
     await batch.commit();
   }
 
-  return { count: studentsList.length, enrolledCount };
+  return {
+    count: studentsList.length,
+    enrolledCount,
+    createdCount,
+    updatedCount,
+  };
 }
 

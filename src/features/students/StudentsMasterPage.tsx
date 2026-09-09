@@ -14,6 +14,7 @@ import { ImportStudentsModal } from './ImportStudentsModal';
 import { StudentFormModal } from './StudentFormModal';
 import { StudentDetailModal } from './StudentDetailModal';
 import { TransferClassModal } from './TransferClassModal';
+import { DeduplicateStudentsModal } from './DeduplicateStudentsModal';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -80,6 +81,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [deduplicateModalOpen, setDeduplicateModalOpen] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null);
@@ -190,6 +192,33 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const activeCount = activeTargetList.filter(s => s.status === 'ACTIVE').length;
 
   const currentSelectedClassObj = classes.find(c => c.id === currentClassId);
+
+  // Deteksi duplikasi siswa pada rombel aktif atau seluruh data master secara real-time
+  const duplicateDetected = useMemo(() => {
+    const listToCheck = viewMode === 'class'
+      ? enrollments.map(e => e.student).filter(Boolean) as Student[]
+      : students;
+
+    const seenNis = new Set<string>();
+    const seenNisn = new Set<string>();
+    const seenNames = new Set<string>();
+
+    for (const s of listToCheck) {
+      const nis = s.nis?.trim().toLowerCase();
+      const nisn = s.nisn?.trim().toLowerCase();
+      const name = s.fullName?.trim().toLowerCase().replace(/\s+/g, ' ');
+
+      if (nis && seenNis.has(nis)) return true;
+      if (nis) seenNis.add(nis);
+
+      if (nisn && seenNisn.has(nisn)) return true;
+      if (nisn) seenNisn.add(nisn);
+
+      if (name && seenNames.has(name)) return true;
+      if (name) seenNames.add(name);
+    }
+    return false;
+  }, [viewMode, enrollments, students]);
 
   // Reorder roll numbers alphabetically
   const handleAutoReorderRollNumbers = () => {
@@ -376,6 +405,20 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
           <button
             type="button"
+            onClick={() => setDeduplicateModalOpen(true)}
+            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer ${
+              duplicateDetected
+                ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 ring-2 ring-amber-400/50'
+                : 'bg-white border-slate-200/90 hover:bg-slate-50 text-slate-700'
+            }`}
+            title="Pindai dan bersihkan data siswa ganda di Firestore tanpa meninggalkan residu"
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-amber-600' : 'text-slate-500'}`} />
+            {duplicateDetected ? 'Bersihkan Duplikat (!)' : 'Deduplikasi'}
+          </button>
+
+          <button
+            type="button"
             onClick={handleExportExcel}
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
@@ -383,6 +426,29 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </button>
         </div>
       </div>
+
+      {/* Alert Terdeteksi Duplikasi */}
+      {duplicateDetected && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-amber-50/90 border border-amber-300 rounded-2xl text-xs text-amber-950 shadow-sm">
+          <div className="flex items-start sm:items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 sm:mt-0" />
+            <div>
+              <p className="font-bold text-amber-950 text-xs sm:text-sm">Terdeteksi Data Siswa Ganda di Tampilan Ini</p>
+              <p className="text-amber-800 text-[11px] mt-0.5">
+                Terdapat siswa dengan NIS atau Nama yang sama. Gunakan fitur <strong>Pembersihan Data Ganda</strong> untuk menggabungkan data terlengkap dan menghapus seluruh residu pendaftaran ganda di database.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDeduplicateModalOpen(true)}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer transition"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Bersihkan Data Ganda
+          </button>
+        </div>
+      )}
 
       {actionSuccessMsg && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
@@ -453,18 +519,34 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             </button>
           </div>
 
-          {/* Quick Order Button if in class view */}
-          {viewMode === 'class' && enrollments.length > 0 && (
+          {/* Quick Order Button if in class view & Quick Deduplication */}
+          <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+            {viewMode === 'class' && enrollments.length > 0 && (
+              <button
+                type="button"
+                disabled={reordering}
+                onClick={handleAutoReorderRollNumbers}
+                className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                {reordering ? 'Mengurutkan...' : 'Urutkan No. Absen A-Z'}
+              </button>
+            )}
+
             <button
               type="button"
-              disabled={reordering}
-              onClick={handleAutoReorderRollNumbers}
-              className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-all self-start md:self-auto cursor-pointer"
+              onClick={() => setDeduplicateModalOpen(true)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                duplicateDetected
+                  ? 'bg-red-50 hover:bg-red-100 border-red-300 text-red-700 animate-pulse'
+                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+              }`}
+              title="Pindai dan bersihkan data siswa ganda di Firestore tanpa residu"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-              {reordering ? 'Mengurutkan...' : 'Urutkan No. Absen A-Z'}
+              <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-red-600' : 'text-slate-500'}`} />
+              {duplicateDetected ? 'Bersihkan Duplikat (!)' : 'Cek Duplikat'}
             </button>
-          )}
+          </div>
         </div>
 
         {/* Filter Inputs Grid */}
@@ -977,6 +1059,16 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </div>
         </div>
       </Modal>
+
+      {/* Zero-Residue Deduplication Modal */}
+      <DeduplicateStudentsModal
+        isOpen={deduplicateModalOpen}
+        onClose={() => setDeduplicateModalOpen(false)}
+        onSuccess={() => {
+          fetchData();
+        }}
+        targetClassId={viewMode === 'class' ? currentClassId : undefined}
+      />
     </div>
   );
 };
