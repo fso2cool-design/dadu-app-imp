@@ -33,6 +33,9 @@ interface ParsedRow {
   parentName: string;
   parentPhone: string;
   address: string;
+  nikSiswa?: string;
+  nikIbu?: string;
+  nkk?: string;
   isExistingInDb?: boolean;
   existingStudentName?: string;
   isValid: boolean;
@@ -198,6 +201,22 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             'Alamat', 'Alamat Siswa', 'Alamat Lengkap', 'Alamat Rumah', 'Alamat Domisili', 'Alamat Tinggal', 'Domisili', 'Address'
           ]);
 
+          // Pencocokan data kependudukan (NIK Siswa, NIK Ibu, NKK)
+          const rawNikSiswa = getRowValueByAliases(row, [
+            'NIK SISWA', 'NIK Siswa', 'NIK', 'Nik Siswa', 'Nik', 'Nomor Induk Kependudukan', 'Nomor Induk Kependudukan Siswa'
+          ]);
+          const nikSiswa = rawNikSiswa ? String(rawNikSiswa).replace(/[^0-9]/g, '').slice(0, 16) : '';
+
+          const rawNikIbu = getRowValueByAliases(row, [
+            'NIK IBU', 'NIK Ibu', 'NIK Ibu Kandung', 'Nik Ibu', 'Nik Ibu Kandung', 'NIK Orang Tua'
+          ]);
+          const nikIbu = rawNikIbu ? String(rawNikIbu).replace(/[^0-9]/g, '').slice(0, 16) : '';
+
+          const rawNkk = getRowValueByAliases(row, [
+            'NKK', 'No KK', 'Nomor KK', 'No. KK', 'Kartu Keluarga', 'Nomor Kartu Keluarga'
+          ]);
+          const nkk = rawNkk ? String(rawNkk).replace(/[^0-9]/g, '').slice(0, 16) : '';
+
           // Deteksi Kelas Otomatis
           let targetId = '';
           let targetName = '';
@@ -273,6 +292,9 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             parentName,
             parentPhone,
             address,
+            nikSiswa,
+            nikIbu,
+            nkk,
             isExistingInDb,
             existingStudentName,
             isValid,
@@ -387,6 +409,9 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         parentName: r.parentName,
         parentPhone: r.parentPhone,
         address: r.address,
+        nikSiswa: r.nikSiswa,
+        nikIbu: r.nikIbu,
+        nkk: r.nkk,
         notes: r.rawClassName ? `Diimpor via Excel (Kelas asal: ${r.rawClassName})` : 'Diimpor via Excel',
         status: 'ACTIVE' as const,
         rollNumber: r.rollNumber,

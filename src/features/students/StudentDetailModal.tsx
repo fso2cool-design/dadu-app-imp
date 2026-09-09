@@ -10,7 +10,8 @@ import {
   BookOpen, 
   MessageSquare, 
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  ShieldCheck
 } from 'lucide-react';
 
 interface StudentDetailModalProps {
@@ -122,6 +123,28 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
               </p>
               <p><strong>No. HP Siswa:</strong> {student.phone || '-'}</p>
               <p><strong>Email:</strong> {student.email || '-'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Kependudukan (NIK Siswa, NIK Ibu, NKK) */}
+        <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-xl text-xs space-y-2">
+          <h4 className="font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-200/60 pb-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+            Data Kependudukan (EMIS / Dapodik)
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-slate-600">
+            <div>
+              <span className="text-slate-400 text-[10px] block">NIK Siswa:</span>
+              <span className="font-mono font-semibold text-slate-800">{student.nikSiswa || '-'}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 text-[10px] block">NIK Ibu Kandung:</span>
+              <span className="font-mono font-semibold text-slate-800">{student.nikIbu || '-'}</span>
+            </div>
+            <div>
+              <span className="text-slate-400 text-[10px] block">Nomor KK (NKK):</span>
+              <span className="font-mono font-semibold text-slate-800">{student.nkk || '-'}</span>
             </div>
           </div>
         </div>

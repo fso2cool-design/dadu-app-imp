@@ -75,6 +75,9 @@ export interface Student {
   address?: string;
   notes?: string;
   status: StudentStatus;
+  nikSiswa?: string;
+  nikIbu?: string;
+  nkk?: string;
   isArchived?: boolean;
   archivedAt?: any;
   createdAt: any;

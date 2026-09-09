@@ -49,6 +49,9 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
     address: '',
     notes: '',
     status: 'ACTIVE' as StudentStatus,
+    nikSiswa: '',
+    nikIbu: '',
+    nkk: '',
   });
 
   const [enrollClassId, setEnrollClassId] = useState<string>('');
@@ -87,6 +90,9 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         address: studentToEdit.address || '',
         notes: studentToEdit.notes || '',
         status: studentToEdit.status || 'ACTIVE',
+        nikSiswa: studentToEdit.nikSiswa || '',
+        nikIbu: studentToEdit.nikIbu || '',
+        nkk: studentToEdit.nkk || '',
       });
       if (existingEnrollment) {
         setEnrollClassId(existingEnrollment.classId);
@@ -108,6 +114,9 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         address: '',
         notes: '',
         status: 'ACTIVE',
+        nikSiswa: '',
+        nikIbu: '',
+        nkk: '',
       });
       setEnrollClassId(defaultClassId || (classes[0]?.id || ''));
       setRollNumber(suggestedRollNumber || 1);
@@ -325,6 +334,60 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   onChange={e => setFormData(f => ({ ...f, birthDate: e.target.value }))}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
                 />
+              </div>
+            </div>
+
+            {/* Data Kependudukan (Opsional / EMIS / Dapodik) */}
+            <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Data Kependudukan (Opsional / EMIS)
+                </span>
+                <span className="text-[10px] text-slate-400">16 digit angka</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Siswa</label>
+                  <input
+                    type="text"
+                    maxLength={16}
+                    value={formData.nikSiswa}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData(f => ({ ...f, nikSiswa: val }));
+                    }}
+                    placeholder="16 Digit NIK Siswa"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">NIK Ibu Kandung</label>
+                  <input
+                    type="text"
+                    maxLength={16}
+                    value={formData.nikIbu}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData(f => ({ ...f, nikIbu: val }));
+                    }}
+                    placeholder="16 Digit NIK Ibu"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">No. KK (NKK)</label>
+                  <input
+                    type="text"
+                    maxLength={16}
+                    value={formData.nkk}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setFormData(f => ({ ...f, nkk: val }));
+                    }}
+                    placeholder="16 Digit Nomor KK"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  />
+                </div>
               </div>
             </div>
           </div>

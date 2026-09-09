@@ -96,6 +96,9 @@ export async function createStudent(
     address: data.address?.trim() || '',
     notes: data.notes?.trim() || '',
     status: data.status || 'ACTIVE',
+    nikSiswa: data.nikSiswa?.trim() || '',
+    nikIbu: data.nikIbu?.trim() || '',
+    nkk: data.nkk?.trim() || '',
     createdAt: now,
     updatedAt: now,
   };
@@ -182,6 +185,9 @@ export async function updateStudent(
   if (cleanData.fullName) cleanData.fullName = cleanData.fullName.trim();
   if (cleanData.nis !== undefined) cleanData.nis = cleanData.nis.trim();
   if (cleanData.nisn !== undefined) cleanData.nisn = cleanData.nisn.trim();
+  if (cleanData.nikSiswa !== undefined) cleanData.nikSiswa = cleanData.nikSiswa.trim();
+  if (cleanData.nikIbu !== undefined) cleanData.nikIbu = cleanData.nikIbu.trim();
+  if (cleanData.nkk !== undefined) cleanData.nkk = cleanData.nkk.trim();
   cleanData.updatedAt = serverTimestamp();
 
   await updateDoc(docRef, cleanData);
@@ -266,6 +272,9 @@ export async function batchCreateStudents(
       address: item.address?.trim() || '',
       notes: item.notes?.trim() || '',
       status: item.status || 'ACTIVE',
+      nikSiswa: item.nikSiswa?.trim() || '',
+      nikIbu: item.nikIbu?.trim() || '',
+      nkk: item.nkk?.trim() || '',
       createdAt: now,
       updatedAt: now,
     };
@@ -454,6 +463,9 @@ export async function atomicImportStudentsWithEnrollment(
         if (item.phone !== undefined && item.phone.trim() !== '') updateData.phone = item.phone.trim();
         if (item.email !== undefined && item.email.trim() !== '') updateData.email = item.email.trim();
         if (item.religion !== undefined && item.religion.trim() !== '') updateData.religion = item.religion.trim();
+        if (item.nikSiswa !== undefined && item.nikSiswa.trim() !== '') updateData.nikSiswa = item.nikSiswa.trim();
+        if (item.nikIbu !== undefined && item.nikIbu.trim() !== '') updateData.nikIbu = item.nikIbu.trim();
+        if (item.nkk !== undefined && item.nkk.trim() !== '') updateData.nkk = item.nkk.trim();
 
         batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
       }
@@ -516,6 +528,9 @@ export async function atomicImportStudentsWithEnrollment(
         address: item.address?.trim() || '',
         notes: item.notes?.trim() || 'Diimpor via Excel',
         status: item.status || 'ACTIVE',
+        nikSiswa: item.nikSiswa?.trim() || '',
+        nikIbu: item.nikIbu?.trim() || '',
+        nkk: item.nkk?.trim() || '',
         createdAt: now,
         updatedAt: now,
       };

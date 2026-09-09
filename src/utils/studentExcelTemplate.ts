@@ -20,6 +20,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'Nama Orang Tua / Wali': 'H. Syahril',
       'No HP Ortu': '081398765432',
       'Alamat': 'Jl. Sudirman No. 12',
+      'NIK SISWA': '8105014481210001',
+      'NIK IBU': '8105135511840001',
+      'NKK': '8105142312140001',
     },
     {
       'No Absen': 2,
@@ -34,6 +37,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'Nama Orang Tua / Wali': 'Drs. Ridwan',
       'No HP Ortu': '081234123412',
       'Alamat': 'Jl. M. Yamin No. 5',
+      'NIK SISWA': '8105066303110001',
+      'NIK IBU': '8105064402830001',
+      'NKK': '8105060704080984',
     },
     {
       'No Absen': 1,
@@ -48,6 +54,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'Nama Orang Tua / Wali': 'Bambang',
       'No HP Ortu': '085211223344',
       'Alamat': 'Kompleks Asri Blok C-3',
+      'NIK SISWA': '',
+      'NIK IBU': '',
+      'NKK': '',
     },
     {
       'No Absen': 2,
@@ -62,6 +71,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'Nama Orang Tua / Wali': 'Iwan',
       'No HP Ortu': '081377889900',
       'Alamat': 'Jl. Riau No. 45',
+      'NIK SISWA': '',
+      'NIK IBU': '',
+      'NKK': '',
     },
   ];
 
@@ -81,6 +93,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
     { wch: 24 }, // Nama Orang Tua
     { wch: 16 }, // No HP Ortu
     { wch: 30 }, // Alamat
+    { wch: 20 }, // NIK SISWA
+    { wch: 20 }, // NIK IBU
+    { wch: 20 }, // NKK
   ];
 
   const wb = XLSX.utils.book_new();
@@ -92,8 +107,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
     { 'Panduan Impor Siswa Multi-Kelas': '2. Deteksi Otomatis: Sistem akan otomatis mencocokkan nama kelas dengan kelas aktif yang ada di sistem.' },
     { 'Panduan Impor Siswa Multi-Kelas': '3. Kelas Tidak Cocok / Kosong: Jika nama kelas tidak ditemukan, di aplikasi akan muncul pilihan dropdown untuk memetakan kelas tujuan.' },
     { 'Panduan Impor Siswa Multi-Kelas': '4. Pengurutan Alfabetis (A-Z): Jika No Absen dikosongkan, sistem otomatis memberikan nomor urut 1, 2, 3... berurutan per-kelas sesuai urutan baris data.' },
-    { 'Panduan Impor Siswa Multi-Kelas': '5. Kolom Wajib: Hanya kolom "Nama Lengkap" yang wajib diisi.' },
+    { 'Panduan Impor Siswa Multi-Kelas': '5. Kolom Wajib: Hanya kolom "Nama Lengkap" yang wajib diisi. Kolom lainnya bebas diisi, dikosongkan, atau dihapus.' },
     { 'Panduan Impor Siswa Multi-Kelas': '6. Kolom Kelamin: Gunakan huruf "L" untuk Laki-laki dan "P" untuk Perempuan.' },
+    { 'Panduan Impor Siswa Multi-Kelas': '7. Data Kependudukan (NIK Siswa, NIK Ibu, NKK): Bersifat opsional untuk sinkronisasi EMIS/Buku Induk. Tuliskan dalam format angka 16 digit.' },
   ];
   const guideWs = XLSX.utils.json_to_sheet(guideData);
   guideWs['!cols'] = [{ wch: 110 }];

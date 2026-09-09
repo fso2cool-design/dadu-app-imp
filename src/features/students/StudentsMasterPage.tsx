@@ -15,6 +15,7 @@ import { StudentFormModal } from './StudentFormModal';
 import { StudentDetailModal } from './StudentDetailModal';
 import { TransferClassModal } from './TransferClassModal';
 import { DeduplicateStudentsModal } from './DeduplicateStudentsModal';
+import { StudentCustomPrintModal } from './StudentCustomPrintModal';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -82,6 +83,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [deduplicateModalOpen, setDeduplicateModalOpen] = useState(false);
+  const [customPrintModalOpen, setCustomPrintModalOpen] = useState(false);
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null);
@@ -193,6 +195,25 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
   const currentSelectedClassObj = classes.find(c => c.id === currentClassId);
 
+  // Data terstruktur untuk cetak info siswa lengkap dengan kustomisasi kolom
+  const printItems = useMemo(() => {
+    if (viewMode === 'class') {
+      return filteredEnrollments
+        .filter(en => en.student)
+        .map((en, idx) => ({
+          student: en.student!,
+          enrollment: en,
+          rollNumber: en.rollNumber || (idx + 1),
+          className: en.className || currentSelectedClassObj?.name,
+        }));
+    } else {
+      return filteredAllStudents.map((stud, idx) => ({
+        student: stud,
+        rollNumber: idx + 1,
+      }));
+    }
+  }, [viewMode, filteredEnrollments, filteredAllStudents, currentSelectedClassObj]);
+
   // Deteksi duplikasi siswa pada rombel aktif atau seluruh data master secara real-time
   const duplicateDetected = useMemo(() => {
     const listToCheck = viewMode === 'class'
@@ -269,6 +290,9 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           'Nama Ortu/Wali': en.student?.parentName || '',
           'No HP Ortu': en.student?.parentPhone || '',
           'Alamat': en.student?.address || '',
+          'NIK Siswa': en.student?.nikSiswa || '',
+          'NIK Ibu': en.student?.nikIbu || '',
+          'NKK': en.student?.nkk || '',
           'Status': en.student?.status || 'ACTIVE',
         }))
       : filteredAllStudents.map((stud, idx) => ({
@@ -283,6 +307,9 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           'Nama Ortu/Wali': stud.parentName || '',
           'No HP Ortu': stud.parentPhone || '',
           'Alamat': stud.address || '',
+          'NIK Siswa': stud.nikSiswa || '',
+          'NIK Ibu': stud.nikIbu || '',
+          'NKK': stud.nkk || '',
           'Status': stud.status,
         }));
 
@@ -423,6 +450,15 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-emerald-600" /> Export (.xlsx)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCustomPrintModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Cetak informasi data siswa lengkap dengan kop resmi dan kustomisasi kolom"
+          >
+            <Printer className="w-3.5 h-3.5 text-indigo-600" /> Cetak Data Siswa
           </button>
         </div>
       </div>
@@ -1068,6 +1104,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           fetchData();
         }}
         targetClassId={viewMode === 'class' ? currentClassId : undefined}
+      />
+
+      {/* Modal Cetak Info Siswa Lengkap dengan Kustomisasi Kolom */}
+      <StudentCustomPrintModal
+        isOpen={customPrintModalOpen}
+        onClose={() => setCustomPrintModalOpen(false)}
+        studentsList={printItems}
+        selectedClass={viewMode === 'class' ? currentSelectedClassObj : null}
       />
     </div>
   );
