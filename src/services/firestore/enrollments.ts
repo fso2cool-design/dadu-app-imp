@@ -115,7 +115,9 @@ export async function createEnrollment(
   }
   const studentData = studentSnap.data() as Student;
 
-  const newDocRef = doc(colRef);
+  // Use deterministic ID {academicYearId}_{classId}_{studentId} for idempotency
+  const deterministicId = `${data.academicYearId}_${data.classId}_${data.studentId}`;
+  const newDocRef = doc(colRef, deterministicId);
   const enrollmentData = {
     academicYearId: data.academicYearId,
     classId: data.classId,
@@ -167,10 +169,10 @@ export async function createEnrollment(
       (enrollmentData as any).transferReason = 'Dipindahkan dari kelas sebelumnya';
     }
 
-    batch.set(newDocRef, enrollmentData);
+    batch.set(newDocRef, enrollmentData, { merge: true });
     await batch.commit();
   } else {
-    await setDoc(newDocRef, enrollmentData);
+    await setDoc(newDocRef, enrollmentData, { merge: true });
   }
 
   return { id: newDocRef.id, ...enrollmentData } as Enrollment;
@@ -241,8 +243,9 @@ export async function transferStudentEnrollment(
       updatedAt: now,
     });
 
-    // Create new ACTIVE enrollment in target class
-    const newDocRef = doc(colRef);
+    // Create new ACTIVE enrollment in target class with deterministic ID
+    const targetDocId = `${currentData.academicYearId}_${targetClassId}_${currentData.studentId}`;
+    const newDocRef = doc(colRef, targetDocId);
     const newEnrollmentData = {
       academicYearId: currentData.academicYearId,
       classId: targetClassId,
@@ -259,7 +262,7 @@ export async function transferStudentEnrollment(
       updatedAt: now,
     };
 
-    transaction.set(newDocRef, newEnrollmentData);
+    transaction.set(newDocRef, newEnrollmentData, { merge: true });
 
     return {
       id: newDocRef.id,
@@ -470,7 +473,8 @@ export async function batchEnrollStudents(
           updatedAt: now,
         });
 
-        const docRef = doc(colRef);
+        const docId = `${item.academicYearId}_${item.classId}_${item.studentId}`;
+        const docRef = doc(colRef, docId);
         batch.set(docRef, {
           academicYearId: item.academicYearId,
           classId: item.classId,
@@ -485,13 +489,14 @@ export async function batchEnrollStudents(
           transferReason: 'Impor / penempatan rombel baru',
           createdAt: now,
           updatedAt: now,
-        });
+        }, { merge: true });
         continue;
       }
     }
 
-    // Penempatan baru
-    const docRef = doc(colRef);
+    // Penempatan baru dengan deterministic ID
+    const docId = `${item.academicYearId}_${item.classId}_${item.studentId}`;
+    const docRef = doc(colRef, docId);
     batch.set(docRef, {
       academicYearId: item.academicYearId,
       classId: item.classId,
@@ -502,7 +507,7 @@ export async function batchEnrollStudents(
       academicYearLabel: item.academicYearLabel || '',
       createdAt: now,
       updatedAt: now,
-    });
+    }, { merge: true });
   }
 
   await batch.commit();

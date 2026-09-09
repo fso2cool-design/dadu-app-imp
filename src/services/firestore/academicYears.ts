@@ -83,6 +83,7 @@ export interface AcademicYearUsageSummary {
     dailyAttendanceRecords: number;
     assessmentItems: number;
     studentNotes: number;
+    teacherAttendanceRecords: number;
   };
 }
 
@@ -98,7 +99,8 @@ export async function checkAcademicYearUsage(
     dailySessSnap,
     dailyAttSnap,
     aiSnap,
-    notesSnap
+    notesSnap,
+    teacherAttSnap
   ] = await Promise.all([
     getDocs(query(collection(db, 'users', uid, 'classes'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'enrollments'), where('academicYearId', '==', yearId))),
@@ -108,6 +110,7 @@ export async function checkAcademicYearUsage(
     getDocs(query(collection(db, 'users', uid, 'dailyAttendanceRecords'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'studentNotes'), where('academicYearId', '==', yearId))),
+    getDocs(query(collection(db, 'users', uid, 'teacherAttendanceRecords'), where('academicYearId', '==', yearId))),
   ]);
 
   const counts = {
@@ -119,6 +122,7 @@ export async function checkAcademicYearUsage(
     dailyAttendanceRecords: dailyAttSnap.size,
     assessmentItems: aiSnap.size,
     studentNotes: notesSnap.size,
+    teacherAttendanceRecords: teacherAttSnap.size,
   };
 
   const reasons: string[] = [];
@@ -131,6 +135,7 @@ export async function checkAcademicYearUsage(
   }
   if (counts.assessmentItems > 0) reasons.push(`${counts.assessmentItems} format asesmen/nilai`);
   if (counts.studentNotes > 0) reasons.push(`${counts.studentNotes} catatan pembinaan siswa`);
+  if (counts.teacherAttendanceRecords > 0) reasons.push(`${counts.teacherAttendanceRecords} rekap kehadiran guru mapel di ruang wali kelas`);
 
   const isUsed = reasons.length > 0;
   return {

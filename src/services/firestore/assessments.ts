@@ -93,7 +93,7 @@ export async function createAssessmentItem(
     const res = await addDoc(colRef, {
       ...data,
       weight: Math.max(0, Number(data.weight) || 10),
-      maxScore: Math.max(1, Math.min(1000, Number(data.maxScore) || 100)),
+      maxScore: Math.max(1, Math.min(100, Number(data.maxScore) || 100)),
       isIncludedInFinalScore: data.isIncludedInFinalScore ?? true,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -129,7 +129,7 @@ export async function updateAssessmentItem(
       cleanUpdate.weight = Math.max(0, Number(cleanUpdate.weight) || 0);
     }
     if (cleanUpdate.maxScore !== undefined) {
-      cleanUpdate.maxScore = Math.max(1, Math.min(1000, Number(cleanUpdate.maxScore) || 100));
+      cleanUpdate.maxScore = Math.max(1, Math.min(100, Number(cleanUpdate.maxScore) || 100));
     }
     await updateDoc(docRef, cleanUpdate);
   })(), {

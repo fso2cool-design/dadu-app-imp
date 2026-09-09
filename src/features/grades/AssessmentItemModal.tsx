@@ -177,7 +177,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
           name: name.trim(),
           category,
           assessmentDate,
-          maxScore: Number(maxScore) || 100,
+          maxScore: Math.max(1, Math.min(100, Number(maxScore) || 100)),
           weight: Number(weight) || 10,
           isIncludedInFinalScore,
           notes: notes.trim(),
@@ -193,7 +193,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
           name: name.trim(),
           category,
           assessmentDate,
-          maxScore: Number(maxScore) || 100,
+          maxScore: Math.max(1, Math.min(100, Number(maxScore) || 100)),
           weight: Number(weight) || 10,
           isIncludedInFinalScore,
           notes: notes.trim(),
@@ -343,10 +343,10 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
             <input
               type="number"
               min={10}
-              max={1000}
+              max={100}
               disabled={isArchivedYear}
               value={maxScore}
-              onChange={(e) => setMaxScore(Number(e.target.value))}
+              onChange={(e) => setMaxScore(Math.max(1, Math.min(100, Number(e.target.value) || 100)))}
               placeholder="100"
               className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60"
             />

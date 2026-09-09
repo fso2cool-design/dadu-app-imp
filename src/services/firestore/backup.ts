@@ -33,6 +33,7 @@ export interface DatabaseBackup {
     assessmentItems: any[];
     scores: any[];
     studentNotes: any[];
+    teacherAttendanceRecords?: any[];
     settings: Record<string, any>;
   };
 }
@@ -48,6 +49,7 @@ export interface DatabaseStatistics {
   attendanceRecordsCount: number;
   dailyAttendanceSessionsCount: number;
   dailyAttendanceRecordsCount: number;
+  teacherAttendanceRecordsCount?: number;
   assessmentItemsCount: number;
   scoresCount: number;
   studentNotesCount: number;
@@ -88,6 +90,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     assessmentItems,
     scores,
     studentNotes,
+    teacherAttendanceRecords,
     settingsList
   ] = await Promise.all([
     fetchCollectionData(uid, 'academicYears'),
@@ -103,6 +106,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     fetchCollectionData(uid, 'assessmentItems'),
     fetchCollectionData(uid, 'scores'),
     fetchCollectionData(uid, 'studentNotes'),
+    fetchCollectionData(uid, 'teacherAttendanceRecords'),
     fetchCollectionData(uid, 'settings'),
   ]);
 
@@ -126,6 +130,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     assessmentItems.length +
     scores.length +
     studentNotes.length +
+    teacherAttendanceRecords.length +
     settingsList.length;
 
   return {
@@ -135,7 +140,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     metadata: {
       teacherName: teacherName || 'Guru',
       schoolName: schoolName || 'Madrasah',
-      totalCollections: 14,
+      totalCollections: 15,
       totalDocuments,
     },
     collections: {
@@ -152,6 +157,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
       assessmentItems,
       scores,
       studentNotes,
+      teacherAttendanceRecords,
       settings: settingsMap,
     },
   };
@@ -183,6 +189,7 @@ export async function importFullDatabase(
     { name: 'assessmentItems', items: backup.collections.assessmentItems || [] },
     { name: 'scores', items: backup.collections.scores || [] },
     { name: 'studentNotes', items: backup.collections.studentNotes || [] },
+    { name: 'teacherAttendanceRecords', items: backup.collections.teacherAttendanceRecords || [] },
   ];
 
   let totalRestored = 0;
@@ -252,7 +259,8 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     dailyAttendanceRecords,
     assessmentItems,
     scores,
-    studentNotes
+    studentNotes,
+    teacherAttendanceRecords
   ] = await Promise.all([
     fetchCollectionData(uid, 'academicYears'),
     fetchCollectionData(uid, 'classes'),
@@ -267,6 +275,7 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     fetchCollectionData(uid, 'assessmentItems'),
     fetchCollectionData(uid, 'scores'),
     fetchCollectionData(uid, 'studentNotes'),
+    fetchCollectionData(uid, 'teacherAttendanceRecords'),
   ]);
 
   const totalDocuments = 
@@ -282,7 +291,8 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     dailyAttendanceRecords.length +
     assessmentItems.length +
     scores.length +
-    studentNotes.length;
+    studentNotes.length +
+    teacherAttendanceRecords.length;
 
   return {
     academicYearsCount: academicYears.length,
@@ -295,6 +305,7 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     attendanceRecordsCount: attendanceRecords.length,
     dailyAttendanceSessionsCount: dailyAttendanceSessions.length,
     dailyAttendanceRecordsCount: dailyAttendanceRecords.length,
+    teacherAttendanceRecordsCount: teacherAttendanceRecords.length,
     assessmentItemsCount: assessmentItems.length,
     scoresCount: scores.length,
     studentNotesCount: studentNotes.length,

@@ -29,7 +29,8 @@ service cloud.firestore {
 
       // Granular subcollection validation
       match /classes/{classId} {
-        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.name is string
           && request.resource.data.academicYearId is string;
@@ -40,14 +41,23 @@ service cloud.firestore {
       }
 
       match /students/{studentId} {
-        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.fullName is string;
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
       }
 
+      match /subjects/{subjectId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true));
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.name is string;
+      }
+
       match /teachingAssignments/{assignmentId} {
-        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.academicYearId is string
           && request.resource.data.classId is string
@@ -59,7 +69,8 @@ service cloud.firestore {
       }
 
       match /academicYears/{academicYearId} {
-        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true && resource.data.isActive != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.label is string;
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
@@ -143,7 +154,7 @@ service cloud.firestore {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && (!('weight' in request.resource.data) || request.resource.data.weight >= 0)
-          && (!('maxScore' in request.resource.data) || (request.resource.data.maxScore > 0 && request.resource.data.maxScore <= 1000));
+          && (!('maxScore' in request.resource.data) || (request.resource.data.maxScore > 0 && request.resource.data.maxScore <= 100));
       }
 
       // Student Notes / Guidance

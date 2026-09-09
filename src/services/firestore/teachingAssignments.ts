@@ -20,6 +20,7 @@ export interface TeachingAssignmentUsageSummary {
   counts: {
     meetings: number;
     assessmentItems: number;
+    teacherAttendanceRecords: number;
   };
 }
 
@@ -27,14 +28,16 @@ export async function checkTeachingAssignmentUsage(
   uid: string, 
   assignmentId: string
 ): Promise<TeachingAssignmentUsageSummary> {
-  const [meetSnap, aiSnap] = await Promise.all([
+  const [meetSnap, aiSnap, teacherAttSnap] = await Promise.all([
     getDocs(query(collection(db, 'users', uid, 'meetings'), where('teachingAssignmentId', '==', assignmentId))),
     getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('teachingAssignmentId', '==', assignmentId))),
+    getDocs(query(collection(db, 'users', uid, 'teacherAttendanceRecords'), where('teachingAssignmentId', '==', assignmentId))),
   ]);
 
   const counts = {
     meetings: meetSnap.size,
     assessmentItems: aiSnap.size,
+    teacherAttendanceRecords: teacherAttSnap.size,
   };
 
   const reasons: string[] = [];
@@ -43,6 +46,9 @@ export async function checkTeachingAssignmentUsage(
   }
   if (counts.assessmentItems > 0) {
     reasons.push(`Memiliki ${counts.assessmentItems} format/kolom penilaian siswa`);
+  }
+  if (counts.teacherAttendanceRecords > 0) {
+    reasons.push(`Memiliki ${counts.teacherAttendanceRecords} rekap kehadiran guru mapel di ruang wali kelas`);
   }
 
   const isUsed = reasons.length > 0;
