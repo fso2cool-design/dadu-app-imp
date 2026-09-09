@@ -120,6 +120,10 @@ function MainApp() {
       case 'homeroom-dashboard':
       case 'homeroom-attendance-daily':
       case 'homeroom-attendance-monthly':
+      case 'homeroom-daily-attendance':
+      case 'homeroom-monthly-attendance':
+      case 'homeroom-teacher-attendance':
+      case 'homeroom-attendance-teacher':
       case 'homeroom-students':
       case 'homeroom-notes':
         return <HomeroomHubPage initialTab={currentRoute} routeState={routeState} onNavigate={handleNavigate} />;

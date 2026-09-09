@@ -137,6 +137,20 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
     }
   }, [activeSemester]);
 
+  // Keep selectedDate in sync with selectedMonth and selectedYear
+  useEffect(() => {
+    const mm = String(selectedMonth).padStart(2, '0');
+    const prefix = `${selectedYear}-${mm}`;
+    if (!selectedDate.startsWith(prefix)) {
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      if (todayStr.startsWith(prefix)) {
+        setSelectedDate(todayStr);
+      } else {
+        setSelectedDate(`${prefix}-01`);
+      }
+    }
+  }, [selectedMonth, selectedYear, selectedDate]);
+
   // Load Teaching Assignments & Monthly Records
   const loadData = useCallback(async () => {
     if (!user || !activeAcademicYear || !selectedClassId) {
@@ -646,7 +660,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
                   const isSelected = selectedDate === dateString;
                   const isToday = isDateToday(dateString);
-                  const isHoliday = checkIsHoliday(dateString);
+                  const holidayInfo = checkIsHoliday(dateString);
+                  const isHoliday = Boolean(holidayInfo?.isHoliday);
                   const recordCount = recordedDatesMap.get(dateString) || 0;
                   const isRecorded = recordCount > 0;
 
@@ -654,6 +669,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                     <button
                       key={dateString}
                       type="button"
+                      title={holidayInfo?.reason || (isHoliday ? 'Hari Libur' : isToday ? 'Hari Ini' : undefined)}
                       onClick={() => {
                         if (hasUnsavedChanges) {
                           if (
