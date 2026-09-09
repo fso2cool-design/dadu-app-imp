@@ -4,8 +4,8 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { atomicImportStudentsWithEnrollment, ImportStudentItem, getStudents } from '../../services/firestore/students';
 import { Modal } from '../../components/common/Modal';
-import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle } from 'lucide-react';
-import { GenderType, ClassItem } from '../../types';
+import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle, RefreshCw, Sparkles, ShieldCheck } from 'lucide-react';
+import { GenderType, ClassItem, Student } from '../../types';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 import { sanitizeExcelDate, getRowValueByAliases } from '../../utils/excelImportSanitizer';
 
@@ -33,6 +33,8 @@ interface ParsedRow {
   parentName: string;
   parentPhone: string;
   address: string;
+  isExistingInDb?: boolean;
+  existingStudentName?: string;
   isValid: boolean;
   validationError?: string;
 }
@@ -57,6 +59,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<{ total: number; enrolled: number; created: number; updated: number } | null>(null);
+  const [overwriteExisting, setOverwriteExisting] = useState<boolean>(true);
 
   // Helper pencocokan cerdas nama kelas dari Excel ke rombel sistem
   const matchClassByName = (rawName: string, availableClasses: ClassItem[]): ClassItem | null => {
@@ -125,18 +128,29 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           return;
         }
 
-        // Ambil data siswa yang sudah ada untuk validasi NISN database
+        // Ambil data siswa yang sudah ada untuk deteksi keberadaan di database (Smart Upsert / Overwrite)
         let existingNisnMap = new Map<string, string>();
+        let existingNisMap = new Map<string, string>();
+        let existingNameMap = new Map<string, string>();
         if (user) {
           try {
             const currentStudents = await getStudents(user.uid);
             currentStudents.forEach(s => {
-              if (s.nisn && !s.isArchived) {
-                existingNisnMap.set(s.nisn.trim(), s.fullName);
+              if (!s.isArchived) {
+                if (s.nisn && s.nisn.trim()) {
+                  existingNisnMap.set(s.nisn.trim().toLowerCase(), s.fullName);
+                }
+                if (s.nis && s.nis.trim()) {
+                  existingNisMap.set(s.nis.trim().toLowerCase(), s.fullName);
+                }
+                if (s.fullName && s.fullName.trim()) {
+                  const norm = s.fullName.trim().toLowerCase().replace(/\s+/g, ' ');
+                  existingNameMap.set(norm, s.fullName);
+                }
               }
             });
           } catch (e) {
-            console.error('Error fetching existing students for NISN check:', e);
+            console.error('Error fetching existing students for check:', e);
           }
         }
 
@@ -217,17 +231,28 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           let isValid = !!name;
           let validationError = !name ? 'Nama lengkap wajib diisi' : undefined;
 
+          // Deteksi apakah siswa ini sudah ada di database (berdasarkan NISN, NIS, atau Nama)
+          let isExistingInDb = false;
+          let existingStudentName: string | undefined = undefined;
+
+          const normName = name.toLowerCase().replace(/\s+/g, ' ');
+          if (nisn && existingNisnMap.has(nisn.toLowerCase())) {
+            isExistingInDb = true;
+            existingStudentName = existingNisnMap.get(nisn.toLowerCase());
+          } else if (nis && existingNisMap.has(nis.toLowerCase())) {
+            isExistingInDb = true;
+            existingStudentName = existingNisMap.get(nis.toLowerCase());
+          } else if (name && existingNameMap.has(normName)) {
+            isExistingInDb = true;
+            existingStudentName = existingNameMap.get(normName);
+          }
+
           if (nisn) {
             if (seenNisnsInFile.has(nisn)) {
               isValid = false;
               validationError = `Duplikasi NISN "${nisn}" di dalam berkas impor`;
             } else {
               seenNisnsInFile.add(nisn);
-            }
-
-            if (isValid && existingNisnMap.has(nisn)) {
-              isValid = false;
-              validationError = `NISN sudah terdaftar pada siswa "${existingNisnMap.get(nisn)}"`;
             }
           }
 
@@ -248,6 +273,8 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             parentName,
             parentPhone,
             address,
+            isExistingInDb,
+            existingStudentName,
             isValid,
             validationError,
           };
@@ -370,10 +397,13 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
       const res = await atomicImportStudentsWithEnrollment(user.uid, studentsToImport, {
         academicYearId: activeAcademicYear.id,
         academicYearLabel: activeAcademicYear.label,
+        overwriteExisting: overwriteExisting,
       });
 
       const feedbackMsg = res.updatedCount > 0
-        ? `${res.createdCount} siswa baru, ${res.updatedCount} siswa diperbarui (${res.enrolledCount} di rombel)!`
+        ? (overwriteExisting
+            ? `${res.createdCount} siswa baru, ${res.updatedCount} siswa berhasil ditimpa/diperbarui (${res.enrolledCount} di rombel)!`
+            : `${res.createdCount} siswa baru diimpor (${res.updatedCount} siswa lama dilewati)`)
         : `${res.count} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`;
 
       triggerSyncFeedback('saved', feedbackMsg);
@@ -399,20 +429,25 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Ringkasan kelas dari baris yang terbaca
+  // Ringkasan kelas dan deteksi siswa yang sudah ada
   const enrolledSummary = useMemo(() => {
     const map = new Map<string, number>();
     let unassignedCount = 0;
+    let existingInDbCount = 0;
     parsedRows.forEach(r => {
       if (r.targetClassName) {
         map.set(r.targetClassName, (map.get(r.targetClassName) || 0) + 1);
       } else {
         unassignedCount++;
       }
+      if (r.isExistingInDb) {
+        existingInDbCount++;
+      }
     });
     return {
       classes: Array.from(map.entries()),
       unassignedCount,
+      existingInDbCount,
     };
   }, [parsedRows]);
 
@@ -580,6 +615,50 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               </div>
             )}
 
+            {/* OVERWRITE / UPDATE CONFIRMATION OPTION */}
+            <div className={`p-3.5 rounded-xl border transition-all ${
+              overwriteExisting 
+                ? 'bg-blue-50/70 border-blue-200 text-blue-900' 
+                : 'bg-slate-50 border-slate-200 text-slate-700'
+            }`}>
+              <div className="flex items-start sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
+                    overwriteExisting ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'
+                  }`}>
+                    <RefreshCw className={`w-4 h-4 ${overwriteExisting ? 'text-blue-600' : 'text-slate-500'}`} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-slate-900">
+                        Timpa Data Siswa yang Sudah Terdaftar (Overwrite)
+                      </span>
+                      {enrolledSummary.existingInDbCount > 0 && (
+                        <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200">
+                          {enrolledSummary.existingInDbCount} Siswa cocok dengan database
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      {overwriteExisting
+                        ? 'Aktif: Kolom tanggal lahir, alamat, NIS, rombel, dan info siswa yang ada di dokumen Excel akan langsung memperbarui data di aplikasi.'
+                        : 'Nonaktif: Siswa yang sudah terdaftar di database akan dilewati tanpa mengubah tanggal lahir atau data lamanya.'}
+                    </p>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1 sm:mt-0">
+                  <input
+                    type="checkbox"
+                    checked={overwriteExisting}
+                    onChange={(e) => setOverwriteExisting(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            </div>
+
             {/* Preview Table */}
             <div className="max-h-72 overflow-y-auto border border-slate-200 rounded-xl bg-white">
               <table className="w-full text-left text-xs border-collapse">
@@ -606,7 +685,14 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
 
                       {/* Full Name */}
                       <td className="p-2 font-medium text-slate-900">
-                        {r.fullName}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{r.fullName}</span>
+                          {r.isExistingInDb && (
+                            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-200" title={`Siswa sudah ada di database (${r.existingStudentName || ''})`}>
+                              Ada di DB
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Class Column with dropdown selector & status indicator */}
@@ -675,9 +761,21 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                       {/* Status */}
                       <td className="p-2 text-center">
                         {r.isValid ? (
-                          <span className="inline-flex items-center text-emerald-600 text-[10px] font-bold">
-                            <Check className="w-3 h-3 mr-0.5" /> Siap
-                          </span>
+                          r.isExistingInDb ? (
+                            overwriteExisting ? (
+                              <span className="inline-flex items-center text-blue-600 text-[10px] font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                                <RefreshCw className="w-2.5 h-2.5 mr-0.5" /> Ditimpa
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center text-slate-500 text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                Dilewati
+                              </span>
+                            )
+                          ) : (
+                            <span className="inline-flex items-center text-emerald-600 text-[10px] font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              <Check className="w-3 h-3 mr-0.5" /> Baru
+                            </span>
+                          )
                         ) : (
                           <span className="text-rose-600 text-[10px] font-bold">
                             {r.validationError}
@@ -738,10 +836,18 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               type="button"
               disabled={loading || parsedRows.length === 0 || successInfo !== null}
               onClick={handleSaveImport}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              className={`px-5 py-2 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer ${
+                overwriteExisting && enrolledSummary.existingInDbCount > 0
+                  ? 'bg-blue-600 hover:bg-blue-500'
+                  : 'bg-indigo-600 hover:bg-indigo-500'
+              }`}
             >
               <Upload className="w-3.5 h-3.5" />
-              {loading ? 'Menyimpan ke Firestore...' : `Simpan ${parsedRows.length} Siswa`}
+              {loading 
+                ? 'Menyimpan ke Firestore...' 
+                : (overwriteExisting && enrolledSummary.existingInDbCount > 0
+                    ? `Proses & Timpa ${parsedRows.length} Siswa`
+                    : `Simpan ${parsedRows.length} Siswa`)}
             </button>
           </div>
         </div>

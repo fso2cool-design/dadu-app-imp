@@ -298,11 +298,14 @@ export async function atomicImportStudentsWithEnrollment(
     classId?: string;
     className?: string;
     academicYearLabel?: string;
+    overwriteExisting?: boolean;
   }
 ): Promise<ImportStudentResult> {
   if (studentsList.length === 0) {
     return { count: 0, enrolledCount: 0, createdCount: 0, updatedCount: 0 };
   }
+
+  const shouldOverwrite = enrollmentConfig?.overwriteExisting !== false; // Default: true (timpa/update data yang ada)
 
   // 1. Ambil data master siswa yang sudah ada di database untuk deteksi upsert / pencegahan duplikasi
   const existingStudents = await getStudents(uid);
@@ -430,27 +433,30 @@ export async function atomicImportStudentsWithEnrollment(
     }
 
     if (matchedStudentId) {
-      // 1. SISWA SUDAH ADA -> Lakukan UPDATE (Smart Merge)
-      updatedCount++;
-      const studentDocRef = doc(studentsColRef, matchedStudentId);
-      const updateData: Record<string, any> = {
-        fullName: item.fullName.trim(),
-        gender: item.gender || matchedStudent?.gender || 'L',
-        updatedAt: now,
-      };
+      // 1. SISWA SUDAH ADA
+      if (shouldOverwrite) {
+        updatedCount++;
+        const studentDocRef = doc(studentsColRef, matchedStudentId);
+        const updateData: Record<string, any> = {
+          fullName: item.fullName.trim(),
+          gender: item.gender || matchedStudent?.gender || 'L',
+          updatedAt: now,
+        };
 
-      if (item.nis?.trim()) updateData.nis = item.nis.trim();
-      if (item.nisn?.trim()) updateData.nisn = item.nisn.trim();
-      if (item.birthPlace?.trim()) updateData.birthPlace = item.birthPlace.trim();
-      if (item.birthDate?.trim()) updateData.birthDate = item.birthDate.trim();
-      if (item.address?.trim()) updateData.address = item.address.trim();
-      if (item.parentName?.trim()) updateData.parentName = item.parentName.trim();
-      if (item.parentPhone?.trim()) updateData.parentPhone = item.parentPhone.trim();
-      if (item.phone?.trim()) updateData.phone = item.phone.trim();
-      if (item.email?.trim()) updateData.email = item.email.trim();
-      if (item.religion?.trim()) updateData.religion = item.religion.trim();
+        // Selalu timpa / perbarui dengan data dari file impor jika ada
+        if (item.nis !== undefined && item.nis.trim() !== '') updateData.nis = item.nis.trim();
+        if (item.nisn !== undefined && item.nisn.trim() !== '') updateData.nisn = item.nisn.trim();
+        if (item.birthPlace !== undefined && item.birthPlace.trim() !== '') updateData.birthPlace = item.birthPlace.trim();
+        if (item.birthDate !== undefined && item.birthDate.trim() !== '') updateData.birthDate = item.birthDate.trim();
+        if (item.address !== undefined && item.address.trim() !== '') updateData.address = item.address.trim();
+        if (item.parentName !== undefined && item.parentName.trim() !== '') updateData.parentName = item.parentName.trim();
+        if (item.parentPhone !== undefined && item.parentPhone.trim() !== '') updateData.parentPhone = item.parentPhone.trim();
+        if (item.phone !== undefined && item.phone.trim() !== '') updateData.phone = item.phone.trim();
+        if (item.email !== undefined && item.email.trim() !== '') updateData.email = item.email.trim();
+        if (item.religion !== undefined && item.religion.trim() !== '') updateData.religion = item.religion.trim();
 
-      batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
+        batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
+      }
 
       // Penempatan kelas siswa yang sudah ada
       if (item.targetClassId && enrollmentConfig?.academicYearId) {
@@ -458,17 +464,19 @@ export async function atomicImportStudentsWithEnrollment(
         const existingEnr = existingEnrollmentsMap.get(enrKey);
 
         if (existingEnr) {
-          // Enrollment sudah ada -> Update roll number & updatedAt (JANGAN BUAT DOKUMEN BARU!)
-          const enrDocRef = doc(enrollmentsColRef, existingEnr.id);
-          batchTasks.push({
-            type: 'UPDATE',
-            ref: enrDocRef,
-            data: {
-              rollNumber: item.assignedRollNumber,
-              status: 'ACTIVE',
-              updatedAt: now,
-            },
-          });
+          if (shouldOverwrite) {
+            // Enrollment sudah ada -> Update roll number & status aktif
+            const enrDocRef = doc(enrollmentsColRef, existingEnr.id);
+            batchTasks.push({
+              type: 'UPDATE',
+              ref: enrDocRef,
+              data: {
+                rollNumber: item.assignedRollNumber,
+                status: 'ACTIVE',
+                updatedAt: now,
+              },
+            });
+          }
         } else {
           // Belum terdaftar di kelas ini -> Tambah enrollment baru
           const newEnrDocRef = doc(enrollmentsColRef);

@@ -62,10 +62,43 @@ export function sanitizeExcelDate(val: any): string {
   // Format 2: DD/MM/YYYY atau DD-MM-YYYY
   const dmyMatch = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
   if (dmyMatch) {
-    const dd = dmyMatch[1].padStart(2, '0');
-    const mm = dmyMatch[2].padStart(2, '0');
+    const p1 = parseInt(dmyMatch[1], 10);
+    const p2 = parseInt(dmyMatch[2], 10);
     const yyyy = dmyMatch[3];
+    // Jika p1 > 12, dipastikan DD/MM/YYYY
+    if (p1 > 12 && p2 <= 12) {
+      return `${yyyy}-${String(p2).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
+    }
+    // Jika p2 > 12, dipastikan MM/DD/YYYY
+    if (p2 > 12 && p1 <= 12) {
+      return `${yyyy}-${String(p1).padStart(2, '0')}-${String(p2).padStart(2, '0')}`;
+    }
+    // Default asumsi Indonesia DD/MM/YYYY
+    const dd = String(p1).padStart(2, '0');
+    const mm = String(p2).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Format 2b: 2-digit year (contoh: 11/14/10 atau 14/11/10 atau 4/10/11)
+  const twoDigitYearMatch = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2})$/);
+  if (twoDigitYearMatch) {
+    const p1 = parseInt(twoDigitYearMatch[1], 10);
+    const p2 = parseInt(twoDigitYearMatch[2], 10);
+    const yy = parseInt(twoDigitYearMatch[3], 10);
+    // Asumsi tahun siswa lahir: 2000-an (2000 + yy) atau jika > 50 (1900 + yy)
+    const yyyy = yy < 50 ? 2000 + yy : 1900 + yy;
+
+    // Jika p1 > 12 dan p2 <= 12 -> DD/MM/YY
+    if (p1 > 12 && p2 <= 12) {
+      return `${yyyy}-${String(p2).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
+    }
+    // Jika p2 > 12 dan p1 <= 12 -> MM/DD/YY (seperti 11/14/10: bulan 11, tanggal 14, tahun 2010)
+    if (p2 > 12 && p1 <= 12) {
+      return `${yyyy}-${String(p1).padStart(2, '0')}-${String(p2).padStart(2, '0')}`;
+    }
+    // Jika keduanya <= 12, periksa konteks umum Excel (sering MM/DD/YY jika US locale, atau DD/MM/YY)
+    // Standar sekolah Indonesia: DD/MM/YY
+    return `${yyyy}-${String(p2).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
   }
 
   // Format 3: DD NamaBulan YYYY (Indonesia/Inggris)
