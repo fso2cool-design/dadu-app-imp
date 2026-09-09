@@ -189,7 +189,7 @@ export const LoginPage: React.FC = () => {
 
             {/* Version Sub-footer with developer signature */}
             <div className="flex items-center justify-start text-[10px] text-slate-400 pt-3">
-              <span className="font-mono tracking-tight text-slate-400">{APP_CONFIG.shortName} ver. 2.0-JRA</span>
+              <span className="font-mono tracking-tight text-slate-400">{APP_CONFIG.shortName} {APP_CONFIG.versionDisplay}</span>
             </div>
           </div>
 

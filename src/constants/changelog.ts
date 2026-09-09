@@ -12,6 +12,35 @@ export interface ChangeLogItem {
 
 export const APP_CHANGELOGS: ChangeLogItem[] = [
   {
+    version: 'ver. 2.1-JRA',
+    versionCode: '2.1.0-JRA',
+    releaseDate: '9 September 2026',
+    title: 'Peningkatan Keamanan, Integritas Relasi & Pencadangan Data',
+    badge: 'Hardening & Stabilitas',
+    highlights: [
+      {
+        category: 'Cadangan & Pemulihan Sistem',
+        items: [
+          'Dukungan penuh pencadangan dan pemulihan data presensi guru mapel (15 subkoleksi data).',
+        ]
+      },
+      {
+        category: 'Integritas Relasi & Skala Nilai',
+        items: [
+          'Standarisasi batas penilaian madrasah pada rentang skala 1–100 di seluruh modul asesmen.',
+          'Pencegahan penghapusan data Tahun Ajaran dan Tugas Mengajar yang memiliki keterkaitan rekam presensi.',
+          'Format identitas deterministik pada penempatan siswa untuk mencegah risiko data duplikat.',
+        ]
+      },
+      {
+        category: 'Keamanan Firestore',
+        items: [
+          'Pengetatan aturan proteksi penghapusan data master aktif dan data arsip pada basis data.',
+        ]
+      }
+    ]
+  },
+  {
     version: 'ver. 2.0-JRA',
     versionCode: '2.0.0-JRA',
     releaseDate: '7 September 2026',
