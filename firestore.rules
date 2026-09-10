@@ -213,6 +213,14 @@ service cloud.firestore {
           && request.resource.data.month is number;
       }
 
+      match /classSchedules/{scheduleId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.classId is string
+          && request.resource.data.academicYearId is string
+          && request.resource.data.semester in ['GANJIL', 'GENAP'];
+      }
+
       // Match all other subcollections in user workspace
       match /{allSubcollections=**} {
         allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());

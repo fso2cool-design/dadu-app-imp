@@ -532,6 +532,27 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                   </div>
                 )}
               </div>
+
+              {/* Quick Class Schedule Card */}
+              <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-orange-600 dark:text-cyan-400" />
+                    <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Jadwal Pelajaran Kelas</h3>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Kelola dan cetak matriks roster pelajaran mingguan kelas binaan (Senin - Sabtu).
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('homeroom-class-schedule')}
+                  className="w-full py-2 px-3 rounded-xl bg-orange-50 dark:bg-cyan-950/40 hover:bg-orange-100 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 border border-orange-200 dark:border-cyan-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>Buka Roster & Cetak Jadwal</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </>

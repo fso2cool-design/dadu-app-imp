@@ -181,6 +181,18 @@
         "items": { "type": "array" }
       },
       "required": ["classId", "academicYearId", "semester", "year", "month", "items"]
+    },
+    "ClassSchedule": {
+      "title": "ClassSchedule",
+      "description": "Weekly class subject schedule and assigned teachers matrix recorded by homeroom teacher",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "items": { "type": "array" }
+      },
+      "required": ["classId", "academicYearId", "semester", "items"]
     }
   },
   "firestore": {
@@ -199,6 +211,10 @@
     "/users/{userId}/enrollments/{enrollmentId}": {
       "schema": "Enrollment",
       "description": "Class enrollment records per academic year"
+    },
+    "/users/{userId}/classSchedules/{scheduleId}": {
+      "schema": "ClassSchedule",
+      "description": "Weekly class subject schedule and assigned teachers"
     },
     "/users/{userId}/meetings/{meetingId}": {
       "schema": "Meeting",

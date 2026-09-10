@@ -459,3 +459,28 @@ export interface TeacherMonthlyAttendanceRecord {
   createdBy?: string;
   updatedBy?: string;
 }
+
+export type ClassScheduleDay = 'SENIN' | 'SELASA' | 'RABU' | 'KAMIS' | 'JUMAT' | 'SABTU';
+
+export interface ClassScheduleItem {
+  id: string;
+  day: ClassScheduleDay;
+  period: number;        // Jam ke-1, 2, 3, dst
+  timeSlot?: string;     // e.g. "07.50 - 08.25"
+  subjectName: string;   // e.g. "Bahasa Arab"
+  teacherName: string;   // e.g. "MACHFUD AFFANDI, S.Pd.I"
+  roomOrNotes?: string;  // e.g. "Lab Bahasa"
+}
+
+export interface ClassSchedule {
+  id: string;            // Deterministic: {classId}_{academicYearId}_{semester}
+  classId: string;
+  className?: string;
+  academicYearId: string;
+  academicYearLabel?: string;
+  semester: SemesterType;
+  items: ClassScheduleItem[];
+  createdAt?: any;
+  updatedAt?: any;
+  updatedBy?: string;
+}
