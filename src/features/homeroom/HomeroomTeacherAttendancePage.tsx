@@ -36,6 +36,7 @@ import {
   BookOpen,
   Check,
   Percent,
+  RefreshCw,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
@@ -123,10 +124,21 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
         if (!isMounted) return;
         setAssignments(asgs);
 
+        const resolveTeacherName = (tName?: string, tId?: string) => {
+          if (tName && tName !== 'Guru Mapel' && tName.trim() !== '') return tName;
+          if (tId === user?.uid || !tId) {
+            return profile?.displayName || user?.displayName || 'Johan Rovian Afik, S.Pd.I.';
+          }
+          return tName || profile?.displayName || 'Guru Mapel';
+        };
+
         if (savedRecord && savedRecord.items && savedRecord.items.length > 0) {
-          // Gunakan record tersimpan
+          // Gunakan record tersimpan dengan auto-resolve jika nama masih 'Guru Mapel'
           const savedItemsMap = new Map(savedRecord.items.map(it => [it.teachingAssignmentId || it.id, it]));
-          const combinedItems: TeacherMonthlyAttendanceItem[] = [...savedRecord.items];
+          const combinedItems: TeacherMonthlyAttendanceItem[] = savedRecord.items.map(it => ({
+            ...it,
+            teacherName: resolveTeacherName(it.teacherName, it.teacherId),
+          }));
 
           // Tambahkan penugasan baru dari master yang belum ada di rekapan tersimpan
           asgs.forEach(asg => {
@@ -135,7 +147,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                 id: asg.id,
                 teachingAssignmentId: asg.id,
                 teacherId: asg.teacherId || '',
-                teacherName: asg.teacherName || 'Guru Mapel',
+                teacherName: resolveTeacherName(asg.teacherName, asg.teacherId),
                 subjectId: asg.subjectId || '',
                 subjectName: asg.subjectName || 'Mata Pelajaran',
                 subjectCode: asg.subjectCode || '',
@@ -160,7 +172,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             id: asg.id,
             teachingAssignmentId: asg.id,
             teacherId: asg.teacherId || '',
-            teacherName: asg.teacherName || 'Guru Mapel',
+            teacherName: resolveTeacherName(asg.teacherName, asg.teacherId),
             subjectId: asg.subjectId || '',
             subjectName: asg.subjectName || 'Mata Pelajaran',
             subjectCode: asg.subjectCode || '',
@@ -286,10 +298,43 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
     setHasUnsavedChanges(true);
   };
 
-  // Hapus baris tambahan (manual / inval)
+  // Hapus baris dari tabel (bisa hapus mapel master maupun inval/manual)
   const handleDeleteRow = (id: string) => {
+    const itemToRemove = items.find(it => it.id === id);
     setItems(prev => prev.filter(it => it.id !== id));
     setHasUnsavedChanges(true);
+    emitSyncSuccess(`Baris ${itemToRemove?.subjectName || 'Mapel'} (${itemToRemove?.teacherName || 'Guru'}) berhasil dihapus dari rekap.`);
+  };
+
+  // Muat ulang daftar dari Master Penugasan
+  const handleReloadFromMaster = () => {
+    if (assignments.length === 0) {
+      emitSyncError('Tidak ada penugasan guru di kelas ini pada Master.');
+      return;
+    }
+    const defaultItems: TeacherMonthlyAttendanceItem[] = assignments.map(asg => ({
+      id: asg.id,
+      teachingAssignmentId: asg.id,
+      teacherId: asg.teacherId || '',
+      teacherName: (asg.teacherName && asg.teacherName !== 'Guru Mapel' && asg.teacherName.trim() !== '')
+        ? asg.teacherName
+        : (profile?.displayName || user?.displayName || 'Johan Rovian Afik, S.Pd.I.'),
+      subjectId: asg.subjectId || '',
+      subjectName: asg.subjectName || 'Mata Pelajaran',
+      subjectCode: asg.subjectCode || '',
+      targetMeetings: 4,
+      hadir: 4,
+      sakit: 0,
+      izin: 0,
+      alpa: 0,
+      dinas: 0,
+      notes: '',
+      isSubstitute: false,
+      isManual: false,
+    }));
+    setItems(defaultItems);
+    setHasUnsavedChanges(true);
+    emitSyncSuccess('Daftar guru dimuat ulang dari Master Penugasan.');
   };
 
   // Tambah item manual dari modal
@@ -460,6 +505,16 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             >
               <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Set Semua Hadir Penuh</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleReloadFromMaster}
+              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+              title="Muat ulang daftar guru dari Master Penugasan jika ada baris yang terhapus"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+              <span>Muat Ulang Master</span>
             </button>
 
             <button
@@ -740,7 +795,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
                       {/* Mapel & Guru */}
                       <td className="p-3">
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="font-bold text-slate-900 dark:text-white text-xs">
                               {item.subjectName}
@@ -750,10 +805,6 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                                 {item.subjectCode}
                               </span>
                             )}
-                          </div>
-
-                          <div className="flex items-center gap-1.5 flex-wrap text-slate-700 dark:text-slate-300">
-                            <span className="font-medium">{item.teacherName}</span>
 
                             {item.isSubstitute && (
                               <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
@@ -765,6 +816,17 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                                 Khusus / Manual
                               </span>
                             )}
+                          </div>
+
+                          <div className="relative max-w-sm">
+                            <input
+                              type="text"
+                              value={item.teacherName}
+                              onChange={(e) => handleUpdateField(item.id, 'teacherName', e.target.value)}
+                              placeholder="Ketik nama guru pengampu..."
+                              className="w-full px-2 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 hover:bg-white focus:bg-white dark:bg-[#181d2a] dark:hover:bg-[#1f2536] dark:focus:bg-[#181d2a] rounded-lg border border-slate-200 dark:border-[#282e42] focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 focus:outline-none transition-colors"
+                              title="Klik untuk mengubah nama guru pengampu"
+                            />
                           </div>
 
                           {item.substituteForTeacherName && (
@@ -945,16 +1007,14 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             <RotateCcw className="w-3.5 h-3.5" />
                           </button>
 
-                          {(item.isManual || item.isSubstitute) && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRow(item.id)}
-                              title="Hapus baris tambahan ini"
-                              className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRow(item.id)}
+                            title="Hapus baris ini dari rekapitulasi bulan ini"
+                            className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-500 hover:text-rose-600 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
