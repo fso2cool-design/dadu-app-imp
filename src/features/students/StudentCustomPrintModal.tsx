@@ -516,21 +516,23 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-slate-700">
+                <div className="flex-1 min-w-0 text-center">
+                  <h4 className="text-xs font-semibold tracking-wider uppercase text-slate-800 leading-tight">
                     KEMENTERIAN AGAMA REPUBLIK INDONESIA
                   </h4>
-                  <h3 className="text-base sm:text-lg font-black uppercase text-slate-900 leading-tight">
-                    {schoolSettings?.schoolName || 'MADRASAH TSANAWIYAH'}
+                  <h5 className="text-[11px] font-semibold tracking-wide uppercase text-slate-800 leading-tight mt-0.5">
+                    {schoolSettings?.kemenagDistrict || (
+                      schoolSettings?.regency 
+                        ? `KANTOR KEMENTERIAN AGAMA KABUPATEN ${schoolSettings.regency.toUpperCase().replace(/^KABUPATEN\s+|^KOTA\s+/i, '')}`
+                        : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
+                    )}
+                  </h5>
+                  <h3 className="text-base sm:text-lg font-black uppercase text-slate-950 my-0.5 leading-snug">
+                    {schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR'}
                   </h3>
-                  <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5">
-                    {schoolSettings?.address || 'Alamat Madrasah'} {schoolSettings?.district ? `• ${schoolSettings.district}` : ''} {schoolSettings?.postalCode ? `(${schoolSettings.postalCode})` : ''}
+                  <p className="text-[10px] sm:text-xs text-slate-700 leading-snug">
+                    {schoolSettings?.address || 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula'}
                   </p>
-                  {(schoolSettings?.nsm || schoolSettings?.npsn) && (
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      {schoolSettings?.nsm ? `NSM: ${schoolSettings.nsm}` : ''} {schoolSettings?.npsn ? `• NPSN: ${schoolSettings.npsn}` : ''}
-                    </p>
-                  )}
                 </div>
 
                 <div className="w-14 h-14 shrink-0" />

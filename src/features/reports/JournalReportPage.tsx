@@ -105,17 +105,22 @@ export const JournalReportPage: React.FC = () => {
     // Rows
     filteredMeetings.forEach((m, idx) => {
       const summary = m.attendanceSummary;
+      const isActivity = m.meetingType === 'MADRASAH_ACTIVITY';
       const presensiStr = summary 
-        ? `H: ${summary.present}, S: ${summary.sick}, I: ${summary.permitted}, A: ${summary.absent}` 
-        : '-';
+        ? `H: ${summary.present}, S: ${summary.sick}, I: ${summary.permitted}, D: ${summary.dispensation || 0}, A: ${summary.absent}` 
+        : (isActivity ? 'Kegiatan Madrasah' : '-');
       const pctStr = summary ? `${summary.presentPercentage}%` : '-';
+
+      const topicDesc = isActivity 
+        ? `[${m.activityCategory || 'Kegiatan Madrasah'}] ${m.topic}`
+        : (m.topic || m.learningObjectives || '-');
 
       sheetData.push([
         idx + 1,
         m.meetingNumber || idx + 1,
         formatDate(m.date),
         m.timeSlot || '-',
-        m.topic || m.learningObjectives || '-',
+        topicDesc,
         m.activities || '-',
         presensiStr,
         pctStr,
@@ -273,11 +278,22 @@ export const JournalReportPage: React.FC = () => {
                         {m.timeSlot || '-'}
                       </td>
                       <td className="border border-slate-900 px-3 py-2 text-slate-900">
-                        <div className="font-bold">{m.topic || 'Pertemuan KBM'}</div>
-                        {m.learningObjectives && (
-                          <div className="text-[10px] text-slate-600 mt-0.5 line-clamp-2">
-                            TP: {m.learningObjectives}
+                        {m.meetingType === 'MADRASAH_ACTIVITY' ? (
+                          <div>
+                            <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300 mr-1.5 align-middle">
+                              {m.activityCategory || 'KEGIATAN MADRASAH'}
+                            </span>
+                            <span className="font-bold align-middle">{m.topic || 'Agenda Madrasah'}</span>
                           </div>
+                        ) : (
+                          <>
+                            <div className="font-bold">{m.topic || 'Pertemuan KBM'}</div>
+                            {m.learningObjectives && (
+                              <div className="text-[10px] text-slate-600 mt-0.5 line-clamp-2">
+                                TP: {m.learningObjectives}
+                              </div>
+                            )}
+                          </>
                         )}
                       </td>
                       <td className="border border-slate-900 px-3 py-2 text-slate-800 text-[11px] leading-relaxed">
@@ -287,12 +303,14 @@ export const JournalReportPage: React.FC = () => {
                         {summary ? (
                           <div className="space-y-0.5">
                             <div className="font-bold text-slate-900">
-                              <span className="text-emerald-700">H:{summary.present}</span> | <span className="text-amber-700">S:{summary.sick}</span> | <span className="text-blue-700">I:{summary.permitted}</span> | <span className="text-rose-700">A:{summary.absent}</span>
+                              <span className="text-emerald-700">H:{summary.present}</span> | <span className="text-amber-700">S:{summary.sick}</span> | <span className="text-blue-700">I:{summary.permitted}</span>{summary.dispensation ? <> | <span className="text-indigo-700">D:{summary.dispensation}</span></> : null} | <span className="text-rose-700">A:{summary.absent}</span>
                             </div>
                             <div className="text-[9px] text-slate-500">
                               ({summary.presentPercentage}% hadir)
                             </div>
                           </div>
+                        ) : m.meetingType === 'MADRASAH_ACTIVITY' ? (
+                          <span className="text-amber-700 font-medium text-[10px]">Agenda Sah</span>
                         ) : (
                           <span className="text-slate-400 italic">Belum diisi</span>
                         )}

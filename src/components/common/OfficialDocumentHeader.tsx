@@ -54,8 +54,6 @@ export const OfficialDocumentHeader: React.FC<OfficialDocumentHeaderProps> = ({
   const contactText = [
     schoolSettings?.phone ? `Telp: ${schoolSettings.phone}` : '',
     schoolSettings?.email ? `Email: ${schoolSettings.email}` : '',
-    schoolSettings?.nsm ? `NSM: ${schoolSettings.nsm}` : '',
-    schoolSettings?.npsn ? `NPSN: ${schoolSettings.npsn}` : '',
   ].filter(Boolean).join(' | ');
 
   const tier4 = contactText ? `${addressText} | ${contactText}` : addressText;

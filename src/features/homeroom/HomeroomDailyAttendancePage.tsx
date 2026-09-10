@@ -748,12 +748,23 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                         {/* Quick Presets for non-present */}
                         {state.status !== 'PRESENT' && !isArchivedYear && (
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {['Surat dokter', 'Izin keluarga', 'Tanpa kabar', 'Dispen lomba'].map((preset) => (
+                            {(state.status === 'DISPENSATION'
+                              ? ['Tugas Lomba KSM', 'Porseni / AKSIOMA', 'Tugas OSIM/Madrasah', 'Petugas Upacara', 'Kepramukaan']
+                              : state.status === 'SICK'
+                              ? ['Surat Dokter', 'Sakit di Rumah', 'Istirahat di UKS']
+                              : state.status === 'PERMITTED'
+                              ? ['Izin Keluarga', 'Kepulangan Santri', 'Ada Surat Izin']
+                              : ['Tanpa Kabar', 'Belum Ada Keterangan']
+                            ).map((preset) => (
                               <button
                                 key={preset}
                                 type="button"
                                 onClick={() => handlePresetNote(enr.studentId, preset)}
-                                className="px-1.5 py-0.5 rounded text-[9px] bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-600 dark:text-slate-400 cursor-pointer"
+                                className={`px-1.5 py-0.5 rounded text-[9px] cursor-pointer transition-colors ${
+                                  state.status === 'DISPENSATION'
+                                    ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60'
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-600 dark:text-slate-400'
+                                }`}
                               >
                                 + {preset}
                               </button>

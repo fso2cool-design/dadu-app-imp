@@ -172,6 +172,8 @@ export interface Meeting {
   method?: string;
   notes?: string;
   status: MeetingStatus;
+  meetingType?: 'CLASS' | 'MADRASAH_ACTIVITY';
+  activityCategory?: string;
   className?: string;
   subjectName?: string;
   subjectCode?: string;
