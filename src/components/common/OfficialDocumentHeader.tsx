@@ -45,11 +45,20 @@ export const OfficialDocumentHeader: React.FC<OfficialDocumentHeaderProps> = ({
       : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
   );
 
-  const tier3 = schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR';
+  const tier3 = schoolSettings?.schoolName || (schoolSettings as any)?.name || 'MAN 2 SERAM BAGIAN TIMUR';
 
-  const tier4 = schoolSettings?.address 
+  const addressText = schoolSettings?.address 
     ? `${schoolSettings.address}${schoolSettings.village ? `, ${schoolSettings.village}` : ''}${schoolSettings.district ? `, Kec. ${schoolSettings.district}` : ''}${schoolSettings.regency ? `, ${schoolSettings.regency}` : ''}${schoolSettings.province ? `, ${schoolSettings.province}` : ''}`
     : 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula';
+
+  const contactText = [
+    schoolSettings?.phone ? `Telp: ${schoolSettings.phone}` : '',
+    schoolSettings?.email ? `Email: ${schoolSettings.email}` : '',
+    schoolSettings?.nsm ? `NSM: ${schoolSettings.nsm}` : '',
+    schoolSettings?.npsn ? `NPSN: ${schoolSettings.npsn}` : '',
+  ].filter(Boolean).join(' | ');
+
+  const tier4 = contactText ? `${addressText} | ${contactText}` : addressText;
 
   const kemenagLogo = schoolSettings?.kemenagLogoUrl || DEFAULT_KEMENAG_LOGO;
   const madrasahLogo = schoolSettings?.schoolLogoUrl || schoolSettings?.logoUrl;

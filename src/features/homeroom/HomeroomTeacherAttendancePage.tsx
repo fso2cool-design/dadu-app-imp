@@ -39,6 +39,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
+import { OfficialDocumentHeader } from '../../components/common/OfficialDocumentHeader';
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -985,37 +986,13 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
       {/* 6. PRINT LAYOUT (Visible ONLY when Printing / window.print)*/}
       {/* ========================================================= */}
       <div className="hidden print:block text-black font-serif text-[11pt] leading-normal">
-        {/* KOP MADRASAH */}
-        <div className="border-b-2 border-black pb-2 mb-4 text-center">
-          <h2 className="text-base font-bold uppercase tracking-wider">
-            {schoolSettings?.name || 'KEMENTERIAN AGAMA REPUBLIK INDONESIA'}
-          </h2>
-          <h3 className="text-sm font-bold uppercase">
-            {schoolSettings?.subDistrict ? `KECAMATAN ${schoolSettings.subDistrict.toUpperCase()}` : ''}{' '}
-            {schoolSettings?.district ? `KABUPATEN/KOTA ${schoolSettings.district.toUpperCase()}` : ''}
-          </h3>
-          <p className="text-xs">
-            {schoolSettings?.address || 'Alamat Madrasah'}
-            {schoolSettings?.phone ? ` | Telp: ${schoolSettings.phone}` : ''}
-            {schoolSettings?.nsm ? ` | NSM: ${schoolSettings.nsm}` : ''}
-            {schoolSettings?.npsn ? ` | NPSN: ${schoolSettings.npsn}` : ''}
-          </p>
-        </div>
-
-        {/* JUDUL LAPORAN */}
-        <div className="text-center my-3">
-          <h4 className="text-sm font-bold uppercase tracking-wide underline">
-            LAPORAN REKAPITULASI KEHADIRAN GURU MATA PELAJARAN
-          </h4>
-          <p className="text-xs mt-1">
-            Kelas: <strong>{currentClass?.name || '-'}</strong> | Periode:{' '}
-            <strong>
-              {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-            </strong>{' '}
-            | Semester: <strong>{selectedSemester}</strong> TP:{' '}
-            <strong>{activeAcademicYear?.label || '2026/2027'}</strong>
-          </p>
-        </div>
+        {/* KOP RESMI MADRASAH & JUDUL LAPORAN (STANDAR GOVERNANCE) */}
+        <OfficialDocumentHeader
+          schoolSettings={schoolSettings}
+          documentTitle="LAPORAN REKAPITULASI KEHADIRAN GURU MATA PELAJARAN"
+          documentSubtitle={`Kelas: ${currentClass?.name || '-'} | Periode: ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} | Semester: ${selectedSemester} TP: ${activeAcademicYear?.label || '2026/2027'}`}
+          showLetterhead={true}
+        />
 
         {/* TABEL CETAK RESMI */}
         <table className="w-full border-collapse border border-black text-[10pt] my-3">
