@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
+import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Printer, Download, Building2, Sliders, CheckCircle, FileSpreadsheet } from 'lucide-react';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 
@@ -291,10 +292,10 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
                 </div>
 
                 <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
-                  {effectiveHeadmasterName}
+                  {formatOfficialSignatureName(effectiveHeadmasterName, 'Kepala Madrasah')}
                 </p>
                 <p className="text-[11px] text-slate-600 font-mono">
-                  NIP. {effectiveHeadmasterNip}
+                  {formatOfficialNip(effectiveHeadmasterNip)}
                 </p>
               </div>
 
@@ -319,10 +320,10 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
                 </div>
 
                 <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
-                  {effectiveTeacherName}
+                  {formatOfficialSignatureName(effectiveTeacherName, 'Guru Pengampu')}
                 </p>
                 <p className="text-[11px] text-slate-600 font-mono">
-                  NIP. {effectiveTeacherNip}
+                  {formatOfficialNip(effectiveTeacherNip)}
                 </p>
               </div>
             </div>

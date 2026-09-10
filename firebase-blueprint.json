@@ -167,6 +167,20 @@
         "notes": { "type": "string" }
       },
       "required": ["academicYearId", "semester", "classId", "date", "teachingAssignmentId", "teacherId", "subjectId", "status"]
+    },
+    "TeacherMonthlyAttendanceRecord": {
+      "title": "TeacherMonthlyAttendanceRecord",
+      "description": "Monthly aggregated subject teacher attendance recap per class recorded by homeroom teacher based on classroom journals",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string" },
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "year": { "type": "number" },
+        "month": { "type": "number" },
+        "items": { "type": "array" }
+      },
+      "required": ["classId", "academicYearId", "semester", "year", "month", "items"]
     }
   },
   "firestore": {
@@ -205,6 +219,10 @@
     "/users/{userId}/teacherAttendanceRecords/{recordId}": {
       "schema": "TeacherAttendanceRecord",
       "description": "Subject teacher attendance records per class schedule recorded by homeroom teacher"
+    },
+    "/users/{userId}/teacherMonthlyAttendance/{recordId}": {
+      "schema": "TeacherMonthlyAttendanceRecord",
+      "description": "Monthly aggregated subject teacher attendance recap per class recorded by homeroom teacher based on classroom journals"
     },
     "/users/{userId}/studentNotes/{noteId}": {
       "schema": "StudentNote",

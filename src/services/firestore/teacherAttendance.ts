@@ -3,6 +3,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   query,
   where,
   serverTimestamp,
@@ -13,13 +14,16 @@ import {
   TeacherAttendanceRecord,
   TeacherAttendanceStatus,
   TeacherAttendanceSummaryItem,
+  TeacherAttendanceEntryType,
+  TeacherMonthlyAttendanceItem,
+  TeacherMonthlyAttendanceRecord,
   TeachingAssignment,
   SemesterType,
 } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
 
 export interface SaveTeacherAttendanceItem {
-  teachingAssignmentId: string;
+  teachingAssignmentId?: string; // Dapat kosong/manual jika di luar penugasan rutin
   teacherId: string;
   teacherName?: string;
   subjectId: string;
@@ -28,6 +32,10 @@ export interface SaveTeacherAttendanceItem {
   dayOfWeek?: number;
   status: TeacherAttendanceStatus;
   notes?: string;
+  isManualEntry?: boolean;
+  isSubstitute?: boolean;
+  substituteForTeacherName?: string;
+  entryType?: TeacherAttendanceEntryType;
 }
 
 export interface SaveTeacherAttendancePayload {
@@ -149,9 +157,16 @@ export async function saveTeacherAttendanceRecords(
     const batch = writeBatch(db);
     const now = serverTimestamp();
 
+    // 3. Ambil record yang sudah ada di tanggal ini untuk membersihkan record yang sengaja dihapus barisnya
+    const existingOnDate = await getTeacherAttendanceRecordsForDate(uid, academicYearId, semester, classId, date);
+    const existingMap = new Map(existingOnDate.map(r => [r.id, r]));
+    const targetIds = new Set<string>();
+
     for (const item of items) {
       // Deterministic document ID agar idempotent dan anti-duplikasi
-      const deterministicId = `${academicYearId}_${semester}_${classId}_${date}_${item.teachingAssignmentId}`;
+      const asgKey = item.teachingAssignmentId || `manual_${item.teacherId}_${item.subjectId}`;
+      const deterministicId = `${academicYearId}_${semester}_${classId}_${date}_${asgKey}`;
+      targetIds.add(deterministicId);
       const recordDocRef = doc(colRef, deterministicId);
 
       const recordData: Record<string, any> = {
@@ -160,7 +175,7 @@ export async function saveTeacherAttendanceRecords(
         semester,
         classId,
         date,
-        teachingAssignmentId: item.teachingAssignmentId,
+        teachingAssignmentId: asgKey,
         teacherId: item.teacherId,
         subjectId: item.subjectId,
         status: item.status,
@@ -175,6 +190,10 @@ export async function saveTeacherAttendanceRecords(
       if (item.subjectCode) recordData.subjectCode = item.subjectCode;
       if (item.dayOfWeek !== undefined) recordData.dayOfWeek = item.dayOfWeek;
       if (item.notes !== undefined) recordData.notes = item.notes.trim();
+      if (item.isManualEntry !== undefined) recordData.isManualEntry = item.isManualEntry;
+      if (item.isSubstitute !== undefined) recordData.isSubstitute = item.isSubstitute;
+      if (item.substituteForTeacherName !== undefined) recordData.substituteForTeacherName = item.substituteForTeacherName.trim();
+      if (item.entryType) recordData.entryType = item.entryType;
 
       // Gunakan merge: true sehingga jika dokumen baru createdAt dibuat, jika update tidak menimpa createdAt
       batch.set(
@@ -186,6 +205,13 @@ export async function saveTeacherAttendanceRecords(
         },
         { merge: true }
       );
+    }
+
+    // 4. Hapus record lama pada tanggal ini yang barisnya telah dihapus oleh pengguna
+    for (const [existId] of existingMap.entries()) {
+      if (!targetIds.has(existId)) {
+        batch.delete(doc(colRef, existId));
+      }
     }
 
     await batch.commit();
@@ -266,14 +292,17 @@ export function calculateTeacherAttendanceSummary(
   records.forEach((rec) => {
     let item = summaryMap.get(rec.teachingAssignmentId);
     if (!item) {
-      // Jika assignment lama sudah diarsipkan tapi record masih ada (historical preservation)
+      // Jika assignment lama sudah diarsipkan atau entri manual/pengganti (historical & flexible preservation)
       item = {
         teachingAssignmentId: rec.teachingAssignmentId,
         teacherId: rec.teacherId || '',
-        teacherName: rec.teacherName || 'Guru Mapel (Historis)',
+        teacherName: rec.teacherName || 'Guru Mapel',
         subjectId: rec.subjectId || '',
         subjectName: rec.subjectName || 'Mata Pelajaran',
         subjectCode: rec.subjectCode,
+        isManualEntry: Boolean(rec.isManualEntry),
+        isSubstitute: Boolean(rec.isSubstitute),
+        entryType: rec.entryType,
         hadir: 0,
         sakit: 0,
         izin: 0,
@@ -284,6 +313,10 @@ export function calculateTeacherAttendanceSummary(
       };
       summaryMap.set(rec.teachingAssignmentId, item);
     }
+
+    if (rec.isManualEntry && !item.isManualEntry) item.isManualEntry = true;
+    if (rec.isSubstitute && !item.isSubstitute) item.isSubstitute = true;
+    if (rec.entryType && !item.entryType) item.entryType = rec.entryType;
 
     if (rec.status === 'HADIR') item.hadir++;
     else if (rec.status === 'SAKIT') item.sakit++;
@@ -305,3 +338,96 @@ export function calculateTeacherAttendanceSummary(
   // Urutkan berdasarkan nama guru dan mata pelajaran
   return result.sort((a, b) => a.teacherName.localeCompare(b.teacherName) || a.subjectName.localeCompare(b.subjectName));
 }
+
+/**
+ * Mengambil record rekapitulasi bulanan kehadiran guru mapel
+ * Format docId: {classId}_{academicYearId}_{semester}_{year}_{month}
+ */
+export async function getTeacherMonthlyAttendance(
+  uid: string,
+  classId: string,
+  academicYearId: string,
+  semester: SemesterType,
+  year: number,
+  month: number
+): Promise<TeacherMonthlyAttendanceRecord | null> {
+  const docId = `${classId}_${academicYearId}_${semester}_${year}_${month}`;
+  const docRef = doc(db, 'users', uid, 'teacherMonthlyAttendance', docId);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    return null;
+  }
+  return { id: snap.id, ...(snap.data() as any) } as TeacherMonthlyAttendanceRecord;
+}
+
+/**
+ * Menyimpan / memperbarui rekapitulasi bulanan kehadiran guru mapel
+ */
+export async function saveTeacherMonthlyAttendance(
+  uid: string,
+  record: Omit<TeacherMonthlyAttendanceRecord, 'updatedAt' | 'createdAt'>
+): Promise<void> {
+  return trackSync((async () => {
+    const { classId, academicYearId, semester, year, month, items, className, academicYearLabel } = record;
+
+    if (!classId || !academicYearId || !semester || !year || !month) {
+      throw new Error('Parameter classId, academicYearId, semester, year, dan month wajib diisi.');
+    }
+
+    // Verifikasi apakah tahun ajaran dalam status diarsipkan (read-only)
+    const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
+    if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+      throw new Error('Tidak dapat menyimpan rekap pada Tahun Ajaran yang telah diarsipkan (read-only).');
+    }
+
+    const docId = `${classId}_${academicYearId}_${semester}_${year}_${month}`;
+    const docRef = doc(db, 'users', uid, 'teacherMonthlyAttendance', docId);
+
+    const now = serverTimestamp();
+    const cleanItems = items.map((item) => ({
+      id: item.id,
+      teachingAssignmentId: item.teachingAssignmentId || '',
+      teacherId: item.teacherId || '',
+      teacherName: item.teacherName || 'Guru Mapel',
+      subjectId: item.subjectId || '',
+      subjectName: item.subjectName || 'Mata Pelajaran',
+      subjectCode: item.subjectCode || '',
+      targetMeetings: Number(item.targetMeetings) || 0,
+      hadir: Number(item.hadir) || 0,
+      sakit: Number(item.sakit) || 0,
+      izin: Number(item.izin) || 0,
+      alpa: Number(item.alpa) || 0,
+      dinas: Number(item.dinas) || 0,
+      notes: (item.notes || '').trim(),
+      isManual: Boolean(item.isManual),
+      isSubstitute: Boolean(item.isSubstitute),
+      substituteForTeacherName: (item.substituteForTeacherName || '').trim(),
+    }));
+
+    const dataToSave: Record<string, any> = {
+      id: docId,
+      classId,
+      academicYearId,
+      semester,
+      year,
+      month,
+      items: cleanItems,
+      updatedAt: now,
+      updatedBy: uid,
+    };
+
+    if (className) dataToSave.className = className;
+    if (academicYearLabel) dataToSave.academicYearLabel = academicYearLabel;
+
+    await setDoc(docRef, {
+      ...dataToSave,
+      createdAt: now,
+      createdBy: uid,
+    }, { merge: true });
+  })(), {
+    startMessage: 'Menyimpan rekapitulasi kehadiran guru mapel...',
+    successMessage: 'Rekapitulasi kehadiran guru mapel berhasil disimpan!',
+    errorMessage: 'Gagal menyimpan rekapitulasi kehadiran guru mapel',
+  });
+}
+

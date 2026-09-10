@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Student, Enrollment, ClassItem, SchoolSettings } from '../../types';
 import { getSchoolSettings } from '../../services/firestore/settings';
+import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
 import { 
   Printer, 
@@ -713,8 +714,12 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                     />
                   )}
                 </div>
-                <p className="font-bold underline uppercase">{schoolSettings?.headmasterName || 'Kepala Madrasah'}</p>
-                <p className="text-[10px] font-mono text-slate-600">NIP. {schoolSettings?.headmasterNip || '-'}</p>
+                <p className="font-bold underline">
+                  {formatOfficialSignatureName(schoolSettings?.headmasterName, 'Kepala Madrasah')}
+                </p>
+                <p className="text-[10px] font-mono text-slate-600">
+                  {formatOfficialNip(schoolSettings?.headmasterNip)}
+                </p>
               </div>
 
               <div className="text-center w-64">
@@ -723,8 +728,12 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 <div className="h-16 flex items-center justify-center">
                   {/* Space for signature */}
                 </div>
-                <p className="font-bold underline uppercase">{profile?.displayName || 'Guru / Wali Data'}</p>
-                <p className="text-[10px] font-mono text-slate-600">NIP. {profile?.nip || '-'}</p>
+                <p className="font-bold underline">
+                  {formatOfficialSignatureName(profile?.displayName, 'Guru / Wali Data')}
+                </p>
+                <p className="text-[10px] font-mono text-slate-600">
+                  {formatOfficialNip(profile?.nip)}
+                </p>
               </div>
             </div>
           )}

@@ -1,58 +1,49 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import {
   TeachingAssignment,
-  TeacherAttendanceRecord,
-  TeacherAttendanceStatus,
-  TeacherAttendanceSummaryItem,
+  TeacherMonthlyAttendanceItem,
+  TeacherMonthlyAttendanceRecord,
   SemesterType,
   SchoolSettings,
 } from '../../types';
 import {
   getHomeroomTeachingAssignments,
-  getMonthlyTeacherAttendanceRecords,
-  getTeacherAttendanceRecordsForDate,
-  saveTeacherAttendanceRecords,
-  deleteTeacherAttendanceForDate,
-  calculateTeacherAttendanceSummary,
-  SaveTeacherAttendanceItem,
+  getTeacherMonthlyAttendance,
+  saveTeacherMonthlyAttendance,
 } from '../../services/firestore/teacherAttendance';
 import { getSchoolSettings } from '../../services/firestore/settings';
+import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { emitSyncSuccess, emitSyncError } from '../../utils/syncEvents';
 import {
-  Calendar as CalendarIcon,
   CalendarDays,
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
   Download,
   FileSpreadsheet,
-  Filter,
-  Info,
-  Layers,
   Printer,
   RotateCcw,
   Save,
   Search,
-  ShieldAlert,
   Sparkles,
-  UserCheck,
   Users,
   AlertCircle,
-  HelpCircle,
   Briefcase,
+  Plus,
+  Trash2,
+  ArrowRightLeft,
+  UserPlus,
+  BookOpen,
+  Check,
+  Percent,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
+import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
-
-const DAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 export const HomeroomTeacherAttendancePage: React.FC = () => {
   const { user, profile } = useAuth();
@@ -60,8 +51,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
     activeAcademicYear,
     activeSemester,
     classes,
-    checkIsHoliday,
-    attendanceSettings,
+    subjects,
+    teachingAssignments: allSchoolAssignments,
   } = useWorkspace();
 
   // Settings & Kop
@@ -74,1109 +65,1065 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState<SemesterType>(activeSemester || 'GANJIL');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
 
-  // Selected Date for Fast Input (YYYY-MM-DD)
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  });
-
-  // Data State
-  const [assignments, setAssignments] = useState<TeachingAssignment[]>([]);
-  const [monthlyRecords, setMonthlyRecords] = useState<TeacherAttendanceRecord[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState<boolean>(false);
-
-  // Form Input State per Assignment: { [assignmentId]: { status, notes } }
-  const [entryForm, setEntryForm] = useState<Record<string, { status: TeacherAttendanceStatus; notes: string }>>({});
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
-
-  // View Mode: 'input' (input per tanggal) or 'recap' (tabel rekap bulanan)
-  const [viewMode, setViewMode] = useState<'input' | 'recap'>('input');
+  // Search & Filter
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Load School Settings for Print
+  // Data State
+  const [items, setItems] = useState<TeacherMonthlyAttendanceItem[]>([]);
+  const [assignments, setAssignments] = useState<TeachingAssignment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+
+  // Modal Tambah Guru / Inval
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+
+  // Inisialisasi Kelas Terpilih
+  useEffect(() => {
+    if (!selectedClassId && classes && classes.length > 0) {
+      // Prioritaskan kelas binaan di mana user adalah wali kelas
+      const myHomeroom = classes.find(c => c.classTeacherId === user?.uid || c.classTeacherId === profile?.uid);
+      if (myHomeroom) {
+        setSelectedClassId(myHomeroom.id);
+      } else {
+        setSelectedClassId(classes[0].id);
+      }
+    }
+  }, [classes, selectedClassId, user, profile]);
+
+  // Load School Settings
   useEffect(() => {
     if (!user) return;
-    getSchoolSettings(user.uid).then(setSchoolSettings).catch(() => {});
+    getSchoolSettings(user.uid)
+      .then(res => setSchoolSettings(res))
+      .catch(err => console.error('Error loading school settings:', err));
   }, [user]);
 
-  // Syarat Wali Kelas: Cari kelas yang diajar oleh user sebagai wali kelas
-  const homeroomClasses = useMemo(() => {
-    if (!user) return [];
-    return classes.filter(c => c.classTeacherId === user.uid && c.isActive);
-  }, [classes, user]);
-
-  // Current selected class object
+  // Informasi kelas aktif
   const currentClass = useMemo(() => {
-    return classes.find(c => c.id === selectedClassId) || null;
+    return (classes || []).find(c => c.id === selectedClassId);
   }, [classes, selectedClassId]);
 
-  // Is the current user valid homeroom teacher of this class?
-  const isAuthorizedHomeroom = useMemo(() => {
-    if (!currentClass || !user) return false;
-    return currentClass.classTeacherId === user.uid;
-  }, [currentClass, user]);
-
-  // Auto-select homeroom class upon load
+  // Load Data Rekapitulasi Bulanan
   useEffect(() => {
-    if (homeroomClasses.length > 0 && !selectedClassId) {
-      setSelectedClassId(homeroomClasses[0].id);
-    } else if (homeroomClasses.length === 0 && classes.length > 0 && !selectedClassId) {
-      // Fallback if user is demo / super admin or hasn't assigned classTeacherId
-      setSelectedClassId(classes[0].id);
-    }
-  }, [homeroomClasses, classes, selectedClassId]);
-
-  // Update semester when activeSemester changes
-  useEffect(() => {
-    if (activeSemester) {
-      setSelectedSemester(activeSemester);
-    }
-  }, [activeSemester]);
-
-  // Keep selectedDate in sync with selectedMonth and selectedYear
-  useEffect(() => {
-    const mm = String(selectedMonth).padStart(2, '0');
-    const prefix = `${selectedYear}-${mm}`;
-    if (!selectedDate.startsWith(prefix)) {
-      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      if (todayStr.startsWith(prefix)) {
-        setSelectedDate(todayStr);
-      } else {
-        setSelectedDate(`${prefix}-01`);
-      }
-    }
-  }, [selectedMonth, selectedYear, selectedDate]);
-
-  // Load Teaching Assignments & Monthly Records
-  const loadData = useCallback(async () => {
-    if (!user || !activeAcademicYear || !selectedClassId) {
-      setAssignments([]);
-      setMonthlyRecords([]);
+    if (!user || !selectedClassId || !activeAcademicYear?.id) {
       setLoading(false);
       return;
     }
 
+    let isMounted = true;
     setLoading(true);
-    try {
-      const mm = String(selectedMonth).padStart(2, '0');
-      const yearMonthPrefix = `${selectedYear}-${mm}`;
 
-      const [asgList, mRecords] = await Promise.all([
-        getHomeroomTeachingAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
-        getMonthlyTeacherAttendanceRecords(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId, yearMonthPrefix),
-      ]);
+    Promise.all([
+      getHomeroomTeachingAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
+      getTeacherMonthlyAttendance(user.uid, selectedClassId, activeAcademicYear.id, selectedSemester, selectedYear, selectedMonth)
+    ])
+      .then(([asgs, savedRecord]) => {
+        if (!isMounted) return;
+        setAssignments(asgs);
 
-      setAssignments(asgList);
-      setMonthlyRecords(mRecords);
-    } catch (err) {
-      console.error('Failed to load teacher attendance data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, activeAcademicYear, selectedSemester, selectedClassId, selectedMonth, selectedYear]);
+        if (savedRecord && savedRecord.items && savedRecord.items.length > 0) {
+          // Gunakan record tersimpan
+          const savedItemsMap = new Map(savedRecord.items.map(it => [it.teachingAssignmentId || it.id, it]));
+          const combinedItems: TeacherMonthlyAttendanceItem[] = [...savedRecord.items];
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+          // Tambahkan penugasan baru dari master yang belum ada di rekapan tersimpan
+          asgs.forEach(asg => {
+            if (!savedItemsMap.has(asg.id)) {
+              combinedItems.push({
+                id: asg.id,
+                teachingAssignmentId: asg.id,
+                teacherId: asg.teacherId || '',
+                teacherName: asg.teacherName || 'Guru Mapel',
+                subjectId: asg.subjectId || '',
+                subjectName: asg.subjectName || 'Mata Pelajaran',
+                subjectCode: asg.subjectCode || '',
+                targetMeetings: 4,
+                hadir: 4,
+                sakit: 0,
+                izin: 0,
+                alpa: 0,
+                dinas: 0,
+                notes: '',
+                isManual: false,
+                isSubstitute: false,
+              });
+            }
+          });
 
-  // Re-populate entry form when selectedDate or monthlyRecords change
-  useEffect(() => {
-    if (!selectedDate || assignments.length === 0) {
-      setEntryForm({});
-      setHasUnsavedChanges(false);
-      return;
-    }
+          setItems(combinedItems);
+          setHasUnsavedChanges(false);
+        } else {
+          // Buat entri awal dari daftar guru penugasan di kelas ini
+          const initialItems: TeacherMonthlyAttendanceItem[] = asgs.map(asg => ({
+            id: asg.id,
+            teachingAssignmentId: asg.id,
+            teacherId: asg.teacherId || '',
+            teacherName: asg.teacherName || 'Guru Mapel',
+            subjectId: asg.subjectId || '',
+            subjectName: asg.subjectName || 'Mata Pelajaran',
+            subjectCode: asg.subjectCode || '',
+            targetMeetings: 4, // Default rata-rata 4 pertemuan per bulan
+            hadir: 4,
+            sakit: 0,
+            izin: 0,
+            alpa: 0,
+            dinas: 0,
+            notes: '',
+            isManual: false,
+            isSubstitute: false,
+          }));
 
-    const recordsForSelectedDate = monthlyRecords.filter(r => r.date === selectedDate);
-    const existingMap = new Map<string, TeacherAttendanceRecord>(recordsForSelectedDate.map(r => [r.teachingAssignmentId, r]));
+          setItems(initialItems);
+          setHasUnsavedChanges(false);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching teacher monthly attendance:', err);
+        emitSyncError('Gagal memuat rekapitulasi kehadiran guru mapel');
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
-    const newForm: Record<string, { status: TeacherAttendanceStatus; notes: string }> = {};
-    assignments.forEach(asg => {
-      const rec = existingMap.get(asg.id);
-      if (rec) {
-        newForm[asg.id] = {
-          status: rec.status,
-          notes: rec.notes || '',
-        };
-      } else {
-        // Default: HADIR
-        newForm[asg.id] = {
-          status: 'HADIR',
-          notes: '',
-        };
+    return () => {
+      isMounted = false;
+    };
+  }, [user, selectedClassId, activeAcademicYear?.id, selectedSemester, selectedYear, selectedMonth]);
+
+  // Daftar seluruh guru sekolah (untuk modal guru pengganti/inval)
+  const allSchoolTeachers = useMemo(() => {
+    const map = new Map<string, string>();
+    (allSchoolAssignments || []).forEach(a => {
+      if (a.teacherId && a.teacherName) {
+        map.set(a.teacherId, a.teacherName);
       }
     });
-
-    setEntryForm(newForm);
-    setHasUnsavedChanges(false);
-  }, [selectedDate, assignments, monthlyRecords]);
-
-  // Days in selected month
-  const daysInMonth = useMemo(() => {
-    return new Date(selectedYear, selectedMonth, 0).getDate();
-  }, [selectedYear, selectedMonth]);
-
-  const daysArray = useMemo(() => {
-    return Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  }, [daysInMonth]);
-
-  // Map of dates in month that already have records: date -> count of recorded teachers
-  const recordedDatesMap = useMemo(() => {
-    const map = new Map<string, number>();
-    monthlyRecords.forEach(r => {
-      map.set(r.date, (map.get(r.date) || 0) + 1);
+    assignments.forEach(a => {
+      if (a.teacherId && a.teacherName) {
+        map.set(a.teacherId, a.teacherName);
+      }
     });
-    return map;
-  }, [monthlyRecords]);
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [allSchoolAssignments, assignments]);
 
-  // Check if a date string is today
-  const isDateToday = (dStr: string) => {
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    return dStr === todayStr;
-  };
+  // Guru kelas reguler saat ini (untuk referensi guru yang digantikan)
+  const regularClassTeachers = useMemo(() => {
+    return items
+      .filter(it => !it.isSubstitute)
+      .map(it => ({ id: it.teacherId, name: it.teacherName }));
+  }, [items]);
 
-  // Day of week for selected date (0 = Sunday, 1 = Monday, ...)
-  const selectedDateDayOfWeek = useMemo(() => {
-    if (!selectedDate) return 0;
-    const [y, m, d] = selectedDate.split('-').map(Number);
-    return new Date(y, m - 1, d).getDay();
-  }, [selectedDate]);
-
-  // Sorted and filtered assignments for the selected date
-  const sortedAssignments = useMemo(() => {
-    // Sort: Mapel yang terjadwal di hari ini ditaruh di atas
-    return [...assignments].sort((a, b) => {
-      const aIsToday = a.dayOfWeek === selectedDateDayOfWeek ? 1 : 0;
-      const bIsToday = b.dayOfWeek === selectedDateDayOfWeek ? 1 : 0;
-      if (aIsToday !== bIsToday) return bIsToday - aIsToday;
-      return (a.subjectName || '').localeCompare(b.subjectName || '');
-    });
-  }, [assignments, selectedDateDayOfWeek]);
-
-  // Status Change Handler
-  const handleStatusChange = (assignmentId: string, status: TeacherAttendanceStatus) => {
-    setEntryForm(prev => ({
-      ...prev,
-      [assignmentId]: {
-        ...prev[assignmentId],
-        status,
-      },
-    }));
+  // Handler update field pada baris
+  const handleUpdateField = (id: string, field: keyof TeacherMonthlyAttendanceItem, value: any) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id === id) {
+          const updated = { ...it, [field]: value };
+          // Pastikan angka valid dan tidak negatif
+          if (['targetMeetings', 'hadir', 'sakit', 'izin', 'alpa', 'dinas'].includes(field as string)) {
+            const num = Math.max(0, parseInt(value) || 0);
+            (updated as any)[field] = num;
+          }
+          return updated;
+        }
+        return it;
+      })
+    );
     setHasUnsavedChanges(true);
   };
 
-  // Notes Change Handler
-  const handleNotesChange = (assignmentId: string, notes: string) => {
-    setEntryForm(prev => ({
-      ...prev,
-      [assignmentId]: {
-        ...prev[assignmentId],
-        notes,
-      },
-    }));
+  // Preset catatan helper untuk guru tertentu
+  const handleAppendNotePreset = (id: string, preset: string) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id === id) {
+          const current = (it.notes || '').trim();
+          const newNotes = current ? `${current}; ${preset}` : preset;
+          return { ...it, notes: newNotes };
+        }
+        return it;
+      })
+    );
     setHasUnsavedChanges(true);
   };
 
-  // Quick Action: Set All to HADIR
-  const handleSetAllHadir = () => {
-    setEntryForm(prev => {
-      const updated = { ...prev };
-      assignments.forEach(asg => {
-        updated[asg.id] = {
-          ...updated[asg.id],
-          status: 'HADIR',
-        };
-      });
-      return updated;
-    });
+  // Set semua hadir penuh (100% instan)
+  const handleSetAllFull = () => {
+    setItems(prev =>
+      prev.map(it => ({
+        ...it,
+        hadir: it.targetMeetings || 4,
+        sakit: 0,
+        izin: 0,
+        alpa: 0,
+        dinas: 0,
+      }))
+    );
+    setHasUnsavedChanges(true);
+    emitSyncSuccess('Semua guru berhasil di-set Hadir Penuh!');
+  };
+
+  // Reset 1 baris ke hadir penuh
+  const handleResetRow = (id: string) => {
+    setItems(prev =>
+      prev.map(it => {
+        if (it.id === id) {
+          return {
+            ...it,
+            hadir: it.targetMeetings || 4,
+            sakit: 0,
+            izin: 0,
+            alpa: 0,
+            dinas: 0,
+            notes: '',
+          };
+        }
+        return it;
+      })
+    );
     setHasUnsavedChanges(true);
   };
 
-  // Save Bulk Records for Selected Date
-  const handleSaveDate = async () => {
-    if (!user || !activeAcademicYear || !currentClass || !selectedDate) return;
+  // Hapus baris tambahan (manual / inval)
+  const handleDeleteRow = (id: string) => {
+    setItems(prev => prev.filter(it => it.id !== id));
+    setHasUnsavedChanges(true);
+  };
 
-    if (activeAcademicYear.isArchived) {
-      alert('Tahun ajaran ini telah diarsipkan (read-only). Tidak dapat menyimpan data.');
-      return;
-    }
+  // Tambah item manual dari modal
+  const handleAddManualItem = (newItem: TeacherMonthlyAttendanceItem) => {
+    setItems(prev => [newItem, ...prev]);
+    setHasUnsavedChanges(true);
+    emitSyncSuccess('Baris guru pengganti/tambahan berhasil ditambahkan!');
+  };
+
+  // Simpan rekapitulasi ke Firestore
+  const handleSave = async () => {
+    if (!user || !selectedClassId || !activeAcademicYear?.id) return;
 
     setSaving(true);
     try {
-      const items: SaveTeacherAttendanceItem[] = assignments.map(asg => {
-        const formData = entryForm[asg.id] || { status: 'HADIR', notes: '' };
-        return {
-          teachingAssignmentId: asg.id,
-          teacherId: asg.teacherId || '',
-          teacherName: asg.teacherName || 'Guru Mapel',
-          subjectId: asg.subjectId || '',
-          subjectName: asg.subjectName || 'Mata Pelajaran',
-          subjectCode: asg.subjectCode,
-          dayOfWeek: asg.dayOfWeek,
-          status: formData.status,
-          notes: formData.notes,
-        };
-      });
-
-      await saveTeacherAttendanceRecords(user.uid, {
+      await saveTeacherMonthlyAttendance(user.uid, {
+        id: `${selectedClassId}_${activeAcademicYear.id}_${selectedSemester}_${selectedYear}_${selectedMonth}`,
+        classId: selectedClassId,
+        className: currentClass?.name || 'Kelas Binaan',
         academicYearId: activeAcademicYear.id,
-        academicYearLabel: activeAcademicYear.label,
+        academicYearLabel: activeAcademicYear.label || '2026/2027',
         semester: selectedSemester,
-        classId: currentClass.id,
-        className: currentClass.name,
-        date: selectedDate,
+        year: selectedYear,
+        month: selectedMonth,
         items,
       });
 
-      emitSyncSuccess(`Kehadiran guru mapel tanggal ${selectedDate} berhasil disimpan.`);
       setHasUnsavedChanges(false);
-
-      // Refresh monthly records
-      const mm = String(selectedMonth).padStart(2, '0');
-      const yearMonthPrefix = `${selectedYear}-${mm}`;
-      const updatedRecords = await getMonthlyTeacherAttendanceRecords(
-        user.uid,
-        activeAcademicYear.id,
-        selectedSemester,
-        currentClass.id,
-        yearMonthPrefix
-      );
-      setMonthlyRecords(updatedRecords);
+      emitSyncSuccess('Rekapitulasi kehadiran bulanan guru mapel berhasil disimpan!');
     } catch (err: any) {
-      console.error('Error saving teacher attendance:', err);
-      alert(err.message || 'Gagal menyimpan kehadiran guru.');
+      console.error('Error saving teacher monthly attendance:', err);
+      emitSyncError(err?.message || 'Gagal menyimpan rekapitulasi kehadiran');
     } finally {
       setSaving(false);
     }
   };
 
-  // Reset/Hapus Catatan Tanggal Ini
-  const handleDeleteDate = async () => {
-    if (!user || !activeAcademicYear || !currentClass || !selectedDate) return;
-    if (!window.confirm(`Hapus seluruh rekaman kehadiran guru mapel pada tanggal ${selectedDate}?`)) return;
-
-    setSaving(true);
-    try {
-      await deleteTeacherAttendanceForDate(
-        user.uid,
-        activeAcademicYear.id,
-        selectedSemester,
-        currentClass.id,
-        selectedDate
-      );
-
-      emitSyncSuccess(`Rekaman kehadiran tanggal ${selectedDate} telah direset.`);
-
-      // Refresh data
-      const mm = String(selectedMonth).padStart(2, '0');
-      const yearMonthPrefix = `${selectedYear}-${mm}`;
-      const updatedRecords = await getMonthlyTeacherAttendanceRecords(
-        user.uid,
-        activeAcademicYear.id,
-        selectedSemester,
-        currentClass.id,
-        yearMonthPrefix
-      );
-      setMonthlyRecords(updatedRecords);
-    } catch (err: any) {
-      console.error('Error deleting teacher attendance:', err);
-      alert(err.message || 'Gagal menghapus data.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Monthly Summary Calculation
-  const monthlySummary = useMemo(() => {
-    return calculateTeacherAttendanceSummary(assignments, monthlyRecords);
-  }, [assignments, monthlyRecords]);
-
-  // Filtered Summary for search in recap view
-  const filteredSummary = useMemo(() => {
-    if (!searchQuery.trim()) return monthlySummary;
+  // Filtered items berdasarkan pencarian
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return items;
     const q = searchQuery.toLowerCase();
-    return monthlySummary.filter(
-      item =>
-        item.teacherName.toLowerCase().includes(q) ||
-        item.subjectName.toLowerCase().includes(q) ||
-        (item.subjectCode && item.subjectCode.toLowerCase().includes(q))
+    return items.filter(
+      it =>
+        it.teacherName.toLowerCase().includes(q) ||
+        it.subjectName.toLowerCase().includes(q) ||
+        (it.subjectCode && it.subjectCode.toLowerCase().includes(q)) ||
+        (it.notes && it.notes.toLowerCase().includes(q)) ||
+        (it.substituteForTeacherName && it.substituteForTeacherName.toLowerCase().includes(q))
     );
-  }, [monthlySummary, searchQuery]);
+  }, [items, searchQuery]);
 
-  // Export Excel Handler
+  // Statistik Ringkasan Cepat
+  const stats = useMemo(() => {
+    let totalTarget = 0;
+    let totalHadir = 0;
+    let totalSakit = 0;
+    let totalIzin = 0;
+    let totalAlpa = 0;
+    let totalDinas = 0;
+    let teachersWithAbsence = 0;
+
+    items.forEach(it => {
+      totalTarget += it.targetMeetings || 0;
+      totalHadir += it.hadir || 0;
+      totalSakit += it.sakit || 0;
+      totalIzin += it.izin || 0;
+      totalAlpa += it.alpa || 0;
+      totalDinas += it.dinas || 0;
+
+      if (it.sakit > 0 || it.izin > 0 || it.alpa > 0) {
+        teachersWithAbsence++;
+      }
+    });
+
+    const totalTerlaksana = totalHadir + totalDinas;
+    const percentage = totalTarget > 0 ? Math.round((totalTerlaksana / totalTarget) * 100) : 0;
+
+    return {
+      totalTeachers: items.length,
+      totalTarget,
+      totalHadir,
+      totalSakit,
+      totalIzin,
+      totalAlpa,
+      totalDinas,
+      totalTerlaksana,
+      percentage,
+      teachersWithAbsence,
+    };
+  }, [items]);
+
+  // Ekspor Excel
   const handleExportExcel = () => {
-    if (!currentClass || !activeAcademicYear) return;
+    if (items.length === 0) {
+      alert('Tidak ada data untuk diekspor.');
+      return;
+    }
 
-    const monthLabel = MONTH_NAMES[selectedMonth - 1];
-    const fileName = `Rekap_Kehadiran_Guru_${currentClass.name.replace(/\s+/g, '_')}_${monthLabel}_${selectedYear}.xlsx`;
+    const exportRows = items.map((it, idx) => {
+      const target = it.targetMeetings || 0;
+      const pct = target > 0 ? Math.round(((it.hadir + it.dinas) / target) * 100) : 0;
 
-    const data = filteredSummary.map((item, idx) => ({
-      No: idx + 1,
-      'Nama Guru': item.teacherName,
-      'Mata Pelajaran': item.subjectName,
-      'Kode Mapel': item.subjectCode || '-',
-      'Hadir (H)': item.hadir,
-      'Sakit (S)': item.sakit,
-      'Izin (I)': item.izin,
-      'Alpa (A)': item.alpa,
-      'Dinas/Tugas (D)': item.dinas,
-      'Total Pertemuan': item.total,
-      '% Kehadiran': `${item.persentaseHadir}%`,
-    }));
+      return {
+        No: idx + 1,
+        'Nama Guru Pengampu': it.teacherName,
+        'Kategori Penugasan': it.isSubstitute
+          ? 'Guru Inval / Pengganti'
+          : it.isManual
+          ? 'Jadwal Khusus'
+          : 'Jadwal Rutin',
+        'Menggantikan Guru': it.substituteForTeacherName || '-',
+        'Mata Pelajaran': it.subjectName,
+        'Kode Mapel': it.subjectCode || '-',
+        'Target Tatap Muka (Bulan Ini)': target,
+        'Hadir (H)': it.hadir,
+        'Sakit (S)': it.sakit,
+        'Izin (I)': it.izin,
+        'Alpa (A)': it.alpa,
+        'Tugas Dinas (D)': it.dinas,
+        '% Kehadiran': `${pct}%`,
+        'Catatan / Alasan Ketidakhadiran (Jurnal Fisik)': it.notes || '-',
+      };
+    });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Rekap Guru');
-    XLSX.writeFile(wb, fileName);
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Guru Mapel');
+
+    const classNameClean = (currentClass?.name || 'Kelas').replace(/[\s\/]/g, '_');
+    const monthName = MONTH_NAMES[selectedMonth - 1];
+    XLSX.writeFile(workbook, `Rekap_Kehadiran_Guru_${classNameClean}_${monthName}_${selectedYear}.xlsx`);
   };
 
-  // Print Handler
+  // Cetak Dokumen Resmi
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="space-y-6">
-      {/* HEADER & ACTION BAR */}
-      <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
-                <CalendarDays className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                  Rekap Kehadiran Guru Mapel Kelas Binaan
-                </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Pencatatan dan verifikasi kehadiran guru mata pelajaran berdasarkan buku jurnal kelas
-                </p>
-              </div>
+    <div className="space-y-6 pb-16">
+      {/* ========================================================= */}
+      {/* 1. HEADER & CONTROLS (Screen View Only)                  */}
+      {/* ========================================================= */}
+      <div className="print:hidden space-y-4">
+        {/* Banner Title */}
+        <div className="bg-white dark:bg-[#141722] rounded-2xl p-5 border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center shadow-xs">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white">
+                Rekap Kehadiran Guru Mapel (Jurnal Fisik)
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Salin angka kehadiran guru per mata pelajaran dari buku jurnal kelas fisik untuk laporan resmi bulanan ke Kepala Madrasah.
+              </p>
             </div>
           </div>
 
-          {/* Quick View Mode Switcher */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex p-1 bg-slate-100 dark:bg-[#1c2130] rounded-xl border border-slate-200/80 dark:border-[#282e42]">
-              <button
-                type="button"
-                onClick={() => setViewMode('input')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'input'
-                    ? 'bg-white dark:bg-cyan-500 text-slate-900 dark:text-slate-950 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                <CalendarIcon className="w-3.5 h-3.5" />
-                <span>Input Harian</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('recap')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  viewMode === 'recap'
-                    ? 'bg-white dark:bg-cyan-500 text-slate-900 dark:text-slate-950 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Rekap Bulanan</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleSetAllFull}
+              className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+              title="Isi otomatis semua guru hadir 100% sesuai target tatap muka"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Set Semua Hadir Penuh</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 dark:hover:bg-purple-900/60 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Tambah Guru / Inval</span>
+            </button>
 
             <button
               type="button"
               onClick={handleExportExcel}
-              disabled={assignments.length === 0}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#282e42] hover:bg-slate-50 dark:hover:bg-[#1b2030] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Ekspor Excel</span>
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Ekspor Excel</span>
             </button>
 
             <button
               type="button"
               onClick={handlePrint}
-              disabled={assignments.length === 0}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer print:hidden"
+              className="px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-950 text-xs font-bold hover:bg-slate-800 dark:hover:bg-slate-100 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Cetak Rekap</span>
+              <Printer className="w-4 h-4" />
+              <span>Cetak Laporan</span>
             </button>
           </div>
         </div>
 
-        {/* FILTER BAR: KELAS BINAAN, TAHUN AJARAN, SEMESTER, BULAN */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-4 border-t border-slate-100 dark:border-[#232838]">
-          {/* Pilih Kelas Binaan */}
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Kelas Binaan
-            </label>
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 dark:focus:ring-cyan-500/20"
-            >
-              {homeroomClasses.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name} (Wali Kelas)
-                </option>
-              ))}
-              {homeroomClasses.length === 0 && classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tahun Ajaran */}
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Tahun Ajaran
-            </label>
-            <div className="px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#171b28] text-slate-700 dark:text-slate-300">
-              {activeAcademicYear?.label || 'Belum dipilih'} {activeAcademicYear?.isArchived ? '(Arsip)' : ''}
+        {/* Filter Bar */}
+        <div className="bg-white dark:bg-[#141722] rounded-2xl p-4 border border-slate-200 dark:border-[#232838] shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 text-xs">
+            {/* Pilih Kelas */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Kelas Binaan
+              </label>
+              <select
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+              >
+                {(classes || []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.classTeacherId === user?.uid ? '(Wali Kelas)' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Semester */}
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Semester
-            </label>
-            <select
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value as SemesterType)}
-              className="w-full px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-            >
-              <option value="GANJIL">Ganjil</option>
-              <option value="GENAP">Genap</option>
-            </select>
-          </div>
+            {/* Tahun Ajaran */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Tahun Ajaran
+              </label>
+              <div className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-100/70 dark:bg-[#181d2a]/70 text-slate-700 dark:text-slate-300 font-semibold">
+                {activeAcademicYear?.label || '2026/2027'}
+              </div>
+            </div>
 
-          {/* Bulan & Tahun */}
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
-              Bulan & Tahun
-            </label>
-            <div className="flex items-center gap-1.5">
+            {/* Semester */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Semester
+              </label>
+              <select
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value as SemesterType)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+              >
+                <option value="GANJIL">Ganjil</option>
+                <option value="GENAP">Genap</option>
+              </select>
+            </div>
+
+            {/* Bulan */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Bulan Rekapan
+              </label>
               <select
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="flex-1 px-3 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                className="w-full px-3 py-2 rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/50 dark:bg-orange-950/20 text-orange-900 dark:text-orange-200 font-bold focus:outline-none"
               >
-                {MONTH_NAMES.map((name, i) => (
-                  <option key={name} value={i + 1}>
-                    {name}
+                {MONTH_NAMES.map((m, idx) => (
+                  <option key={idx} value={idx + 1}>
+                    {m}
                   </option>
                 ))}
               </select>
-              <select
+            </div>
+
+            {/* Tahun Kalender */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
+                Tahun
+              </label>
+              <input
+                type="number"
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="w-24 px-2 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
-              >
-                {[selectedYear - 1, selectedYear, selectedYear + 1].map((yr) => (
-                  <option key={yr} value={yr}>
-                    {yr}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => setSelectedYear(parseInt(e.target.value) || now.getFullYear())}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+              />
             </div>
           </div>
         </div>
 
-        {/* Warning if user is not homeroom teacher */}
-        {!isAuthorizedHomeroom && currentClass && (
-          <div className="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold">Informasi Hak Akses:</span> Anda bukan wali kelas terdaftar untuk kelas{' '}
-              <strong>{currentClass.name}</strong>. Kelas binaan Anda terdeteksi:{' '}
-              {homeroomClasses.map(c => c.name).join(', ') || 'Belum ada kelas yang ditugaskan kepada Anda sebagai Wali Kelas'}.
+        {/* 2. STATS OVERVIEW CARDS */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Total Guru Mapel</span>
+              <Users className="w-4 h-4 text-blue-500" />
+            </div>
+            <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+              {stats.totalTeachers} <span className="text-xs font-normal text-slate-500">Guru/Mapel</span>
             </div>
           </div>
-        )}
+
+          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Target Pertemuan</span>
+              <CalendarDays className="w-4 h-4 text-purple-500" />
+            </div>
+            <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+              {stats.totalTarget} <span className="text-xs font-normal text-slate-500">Tatap Muka</span>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ketercapaian Kelas</span>
+              <Percent className="w-4 h-4 text-emerald-500" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                {stats.percentage}%
+              </span>
+              <span className="text-xs text-slate-500">
+                ({stats.totalTerlaksana} hadir/dinas)
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ada Ketidakhadiran</span>
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+            </div>
+            <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
+              {stats.teachersWithAbsence}{' '}
+              <span className="text-xs font-normal text-slate-500">
+                guru ({stats.totalSakit}S, {stats.totalIzin}I, {stats.totalAlpa}A)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. FLOATING / TOP SAVE STATUS BAR */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-orange-50/70 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40">
+          <div className="flex items-center gap-2 text-xs text-orange-900 dark:text-orange-200">
+            <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
+            <span>
+              <strong>Tips Wali Kelas:</strong> Buka buku fisik jurnal kelas. Cek total hadir guru di bulan{' '}
+              <strong>{MONTH_NAMES[selectedMonth - 1]} {selectedYear}</strong>. Ketik angka kehadiran atau catatan izin/sakit langsung di tabel bawah ini.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            {hasUnsavedChanges && (
+              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 animate-pulse">
+                • Perubahan belum disimpan
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>{saving ? 'Menyimpan...' : 'Simpan Rekapitulasi Bulan Ini'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Search Input */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative w-full max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama guru atau mata pelajaran..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#141722] text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
+            />
+          </div>
+          <span className="text-xs text-slate-500">
+            Menampilkan <strong>{filteredItems.length}</strong> dari {items.length} guru/mapel
+          </span>
+        </div>
       </div>
 
-      {/* VIEW MODE: INPUT HARIAN (KALENDER + FORM CEPAT) */}
-      {viewMode === 'input' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* SISI KIRI: KALENDER BULAN INI (5 Kolom) */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white dark:bg-[#141722] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <CalendarDays className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
-                    <span>Kalender {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</span>
-                  </h2>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Pilih tanggal jurnal untuk mengisi kehadiran guru
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsHolidayModalOpen(true)}
-                  className="text-[11px] font-semibold text-orange-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Atur Libur</span>
-                </button>
-              </div>
-
-              {/* Grid Hari Kalender */}
-              <div className="grid grid-cols-7 gap-1.5 text-center">
-                {DAY_NAMES.map((day, idx) => (
-                  <div
-                    key={day}
-                    className={`py-1 text-[11px] font-bold ${
-                      idx === 0 ? 'text-rose-500' : 'text-slate-500 dark:text-slate-400'
-                    }`}
-                  >
-                    {day.slice(0, 3)}
-                  </div>
-                ))}
-
-                {/* Padding awal bulan */}
-                {Array.from({
-                  length: new Date(selectedYear, selectedMonth - 1, 1).getDay(),
-                }).map((_, i) => (
-                  <div key={`empty-${i}`} className="h-10 rounded-xl" />
-                ))}
-
-                {/* Tanggal-tanggal dalam bulan */}
-                {daysArray.map((dayNum) => {
-                  const dayStr = String(dayNum).padStart(2, '0');
-                  const monthStr = String(selectedMonth).padStart(2, '0');
-                  const dateString = `${selectedYear}-${monthStr}-${dayStr}`;
-
-                  const isSelected = selectedDate === dateString;
-                  const isToday = isDateToday(dateString);
-                  const holidayInfo = checkIsHoliday(dateString);
-                  const isHoliday = Boolean(holidayInfo?.isHoliday);
-                  const recordCount = recordedDatesMap.get(dateString) || 0;
-                  const isRecorded = recordCount > 0;
+      {/* ========================================================= */}
+      {/* 4. MAIN TABLE (Screen View)                               */}
+      {/* ========================================================= */}
+      <div className="print:hidden bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center text-slate-500">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
+            <p className="text-xs">Memuat data rekapitulasi kehadiran guru kelas...</p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 space-y-3">
+            <BookOpen className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600" />
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Belum ada guru mapel terdaftar di kelas {currentClass?.name || ''}
+            </p>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Pastikan Master Penugasan Mengajar telah diisi oleh admin/kurikulum, atau Anda dapat menambahkan guru pengganti/manual melalui tombol di bawah.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>+ Tambah Guru / Inval Manual</span>
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-[#181d2a] border-b border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                  <th className="p-3 w-12 text-center">No</th>
+                  <th className="p-3 min-w-[220px]">Mata Pelajaran & Guru Pengampu</th>
+                  <th className="p-3 w-28 text-center" title="Target tatap muka atau jumlah pertemuan dalam bulan ini">
+                    Target Pertemuan
+                  </th>
+                  <th className="p-3 w-20 text-center text-emerald-700 dark:text-emerald-400">Hadir (H)</th>
+                  <th className="p-3 w-20 text-center text-amber-700 dark:text-amber-400">Sakit (S)</th>
+                  <th className="p-3 w-20 text-center text-blue-700 dark:text-blue-400">Izin (I)</th>
+                  <th className="p-3 w-20 text-center text-rose-700 dark:text-rose-400">Alpa (A)</th>
+                  <th className="p-3 w-20 text-center text-purple-700 dark:text-purple-400">Dinas (D)</th>
+                  <th className="p-3 w-24 text-center">% Hadir</th>
+                  <th className="p-3 min-w-[280px]">
+                    Catatan Ketidakhadiran & Jurnal Fisik
+                  </th>
+                  <th className="p-3 w-16 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-[#232838]">
+                {filteredItems.map((item, idx) => {
+                  const target = item.targetMeetings || 0;
+                  const effectivePresent = (item.hadir || 0) + (item.dinas || 0);
+                  const pct = target > 0 ? Math.round((effectivePresent / target) * 100) : 0;
+                  const hasAbsence = (item.sakit || 0) > 0 || (item.izin || 0) > 0 || (item.alpa || 0) > 0;
+                  const missingNotesPrompt = hasAbsence && !item.notes.trim();
 
                   return (
-                    <button
-                      key={dateString}
-                      type="button"
-                      title={holidayInfo?.reason || (isHoliday ? 'Hari Libur' : isToday ? 'Hari Ini' : undefined)}
-                      onClick={() => {
-                        if (hasUnsavedChanges) {
-                          if (
-                            !window.confirm(
-                              'Ada perubahan data yang belum disimpan pada tanggal saat ini. Tetap beralih tanggal?'
-                            )
-                          ) {
-                            return;
-                          }
-                        }
-                        setSelectedDate(dateString);
-                      }}
-                      className={`h-11 rounded-xl p-1 flex flex-col items-center justify-between border text-xs font-semibold transition-all relative cursor-pointer ${
-                        isSelected
-                          ? 'bg-orange-500 text-white border-orange-600 dark:bg-cyan-500 dark:text-slate-950 dark:border-cyan-400 shadow-sm'
-                          : isRecorded
-                          ? 'bg-emerald-50/70 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 hover:bg-emerald-100/70'
-                          : isHoliday
-                          ? 'bg-rose-50/60 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/40'
-                          : 'bg-slate-50/70 dark:bg-[#1a1f2e] text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-[#282e42] hover:bg-slate-100 dark:hover:bg-[#20273a]'
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-slate-50/70 dark:hover:bg-[#181d2a]/50 transition-colors ${
+                        item.isSubstitute
+                          ? 'bg-purple-50/20 dark:bg-purple-950/10'
+                          : item.isManual
+                          ? 'bg-blue-50/20 dark:bg-blue-950/10'
+                          : ''
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full px-1">
-                        <span className="text-[11px]">{dayNum}</span>
-                        {isToday && (
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isSelected ? 'bg-white dark:bg-slate-950' : 'bg-orange-500'
-                            }`}
-                            title="Hari Ini"
-                          />
-                        )}
-                      </div>
+                      {/* No */}
+                      <td className="p-3 text-center text-slate-400 font-semibold">{idx + 1}</td>
 
-                      {/* Indikator Status Terisi */}
-                      <div className="w-full flex items-center justify-center">
-                        {isRecorded ? (
-                          <span
-                            className={`text-[9px] font-bold px-1 rounded ${
-                              isSelected
-                                ? 'bg-white/20 text-white dark:text-slate-950'
-                                : 'text-emerald-700 dark:text-emerald-400'
-                            }`}
-                          >
-                            Terisi
-                          </span>
-                        ) : isHoliday ? (
-                          <span className="text-[8px] text-rose-500 opacity-80">Libur</span>
-                        ) : (
-                          <span className="text-[8px] opacity-30 text-slate-400">-</span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Legenda Kalender */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#232838] flex flex-wrap items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-orange-500 dark:bg-cyan-500" />
-                  <span>Dipilih</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-emerald-100 border border-emerald-300 dark:bg-emerald-950/40" />
-                  <span>Sudah Ada Rekap</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-200 dark:bg-rose-950/40" />
-                  <span>Hari Libur</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Info Kartu Buku Jurnal */}
-            <div className="bg-blue-50/60 dark:bg-blue-950/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/40 text-blue-900 dark:text-blue-300 text-xs">
-              <div className="flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                <div className="leading-relaxed">
-                  <span className="font-bold">Tips Pengisian Cepat:</span> Buka buku jurnal kelas madrasah.
-                  Cek tanda tangan/presensi guru pada tanggal yang dipilih. Klik tombol{' '}
-                  <strong>"Semua Hadir"</strong>, lalu ubah status guru yang berhalangan hadir (Sakit/Izin/Alpa/Dinas).
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SISI KANAN: FORM INPUT CEPAT PER TANGGAL (7 Kolom) */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="bg-white dark:bg-[#141722] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-              {/* Header Tanggal Terpilih & Action Simpan */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#232838]">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 dark:bg-cyan-500/10 dark:text-cyan-400">
-                      {DAY_NAMES[selectedDateDayOfWeek]}
-                    </span>
-                    <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                      {selectedDate}
-                    </h2>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Kelas {currentClass?.name || '-'} • {assignments.length} Guru Mapel Terdaftar
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSetAllHadir}
-                    disabled={assignments.length === 0}
-                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#282e42] hover:bg-slate-50 dark:hover:bg-[#1c2232] text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    Set Semua Hadir
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleSaveDate}
-                    disabled={saving || assignments.length === 0}
-                    className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>{saving ? 'Menyimpan...' : 'Simpan Tanggal Ini'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Banner Jika Tanggal Sudah Ada Record */}
-              {recordedDatesMap.has(selectedDate) && (
-                <div className="mt-3 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Data kehadiran tanggal ini sudah tersimpan di database. Anda dapat mengeditnya kapan saja.</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDeleteDate}
-                    disabled={saving}
-                    className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer shrink-0 ml-2"
-                  >
-                    Reset Tanggal
-                  </button>
-                </div>
-              )}
-
-              {/* Empty State jika belum ada penugasan guru di kelas ini */}
-              {assignments.length === 0 ? (
-                <div className="py-12 text-center text-slate-500 dark:text-slate-400">
-                  <Briefcase className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
-                  <p className="text-xs font-semibold">
-                    Belum ada data Penugasan Guru (Teaching Assignments) untuk Kelas {currentClass?.name} di Semester ini.
-                  </p>
-                  <p className="text-[11px] mt-1 text-slate-400">
-                    Silakan plotting penugasan guru mapel terlebih dahulu pada menu Master Data &gt; Penugasan Mengajar.
-                  </p>
-                </div>
-              ) : (
-                /* DAFTAR GURU MAPEL UNTUK DIINPUT */
-                <div className="mt-4 space-y-3 max-h-[600px] overflow-y-auto pr-1">
-                  {sortedAssignments.map((asg, idx) => {
-                    const formData = entryForm[asg.id] || { status: 'HADIR', notes: '' };
-                    const isScheduledToday = asg.dayOfWeek === selectedDateDayOfWeek;
-
-                    return (
-                      <div
-                        key={asg.id}
-                        className={`p-3.5 rounded-xl border transition-all ${
-                          formData.status === 'HADIR'
-                            ? 'bg-white dark:bg-[#181d2a] border-slate-200 dark:border-[#282e42]'
-                            : formData.status === 'SAKIT'
-                            ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/60'
-                            : formData.status === 'IZIN'
-                            ? 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/60'
-                            : formData.status === 'ALPA'
-                            ? 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/60'
-                            : 'bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800/60'
-                        }`}
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          {/* Info Guru & Mapel */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                {asg.teacherName || 'Guru Mapel'}
-                              </span>
-                              {isScheduledToday && (
-                                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                                  Terjadwal Hari Ini
-                                </span>
-                              )}
-                              {asg.timeSlot && (
-                                <span className="text-[10px] text-slate-400">
-                                  Jam: {asg.timeSlot}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
-                              <span className="font-semibold text-slate-700 dark:text-slate-300">
-                                {asg.subjectName}
-                              </span>
-                              {asg.subjectCode && (
-                                <span className="text-[10px] bg-slate-100 dark:bg-[#202738] px-1.5 py-0.2 rounded font-mono">
-                                  {asg.subjectCode}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Quick Status Buttons (H, S, I, A, D) */}
-                          <div className="flex items-center gap-1 shrink-0">
-                            {(['HADIR', 'SAKIT', 'IZIN', 'ALPA', 'DINAS'] as TeacherAttendanceStatus[]).map((st) => {
-                              const isSelected = formData.status === st;
-                              const labelShort = st === 'HADIR' ? 'H' : st === 'SAKIT' ? 'S' : st === 'IZIN' ? 'I' : st === 'ALPA' ? 'A' : 'D';
-
-                              let activeBg = '';
-                              if (st === 'HADIR') activeBg = 'bg-emerald-600 text-white border-emerald-600';
-                              else if (st === 'SAKIT') activeBg = 'bg-amber-500 text-white border-amber-500';
-                              else if (st === 'IZIN') activeBg = 'bg-blue-600 text-white border-blue-600';
-                              else if (st === 'ALPA') activeBg = 'bg-rose-600 text-white border-rose-600';
-                              else if (st === 'DINAS') activeBg = 'bg-purple-600 text-white border-purple-600';
-
-                              return (
-                                <button
-                                  key={st}
-                                  type="button"
-                                  onClick={() => handleStatusChange(asg.id, st)}
-                                  title={`${st} (${asg.teacherName})`}
-                                  className={`w-8 h-8 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
-                                    isSelected
-                                      ? activeBg
-                                      : 'bg-slate-100 dark:bg-[#202738] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#2d354d] hover:bg-slate-200 dark:hover:bg-[#283248]'
-                                  }`}
-                                >
-                                  {labelShort}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Input Catatan Opsional (jika sakit, izin, tugas dinas, atau ada info khusus) */}
-                        <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-[#232838]/80">
-                          <input
-                            type="text"
-                            value={formData.notes}
-                            onChange={(e) => handleNotesChange(asg.id, e.target.value)}
-                            placeholder="Catatan jurnal (cth: Tugas mandiri di kelas / Guru pengganti / Izin dinas luar)..."
-                            className="w-full text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-[#282e42] bg-slate-50/50 dark:bg-[#141722] text-slate-800 dark:text-slate-200 focus:outline-none focus:bg-white dark:focus:bg-[#1a1f2e]"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Bottom Sticky Save Bar */}
-              {assignments.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-[#232838] flex items-center justify-between">
-                  <div className="text-xs text-slate-500">
-                    {hasUnsavedChanges ? (
-                      <span className="text-amber-600 font-semibold flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" /> Perubahan belum disimpan
-                      </span>
-                    ) : (
-                      <span>Siap disimpan</span>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleSaveDate}
-                    disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{saving ? 'Menyimpan ke Firestore...' : `Simpan ${assignments.length} Guru`}</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW MODE: REKAP BULANAN OTOMATIS */}
-      {viewMode === 'recap' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#232838]">
-              <div>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Rekapitulasi Kehadiran Guru Mapel</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-[#1f2536] text-slate-700 dark:text-slate-300 font-normal">
-                    {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Dihitung otomatis dari seluruh record tanggal aktual pada bulan ini
-                </p>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari guru atau mapel..."
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl text-xs border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#171b28] text-slate-900 dark:text-slate-100 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* TABEL REKAP BULANAN */}
-            <div className="mt-4 overflow-x-auto border border-slate-200 dark:border-[#282e42] rounded-xl">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-[#171b28] text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-[#282e42]">
-                    <th className="p-3 w-12 text-center">No</th>
-                    <th className="p-3 min-w-[180px]">Nama Guru</th>
-                    <th className="p-3 min-w-[150px]">Mata Pelajaran</th>
-                    <th className="p-3 w-16 text-center text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20">Hadir</th>
-                    <th className="p-3 w-16 text-center text-amber-700 dark:text-amber-400 bg-amber-50/50 dark:bg-amber-950/20">Sakit</th>
-                    <th className="p-3 w-16 text-center text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/20">Izin</th>
-                    <th className="p-3 w-16 text-center text-rose-700 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-950/20">Alpa</th>
-                    <th className="p-3 w-16 text-center text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/20">Dinas</th>
-                    <th className="p-3 w-20 text-center font-bold">Total</th>
-                    <th className="p-3 w-24 text-center font-bold">% Kehadiran</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-[#232838]">
-                  {filteredSummary.length === 0 ? (
-                    <tr>
-                      <td colSpan={10} className="p-8 text-center text-slate-400">
-                        Tidak ada data rekap guru yang sesuai filter.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredSummary.map((item, idx) => (
-                      <tr
-                        key={item.teachingAssignmentId}
-                        className="hover:bg-slate-50/70 dark:hover:bg-[#1b2030] transition-colors"
-                      >
-                        <td className="p-3 text-center text-slate-500 font-medium">{idx + 1}</td>
-                        <td className="p-3 font-semibold text-slate-900 dark:text-slate-100">
-                          {item.teacherName}
-                        </td>
-                        <td className="p-3 text-slate-700 dark:text-slate-300">
-                          <div className="flex items-center gap-1.5">
-                            <span>{item.subjectName}</span>
+                      {/* Mapel & Guru */}
+                      <td className="p-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 dark:text-white text-xs">
+                              {item.subjectName}
+                            </span>
                             {item.subjectCode && (
-                              <span className="text-[10px] bg-slate-100 dark:bg-[#202738] px-1 py-0.2 rounded font-mono text-slate-500">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#1f2536] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-[#282e42]">
                                 {item.subjectCode}
                               </span>
                             )}
                           </div>
-                        </td>
-                        <td className="p-3 text-center font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/10">
-                          {item.hadir}
-                        </td>
-                        <td className="p-3 text-center font-bold text-amber-700 dark:text-amber-400 bg-amber-50/30 dark:bg-amber-950/10">
-                          {item.sakit}
-                        </td>
-                        <td className="p-3 text-center font-bold text-blue-700 dark:text-blue-400 bg-blue-50/30 dark:bg-blue-950/10">
-                          {item.izin}
-                        </td>
-                        <td className="p-3 text-center font-bold text-rose-700 dark:text-rose-400 bg-rose-50/30 dark:bg-rose-950/10">
-                          {item.alpa}
-                        </td>
-                        <td className="p-3 text-center font-bold text-purple-700 dark:text-purple-400 bg-purple-50/30 dark:bg-purple-950/10">
-                          {item.dinas}
-                        </td>
-                        <td className="p-3 text-center font-bold text-slate-900 dark:text-white">
-                          {item.total}
-                        </td>
-                        <td className="p-3 text-center">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                              item.persentaseHadir >= 90
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                : item.persentaseHadir >= 75
-                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                                : item.persentaseHadir >= 50
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                                : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-                            }`}
-                          >
-                            {item.persentaseHadir}%
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Catatan Perhitungan */}
-            <div className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-[#171b28] border border-slate-200 dark:border-[#282e42] text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-2">
-              <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-              <div>
-                Persentase Kehadiran dihitung dengan rumus:{' '}
-                <code className="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded font-mono font-bold text-slate-800 dark:text-slate-200">
-                  (Hadir + Dinas) ÷ Total Pertemuan × 100%
-                </code>
-                . Guru yang ditugaskan dinas luar tetap diperhitungkan sebagai pemenuhan jam kehadiran mengajar resmi.
-              </div>
-            </div>
+                          <div className="flex items-center gap-1.5 flex-wrap text-slate-700 dark:text-slate-300">
+                            <span className="font-medium">{item.teacherName}</span>
+
+                            {item.isSubstitute && (
+                              <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                                Inval / Pengganti
+                              </span>
+                            )}
+                            {item.isManual && !item.isSubstitute && (
+                              <span className="text-[10px] bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold px-1.5 py-0.2 rounded border border-blue-200 dark:border-blue-800">
+                                Khusus / Manual
+                              </span>
+                            )}
+                          </div>
+
+                          {item.substituteForTeacherName && (
+                            <p className="text-[11px] text-purple-600 dark:text-purple-400 italic">
+                              Menggantikan: {item.substituteForTeacherName}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Target Pertemuan */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateField(item.id, 'targetMeetings', Math.max(1, target - 1))}
+                            className="w-5 h-5 rounded hover:bg-slate-200 dark:hover:bg-[#283146] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            value={target}
+                            onChange={(e) => handleUpdateField(item.id, 'targetMeetings', e.target.value)}
+                            className="w-10 text-center font-bold py-1 rounded-md border border-slate-200 dark:border-[#2b334a] bg-white dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateField(item.id, 'targetMeetings', target + 1)}
+                            className="w-5 h-5 rounded hover:bg-slate-200 dark:hover:bg-[#283146] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Hadir (H) */}
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          max={target + 5}
+                          value={item.hadir}
+                          onChange={(e) => handleUpdateField(item.id, 'hadir', e.target.value)}
+                          className="w-14 text-center font-black py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </td>
+
+                      {/* Sakit (S) */}
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.sakit}
+                          onChange={(e) => handleUpdateField(item.id, 'sakit', e.target.value)}
+                          className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
+                            item.sakit > 0
+                              ? 'border-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300'
+                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                          }`}
+                        />
+                      </td>
+
+                      {/* Izin (I) */}
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.izin}
+                          onChange={(e) => handleUpdateField(item.id, 'izin', e.target.value)}
+                          className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
+                            item.izin > 0
+                              ? 'border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300'
+                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                          }`}
+                        />
+                      </td>
+
+                      {/* Alpa (A) */}
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.alpa}
+                          onChange={(e) => handleUpdateField(item.id, 'alpa', e.target.value)}
+                          className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
+                            item.alpa > 0
+                              ? 'border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300'
+                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                          }`}
+                        />
+                      </td>
+
+                      {/* Dinas (D) */}
+                      <td className="p-3 text-center">
+                        <input
+                          type="number"
+                          min="0"
+                          value={item.dinas}
+                          onChange={(e) => handleUpdateField(item.id, 'dinas', e.target.value)}
+                          className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
+                            item.dinas > 0
+                              ? 'border-purple-400 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/30 text-purple-800 dark:text-purple-300'
+                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                          }`}
+                        />
+                      </td>
+
+                      {/* % Hadir */}
+                      <td className="p-3 text-center">
+                        <span
+                          className={`inline-block font-black text-xs px-2 py-1 rounded-md ${
+                            pct >= 90
+                              ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300'
+                              : pct >= 75
+                              ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300'
+                              : 'bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300'
+                          }`}
+                        >
+                          {pct}%
+                        </span>
+                      </td>
+
+                      {/* FORM CATATAN MANUAL KETIDAKHADIRAN & JURNAL FISIK */}
+                      <td className="p-3">
+                        <div className="space-y-1.5">
+                          <input
+                            type="text"
+                            value={item.notes}
+                            onChange={(e) => handleUpdateField(item.id, 'notes', e.target.value)}
+                            placeholder="Catatan jurnal fisik (cth: Tgl 14 sakit, ada surat tugas/dokter)..."
+                            className={`w-full px-3 py-1.5 rounded-lg border text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-[#181d2a] focus:outline-none ${
+                              missingNotesPrompt
+                                ? 'border-amber-400 dark:border-amber-600 ring-1 ring-amber-400/40 bg-amber-50/20'
+                                : 'border-slate-200 dark:border-[#282e42]'
+                            }`}
+                          />
+
+                          {/* Quick Chips Helpers */}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {missingNotesPrompt && (
+                              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5 mr-1">
+                                <AlertCircle className="w-3 h-3" />
+                                Ada absensi, mohon isi alasan:
+                              </span>
+                            )}
+                            {[
+                              'Sakit (Surat Dokter)',
+                              'Izin Dinas MGMP',
+                              'Tugas Mandiri di Kelas',
+                              'Diganti Guru Piket',
+                              'Tanpa Keterangan',
+                            ].map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => handleAppendNotePreset(item.id, preset)}
+                                className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#202738] hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-colors cursor-pointer"
+                              >
+                                + {preset}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Aksi */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleResetRow(item.id)}
+                            title="Reset baris ini ke Hadir Penuh"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#283146] text-slate-400 hover:text-slate-600 cursor-pointer"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </button>
+
+                          {(item.isManual || item.isSubstitute) && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRow(item.id)}
+                              title="Hapus baris tambahan ini"
+                              className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-500 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* ========================================================= */}
+      {/* 5. MODAL TAMBAH GURU / INVAL                              */}
+      {/* ========================================================= */}
+      {isAddModalOpen && (
+        <AddTeacherAttendanceModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAdd={handleAddManualItem}
+          availableTeachers={allSchoolTeachers}
+          availableSubjects={subjects || []}
+          regularClassTeachers={regularClassTeachers}
+          monthName={MONTH_NAMES[selectedMonth - 1]}
+          year={selectedYear}
+        />
       )}
 
-      {/* PRINT-ONLY VIEW: TAMPILAN RESMI KETIKA DI-PRINT */}
-      <div className="hidden print:block font-serif text-black p-4 space-y-4">
-        {/* Kop Madrasah */}
-        <div className="text-center border-b-2 border-black pb-3">
-          <h2 className="text-sm font-bold tracking-wider uppercase">
-            {schoolSettings?.kemenagDistrict || 'KEMENTERIAN AGAMA REPUBLIK INDONESIA'}
+      {/* ========================================================= */}
+      {/* 6. PRINT LAYOUT (Visible ONLY when Printing / window.print)*/}
+      {/* ========================================================= */}
+      <div className="hidden print:block text-black font-serif text-[11pt] leading-normal">
+        {/* KOP MADRASAH */}
+        <div className="border-b-2 border-black pb-2 mb-4 text-center">
+          <h2 className="text-base font-bold uppercase tracking-wider">
+            {schoolSettings?.name || 'KEMENTERIAN AGAMA REPUBLIK INDONESIA'}
           </h2>
-          <h1 className="text-base font-extrabold uppercase">
-            {schoolSettings?.schoolName || 'MADRASAH DADU'}
-          </h1>
-          <p className="text-[11px]">
-            {schoolSettings?.address || 'Alamat Madrasah'} • Telp: {schoolSettings?.phone || '-'} • Email: {schoolSettings?.email || '-'}
+          <h3 className="text-sm font-bold uppercase">
+            {schoolSettings?.subDistrict ? `KECAMATAN ${schoolSettings.subDistrict.toUpperCase()}` : ''}{' '}
+            {schoolSettings?.district ? `KABUPATEN/KOTA ${schoolSettings.district.toUpperCase()}` : ''}
+          </h3>
+          <p className="text-xs">
+            {schoolSettings?.address || 'Alamat Madrasah'}
+            {schoolSettings?.phone ? ` | Telp: ${schoolSettings.phone}` : ''}
+            {schoolSettings?.nsm ? ` | NSM: ${schoolSettings.nsm}` : ''}
+            {schoolSettings?.npsn ? ` | NPSN: ${schoolSettings.npsn}` : ''}
           </p>
         </div>
 
-        {/* Judul Dokumen */}
+        {/* JUDUL LAPORAN */}
         <div className="text-center my-3">
-          <h3 className="text-sm font-bold underline uppercase">
-            REKAPITULASI KEHADIRAN GURU MATA PELAJARAN OLEH WALI KELAS
-          </h3>
+          <h4 className="text-sm font-bold uppercase tracking-wide underline">
+            LAPORAN REKAPITULASI KEHADIRAN GURU MATA PELAJARAN
+          </h4>
           <p className="text-xs mt-1">
-            Kelas: <strong>{currentClass?.name}</strong> • Bulan:{' '}
+            Kelas: <strong>{currentClass?.name || '-'}</strong> | Periode:{' '}
             <strong>
               {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
             </strong>{' '}
-            • Semester: <strong>{selectedSemester}</strong> (TA {activeAcademicYear?.label})
+            | Semester: <strong>{selectedSemester}</strong> TP:{' '}
+            <strong>{activeAcademicYear?.label || '2026/2027'}</strong>
           </p>
         </div>
 
-        {/* Tabel Print */}
-        <table className="w-full text-xs border-collapse border border-black">
+        {/* TABEL CETAK RESMI */}
+        <table className="w-full border-collapse border border-black text-[10pt] my-3">
           <thead>
             <tr className="bg-gray-100 font-bold text-center">
-              <th className="border border-black p-1.5 w-8">No</th>
-              <th className="border border-black p-1.5 text-left">Nama Guru</th>
-              <th className="border border-black p-1.5 text-left">Mata Pelajaran</th>
-              <th className="border border-black p-1.5 w-12">H</th>
-              <th className="border border-black p-1.5 w-12">S</th>
-              <th className="border border-black p-1.5 w-12">I</th>
-              <th className="border border-black p-1.5 w-12">A</th>
-              <th className="border border-black p-1.5 w-12">D</th>
-              <th className="border border-black p-1.5 w-14">Total</th>
-              <th className="border border-black p-1.5 w-16">% Hadir</th>
+              <th className="border border-black p-1 w-8">No</th>
+              <th className="border border-black p-1 text-left min-w-[140px]">Nama Guru Pengampu</th>
+              <th className="border border-black p-1 text-left min-w-[120px]">Mata Pelajaran</th>
+              <th className="border border-black p-1 w-14">Target Tatap Muka</th>
+              <th className="border border-black p-1 w-10">H</th>
+              <th className="border border-black p-1 w-10">S</th>
+              <th className="border border-black p-1 w-10">I</th>
+              <th className="border border-black p-1 w-10">A</th>
+              <th className="border border-black p-1 w-10">D</th>
+              <th className="border border-black p-1 w-14">% Hadir</th>
+              <th className="border border-black p-1 text-left min-w-[160px]">
+                Keterangan / Tindak Lanjut Jurnal
+              </th>
             </tr>
           </thead>
           <tbody>
-            {monthlySummary.map((item, idx) => (
-              <tr key={item.teachingAssignmentId}>
-                <td className="border border-black p-1.5 text-center">{idx + 1}</td>
-                <td className="border border-black p-1.5 font-semibold">{item.teacherName}</td>
-                <td className="border border-black p-1.5">{item.subjectName}</td>
-                <td className="border border-black p-1.5 text-center">{item.hadir}</td>
-                <td className="border border-black p-1.5 text-center">{item.sakit}</td>
-                <td className="border border-black p-1.5 text-center">{item.izin}</td>
-                <td className="border border-black p-1.5 text-center">{item.alpa}</td>
-                <td className="border border-black p-1.5 text-center">{item.dinas}</td>
-                <td className="border border-black p-1.5 text-center font-bold">{item.total}</td>
-                <td className="border border-black p-1.5 text-center font-bold">{item.persentaseHadir}%</td>
-              </tr>
-            ))}
+            {items.map((item, idx) => {
+              const target = item.targetMeetings || 0;
+              const effective = item.hadir + item.dinas;
+              const pct = target > 0 ? Math.round((effective / target) * 100) : 0;
+
+              return (
+                <tr key={item.id} className="break-inside-avoid">
+                  <td className="border border-black p-1 text-center">{idx + 1}</td>
+                  <td className="border border-black p-1 font-semibold">
+                    {item.teacherName}
+                    {item.isSubstitute ? ' (Inval)' : item.isManual ? ' (Khusus)' : ''}
+                    {item.substituteForTeacherName ? ` [ganti ${item.substituteForTeacherName}]` : ''}
+                  </td>
+                  <td className="border border-black p-1">
+                    {item.subjectName} {item.subjectCode ? `(${item.subjectCode})` : ''}
+                  </td>
+                  <td className="border border-black p-1 text-center font-bold">{target}</td>
+                  <td className="border border-black p-1 text-center">{item.hadir}</td>
+                  <td className="border border-black p-1 text-center">{item.sakit}</td>
+                  <td className="border border-black p-1 text-center">{item.izin}</td>
+                  <td className="border border-black p-1 text-center">{item.alpa}</td>
+                  <td className="border border-black p-1 text-center">{item.dinas}</td>
+                  <td className="border border-black p-1 text-center font-bold">{pct}%</td>
+                  <td className="border border-black p-1 text-xs">{item.notes || '-'}</td>
+                </tr>
+              );
+            })}
           </tbody>
+          <tfoot>
+            <tr className="bg-gray-100 font-bold">
+              <td colSpan={3} className="border border-black p-1.5 text-center">
+                TOTAL KESELURUHAN
+              </td>
+              <td className="border border-black p-1.5 text-center">{stats.totalTarget}</td>
+              <td className="border border-black p-1.5 text-center">{stats.totalHadir}</td>
+              <td className="border border-black p-1.5 text-center">{stats.totalSakit}</td>
+              <td className="border border-black p-1.5 text-center">{stats.totalIzin}</td>
+              <td className="border border-black p-1.5 text-center">{stats.totalAlpa}</td>
+              <td className="border border-black p-1.5 text-center">{stats.totalDinas}</td>
+              <td className="border border-black p-1.5 text-center">{stats.percentage}%</td>
+              <td className="border border-black p-1.5 text-xs">
+                {stats.teachersWithAbsence > 0
+                  ? `${stats.teachersWithAbsence} guru ada catatan absensi`
+                  : 'Seluruh guru hadir tuntas'}
+              </td>
+            </tr>
+          </tfoot>
         </table>
 
-        {/* Tanda Tangan */}
-        <div className="mt-8 pt-4 flex justify-between text-xs">
-          <div className="text-center w-56">
+        {/* TANDA TANGAN (DUAL SIGNATURES) */}
+        <div className="mt-8 pt-4 flex justify-between items-start text-xs break-inside-avoid">
+          {/* KIRI: KEPALA MADRASAH */}
+          <div className="text-center w-60">
             <p>Mengetahui,</p>
             <p className="font-bold">Kepala Madrasah</p>
-            <div className="h-16" />
-            <p className="font-bold underline">{schoolSettings?.headmasterName || '( ........................................ )'}</p>
-            <p>NIP. {schoolSettings?.headmasterNip || '-'}</p>
+            <div className="h-20"></div>
+            <p className="font-bold underline">
+              {formatOfficialSignatureName(
+                schoolSettings?.headmasterName,
+                'NAMA KEPALA MADRASAH, M.Pd.'
+              )}
+            </p>
+            <p>{formatOfficialNip(schoolSettings?.headmasterNip)}</p>
           </div>
 
-          <div className="text-center w-56">
+          {/* KANAN: WALI KELAS */}
+          <div className="text-center w-60">
             <p>
-              {schoolSettings?.district || 'Kota'}, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {schoolSettings?.district || 'Tempat'},{' '}
+              {new Date().toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
             </p>
-            <p className="font-bold">Wali Kelas {currentClass?.name}</p>
-            <div className="h-16" />
-            <p className="font-bold underline">{profile?.displayName || user?.displayName || '( ........................................ )'}</p>
-            <p>NIP. {profile?.nip || '-'}</p>
+            <p className="font-bold">Wali Kelas {currentClass?.name || ''}</p>
+            <div className="h-20"></div>
+            <p className="font-bold underline">
+              {formatOfficialSignatureName(
+                profile?.displayName || user?.displayName,
+                'WALI KELAS'
+              )}
+            </p>
+            <p>{formatOfficialNip(profile?.nip)}</p>
           </div>
         </div>
       </div>
-
-      {/* MODAL PENGATURAN HARI LIBUR */}
-      {isHolidayModalOpen && (
-        <AttendanceHolidaysModal
-          isOpen={isHolidayModalOpen}
-          onClose={() => setIsHolidayModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

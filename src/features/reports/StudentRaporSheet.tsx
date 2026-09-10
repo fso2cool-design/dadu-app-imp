@@ -3,6 +3,7 @@ import { SchoolSettings, DocumentSettings, Enrollment, Subject, DailyAttendanceR
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
+import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Building2, Award, Sparkles } from 'lucide-react';
 
 export interface SubjectScoreItem {
@@ -404,10 +405,10 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
                 )}
               </div>
               <p className="font-bold text-slate-950 underline decoration-1">
-                {effectiveHeadmasterName}
+                {formatOfficialSignatureName(effectiveHeadmasterName, 'Kepala Madrasah')}
               </p>
               <p className="text-[10px] text-slate-600 font-mono">
-                NIP. {effectiveHeadmasterNip}
+                {formatOfficialNip(effectiveHeadmasterNip)}
               </p>
             </div>
 
@@ -429,10 +430,10 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
                 )}
               </div>
               <p className="font-bold text-slate-950 underline decoration-1">
-                {effectiveTeacherName}
+                {formatOfficialSignatureName(effectiveTeacherName, 'Wali Kelas')}
               </p>
               <p className="text-[10px] text-slate-600 font-mono">
-                NIP. {effectiveTeacherNip}
+                {formatOfficialNip(effectiveTeacherNip)}
               </p>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, Student, SchoolSettings } from '../../types';
 import { getSchoolSettings } from '../../services/firestore/settings';
+import { formatOfficialSignatureName } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
 import { 
   Printer, 
@@ -182,7 +183,9 @@ export const StudentExamCardModal: React.FC<StudentExamCardModalProps> = ({
                         />
                       )}
                     </div>
-                    <p className="font-bold text-slate-900 underline">{schoolSettings?.headmasterName || 'Kepala Madrasah'}</p>
+                    <p className="font-bold text-slate-900 underline">
+                      {formatOfficialSignatureName(schoolSettings?.headmasterName, 'Kepala Madrasah')}
+                    </p>
                   </div>
                 </div>
               </div>

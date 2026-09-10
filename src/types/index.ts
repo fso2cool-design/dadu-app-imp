@@ -371,6 +371,7 @@ export interface FeedbackItem {
 // -------------------------------------------------------------
 
 export type TeacherAttendanceStatus = 'HADIR' | 'SAKIT' | 'IZIN' | 'ALPA' | 'DINAS';
+export type TeacherAttendanceEntryType = 'ROUTINE' | 'SUBSTITUTE' | 'SCHEDULE_SHIFT' | 'MANUAL';
 
 export interface TeacherAttendanceRecord {
   id: string; // Deterministic: {academicYearId}_{semester}_{classId}_{date}_{teachingAssignmentId}
@@ -389,6 +390,11 @@ export interface TeacherAttendanceRecord {
   dayOfWeek?: number; // 1-7 (Senin-Minggu)
   status: TeacherAttendanceStatus;
   notes?: string;
+  // Field pendukung operasional fleksibel (tukar jam / guru pengganti / di luar jadwal / susulan)
+  isManualEntry?: boolean;
+  isSubstitute?: boolean;
+  substituteForTeacherName?: string;
+  entryType?: TeacherAttendanceEntryType;
   createdAt: any;
   updatedAt: any;
   createdBy: string;
@@ -402,6 +408,10 @@ export interface TeacherAttendanceSummaryItem {
   subjectId: string;
   subjectName: string;
   subjectCode?: string;
+  isManualEntry?: boolean;
+  isSubstitute?: boolean;
+  entryType?: TeacherAttendanceEntryType;
+  targetMeetings?: number;
   hadir: number;
   sakit: number;
   izin: number;
@@ -409,4 +419,41 @@ export interface TeacherAttendanceSummaryItem {
   dinas: number;
   total: number;
   persentaseHadir: number;
+  notes?: string;
+}
+
+export interface TeacherMonthlyAttendanceItem {
+  id: string; // ID penugasan atau ID manual
+  teachingAssignmentId?: string;
+  teacherId: string;
+  teacherName: string;
+  subjectId: string;
+  subjectName: string;
+  subjectCode?: string;
+  targetMeetings: number; // Target tatap muka per bulan (default: 4 atau sesuai alokasi kurikulum)
+  hadir: number;          // Jumlah kehadiran (H)
+  sakit: number;          // Sakit (S)
+  izin: number;           // Izin (I)
+  alpa: number;           // Alpa (A)
+  dinas: number;          // Tugas Dinas (D)
+  notes: string;          // Form catatan manual jika ada absen / keterangan jurnal fisik kelas
+  isManual?: boolean;     // Penugasan tambahan / di luar master
+  isSubstitute?: boolean; // Guru pengganti (inval)
+  substituteForTeacherName?: string; // Guru tetap yang digantikan
+}
+
+export interface TeacherMonthlyAttendanceRecord {
+  id: string; // Deterministic: {classId}_{academicYearId}_{semester}_{year}_{month}
+  classId: string;
+  className?: string;
+  academicYearId: string;
+  academicYearLabel?: string;
+  semester: SemesterType;
+  year: number;
+  month: number; // 1-12
+  items: TeacherMonthlyAttendanceItem[];
+  createdAt?: any;
+  updatedAt?: any;
+  createdBy?: string;
+  updatedBy?: string;
 }
