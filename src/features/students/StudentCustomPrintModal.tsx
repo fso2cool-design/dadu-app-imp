@@ -11,11 +11,14 @@ import {
   Square, 
   Settings2, 
   Building2, 
-  FileText, 
-  Check, 
-  RotateCcw,
   Sparkles,
-  ChevronDown
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  Trash2,
+  X,
+  SlidersHorizontal,
+  RotateCcw
 } from 'lucide-react';
 
 export interface StudentPrintItem {
@@ -32,9 +35,8 @@ interface StudentCustomPrintModalProps {
   selectedClass?: ClassItem | null;
 }
 
-type ColumnKey = 
+export type BaseColumnKey = 
   | 'no'
-  | 'rollNumber'
   | 'className'
   | 'fullName'
   | 'gender'
@@ -51,16 +53,23 @@ type ColumnKey =
   | 'signature'
   | 'notes';
 
-interface ColumnDef {
-  key: ColumnKey;
+export interface BaseColumnDef {
+  key: BaseColumnKey;
   label: string;
   category: 'identitas' | 'kependudukan' | 'biodata' | 'kontak' | 'format';
   width?: string;
 }
 
-const AVAILABLE_COLUMNS: ColumnDef[] = [
+export interface CustomColumnDef {
+  id: string;
+  label: string;
+  contentType: 'empty' | 'dots' | 'text';
+  customText?: string;
+  width?: string;
+}
+
+const BASE_COLUMNS: BaseColumnDef[] = [
   { key: 'no', label: 'No.', category: 'identitas', width: '35px' },
-  { key: 'rollNumber', label: 'No. Absen', category: 'identitas', width: '45px' },
   { key: 'className', label: 'Kelas / Rombel', category: 'identitas', width: '70px' },
   { key: 'fullName', label: 'Nama Lengkap Siswa', category: 'identitas' },
   { key: 'gender', label: 'L/P', category: 'identitas', width: '35px' },
@@ -70,12 +79,31 @@ const AVAILABLE_COLUMNS: ColumnDef[] = [
   { key: 'nikIbu', label: 'NIK Ibu Kandung', category: 'kependudukan', width: '120px' },
   { key: 'nkk', label: 'No. KK (NKK)', category: 'kependudukan', width: '120px' },
   { key: 'birthInfo', label: 'Tempat, Tanggal Lahir', category: 'biodata' },
-  { key: 'address', label: 'Alamat', category: 'biodata' },
+  { key: 'address', label: 'Alamat Domisili', category: 'biodata' },
   { key: 'parentName', label: 'Nama Orang Tua / Wali', category: 'kontak' },
   { key: 'parentPhone', label: 'No. HP Ortu / WA', category: 'kontak' },
   { key: 'phone', label: 'No. HP Siswa', category: 'kontak' },
-  { key: 'signature', label: 'Tanda Tangan', category: 'format', width: '100px' },
+  { key: 'signature', label: 'Tanda Tangan / Paraf', category: 'format', width: '100px' },
   { key: 'notes', label: 'Keterangan', category: 'format', width: '80px' },
+];
+
+const DEFAULT_ORDER: string[] = [
+  'no',
+  'className',
+  'fullName',
+  'gender',
+  'nis',
+  'nisn',
+  'nikSiswa',
+  'nikIbu',
+  'nkk',
+  'birthInfo',
+  'address',
+  'parentName',
+  'parentPhone',
+  'phone',
+  'signature',
+  'notes',
 ];
 
 export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = ({
@@ -99,11 +127,10 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
   const [teacherSignerTitle, setTeacherSignerTitle] = useState(selectedClass ? 'Wali Kelas' : 'Guru Pembina / Wali Data');
 
-  // Pilihan Kolom
-  const [selectedColumns, setSelectedColumns] = useState<Record<ColumnKey, boolean>>({
+  // Pilihan Kolom Aktif (Checked)
+  const [selectedColumnIds, setSelectedColumnIds] = useState<Record<string, boolean>>({
     no: true,
-    rollNumber: true,
-    className: !selectedClass, // otomatis false jika sedang filter 1 kelas
+    className: !selectedClass,
     fullName: true,
     gender: true,
     nis: true,
@@ -120,16 +147,29 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     notes: false,
   });
 
+  // Urutan Kolom (Dapat diubah-ubah posisi indexnya)
+  const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_ORDER);
+
+  // Kolom Tambahan Manual (Custom Columns)
+  const [customColumns, setCustomColumns] = useState<CustomColumnDef[]>([]);
+
+  // State Form Tambah Kolom Kustom
+  const [showAddCustom, setShowAddCustom] = useState(false);
+  const [newColTitle, setNewColTitle] = useState('');
+  const [newColType, setNewColType] = useState<'empty' | 'dots' | 'text'>('empty');
+  const [newColText, setNewColText] = useState('');
+  const [newColWidth, setNewColWidth] = useState('90px');
+
   useEffect(() => {
     if (selectedClass) {
       setDocTitle(`DAFTAR SISWA KELAS ${selectedClass.name.toUpperCase()}`);
-      setSelectedColumns(prev => ({
+      setSelectedColumnIds(prev => ({
         ...prev,
         className: false,
       }));
     } else {
       setDocTitle('DAFTAR DATA POKOK SISWA');
-      setSelectedColumns(prev => ({
+      setSelectedColumnIds(prev => ({
         ...prev,
         className: true,
       }));
@@ -147,112 +187,189 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
       });
   }, [user, isOpen]);
 
-  const activeColumnDefs = useMemo(() => {
-    return AVAILABLE_COLUMNS.filter(col => selectedColumns[col.key]);
-  }, [selectedColumns]);
+  // Daftar kolom terpilih yang sudah diurutkan sesuai urutan pengguna
+  const activeColumns = useMemo(() => {
+    return columnOrder
+      .filter(id => selectedColumnIds[id])
+      .map(id => {
+        const base = BASE_COLUMNS.find(c => c.key === id);
+        if (base) {
+          return {
+            id: base.key,
+            label: base.label,
+            isCustom: false,
+            width: base.width,
+            category: base.category,
+          };
+        }
+        const custom = customColumns.find(c => c.id === id);
+        if (custom) {
+          return {
+            id: custom.id,
+            label: custom.label,
+            isCustom: true,
+            width: custom.width,
+            contentType: custom.contentType,
+            customText: custom.customText,
+            category: 'format' as const,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean) as {
+        id: string;
+        label: string;
+        isCustom: boolean;
+        width?: string;
+        contentType?: 'empty' | 'dots' | 'text';
+        customText?: string;
+        category: string;
+      }[];
+  }, [columnOrder, selectedColumnIds, customColumns]);
 
   // Otomatis rekomendasi orientasi berdasarkan jumlah kolom
   useEffect(() => {
-    if (activeColumnDefs.length > 7) {
+    if (activeColumns.length > 7) {
       setOrientation('landscape');
     } else {
       setOrientation('portrait');
     }
-  }, [activeColumnDefs.length]);
+  }, [activeColumns.length]);
 
-  const toggleColumn = (key: ColumnKey) => {
-    setSelectedColumns(prev => ({
+  // Toggle Centang Kolom (Manual bebas tanpa paksaan)
+  const toggleColumn = (id: string) => {
+    setSelectedColumnIds(prev => ({
       ...prev,
-      [key]: !prev[key],
+      [id]: !prev[id],
     }));
   };
 
-  const applyPreset = (preset: 'standar' | 'emis' | 'absen' | 'wali' | 'all') => {
+  // Reorder kolom (menggeser kolom ke depan/kiri atau ke belakang/kanan)
+  const moveColumn = (id: string, direction: 'prev' | 'next') => {
+    const currentActiveIds = columnOrder.filter(cId => selectedColumnIds[cId]);
+    const currentIndex = currentActiveIds.indexOf(id);
+    if (currentIndex === -1) return;
+
+    const targetIndex = direction === 'prev' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= currentActiveIds.length) return;
+
+    const targetId = currentActiveIds[targetIndex];
+
+    setColumnOrder(prev => {
+      const newOrder = [...prev];
+      const indexA = newOrder.indexOf(id);
+      const indexB = newOrder.indexOf(targetId);
+      if (indexA !== -1 && indexB !== -1) {
+        newOrder[indexA] = targetId;
+        newOrder[indexB] = id;
+      }
+      return newOrder;
+    });
+  };
+
+  // Reset urutan kolom ke urutan standar bawaan
+  const resetOrderToDefault = () => {
+    setColumnOrder(DEFAULT_ORDER.concat(customColumns.map(c => c.id)));
+  };
+
+  // Tambah kolom manual kustom
+  const handleAddCustomColumn = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newColTitle.trim()) return;
+
+    const newId = `custom_${Date.now()}`;
+    const newCol: CustomColumnDef = {
+      id: newId,
+      label: newColTitle.trim(),
+      contentType: newColType,
+      customText: newColText.trim(),
+      width: newColWidth.trim() || '90px',
+    };
+
+    setCustomColumns(prev => [...prev, newCol]);
+    setSelectedColumnIds(prev => ({ ...prev, [newId]: true }));
+    setColumnOrder(prev => [...prev, newId]);
+
+    setNewColTitle('');
+    setNewColText('');
+    setShowAddCustom(false);
+  };
+
+  // Hapus kolom manual kustom
+  const handleDeleteCustomColumn = (id: string) => {
+    setCustomColumns(prev => prev.filter(c => c.id !== id));
+    setSelectedColumnIds(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setColumnOrder(prev => prev.filter(colId => colId !== id));
+  };
+
+  // Preset Template Cepat (Hanya mengisi pilihan awal, pengguna tetap bebas mencentang manual)
+  const applyPreset = (preset: 'standar' | 'emis' | 'absen' | 'wali' | 'all' | 'none') => {
     if (preset === 'all') {
-      const allTrue = {} as Record<ColumnKey, boolean>;
-      AVAILABLE_COLUMNS.forEach(c => (allTrue[c.key] = true));
-      setSelectedColumns(allTrue);
-    } else if (preset === 'standar') {
-      setSelectedColumns({
-        no: true,
-        rollNumber: true,
-        className: !selectedClass,
-        fullName: true,
-        gender: true,
-        nis: true,
-        nisn: true,
-        nikSiswa: false,
-        nikIbu: false,
-        nkk: false,
-        birthInfo: true,
-        address: false,
-        parentName: true,
-        parentPhone: true,
-        phone: false,
-        signature: false,
-        notes: false,
-      });
-    } else if (preset === 'emis') {
-      setSelectedColumns({
-        no: true,
-        rollNumber: true,
-        className: !selectedClass,
-        fullName: true,
-        gender: true,
-        nis: true,
-        nisn: true,
-        nikSiswa: true,
-        nikIbu: true,
-        nkk: true,
-        birthInfo: true,
-        address: true,
-        parentName: true,
-        parentPhone: false,
-        phone: false,
-        signature: false,
-        notes: false,
-      });
-    } else if (preset === 'absen') {
-      setSelectedColumns({
-        no: true,
-        rollNumber: true,
-        className: !selectedClass,
-        fullName: true,
-        gender: true,
-        nis: false,
-        nisn: true,
-        nikSiswa: false,
-        nikIbu: false,
-        nkk: false,
-        birthInfo: false,
-        address: false,
-        parentName: false,
-        parentPhone: false,
-        phone: false,
-        signature: true,
-        notes: true,
-      });
-    } else if (preset === 'wali') {
-      setSelectedColumns({
-        no: true,
-        rollNumber: true,
-        className: !selectedClass,
-        fullName: true,
-        gender: false,
-        nis: false,
-        nisn: false,
-        nikSiswa: false,
-        nikIbu: false,
-        nkk: false,
-        birthInfo: false,
-        address: true,
-        parentName: true,
-        parentPhone: true,
-        phone: true,
-        signature: false,
-        notes: false,
-      });
+      const allTrue: Record<string, boolean> = {};
+      BASE_COLUMNS.forEach(c => { allTrue[c.key] = true; });
+      customColumns.forEach(c => { allTrue[c.id] = true; });
+      setSelectedColumnIds(allTrue);
+      return;
     }
+
+    if (preset === 'none') {
+      const allFalse: Record<string, boolean> = {};
+      BASE_COLUMNS.forEach(c => { allFalse[c.key] = false; });
+      customColumns.forEach(c => { allFalse[c.id] = false; });
+      setSelectedColumnIds(allFalse);
+      return;
+    }
+
+    const state: Record<string, boolean> = {};
+    BASE_COLUMNS.forEach(c => { state[c.key] = false; });
+    customColumns.forEach(c => { state[c.id] = false; });
+
+    if (preset === 'standar') {
+      state.no = true;
+      state.className = !selectedClass;
+      state.fullName = true;
+      state.gender = true;
+      state.nis = true;
+      state.nisn = true;
+      state.birthInfo = true;
+      state.parentName = true;
+      state.parentPhone = true;
+    } else if (preset === 'emis') {
+      state.no = true;
+      state.className = !selectedClass;
+      state.fullName = true;
+      state.gender = true;
+      state.nis = true;
+      state.nisn = true;
+      state.nikSiswa = true;
+      state.nikIbu = true;
+      state.nkk = true;
+      state.birthInfo = true;
+      state.address = true;
+      state.parentName = true;
+    } else if (preset === 'absen') {
+      state.no = true;
+      state.className = !selectedClass;
+      state.fullName = true;
+      state.gender = true;
+      state.nisn = true;
+      state.signature = true;
+      state.notes = true;
+    } else if (preset === 'wali') {
+      state.no = true;
+      state.className = !selectedClass;
+      state.fullName = true;
+      state.address = true;
+      state.parentName = true;
+      state.parentPhone = true;
+      state.phone = true;
+    }
+
+    setSelectedColumnIds(state);
   };
 
   const handlePrint = () => {
@@ -277,25 +394,26 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Cetak Data Siswa Lengkap (Kustomisasi Kolom)"
+      title="Cetak Rekap Data Diri Siswa (Kustomisasi Kolom & Urutan)"
       size="2xl"
     >
       <div className="space-y-6">
         {/* PRINT CONFIGURATION TOOLBAR (NO PRINT) */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4 no-print text-xs">
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 no-print text-xs">
+          {/* Header & Orientation */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-indigo-600" />
-              <span className="font-bold text-slate-800 text-sm">Pengaturan Kolom & Format Lembar Cetak</span>
+              <Settings2 className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Pengaturan Format & Kustomisasi Kolom</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500 font-medium">Orientasi Kertas:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
+              <span className="text-slate-500 dark:text-slate-400 font-medium">Orientasi Kertas:</span>
+              <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-0.5">
                 <button
                   type="button"
                   onClick={() => setOrientation('portrait')}
                   className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition ${
-                    orientation === 'portrait' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    orientation === 'portrait' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
                   Portrait (Tegak)
@@ -304,7 +422,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   type="button"
                   onClick={() => setOrientation('landscape')}
                   className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition ${
-                    orientation === 'landscape' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    orientation === 'landscape' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
                   Landscape (Melebar)
@@ -313,72 +431,101 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             </div>
           </div>
 
-          {/* Quick Presets */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-slate-500 font-medium mr-1 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Preset:
-            </span>
-            <button
-              type="button"
-              onClick={() => applyPreset('standar')}
-              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium cursor-pointer"
-            >
-              Standar Siswa
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('emis')}
-              className="px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-800 font-medium cursor-pointer"
-            >
-              EMIS / Kependudukan (NIK & KK)
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('absen')}
-              className="px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 font-medium cursor-pointer"
-            >
-              Daftar Hadir & Tanda Tangan
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('wali')}
-              className="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-800 font-medium cursor-pointer"
-            >
-              Kontak Wali & Orang Tua
-            </button>
-            <button
-              type="button"
-              onClick={() => applyPreset('all')}
-              className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium cursor-pointer"
-            >
-              Centang Semua
-            </button>
+          {/* Quick Action Presets & Select All */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-600 dark:text-slate-400 font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                Template Cepat (Centang Manual Bebas):
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => applyPreset('all')}
+                  className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer"
+                >
+                  Centang Semua
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset('none')}
+                  className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer"
+                >
+                  Kosongkan Semua
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => applyPreset('standar')}
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium cursor-pointer"
+              >
+                Standar Rombel
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('emis')}
+                className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 text-indigo-800 dark:text-cyan-300 font-medium cursor-pointer"
+              >
+                EMIS & Kependudukan (NIK/KK)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('absen')}
+                className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 font-medium cursor-pointer"
+              >
+                Format Presensi & Tanda Tangan
+              </button>
+              <button
+                type="button"
+                onClick={() => applyPreset('wali')}
+                className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 text-amber-800 dark:text-amber-300 font-medium cursor-pointer"
+              >
+                Buku Kontak Orang Tua
+              </button>
+            </div>
           </div>
 
           {/* Column Toggles Grid */}
-          <div className="space-y-2 pt-1">
-            <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">Pilih Kolom Yang Dicetak:</span>
+          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Centang Kolom Yang Ingin Ditampilkan:
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowAddCustom(!showAddCustom)}
+                className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tambah Kolom Manual</span>
+              </button>
+            </div>
+
+            {/* Standard Columns Checkbox Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {AVAILABLE_COLUMNS.map(col => {
-                const isChecked = selectedColumns[col.key];
+              {BASE_COLUMNS.map(col => {
+                const isChecked = !!selectedColumnIds[col.key];
                 return (
                   <label
                     key={col.key}
                     onClick={() => toggleColumn(col.key)}
                     className={`flex items-center gap-2 p-2 rounded-xl border cursor-pointer select-none transition ${
                       isChecked
-                        ? 'bg-indigo-50/70 border-indigo-300 text-indigo-950 font-medium'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 text-indigo-950 dark:text-cyan-200 font-medium'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-750'
                     }`}
                   >
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      onChange={() => {}} // handled by wrapper
+                      onChange={() => {}}
                       className="hidden"
                     />
                     {isChecked ? (
-                      <CheckSquare className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-cyan-400 shrink-0" />
                     ) : (
                       <Square className="w-4 h-4 text-slate-400 shrink-0" />
                     )}
@@ -387,31 +534,225 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 );
               })}
             </div>
+
+            {/* Custom User-Defined Columns (if any) */}
+            {customColumns.length > 0 && (
+              <div className="pt-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                  Kolom Tambahan Manual Anda:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  {customColumns.map(col => {
+                    const isChecked = !!selectedColumnIds[col.id];
+                    return (
+                      <div
+                        key={col.id}
+                        className={`flex items-center justify-between p-2 rounded-xl border transition ${
+                          isChecked
+                            ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 font-medium'
+                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <div 
+                          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer select-none"
+                          onClick={() => toggleColumn(col.id)}
+                        >
+                          {isChecked ? (
+                            <CheckSquare className="w-4 h-4 text-amber-600 shrink-0" />
+                          ) : (
+                            <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                          )}
+                          <div className="truncate">
+                            <span className="truncate block font-semibold">{col.label}</span>
+                            <span className="text-[10px] text-slate-400 block">
+                              {col.contentType === 'dots' ? 'Garis Titik-titik' : col.contentType === 'text' ? `Teks: "${col.customText || '-'}"` : 'Kolom Kosong'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomColumn(col.id)}
+                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          title="Hapus Kolom Kustom"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add Custom Column Drawer/Card */}
+            {showAddCustom && (
+              <div className="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 mt-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                    Tambah Kolom Manual Baru
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCustom(false)}
+                    className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Nama Header Kolom *</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Ukuran Seragam / Status PIP"
+                      value={newColTitle}
+                      onChange={e => setNewColTitle(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Jenis Isian Kolom</label>
+                    <select
+                      value={newColType}
+                      onChange={e => setNewColType(e.target.value as any)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                    >
+                      <option value="empty">Kolom Kosong (Tulis Tangan)</option>
+                      <option value="dots">Garis Titik-Titik (............)</option>
+                      <option value="text">Teks Tertentu Seragam</option>
+                    </select>
+                  </div>
+                  <div>
+                    {newColType === 'text' ? (
+                      <>
+                        <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Teks Isian Default</label>
+                        <input
+                          type="text"
+                          placeholder="Misal: Sudah / Belum"
+                          value={newColText}
+                          onChange={e => setNewColText(e.target.value)}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Perkiraan Lebar Kolom</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: 90px atau 120px"
+                          value={newColWidth}
+                          onChange={e => setNewColWidth(e.target.value)}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCustom(false)}
+                    className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddCustomColumn()}
+                    disabled={!newColTitle.trim()}
+                    className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Simpan & Pasang Kolom
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reorder Columns Section */}
+          <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+                Urutan Kolom Cetak ({activeColumns.length} Kolom Terpilih - Geser Posisi):
+              </span>
+              <button
+                type="button"
+                onClick={resetOrderToDefault}
+                className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset Urutan Bawaan
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Gunakan tombol panah (◀ / ▶) pada kolom di bawah ini untuk mengatur urutan posisi tabel dari kiri ke kanan:
+            </p>
+
+            <div className="flex flex-wrap gap-1.5 p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
+              {activeColumns.map((col, idx) => (
+                <div
+                  key={col.id}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs"
+                >
+                  <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+                  <span className="font-semibold">{col.label}</span>
+                  {col.isCustom && (
+                    <span className="px-1 py-0.2 rounded bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-[9px] font-bold">
+                      Kustom
+                    </span>
+                  )}
+                  <div className="flex items-center gap-0.5 ml-1">
+                    <button
+                      type="button"
+                      onClick={() => moveColumn(col.id, 'prev')}
+                      disabled={idx === 0}
+                      className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-25 cursor-pointer text-slate-600 dark:text-slate-300"
+                      title="Geser ke kiri / sebelumnya"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveColumn(col.id, 'next')}
+                      disabled={idx === activeColumns.length - 1}
+                      className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-25 cursor-pointer text-slate-600 dark:text-slate-300"
+                      title="Geser ke kanan / setelahnya"
+                    >
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Extra options */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Judul Dokumen</label>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul Dokumen</label>
               <input
                 type="text"
                 value={docTitle}
                 onChange={e => setDocTitle(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-800"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 mb-1">Subjudul / Keterangan Tambahan</label>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Subjudul / Keterangan Tambahan</label>
               <input
                 type="text"
                 value={docSubtitle}
                 onChange={e => setDocSubtitle(e.target.value)}
                 placeholder="Contoh: Semester Ganjil - Tahun Ajaran 2026/2027"
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200"
               />
             </div>
             <div className="flex items-center gap-4 sm:pt-5">
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showKop}
@@ -420,7 +761,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 />
                 <span>Kop Madrasah</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showSignatures}
@@ -433,22 +774,22 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           </div>
 
           {/* Action Print Button */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-            <span className="text-slate-500">
-              Total Siap Cetak: <strong>{studentsList.length} Siswa</strong> ({activeColumnDefs.length} Kolom terpilih)
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+            <span className="text-slate-500 dark:text-slate-400">
+              Total Siap Cetak: <strong>{studentsList.length} Siswa</strong> ({activeColumns.length} Kolom terpilih)
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
               >
                 Tutup
               </button>
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-2 shadow-sm cursor-pointer transition"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs cursor-pointer transition"
               >
                 <Printer className="w-4 h-4" />
                 <span>Cetak Lembar Dokumen (Print / PDF)</span>
@@ -459,7 +800,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
 
         {/* PRINTABLE PREVIEW & PHYSICAL OUTPUT SHEET */}
         <div 
-          className="print-sheet bg-white p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-sm text-slate-900 font-serif overflow-x-auto print:border-none print:shadow-none print:p-0 print:m-0"
+          className="print-sheet bg-white p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-xs text-slate-900 font-serif overflow-x-auto print:border-none print:shadow-none print:p-0 print:m-0"
           style={{
             pageBreakInside: 'avoid',
           }}
@@ -470,7 +811,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
               @media print {
                 @page {
                   size: ${orientation};
-                  margin: 12mm 10mm;
+                  margin: 10mm 8mm;
                 }
                 body {
                   background: #fff !important;
@@ -500,7 +841,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             `
           }} />
 
-          {/* KOP SURAT MADRASAH */}
+          {/* KOP SURAT MADRASAH (4-LAYER KEMENAG TANPA NSM/NPSN) */}
           {showKop && (
             <div className="border-b-2 border-slate-900 pb-3 mb-4 text-center">
               <div className="flex items-center justify-between gap-4">
@@ -552,14 +893,14 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             </p>
           </div>
 
-          {/* TABLE DATA SISWA */}
+          {/* TABLE DATA SISWA DENGAN URUTAN DINAMIS */}
           <div className="overflow-x-auto">
             <table className="w-full text-[11px] border-collapse border border-slate-900 font-sans">
               <thead>
                 <tr className="bg-slate-100 print:bg-slate-200/60 text-slate-900 border-b border-slate-900 font-bold text-center">
-                  {activeColumnDefs.map(col => (
+                  {activeColumns.map(col => (
                     <th 
-                      key={col.key}
+                      key={col.id}
                       style={{ width: col.width }}
                       className="border border-slate-900 px-2 py-1.5 font-bold tracking-tight uppercase text-[10px]"
                     >
@@ -572,7 +913,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 {studentsList.length === 0 ? (
                   <tr>
                     <td 
-                      colSpan={activeColumnDefs.length}
+                      colSpan={Math.max(1, activeColumns.length)}
                       className="border border-slate-900 text-center py-6 text-slate-500 italic"
                     >
                       Tidak ada data siswa yang terpilih untuk dicetak.
@@ -582,7 +923,6 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   studentsList.map((item, index) => {
                     const st = item.student;
                     const enr = item.enrollment;
-                    const rollNo = item.rollNumber || enr?.rollNumber || index + 1;
                     const clsName = item.className || enr?.className || (selectedClass?.name || '-');
 
                     return (
@@ -590,109 +930,164 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                         key={st.id || index}
                         className="hover:bg-slate-50/50 print:hover:bg-transparent leading-tight"
                       >
-                        {selectedColumns.no && (
-                          <td className="border border-slate-900 px-1.5 py-1.5 text-center font-mono text-[10px]">
-                            {index + 1}
-                          </td>
-                        )}
+                        {activeColumns.map(col => {
+                          if (col.id === 'no') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-1.5 py-1.5 text-center font-mono text-[10px]">
+                                {index + 1}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.rollNumber && (
-                          <td className="border border-slate-900 px-1.5 py-1.5 text-center font-mono font-bold text-[10px]">
-                            {rollNo}
-                          </td>
-                        )}
+                          if (col.id === 'className') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-medium">
+                                {clsName}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.className && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-medium">
-                            {clsName}
-                          </td>
-                        )}
+                          if (col.id === 'fullName') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2.5 py-1.5 font-semibold text-slate-900 text-left">
+                                {st.fullName}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.fullName && (
-                          <td className="border border-slate-900 px-2.5 py-1.5 font-semibold text-slate-900 text-left">
-                            {st.fullName}
-                          </td>
-                        )}
+                          if (col.id === 'gender') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-1.5 py-1.5 text-center font-bold">
+                                {st.gender || 'L'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.gender && (
-                          <td className="border border-slate-900 px-1.5 py-1.5 text-center font-bold">
-                            {st.gender || 'L'}
-                          </td>
-                        )}
+                          if (col.id === 'nis') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.nis || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.nis && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.nis || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'nisn') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.nisn || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.nisn && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.nisn || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'nikSiswa') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.nikSiswa || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.nikSiswa && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.nikSiswa || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'nikIbu') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.nikIbu || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.nikIbu && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.nikIbu || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'nkk') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.nkk || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.nkk && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.nkk || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'birthInfo') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-left text-[10px]">
+                                {[st.birthPlace, st.birthDate].filter(Boolean).join(', ') || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.birthInfo && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-left text-[10px]">
-                            {[st.birthPlace, st.birthDate].filter(Boolean).join(', ') || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'address') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-left text-[10px]">
+                                {st.address || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.address && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-left text-[10px]">
-                            {st.address || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'parentName') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-left">
+                                {st.parentName || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.parentName && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-left">
-                            {st.parentName || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'parentPhone') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.parentPhone || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.parentPhone && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.parentPhone || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'phone') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                                {st.phone || '-'}
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.phone && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                            {st.phone || '-'}
-                          </td>
-                        )}
+                          if (col.id === 'signature') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-2 text-left h-7 relative">
+                                <span className="text-[9px] text-slate-400 font-mono">
+                                  {index + 1}. ............
+                                </span>
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.signature && (
-                          <td className="border border-slate-900 px-2 py-2 text-left h-7 relative">
-                            <span className="text-[9px] text-slate-400 font-mono">
-                              {index + 1}. ............
-                            </span>
-                          </td>
-                        )}
+                          if (col.id === 'notes') {
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center text-[10px]">
+                              </td>
+                            );
+                          }
 
-                        {selectedColumns.notes && (
-                          <td className="border border-slate-900 px-2 py-1.5 text-center text-[10px]">
-                            {/* Tempat catatan manual */}
-                          </td>
-                        )}
+                          // Kolom Manual Kustom Pengguna
+                          if (col.isCustom) {
+                            if (col.contentType === 'dots') {
+                              return (
+                                <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center text-slate-400 font-mono text-[9px]">
+                                  ................
+                                </td>
+                              );
+                            }
+                            if (col.contentType === 'text') {
+                              return (
+                                <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center text-[10px]">
+                                  {col.customText || '-'}
+                                </td>
+                              );
+                            }
+                            return (
+                              <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center text-[10px]">
+                              </td>
+                            );
+                          }
+
+                          return (
+                            <td key={col.id} className="border border-slate-900 px-2 py-1.5 text-center text-[10px]">
+                              -
+                            </td>
+                          );
+                        })}
                       </tr>
                     );
                   })

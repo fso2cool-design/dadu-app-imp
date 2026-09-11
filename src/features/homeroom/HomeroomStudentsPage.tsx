@@ -402,8 +402,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                     genderFilter === 'L' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                   }`}
                 >
-                  <GenderIcon gender="L" size="xs" className={genderFilter === 'L' ? 'text-white' : 'text-sky-500'} />
-                  Laki-laki ({enrollments.filter(e => e.student?.gender === 'L').length})
+                  <GenderIcon gender="L" size={14} className={`shrink-0 w-3.5 h-3.5 ${genderFilter === 'L' ? 'text-white' : 'text-sky-500'}`} />
+                  <span>Laki-laki ({enrollments.filter(e => e.student?.gender === 'L').length})</span>
                 </button>
                 <button
                   type="button"
@@ -412,8 +412,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                     genderFilter === 'P' ? 'bg-rose-500 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                   }`}
                 >
-                  <GenderIcon gender="P" size="xs" className={genderFilter === 'P' ? 'text-white' : 'text-rose-500'} />
-                  Perempuan ({enrollments.filter(e => e.student?.gender === 'P').length})
+                  <GenderIcon gender="P" size={14} className={`shrink-0 w-3.5 h-3.5 ${genderFilter === 'P' ? 'text-white' : 'text-rose-500'}`} />
+                  <span>Perempuan ({enrollments.filter(e => e.student?.gender === 'P').length})</span>
                 </button>
               </div>
             </div>

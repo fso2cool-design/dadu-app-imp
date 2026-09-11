@@ -3,21 +3,57 @@ import React from 'react';
 interface GenderIconProps {
   gender: 'L' | 'P' | 'MALE' | 'FEMALE' | string;
   className?: string;
-  size?: number;
+  size?: number | 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export const GenderIcon: React.FC<GenderIconProps> = ({ gender, className = '', size = 16 }) => {
   const isMale = gender === 'L' || gender === 'MALE' || gender?.toUpperCase() === 'L';
 
+  // Convert size to numeric pixel and tailwind fallback
+  let numSize = 16;
+  let sizeClass = 'w-4 h-4';
+
+  if (typeof size === 'number') {
+    numSize = size;
+    if (size <= 12) sizeClass = 'w-3 h-3';
+    else if (size <= 14) sizeClass = 'w-3.5 h-3.5';
+    else if (size <= 16) sizeClass = 'w-4 h-4';
+    else if (size <= 20) sizeClass = 'w-5 h-5';
+    else sizeClass = 'w-6 h-6';
+  } else if (typeof size === 'string') {
+    switch (size) {
+      case 'xs':
+        numSize = 12;
+        sizeClass = 'w-3 h-3';
+        break;
+      case 'sm':
+        numSize = 14;
+        sizeClass = 'w-3.5 h-3.5';
+        break;
+      case 'md':
+        numSize = 16;
+        sizeClass = 'w-4 h-4';
+        break;
+      case 'lg':
+        numSize = 20;
+        sizeClass = 'w-5 h-5';
+        break;
+      default:
+        numSize = 16;
+        sizeClass = 'w-4 h-4';
+    }
+  }
+
   if (isMale) {
     return (
       <svg
-        width={size}
-        height={size}
+        width={numSize}
+        height={numSize}
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className={`inline-block shrink-0 ${className}`}
+        className={`inline-block shrink-0 ${sizeClass} ${className}`}
+        style={{ width: numSize, height: numSize, minWidth: numSize, minHeight: numSize }}
       >
         {/* Modern stylized Male avatar with neat haircut */}
         <circle cx="12" cy="7" r="4" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.8" />
@@ -41,17 +77,18 @@ export const GenderIcon: React.FC<GenderIconProps> = ({ gender, className = '', 
 
   return (
     <svg
-      width={size}
-      height={size}
+      width={numSize}
+      height={numSize}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={`inline-block shrink-0 ${className}`}
+      className={`inline-block shrink-0 ${sizeClass} ${className}`}
+      style={{ width: numSize, height: numSize, minWidth: numSize, minHeight: numSize }}
     >
       {/* Modern stylized Female avatar with elegant hijab/silhouette */}
       <circle cx="12" cy="7" r="4.2" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.8" />
       <path
-        d="M7.8 7.5C7.8 5 9.5 3 12 3C14.5 3 16.2 5 16.2 7.5C16.2 9.5 15.5 11 12 11C8.5 11 7.8 9.5 7.8 7.5Z"
+        d="M7.8 7.5C7.8 5 9.5 3 12 3C14.2 3 16.2 5 16.2 7.5C16.2 9.5 15.5 11 12 11C8.5 11 7.8 9.5 7.8 7.5Z"
         fill="currentColor"
         fillOpacity="0.15"
         stroke="currentColor"
