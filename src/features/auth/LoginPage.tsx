@@ -7,10 +7,14 @@ import {
   Lock, 
   Mail, 
   User as UserIcon,
-  BookOpen,
-  CheckCircle,
-  GraduationCap,
-  PlayCircle
+  BookOpen, 
+  GraduationCap, 
+  Play, 
+  Eye, 
+  EyeOff, 
+  LogIn, 
+  UserPlus, 
+  ShieldCheck
 } from 'lucide-react';
 import { WorkflowDemoModal } from './WorkflowDemoModal';
 import { DaduLogo } from '../../components/common/DaduLogo';
@@ -27,6 +31,8 @@ export const LoginPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -82,147 +88,200 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D14] flex items-center justify-center p-3 sm:p-6 lg:p-8 select-none">
-      {/* Subtle atmospheric ambient glow */}
+    <div className="min-h-screen bg-[#071318] flex items-center justify-center p-3 sm:p-6 lg:p-10 select-none relative overflow-x-hidden">
+      {/* Subtle organic mosque & light gradient atmospheric glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
-        <div className="w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-emerald-600/10 via-teal-500/10 to-amber-500/10 blur-3xl opacity-70" />
+        <div className="w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-emerald-800/15 via-[#004D40]/20 to-teal-900/10 blur-3xl opacity-80" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 blur-3xl rounded-full" />
       </div>
 
-      {/* Main Split-Screen Container */}
-      <div className="relative w-full max-w-lg lg:max-w-5xl bg-white text-slate-900 rounded-3xl lg:rounded-[36px] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-slate-800/60 min-h-0">
+      {/* Main Dual-Pane Card Container */}
+      <div className="relative w-full max-w-lg lg:max-w-5xl bg-white text-slate-900 rounded-[32px] sm:rounded-[36px] shadow-[0_24px_70px_rgba(0,0,0,0.55)] overflow-hidden flex flex-col lg:flex-row border border-emerald-950/40 min-h-0">
         
         {/* ======================================================== */}
-        {/* === LEFT BRANDING PANEL (KEMENAG & DADU SHOWCASE)   === */}
+        {/* === LEFT BRANDING PANEL (MADRASAH / KEMENAG THEME)  === */}
         {/* ======================================================== */}
-        <div className="relative bg-[#0F1420] text-white p-6 sm:p-8 lg:p-10 lg:w-5/12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800/80">
+        <div className="relative bg-[#022B27] text-white p-7 sm:p-9 lg:p-11 lg:w-[46%] flex flex-col justify-between overflow-hidden">
           
+          {/* Subtle Madrasah Arch & Islamic Geometric Architecture Overlay */}
+          <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:18px_18px]" />
+          <div className="absolute -right-16 top-1/4 w-80 h-80 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none" />
+          
+          {/* Subtle architectural silhouette effect in background */}
+          <div className="absolute inset-x-0 bottom-0 top-1/4 opacity-15 pointer-events-none flex items-center justify-center overflow-hidden">
+            <svg viewBox="0 0 400 400" className="w-full h-full object-cover text-emerald-300" fill="currentColor">
+              <path d="M200 60 C150 140 100 200 100 320 L300 320 C300 200 250 140 200 60 Z" opacity="0.4" />
+              <path d="M140 220 C140 180 170 160 200 160 C230 160 260 180 260 220 L260 320 L140 320 Z" opacity="0.5" />
+            </svg>
+          </div>
+
           {/* TOP SECTION: Kemenag RI Official Identity Header */}
-          <div>
+          <div className="relative z-10">
             {/* Header Controls (Back button when in signup or forgot mode) */}
-            <div className="flex items-center justify-between min-h-[32px] mb-3">
-              {mode !== 'login' ? (
+            {mode !== 'login' && (
+              <div className="flex items-center justify-between mb-4">
                 <button
                   id="btn-back-to-login"
                   type="button"
                   onClick={() => { setMode('login'); setError(null); setSuccessMsg(null); }}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/50 px-2.5 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 hover:text-white hover:bg-emerald-900/60 px-2.5 py-1.5 rounded-lg active:scale-95 transition-all cursor-pointer"
                   title="Kembali ke Login"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>Kembali Masuk</span>
                 </button>
-              ) : (
-                <div />
-              )}
 
-              {mode === 'signup' && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-700/50">
-                  Pendaftaran Akun Guru
-                </span>
-              )}
-            </div>
+                {mode === 'signup' && (
+                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-900/80 text-emerald-200 border border-emerald-600/50">
+                    Pendaftaran Pendidik
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Official Kemenag RI Branding Block */}
-            <div className="flex items-center gap-3.5 pb-4 border-b border-slate-800/70">
+            <div className="flex items-center gap-3.5">
               <KemenagLogo size="md" withGlow className="shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-100 leading-snug">
+                <div className="text-[12px] sm:text-[13px] font-extrabold uppercase tracking-wider text-white leading-snug">
                   Kementerian Agama RI
                 </div>
-                <div className="text-[10px] sm:text-[11px] font-medium text-emerald-400 tracking-wide leading-tight">
+                <div className="text-[11px] sm:text-[12px] font-semibold text-emerald-300 tracking-wide leading-tight mt-0.5">
                   Direktorat Jenderal Pendidikan Islam
                 </div>
               </div>
             </div>
           </div>
 
-          {/* MIDDLE SECTION: DADU System Title & Feature Highlights */}
-          <div className="my-6 lg:my-8 space-y-4">
+          {/* MIDDLE SECTION: DADU Title & Narrative Points */}
+          <div className="relative z-10 my-8 lg:my-10 space-y-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-serif">
-                {APP_CONFIG.shortName} Workspace
+              <h1 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-white tracking-tight font-serif leading-none">
+                Dadu
               </h1>
-              <p className="text-xs sm:text-[13px] text-slate-300 font-normal leading-relaxed mt-1.5">
-                Sistem tunggal terintegrasi untuk pengelolaan agenda tatap muka, presensi harian siswa, jurnal guru, dan legger nilai akademik madrasah.
+              <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-emerald-400 tracking-tight font-serif leading-none mt-1">
+                Workspace
+              </h2>
+              <p className="text-xs sm:text-[13px] text-emerald-100/85 font-normal leading-relaxed mt-4 max-w-sm">
+                Sistem terintegrasi untuk memudahkan pengelolaan agenda tatap muka, presensi siswa, jurnal guru, dan penilaian akademik madrasah.
               </p>
             </div>
 
-            {/* Feature Highlights Badges (Desktop/Tablet) */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center gap-2.5 text-xs text-slate-300">
-                <div className="w-5 h-5 rounded-full bg-amber-950/80 border border-amber-700/60 flex items-center justify-center shrink-0">
-                  <BookOpen className="w-3 h-3 text-amber-400" />
+            {/* Feature Highlights Badges with Round Accent Icons */}
+            <div className="space-y-4 pt-1">
+              <div className="flex items-start gap-3.5">
+                <div className="w-8 h-8 rounded-full border border-amber-400/80 bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 text-amber-300">
+                  <BookOpen className="w-4 h-4" />
                 </div>
-                <span>Agenda Tatap Muka & Jurnal Pembelajaran Guru</span>
+                <div>
+                  <h4 className="text-xs sm:text-[13px] font-bold text-white leading-snug">
+                    Agenda Tatap Muka & Jurnal Pembelajaran
+                  </h4>
+                  <p className="text-[11px] text-emerald-200/80 mt-0.5 leading-snug">
+                    Kelola agenda mengajar dan jurnal KBM dengan mudah.
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2.5 text-xs text-slate-300">
-                <div className="w-5 h-5 rounded-full bg-sky-950/80 border border-sky-700/60 flex items-center justify-center shrink-0">
-                  <GraduationCap className="w-3 h-3 text-sky-400" />
+
+              <div className="flex items-start gap-3.5">
+                <div className="w-8 h-8 rounded-full border border-cyan-400/80 bg-cyan-500/10 flex items-center justify-center shrink-0 mt-0.5 text-cyan-300">
+                  <GraduationCap className="w-4 h-4" />
                 </div>
-                <span>Legger Nilai Otomatis & Presensi Terpadu</span>
+                <div>
+                  <h4 className="text-xs sm:text-[13px] font-bold text-white leading-snug">
+                    Presensi Terpadu & Legger Nilai Otomatis
+                  </h4>
+                  <p className="text-[11px] text-emerald-200/80 mt-0.5 leading-snug">
+                    Presensi harian siswa dan rekap nilai otomatis lebih akurat dan efisien.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* BOTTOM SECTION: DADU Logo & Kemenag Berdampak Side-by-Side */}
-          <div className="pt-4 border-t border-slate-800/70">
-            {/* Dock Card containing both DADU Logo and Kemenag Berdampak Logo side-by-side */}
-            <div className="bg-[#141A28] border border-slate-700/70 rounded-2xl p-3 flex items-center justify-around gap-4 shadow-inner">
-              {/* Left Side: DADU Brand Identity */}
-              <div className="flex items-center gap-2.5 group">
-                <DaduLogo size="md" withGlow className="shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-white tracking-tight leading-tight">
-                    {APP_CONFIG.shortName}
-                  </span>
-                  <span className="text-[9px] text-amber-400 font-medium leading-tight">
-                    Digitalisasi Data Guru
-                  </span>
-                </div>
+          {/* BOTTOM SECTION: Dadu Mendukung & Kemenag Berdampak Dock */}
+          <div className="relative z-10 pt-4">
+            <div className="bg-[#031C1A]/85 border border-emerald-800/60 rounded-2xl p-3.5 shadow-inner">
+              <div className="text-[10px] font-bold text-emerald-300/90 uppercase tracking-wider mb-2">
+                Dadu Mendukung
               </div>
+              <div className="flex items-center justify-between gap-3">
+                {/* Left: Dadu Brand */}
+                <div className="flex items-center gap-2.5">
+                  <DaduLogo size="sm" withGlow className="shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-white block leading-tight">
+                      {APP_CONFIG.shortName}
+                    </span>
+                    <span className="text-[9px] text-emerald-300 font-medium block leading-tight">
+                      Digitalisasi Data Guru
+                    </span>
+                  </div>
+                </div>
 
-              {/* Elegant Vertical Divider */}
-              <div className="w-px h-8 bg-slate-700/80 shrink-0" />
+                {/* Vertical Divider */}
+                <div className="w-px h-7 bg-emerald-800/80 shrink-0" />
 
-              {/* Right Side: Kemenag Berdampak Official Brand */}
-              <div className="flex items-center group">
-                <KemenagBerdampakLogo size="md" />
+                {/* Right: Kemenag Berdampak */}
+                <div className="flex items-center">
+                  <KemenagBerdampakLogo size="sm" />
+                </div>
               </div>
             </div>
 
-            {/* Version Sub-footer with developer signature */}
-            <div className="flex items-center justify-start text-[10px] text-slate-400 pt-3">
-              <span className="font-mono tracking-tight text-slate-400">{APP_CONFIG.shortName} {APP_CONFIG.versionDisplay}</span>
+            {/* Institutional Security Badge & Version */}
+            <div className="flex items-center justify-between text-[10px] text-emerald-300/80 pt-3.5 px-0.5">
+              <div className="flex items-center gap-1.5 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Aman, Terpercaya, Terintegrasi</span>
+              </div>
+              <span className="font-mono text-emerald-400/80">{APP_CONFIG.shortName} ver. {APP_CONFIG.versionDisplay}</span>
             </div>
           </div>
 
         </div>
 
         {/* ======================================================== */}
-        {/* === RIGHT AUTHENTICATION FORM BODY                  === */}
+        {/* === RIGHT FORM PANEL (WHITE & CLEAN EMERALD ACCENT) === */}
         {/* ======================================================== */}
-        <div className="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col justify-between bg-white">
+        <div className="flex-1 p-7 sm:p-9 lg:p-11 flex flex-col justify-between bg-white">
           <div>
-            {/* Form Mode Header */}
-            <div className="mb-5 sm:mb-6">
-              <div className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 uppercase tracking-wider mb-1">
-                <span>Madrasah Digital Workspace</span>
+            {/* Top Mosque Motif Icon */}
+            <div className="flex justify-center mb-3">
+              <div className="w-13 h-13 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shadow-2xs">
+                <svg viewBox="0 0 48 48" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  {/* Mosque Dome and Minaret Icon */}
+                  <path d="M24 6 C24 4 23 3 24 3 C25 3 24 4 24 6 Z" />
+                  <path d="M24 6 C20 12 16 16 16 22 L32 22 C32 16 28 12 24 6 Z" fill="currentColor" fillOpacity="0.12" />
+                  <path d="M12 22 L36 22 L36 38 L12 38 Z" />
+                  <path d="M20 38 L20 28 C20 25.8 21.8 24 24 24 C26.2 24 28 25.8 28 28 L28 38" />
+                  <circle cx="24" cy="5" r="1.5" fill="currentColor" />
+                  {/* Crescent moon atop */}
+                  <path d="M22.5 3.5 C23.5 2.5 25.5 2.5 26 3.8 C24.8 3.6 23.5 4.5 23.8 5.8 C22.8 5.2 22.2 4.2 22.5 3.5 Z" fill="currentColor" />
+                </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 font-serif tracking-tight">
+            </div>
+
+            {/* Form Mode Header */}
+            <div className="text-center mb-6">
+              <div className="text-[11px] font-extrabold text-emerald-700 uppercase tracking-widest mb-1">
+                Madrasah Digital Workspace
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-serif tracking-tight">
                 {mode === 'login' ? 'Masuk ke Akun Guru' : mode === 'signup' ? 'Pendaftaran Akun Baru' : 'Pemulihan Kata Sandi'}
               </h2>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              <p className="text-xs sm:text-[13px] text-slate-500 mt-1.5 leading-relaxed max-w-md mx-auto">
                 {mode === 'login' 
-                  ? 'Silakan masukkan email madrasah dan kata sandi Anda untuk mengakses workspace' 
+                  ? 'Silakan masukkan email madrasah dan kata sandi Anda untuk mengakses workspace.' 
                   : mode === 'signup' 
-                  ? 'Lengkapi identitas pendidik untuk menginisialisasi ruang kerja baru' 
-                  : 'Masukkan email terdaftar untuk menerima tautan instruksi reset kata sandi'}
+                  ? 'Lengkapi identitas pendidik untuk menginisialisasi ruang kerja baru.' 
+                  : 'Masukkan email terdaftar untuk menerima tautan instruksi reset kata sandi.'}
               </p>
             </div>
 
             {/* Error Message Notice */}
             {error && (
-              <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+              <div className="mb-4 flex items-start gap-2.5 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
                 <span className="leading-snug">{error}</span>
               </div>
@@ -230,7 +289,7 @@ export const LoginPage: React.FC = () => {
 
             {/* Success Message Notice */}
             {successMsg && (
-              <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
+              <div className="mb-4 flex items-start gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
                 <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
                 <span className="leading-snug">{successMsg}</span>
               </div>
@@ -241,7 +300,7 @@ export const LoginPage: React.FC = () => {
               {/* Sign Up Fields: First Name & Last Name */}
               {mode === 'signup' && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
+                  <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
                     <label htmlFor="signup-first-name" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Nama Lengkap Depan
                     </label>
@@ -258,7 +317,7 @@ export const LoginPage: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
+                  <div className="bg-slate-50/80 border border-slate-200 rounded-2xl px-4 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
                     <label htmlFor="signup-last-name" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                       Gelar / Nama Belakang
                     </label>
@@ -276,12 +335,12 @@ export const LoginPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Email Input Field */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
+              {/* Email Input Box (Styled as large card input with icon) */}
+              <div className="bg-slate-50/90 border border-slate-200 rounded-2xl px-4 py-3 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
                 <label htmlFor="auth-email" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   Alamat Email Pendidik
                 </label>
-                <div className="flex items-center gap-2.5 mt-1">
+                <div className="flex items-center gap-3 mt-1.5">
                   <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
                     id="auth-email"
@@ -295,66 +354,75 @@ export const LoginPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Password Input Field */}
+              {/* Password Input Box */}
               {mode !== 'forgot' && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
+                <div className="bg-slate-50/90 border border-slate-200 rounded-2xl px-4 py-3 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
                   <label htmlFor="auth-password" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     Kata Sandi Akun
                   </label>
-                  <div className="flex items-center gap-2.5 mt-1">
+                  <div className="flex items-center gap-3 mt-1.5">
                     <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                     <input
                       id="auth-password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="Masukkan kata sandi"
                       className="w-full bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder-slate-400"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer transition-colors"
+                      title={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
               )}
 
               {/* Confirm Password (Sign up mode only) */}
               {mode === 'signup' && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
+                <div className="bg-slate-50/90 border border-slate-200 rounded-2xl px-4 py-3 transition-all focus-within:border-emerald-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-600/15">
                   <label htmlFor="signup-confirm-password" className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                     Ulangi Kata Sandi
                   </label>
-                  <div className="flex items-center gap-2.5 mt-1">
+                  <div className="flex items-center gap-3 mt-1.5">
                     <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                     <input
                       id="signup-confirm-password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="Masukkan ulang kata sandi"
                       className="w-full bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder-slate-400"
                     />
                   </div>
                 </div>
               )}
 
-              {/* Action Links: Forgot Password & Sign up (Login Mode) */}
+              {/* Action Links: Remember Me & Forgot Password */}
               {mode === 'login' && (
-                <div className="flex items-center justify-between pt-1 px-1 text-xs text-slate-600 font-medium">
+                <div className="flex items-center justify-between pt-1 px-1 text-xs">
+                  <label className="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                    />
+                    <span>Ingat saya di perangkat ini</span>
+                  </label>
                   <button
                     id="btn-forgot-password-link"
                     type="button"
                     onClick={() => { setMode('forgot'); setError(null); }}
-                    className="hover:text-emerald-700 hover:underline cursor-pointer transition-colors"
-                  >
-                    Lupa kata sandi?
-                  </button>
-                  <button
-                    id="btn-create-account-link"
-                    type="button"
-                    onClick={() => { setMode('signup'); setError(null); }}
                     className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold cursor-pointer transition-colors"
                   >
-                    Daftar akun pendidik
+                    Lupa kata sandi?
                   </button>
                 </div>
               )}
@@ -366,20 +434,20 @@ export const LoginPage: React.FC = () => {
                     id="btn-back-login-link"
                     type="button"
                     onClick={() => { setMode('login'); setError(null); }}
-                    className="text-xs text-slate-600 hover:text-slate-900 underline font-medium cursor-pointer"
+                    className="text-xs text-emerald-700 hover:underline font-semibold cursor-pointer"
                   >
                     Kembali ke halaman masuk
                   </button>
                 </div>
               )}
 
-              {/* Primary Submit Button */}
-              <div className="pt-3 sm:pt-5 pb-1">
+              {/* Primary Action Button: "Masuk Workspace" */}
+              <div className="pt-2">
                 <button
                   id="btn-auth-submit"
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-emerald-700 hover:bg-emerald-600 active:scale-[0.99] text-white font-semibold text-sm shadow-md shadow-emerald-800/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-2xl bg-[#065F46] hover:bg-[#044E3A] active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-900/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2 text-xs">
@@ -387,25 +455,65 @@ export const LoginPage: React.FC = () => {
                       Memverifikasi kredensial...
                     </span>
                   ) : mode === 'login' ? (
-                    'Masuk Workspace'
+                    <>
+                      <LogIn className="w-4 h-4" />
+                      <span>Masuk Workspace</span>
+                    </>
                   ) : mode === 'signup' ? (
-                    'Daftarkan Akun Guru Baru'
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>Daftarkan Akun Guru Baru</span>
+                    </>
                   ) : (
                     'Kirim Link Reset Kata Sandi'
                   )}
                 </button>
               </div>
 
-              {/* Interactive Workflow Demo Button (Simulasi Alur Kerja Nyata Guru Mapel & Wali Kelas) */}
-              <div className="pt-2">
+              {/* Divider "atau" */}
+              {mode === 'login' && (
+                <div className="relative flex items-center justify-center py-1">
+                  <div className="w-full border-t border-slate-200" />
+                  <span className="absolute bg-white px-3 text-[11px] font-semibold text-slate-400">
+                    atau
+                  </span>
+                </div>
+              )}
+
+              {/* Secondary Action Button: "Daftar akun pendidik baru" */}
+              {mode === 'login' && (
+                <div>
+                  <button
+                    id="btn-create-account-card"
+                    type="button"
+                    onClick={() => { setMode('signup'); setError(null); }}
+                    className="w-full py-3 px-4 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <UserPlus className="w-4 h-4 text-slate-500" />
+                    <span>Daftar akun pendidik baru</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Interactive Workflow Demo Card Button */}
+              <div className="pt-1">
                 <button
                   id="btn-open-workflow-demo"
                   type="button"
                   onClick={() => setIsDemoOpen(true)}
-                  className="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:border-emerald-500/50 bg-slate-50 hover:bg-emerald-50/50 text-slate-700 hover:text-emerald-800 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer group"
+                  className="w-full p-3.5 rounded-2xl border border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-200 text-left flex items-center gap-3 transition-all cursor-pointer group shadow-2xs"
                 >
-                  <PlayCircle className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform shrink-0" />
-                  <span>Lihat Simulasi Alur Kerja (1 Menit Demo)</span>
+                  <div className="w-8 h-8 rounded-full bg-white border border-emerald-200 flex items-center justify-center shrink-0 text-emerald-600 group-hover:scale-110 transition-transform shadow-2xs">
+                    <Play className="w-3.5 h-3.5 fill-emerald-600 ml-0.5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-bold text-emerald-950 group-hover:text-emerald-900 leading-snug">
+                      Lihat Simulasi Alur Kerja (1 Menit Demo)
+                    </span>
+                    <span className="block text-[11px] text-emerald-700/80 leading-snug mt-0.5 truncate">
+                      Pelajari bagaimana Dadu Workspace membantu pekerjaan Anda.
+                    </span>
+                  </div>
                 </button>
               </div>
 
@@ -413,9 +521,15 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Institutional Trust Footer Note */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Administrasi Guru Terpadu</span>
-            <span>Kemenag Berdampak • 2026</span>
+          <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Administrasi Guru Terpadu</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span>Kemenag Berdampak • 2026</span>
+              <span className="text-emerald-600 font-bold">🌸</span>
+            </div>
           </div>
         </div>
 
