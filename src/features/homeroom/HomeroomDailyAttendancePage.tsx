@@ -32,6 +32,10 @@ import { GenderBadge } from '../../components/common/GenderIcon';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 
+// In-memory module cache for instant SWR navigation without skeleton flicker
+const dailyEnrollmentsCache = new Map<string, Enrollment[]>();
+const dailyAttendanceCache = new Map<string, { stateMap: Record<string, { status: AttendanceStatus; note: string }>; sessionNotes: string }>();
+
 interface HomeroomDailyAttendancePageProps {
   initialClassId?: string;
   initialDate?: string;
@@ -111,7 +115,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
     }
   }, [initialClassId, availableClasses, selectedClassId, setSelectedClassId, user?.uid]);
 
-  // Load class enrollment & daily attendance records for this date
+  // Load class enrollment & daily attendance records for this date with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !currentClass) {
       setEnrollments([]);
@@ -121,12 +125,35 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       return;
     }
 
+    const enrollCacheKey = `${user.uid}_${activeAcademicYear.id}_${currentClass.id}`;
+    const attendanceCacheKey = `${user.uid}_${activeAcademicYear.id}_${currentClass.id}_${date}`;
+
+    const cachedEnrs = dailyEnrollmentsCache.get(enrollCacheKey);
+    const cachedAtt = dailyAttendanceCache.get(attendanceCacheKey);
+
+    if (cachedEnrs && cachedAtt) {
+      setEnrollments(cachedEnrs);
+      setAttendanceState(cachedAtt.stateMap);
+      setSessionNotes(cachedAtt.sessionNotes);
+      setLoading(false);
+    } else if (cachedEnrs) {
+      setEnrollments(cachedEnrs);
+    }
+
     let isMounted = true;
     async function loadData() {
-      setLoading(true);
+      if (!cachedEnrs || !cachedAtt) {
+        setLoading(true);
+      }
       try {
-        const [enrs, records, session] = await Promise.all([
-          getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+        let enrs = cachedEnrs;
+        if (!enrs) {
+          const rawEnrs = await getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
+          enrs = rawEnrs.filter(e => e.status === 'ACTIVE');
+          dailyEnrollmentsCache.set(enrollCacheKey, enrs);
+        }
+
+        const [records, session] = await Promise.all([
           getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
           getDailyAttendanceSession(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
         ]);
@@ -155,6 +182,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             });
           }
 
+          dailyAttendanceCache.set(attendanceCacheKey, { stateMap, sessionNotes: session?.notes || '' });
           setAttendanceState(stateMap);
           initialSnapshotRef.current = JSON.stringify({ stateMap, sessionNotes: session?.notes || '' });
           setIsDirty(false);
@@ -334,6 +362,9 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         itemsToSave,
         sessionNotes
       );
+
+      const attendanceCacheKey = `${user.uid}_${activeAcademicYear.id}_${currentClass.id}_${date}`;
+      dailyAttendanceCache.set(attendanceCacheKey, { stateMap: attendanceState, sessionNotes });
 
       initialSnapshotRef.current = JSON.stringify({ stateMap: attendanceState, sessionNotes });
       setIsDirty(false);

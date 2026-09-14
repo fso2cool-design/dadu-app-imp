@@ -9,13 +9,17 @@ import {
   batchReorderRollNumbers,
   canDeleteEnrollment 
 } from '../../services/firestore/enrollments';
-import { Student, Enrollment, GenderType, StudentStatus } from '../../types';
+import { Student, Enrollment, GenderType, StudentStatus, StudentCustomFieldDefinition } from '../../types';
+import { getStudentCustomFields } from '../../services/firestore/studentCustomFields';
 import { ImportStudentsModal } from './ImportStudentsModal';
 import { StudentFormModal } from './StudentFormModal';
 import { StudentDetailModal } from './StudentDetailModal';
 import { TransferClassModal } from './TransferClassModal';
 import { DeduplicateStudentsModal } from './DeduplicateStudentsModal';
 import { StudentCustomPrintModal } from './StudentCustomPrintModal';
+import { ManageCustomFieldsModal } from './ManageCustomFieldsModal';
+import { StudentExamCardModal } from './StudentExamCardModal';
+import { StudentProgressReportModal } from './StudentProgressReportModal';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -41,7 +45,10 @@ import {
   Printer,
   CheckCircle2,
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Sliders,
+  CreditCard,
+  FileText
 } from 'lucide-react';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 
@@ -58,6 +65,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     activeSemester, 
     selectedClassId, 
     setSelectedClassId,
+    students: cachedStudents,
+    reloadWorkspaceData,
     triggerSyncFeedback
   } = useWorkspace();
 
@@ -66,11 +75,18 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [currentClassId, setCurrentClassId] = useState<string>(selectedClassId || classes[0]?.id || '');
 
   // Data states
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<Student[]>(cachedStudents || []);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cachedStudents.length === 0);
   const [reordering, setReordering] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  // Sync cached students when workspace updates
+  useEffect(() => {
+    if (cachedStudents && cachedStudents.length > 0) {
+      setStudents(cachedStudents);
+    }
+  }, [cachedStudents]);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,6 +100,16 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [deduplicateModalOpen, setDeduplicateModalOpen] = useState(false);
   const [customPrintModalOpen, setCustomPrintModalOpen] = useState(false);
+  const [manageCustomFieldsOpen, setManageCustomFieldsOpen] = useState(false);
+  const [examCardModalOpen, setExamCardModalOpen] = useState(false);
+  const [progressReportModalOpen, setProgressReportModalOpen] = useState(false);
+
+  // Dynamic Custom Field Definitions
+  const [customFields, setCustomFields] = useState<StudentCustomFieldDefinition[]>([]);
+  const visibleTableCustomFields = useMemo(
+    () => customFields.filter(f => f.showInTable && f.isActive !== false),
+    [customFields]
+  );
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null);
@@ -106,14 +132,24 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   }, [selectedClassId]);
 
   // Fetch data
-  const fetchData = async () => {
+  const fetchData = async (forceRefreshStudents = false) => {
     if (!user) return;
     try {
-      setLoading(true);
-      const allStuds = await getStudents(user.uid);
-      setStudents(allStuds);
+      if (students.length === 0 || forceRefreshStudents) {
+        setLoading(true);
+        const [allStuds, fetchedFields] = await Promise.all([
+          getStudents(user.uid),
+          getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]),
+        ]);
+        setStudents(allStuds);
+        setCustomFields(fetchedFields);
+      } else if (customFields.length === 0) {
+        const fetchedFields = await getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]);
+        setCustomFields(fetchedFields);
+      }
 
       if (currentClassId && activeAcademicYear) {
+        setLoading(prev => (students.length === 0 ? true : prev));
         const classEnrolls = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId, { status: 'ALL' });
         setEnrollments(classEnrolls);
       } else {
@@ -294,6 +330,10 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           'NIK Ibu': en.student?.nikIbu || '',
           'NKK': en.student?.nkk || '',
           'Status': en.student?.status || 'ACTIVE',
+          ...customFields.reduce((acc, f) => {
+            acc[f.name] = en.student?.customAttributes?.[f.key] ?? en.student?.customAttributes?.[f.name] ?? '';
+            return acc;
+          }, {} as Record<string, string>),
         }))
       : filteredAllStudents.map((stud, idx) => ({
           'No': idx + 1,
@@ -311,6 +351,10 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           'NIK Ibu': stud.nikIbu || '',
           'NKK': stud.nkk || '',
           'Status': stud.status,
+          ...customFields.reduce((acc, f) => {
+            acc[f.name] = stud.customAttributes?.[f.key] ?? stud.customAttributes?.[f.name] ?? '';
+            return acc;
+          }, {} as Record<string, string>),
         }));
 
     const title = viewMode === 'class'
@@ -374,7 +418,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         triggerSyncFeedback('saved', 'Data siswa dihapus permanen.');
         toastSuccess(`Data siswa "${studentToDelete.name}" berhasil dihapus permanen.`);
       }
-      await fetchData();
+      await fetchData(true);
+      reloadWorkspaceData();
       setStudentToDelete(null);
     } catch (err: any) {
       console.error('Error deleting student:', err);
@@ -423,11 +468,20 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
           <button
             type="button"
-            onClick={() => downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived))}
+            onClick={() => downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived), customFields)}
             className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-            title="Unduh format template Excel untuk data siswa beserta contoh kolom kelas"
+            title="Unduh format template Excel untuk data siswa beserta kolom kustom dan contoh kelas"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" /> Unduh Template
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setManageCustomFieldsOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Kelola kolom kustom tambahan siswa (KIP/PIP, No Registrasi, Asal Sekolah, dsb)"
+          >
+            <Sliders className="w-3.5 h-3.5 text-orange-500" /> Kolom Kustom {customFields.length > 0 ? `(${customFields.length})` : ''}
           </button>
 
           <button
@@ -459,6 +513,18 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             title="Cetak informasi data siswa lengkap dengan kop resmi dan kustomisasi kolom"
           >
             <Printer className="w-3.5 h-3.5 text-indigo-600" /> Cetak Data Siswa
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedEnrollment(null);
+              setExamCardModalOpen(true);
+            }}
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            title="Cetak Kartu Peserta Asesmen / Ujian Siswa Resmi (ASTS/ASAS/PAT/AM)"
+          >
+            <CreditCard className="w-3.5 h-3.5 text-blue-600" /> Kartu Ujian
           </button>
         </div>
       </div>
@@ -707,6 +773,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                     <th className="py-3 px-3.5">Status Kelas</th>
                   )}
                   <th className="py-3 px-3.5">Orang Tua / Wali</th>
+                  {visibleTableCustomFields.map(f => (
+                    <th key={f.id} className="py-3 px-3.5 whitespace-nowrap text-amber-900 bg-amber-50/60 font-semibold border-x border-amber-200/50">
+                      {f.name}
+                    </th>
+                  ))}
                   <th className="py-3 px-3.5 w-24 text-center">Status</th>
                   <th className="py-3 px-3.5 w-28 text-right">Aksi</th>
                 </tr>
@@ -778,6 +849,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                             </div>
                           )}
                         </td>
+                        {visibleTableCustomFields.map(f => {
+                          const val = stud.customAttributes?.[f.key] ?? stud.customAttributes?.[f.name];
+                          return (
+                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-700 font-medium bg-amber-50/20 border-x border-amber-100/60">
+                              {val || <span className="text-slate-300 font-normal italic">-</span>}
+                            </td>
+                          );
+                        })}
                         <td className="py-3 px-3.5 text-center">
                           {en.status === 'TRANSFERRED' ? (
                             <div className="flex flex-col items-center gap-0.5">
@@ -809,6 +888,32 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               title="Lihat Detail Profil"
                             >
                               <Eye className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedStudent(stud);
+                                setSelectedEnrollment(en);
+                                setExamCardModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-500 hover:text-blue-600"
+                              title="Cetak Kartu Ujian Siswa Ini"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedStudent(stud);
+                                setSelectedEnrollment(en);
+                                setProgressReportModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-emerald-50 text-slate-500 hover:text-emerald-600"
+                              title="Rapor Sisipan & Kirim WA"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
                             </button>
 
                             {en.status === 'ACTIVE' && (
@@ -908,6 +1013,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                             </div>
                           )}
                         </td>
+                        {visibleTableCustomFields.map(f => {
+                          const val = stud.customAttributes?.[f.key] ?? stud.customAttributes?.[f.name];
+                          return (
+                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-700 font-medium bg-amber-50/20 border-x border-amber-100/60">
+                              {val || <span className="text-slate-300 font-normal italic">-</span>}
+                            </td>
+                          );
+                        })}
                         <td className="py-3 px-3.5 text-center">
                           <Badge variant={stud.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">
                             {stud.status}
@@ -966,11 +1079,13 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         isOpen={importModalOpen}
         onClose={() => setImportModalOpen(false)}
         onSuccess={() => {
-          fetchData();
+          fetchData(true);
+          reloadWorkspaceData();
           setActionSuccessMsg('Data siswa berhasil diimpor!');
           setTimeout(() => setActionSuccessMsg(null), 3000);
         }}
         targetClassId={currentClassId}
+        customFields={customFields}
       />
 
       <StudentFormModal
@@ -981,7 +1096,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           setSelectedEnrollment(null);
         }}
         onSuccess={() => {
-          fetchData();
+          fetchData(true);
+          reloadWorkspaceData();
           setActionSuccessMsg('Data siswa berhasil disimpan!');
           setTimeout(() => setActionSuccessMsg(null), 3000);
         }}
@@ -989,6 +1105,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         existingEnrollment={selectedEnrollment}
         defaultClassId={currentClassId}
         suggestedRollNumber={enrollments.length + 1}
+        customFields={customFields}
       />
 
       <StudentDetailModal
@@ -1004,6 +1121,27 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           setSelectedStudent(stud);
           setFormModalOpen(true);
         }}
+        onPrintExamCard={(en) => {
+          setSelectedEnrollment(en);
+          setExamCardModalOpen(true);
+        }}
+        onOpenProgressReport={(en) => {
+          setSelectedEnrollment(en);
+          setProgressReportModalOpen(true);
+        }}
+        customFields={customFields}
+      />
+
+      <ManageCustomFieldsModal
+        isOpen={manageCustomFieldsOpen}
+        onClose={() => setManageCustomFieldsOpen(false)}
+        customFields={customFields}
+        onFieldsChanged={async () => {
+          if (user) {
+            const fields = await getStudentCustomFields(user.uid);
+            setCustomFields(fields);
+          }
+        }}
       />
 
       <TransferClassModal
@@ -1013,7 +1151,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           setSelectedEnrollment(null);
         }}
         onSuccess={() => {
-          fetchData();
+          fetchData(true);
+          reloadWorkspaceData();
           toastSuccess('Siswa berhasil dipindahkan kelas!');
         }}
         enrollment={selectedEnrollment}
@@ -1112,6 +1251,27 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         onClose={() => setCustomPrintModalOpen(false)}
         studentsList={printItems}
         selectedClass={viewMode === 'class' ? currentSelectedClassObj : null}
+      />
+
+      {/* Modal Cetak Kartu Peserta Ujian / Asesmen Resmi */}
+      <StudentExamCardModal
+        isOpen={examCardModalOpen}
+        onClose={() => {
+          setExamCardModalOpen(false);
+          setSelectedEnrollment(null);
+        }}
+        enrollments={filteredEnrollments}
+        selectedEnrollment={selectedEnrollment}
+      />
+
+      {/* Modal Lembar Capaian & Rapor Sisipan / Laporan WA */}
+      <StudentProgressReportModal
+        isOpen={progressReportModalOpen}
+        onClose={() => {
+          setProgressReportModalOpen(false);
+          setSelectedEnrollment(null);
+        }}
+        enrollment={selectedEnrollment}
       />
     </div>
   );

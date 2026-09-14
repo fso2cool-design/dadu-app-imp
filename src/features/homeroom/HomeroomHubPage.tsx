@@ -56,19 +56,19 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
   };
 
   const tabs: Array<{ id: HomeroomTab; label: string; icon: any }> = [
-    { id: 'dashboard', label: 'Dashboard Binaan', icon: LayoutDashboard },
-    { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDays },
-    { id: 'monthly-attendance', label: 'Presensi Bulanan', icon: CalendarRange },
-    { id: 'class-schedule', label: 'Jadwal Pelajaran', icon: Clock },
+    { id: 'students', label: 'Daftar Siswa Kelas', icon: FileSpreadsheet },
+    { id: 'class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
     { id: 'teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
-    { id: 'students', label: 'Data Siswa Kelas', icon: FileSpreadsheet },
+    { id: 'monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarRange },
+    { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDays },
     { id: 'notes', label: 'Catatan & Sikap', icon: StickyNote },
+    { id: 'dashboard', label: 'Dashboard Binaan', icon: LayoutDashboard },
   ];
 
   return (
     <div className="space-y-5">
-      {/* Top Tab Bar Navigation */}
-      <div className="bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
+      {/* Top Tab Bar Navigation (Mobile/Tablet only: hidden on desktop) */}
+      <div className="md:hidden bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
         <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -123,7 +123,7 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
           <HomeroomMonthlyAttendancePage />
         )}
         {activeTab === 'class-schedule' && (
-          <HomeroomClassSchedulePage />
+          <HomeroomClassSchedulePage onNavigate={onNavigate} />
         )}
         {activeTab === 'teacher-attendance' && (
           <HomeroomTeacherAttendancePage />

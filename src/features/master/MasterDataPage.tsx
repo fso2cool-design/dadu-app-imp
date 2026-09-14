@@ -64,11 +64,11 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
   };
 
   const tabs: Array<{ id: MasterTab; label: string; icon: any; desc: string }> = [
-    { id: 'students', label: 'Master Siswa', icon: UserCheck, desc: 'Database seluruh siswa & NISN' },
-    { id: 'classes', label: 'Daftar Kelas', icon: Layers, desc: 'Rombel, tingkat & wali kelas' },
-    { id: 'subjects', label: 'Mata Pelajaran', icon: BookOpen, desc: 'Kurikulum & kode mapel' },
-    { id: 'teaching', label: 'Plotting Pengajaran', icon: Briefcase, desc: 'Distribusi beban ajar guru' },
     { id: 'academic-years', label: 'Tahun Ajaran', icon: Calendar, desc: 'Periode aktif & semester' },
+    { id: 'classes', label: 'Data Rombel / Kelas', icon: Layers, desc: 'Rombel, tingkat & wali kelas' },
+    { id: 'students', label: 'Data Siswa Terpadu', icon: UserCheck, desc: 'Database seluruh siswa & NISN' },
+    { id: 'subjects', label: 'Mata Pelajaran', icon: BookOpen, desc: 'Kurikulum & kode mapel' },
+    { id: 'teaching', label: 'Plotting Mengajar', icon: Briefcase, desc: 'Distribusi beban ajar guru' },
   ];
 
   return (
@@ -84,7 +84,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
               Data Master Madrasah
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Pusat pengelolaan data pokok madrasah: siswa, kelas, mata pelajaran, plotting guru, dan tahun ajaran.
+              Pusat pengelolaan data pokok madrasah: tahun ajaran, kelas, siswa, mata pelajaran, dan plotting guru.
             </p>
           </div>
         </div>
@@ -96,8 +96,8 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
         </div>
       </div>
 
-      {/* Tab Bar Navigation */}
-      <div className="bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
+      {/* Tab Bar Navigation (Mobile/Tablet only: hidden on desktop to eliminate dual-nav redundancy) */}
+      <div className="md:hidden bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
         <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;

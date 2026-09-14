@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { getMeetings } from '../../services/firestore/meetings';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+import { getEnrollmentsByAcademicYear } from '../../services/firestore/enrollments';
 import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { TeachingAssignment, Meeting } from '../../types';
@@ -17,7 +17,9 @@ import {
   Award,
   Filter,
   GraduationCap,
-  Sparkles
+  Sparkles,
+  CalendarDays,
+  Clock
 } from 'lucide-react';
 
 interface TeachingClassesPageProps {
@@ -32,6 +34,10 @@ interface AssignmentStats {
   latestMeeting?: Meeting;
 }
 
+// In-memory module cache to ensure instant 0ms tab switching
+let cachedTeachingStats: Record<string, AssignmentStats> | null = null;
+let cachedTeachingKey: string = '';
+
 export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { 
@@ -41,8 +47,11 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
     setSelectedAssignment 
   } = useWorkspace();
 
-  const [statsMap, setStatsMap] = useState<Record<string, AssignmentStats>>({});
-  const [loading, setLoading] = useState(true);
+  const currentCacheKey = `${user?.uid}_${activeAcademicYear?.id}_${activeSemester}`;
+  const hasValidCache = cachedTeachingStats && cachedTeachingKey === currentCacheKey;
+
+  const [statsMap, setStatsMap] = useState<Record<string, AssignmentStats>>(hasValidCache ? cachedTeachingStats! : {});
+  const [loading, setLoading] = useState(!hasValidCache);
 
   // Filters state
   const [selectedClassId, setSelectedClassId] = useState<string>('ALL');
@@ -54,18 +63,43 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
   const [selectedMeetingForAttendance, setSelectedMeetingForAttendance] = useState<Meeting | null>(null);
 
-  const loadAssignmentsData = async () => {
+  const loadAssignmentsData = async (forceSilent = false) => {
     if (!user || !activeAcademicYear) return;
     try {
-      setLoading(true);
+      if (!forceSilent && !hasValidCache) {
+        setLoading(true);
+      }
+      
+      // Batch fetch all meetings and all enrollments for active academic year in parallel (2 queries instead of 2 * N)
+      const [allMeetings, allEnrollments] = await Promise.all([
+        getMeetings(user.uid, { academicYearId: activeAcademicYear.id, semester: activeSemester }),
+        getEnrollmentsByAcademicYear(user.uid, activeAcademicYear.id)
+      ]);
+
+      // Index active student count by classId
+      const studentCountByClass = new Map<string, number>();
+      for (const e of allEnrollments) {
+        if (e.status === 'ACTIVE') {
+          studentCountByClass.set(e.classId, (studentCountByClass.get(e.classId) || 0) + 1);
+        }
+      }
+
+      // Group meetings by teachingAssignmentId
+      const meetingsByAssignment = new Map<string, Meeting[]>();
+      for (const m of allMeetings) {
+        if (m.teachingAssignmentId) {
+          const list = meetingsByAssignment.get(m.teachingAssignmentId) || [];
+          list.push(m);
+          meetingsByAssignment.set(m.teachingAssignmentId, list);
+        }
+      }
+
       const newStats: Record<string, AssignmentStats> = {};
 
       for (const assignment of teachingAssignments) {
-        // 1. Get meetings
-        const meetings = await getMeetings(user.uid, { teachingAssignmentId: assignment.id });
+        const meetings = meetingsByAssignment.get(assignment.id) || [];
         const completed = meetings.filter(m => m.status === 'COMPLETED');
         
-        // 2. Calculate average attendance percentage
         let totalPct = 0;
         let countedMeetings = 0;
         completed.forEach(m => {
@@ -75,16 +109,11 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
           }
         });
         const avgAttendanceRate = countedMeetings > 0 ? Math.round(totalPct / countedMeetings) : 0;
-
-        // 3. Get student count for the class
-        const enrollments = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, assignment.classId);
-        const activeEnrolled = enrollments.filter(e => e.status === 'ACTIVE');
-
-        // 4. Latest meeting
+        const studentCount = studentCountByClass.get(assignment.classId) || 0;
         const latestMeeting = meetings.length > 0 ? meetings[meetings.length - 1] : undefined;
 
         newStats[assignment.id] = {
-          studentCount: activeEnrolled.length,
+          studentCount,
           meetingCount: meetings.length,
           completedMeetingCount: completed.length,
           avgAttendanceRate,
@@ -92,6 +121,8 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         };
       }
 
+      cachedTeachingStats = newStats;
+      cachedTeachingKey = currentCacheKey;
       setStatsMap(newStats);
     } catch (err) {
       console.error('Error loading teaching assignment stats:', err);
@@ -101,7 +132,8 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
   };
 
   useEffect(() => {
-    loadAssignmentsData();
+    // If we already have cache, load quietly in background; otherwise load with loading state
+    loadAssignmentsData(hasValidCache);
   }, [teachingAssignments, activeAcademicYear, activeSemester, user]);
 
   // Extract unique classes and subjects for filter dropdowns
@@ -151,6 +183,16 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onNavigate('teaching-schedule')}
+            className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+            title="Lihat Matriks Jadwal Mengajar Mingguan"
+          >
+            <CalendarDays className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+            <span>Jadwal Mengajar</span>
+          </button>
+
           <button
             id="btn-create-meeting-top"
             onClick={() => {
@@ -303,6 +345,17 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
                           {stats.studentCount} Siswa
                         </span>
                       </p>
+
+                      {/* Display Scheduled Slot if available */}
+                      {(assignment.dayOfWeek || (assignment.schedules && assignment.schedules.length > 0)) && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300">
+                          <Clock className="w-3 h-3 text-orange-500 dark:text-cyan-400" />
+                          <span>
+                            {assignment.dayOfWeek || assignment.schedules?.[0]?.day}: {assignment.timeSlot || assignment.schedules?.[0]?.timeSlot || 'Jam KBM'}
+                            {assignment.room ? ` (${assignment.room})` : ''}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="text-right">

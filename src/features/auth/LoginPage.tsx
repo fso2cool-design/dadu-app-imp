@@ -9,8 +9,10 @@ import {
   User as UserIcon,
   BookOpen,
   CheckCircle,
-  GraduationCap
+  GraduationCap,
+  PlayCircle
 } from 'lucide-react';
+import { WorkflowDemoModal } from './WorkflowDemoModal';
 import { DaduLogo } from '../../components/common/DaduLogo';
 import { KemenagLogo } from '../../components/common/KemenagLogo';
 import { KemenagBerdampakLogo } from '../../components/common/KemenagBerdampakLogo';
@@ -28,6 +30,7 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -393,6 +396,19 @@ export const LoginPage: React.FC = () => {
                 </button>
               </div>
 
+              {/* Interactive Workflow Demo Button (Simulasi Alur Kerja Nyata Guru Mapel & Wali Kelas) */}
+              <div className="pt-2">
+                <button
+                  id="btn-open-workflow-demo"
+                  type="button"
+                  onClick={() => setIsDemoOpen(true)}
+                  className="w-full py-2.5 px-3 rounded-xl border border-slate-200 hover:border-emerald-500/50 bg-slate-50 hover:bg-emerald-50/50 text-slate-700 hover:text-emerald-800 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer group"
+                >
+                  <PlayCircle className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>Lihat Simulasi Alur Kerja (1 Menit Demo)</span>
+                </button>
+              </div>
+
             </form>
           </div>
 
@@ -404,6 +420,16 @@ export const LoginPage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Workflow Demo Modal (Modul Mandiri / Zero-Impact Isolation) */}
+      <WorkflowDemoModal
+        isOpen={isDemoOpen}
+        onClose={() => setIsDemoOpen(false)}
+        onStartSignUp={() => {
+          setMode('signup');
+          setError(null);
+        }}
+      />
     </div>
   );
 };

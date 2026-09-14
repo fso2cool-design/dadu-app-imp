@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal } from '../../components/common/Modal';
-import { Student, Enrollment } from '../../types';
+import { Student, Enrollment, StudentCustomFieldDefinition } from '../../types';
 import { Badge } from '../../components/common/Badge';
 import { 
   User, 
@@ -11,7 +11,10 @@ import {
   MessageSquare, 
   ExternalLink,
   GraduationCap,
-  ShieldCheck
+  ShieldCheck,
+  Sliders,
+  CreditCard,
+  FileText
 } from 'lucide-react';
 
 interface StudentDetailModalProps {
@@ -20,6 +23,9 @@ interface StudentDetailModalProps {
   student: Student | null;
   enrollment?: Enrollment | null;
   onEdit?: (student: Student) => void;
+  onPrintExamCard?: (enrollment: Enrollment) => void;
+  onOpenProgressReport?: (enrollment: Enrollment) => void;
+  customFields?: StudentCustomFieldDefinition[];
 }
 
 export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
@@ -28,6 +34,9 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   student,
   enrollment,
   onEdit,
+  onPrintExamCard,
+  onOpenProgressReport,
+  customFields = [],
 }) => {
   if (!student) return null;
 
@@ -149,12 +158,82 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Data Kolom Kustom Dinamis */}
+        {((customFields && customFields.length > 0) || (student.customAttributes && Object.keys(student.customAttributes).length > 0)) && (
+          <div className="p-3.5 bg-orange-50/50 border border-orange-200/70 rounded-xl text-xs space-y-2">
+            <h4 className="font-bold text-slate-800 flex items-center gap-1.5 border-b border-orange-200/60 pb-1">
+              <Sliders className="w-3.5 h-3.5 text-orange-600" />
+              Informasi Tambahan / Kolom Kustom
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-600">
+              {/* Render field from definition */}
+              {customFields.map((field) => {
+                const val = student.customAttributes?.[field.key] ?? student.customAttributes?.[field.name];
+                return (
+                  <div key={field.id}>
+                    <span className="text-slate-400 text-[10px] block">{field.name}:</span>
+                    <span className="font-semibold text-slate-800">{val || '-'}</span>
+                  </div>
+                );
+              })}
+
+              {/* Render any extra keys not in current active definitions */}
+              {student.customAttributes && Object.entries(student.customAttributes)
+                .filter(([k]) => !customFields.some(f => f.key === k || f.name === k))
+                .map(([extraKey, extraVal]) => (
+                  <div key={extraKey}>
+                    <span className="text-slate-400 text-[10px] block capitalize">{extraKey}:</span>
+                    <span className="font-semibold text-slate-800">{String(extraVal) || '-'}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
         {student.notes && (
           <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-xl text-xs text-amber-900">
             <p className="font-bold mb-0.5 flex items-center gap-1">
               <MessageSquare className="w-3.5 h-3.5 text-amber-700" /> Catatan Khusus Guru:
             </p>
             <p className="text-[11px] text-amber-800 leading-relaxed">{student.notes}</p>
+          </div>
+        )}
+
+        {/* Quick Actions for Exam Card & Progress Report if enrolled */}
+        {enrollment && (
+          <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-bold text-indigo-950 block">Administrasi & Pelaporan Siswa</span>
+              <span className="text-[10px] text-slate-500">Cetak kartu ujian resmi atau kirim laporan berkala ke wali murid.</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {onPrintExamCard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onPrintExamCard(enrollment);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Kartu Ujian</span>
+                </button>
+              )}
+              {onOpenProgressReport && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenProgressReport(enrollment);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Rapor Sisipan</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

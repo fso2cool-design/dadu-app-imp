@@ -35,6 +35,9 @@ interface StudentGradeRow {
   isPassed: boolean;
 }
 
+// In-memory module cache for instant SWR grades report rendering
+const gradesReportCache = new Map<string, { assessmentItems: AssessmentItem[]; enrollments: Enrollment[]; scores: Score[] }>();
+
 export const GradesReportPage: React.FC = () => {
   const { user } = useAuth();
   const { 
@@ -62,18 +65,27 @@ export const GradesReportPage: React.FC = () => {
     }
   }, [teachingAssignments, selectedAssignment]);
 
-  // Fetch Assessment and Score Data
+  // Fetch Assessment and Score Data with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !selectedAssignment) return;
 
+    const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
+    const cached = gradesReportCache.get(cacheKey);
+
+    if (cached) {
+      setAssessmentItems(cached.assessmentItems);
+      setEnrollments(cached.enrollments);
+      setScores(cached.scores);
+      setLoading(false);
+    }
+
     const fetchData = async () => {
-      setLoading(true);
+      if (!cached) setLoading(true);
       try {
         // 1. Fetch assessment columns
         const items = await getAssessmentItems(user.uid, {
           teachingAssignmentId: selectedAssignment.id,
         });
-        setAssessmentItems(items);
 
         // 2. Fetch class enrollments
         const enrs = await getEnrollmentsByClass(
@@ -82,16 +94,23 @@ export const GradesReportPage: React.FC = () => {
           selectedAssignment.classId
         );
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
-        setEnrollments(enrs);
 
         // 3. Fetch scores for these assessments
+        let scs: Score[] = [];
         if (items.length > 0) {
           const itemIds = items.map(it => it.id);
-          const scs = await getScoresByAssessmentItemIds(user.uid, itemIds);
-          setScores(scs);
-        } else {
-          setScores([]);
+          scs = await getScoresByAssessmentItemIds(user.uid, itemIds);
         }
+
+        gradesReportCache.set(cacheKey, {
+          assessmentItems: items,
+          enrollments: enrs,
+          scores: scs
+        });
+
+        setAssessmentItems(items);
+        setEnrollments(enrs);
+        setScores(scs);
       } catch (err) {
         console.error('Error fetching grades report data:', err);
       } finally {
@@ -100,7 +119,7 @@ export const GradesReportPage: React.FC = () => {
     };
 
     fetchData();
-  }, [user, activeAcademicYear, selectedAssignment]);
+  }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
 
   // Compute Grade Matrix per Student
   const gradeRows = useMemo<StudentGradeRow[]>(() => {

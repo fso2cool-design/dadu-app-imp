@@ -322,7 +322,20 @@ export async function resetSemesterData(uid: string, academicYearId: string): Pr
   let deletedCount = 0;
   const maxBatchSize = 400;
 
-  // 1. Delete meetings & related attendance records
+  // 1. Delete all subject attendance records for this academic year
+  const attYearQ = query(collection(db, 'users', uid, 'attendanceRecords'), where('academicYearId', '==', academicYearId));
+  const attYearSnap = await getDocs(attYearQ);
+  for (let j = 0; j < attYearSnap.docs.length; j += maxBatchSize) {
+    const chunkDocs = attYearSnap.docs.slice(j, j + maxBatchSize);
+    const batch = writeBatch(db);
+    chunkDocs.forEach(d => {
+      batch.delete(d.ref);
+      deletedCount++;
+    });
+    await batch.commit();
+  }
+
+  // 1b. Delete meetings & any legacy meeting-bound attendance
   const meetingsRef = collection(db, 'users', uid, 'meetings');
   const meetingsQ = query(meetingsRef, where('academicYearId', '==', academicYearId));
   const meetingsSnap = await getDocs(meetingsQ);
@@ -330,7 +343,7 @@ export async function resetSemesterData(uid: string, academicYearId: string): Pr
   if (!meetingsSnap.empty) {
     const meetingIds = meetingsSnap.docs.map(d => d.id);
     
-    // Delete attendance records for these meetings
+    // Delete legacy attendance records for these meetings (if any remain)
     for (let i = 0; i < meetingIds.length; i += 30) {
       const chunkIds = meetingIds.slice(i, i + 30);
       const attQ = query(collection(db, 'users', uid, 'attendanceRecords'), where('meetingId', 'in', chunkIds));

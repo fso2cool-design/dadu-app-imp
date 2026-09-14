@@ -288,16 +288,23 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
   }
 
   return trackSync((async () => {
-    // Delete associated attendance records in safe chunks of 400
+    // Unlink associated attendance records instead of deleting them to preserve student attendance history
     const attColRef = collection(db, 'users', uid, 'attendanceRecords');
     const attQ = query(attColRef, where('meetingId', '==', id));
     const attSnap = await getDocs(attQ);
 
     const chunkSize = 400;
+    const now = serverTimestamp();
     for (let i = 0; i < attSnap.docs.length; i += chunkSize) {
       const chunk = attSnap.docs.slice(i, i + chunkSize);
       const batch = writeBatch(db);
-      chunk.forEach(d => batch.delete(d.ref));
+      chunk.forEach(d => {
+        batch.update(d.ref, {
+          meetingId: null,
+          meetingNumber: null,
+          updatedAt: now,
+        });
+      });
       await batch.commit();
     }
 
@@ -305,7 +312,7 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
     await deleteDoc(docRef);
   })(), {
     startMessage: 'Menghapus jurnal pertemuan...',
-    successMessage: 'Jurnal pertemuan dihapus!'
+    successMessage: 'Jurnal pertemuan dihapus (data presensi siswa tetap aman)!'
   });
 }
 

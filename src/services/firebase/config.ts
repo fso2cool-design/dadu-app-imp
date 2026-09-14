@@ -25,17 +25,25 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 // Initialize Auth
 export const auth = getAuth(app);
 
-// Initialize Firestore with offline persistence
+// Initialize Firestore with offline persistence and resilient long-polling
 let firestoreInstance;
 try {
   firestoreInstance = initializeFirestore(app, {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),
     }),
+    experimentalForceLongPolling: true,
   }, databaseId);
 } catch (e) {
-  // If already initialized or unsupported in current environment, get default instance
-  firestoreInstance = getFirestore(app, databaseId);
+  try {
+    // If persistent cache failed (e.g. storage access restriction in iframe), try memory cache with force long polling
+    firestoreInstance = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+    }, databaseId);
+  } catch {
+    // If already initialized, get instance
+    firestoreInstance = getFirestore(app, databaseId);
+  }
 }
 
 export const db = firestoreInstance;

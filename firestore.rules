@@ -131,15 +131,10 @@ service cloud.firestore {
       match /attendanceRecords/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && request.resource.data.meetingId is string
           && request.resource.data.studentId is string
-          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
+          && (!('meetingId' in request.resource.data) || request.resource.data.meetingId == null || request.resource.data.meetingId is string);
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (
-            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['meetingId', 'studentId'])
-              || (resource.data.meetingId == request.resource.data.meetingId && resource.data.studentId == request.resource.data.studentId))
-            || (resource.data.meetingId == request.resource.data.meetingId && ('relinkedAt' in request.resource.data))
-          )
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
       }
 
@@ -235,6 +230,20 @@ service cloud.firestore {
       allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
       // Only Super Admin can update status, write reply, or delete
       allow update, delete: if request.auth != null && isSuperAdmin();
+    }
+
+    // Shared Reports (Public Read-Only with Token / Passcode, Authenticated Owner Write/Revoke)
+    match /sharedReports/{reportId} {
+      // Allow public get if document exists and is not revoked
+      // Anyone with the link/token can read the single snapshot document
+      allow get: if resource.data.isRevoked != true;
+      // Listing is restricted to the creator or Super Admin
+      allow list: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      // Authenticated teacher can create a shared report with their own userId
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Owner or Super Admin can revoke/update/delete the link
+      allow update: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
     }
 
     // Allow Super Admin to query collection groups across workspaces for orphan detection

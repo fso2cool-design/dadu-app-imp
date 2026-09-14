@@ -70,17 +70,26 @@
     },
     "AttendanceRecord": {
       "title": "AttendanceRecord",
-      "description": "Student subject attendance record for a meeting",
+      "description": "Student subject attendance record (independent or linked to a meeting)",
       "type": "object",
       "properties": {
         "meetingId": { "type": "string" },
+        "meetingNumber": { "type": "number" },
+        "academicYearId": { "type": "string" },
+        "semester": { "type": "string", "enum": ["GANJIL", "GENAP"] },
+        "classId": { "type": "string" },
+        "teachingAssignmentId": { "type": "string" },
+        "subjectId": { "type": "string" },
         "studentId": { "type": "string" },
+        "date": { "type": "string" },
         "rollNumber": { "type": "number" },
         "studentName": { "type": "string" },
+        "gender": { "type": "string", "enum": ["L", "P"] },
         "status": { "type": "string", "enum": ["PRESENT", "SICK", "PERMITTED", "ABSENT", "DISPENSATION"] },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "recordedBy": { "type": "string" }
       },
-      "required": ["meetingId", "studentId", "status"]
+      "required": ["studentId", "status"]
     },
     "StudentNote": {
       "title": "StudentNote",
@@ -251,6 +260,10 @@
     "/users/{userId}/scores/{scoreId}": {
       "schema": "Score",
       "description": "Student assessment score values"
+    },
+    "/sharedReports/{reportId}": {
+      "schema": "SharedReport",
+      "description": "Public read-only tokenized snapshot of official reports (Attendance, Journal, Legger)"
     }
   }
 }

@@ -99,6 +99,7 @@ export async function createStudent(
     nikSiswa: data.nikSiswa?.trim() || '',
     nikIbu: data.nikIbu?.trim() || '',
     nkk: data.nkk?.trim() || '',
+    customAttributes: data.customAttributes || {},
     createdAt: now,
     updatedAt: now,
   };
@@ -188,6 +189,7 @@ export async function updateStudent(
   if (cleanData.nikSiswa !== undefined) cleanData.nikSiswa = cleanData.nikSiswa.trim();
   if (cleanData.nikIbu !== undefined) cleanData.nikIbu = cleanData.nikIbu.trim();
   if (cleanData.nkk !== undefined) cleanData.nkk = cleanData.nkk.trim();
+  if (cleanData.customAttributes !== undefined) cleanData.customAttributes = cleanData.customAttributes;
   cleanData.updatedAt = serverTimestamp();
 
   await updateDoc(docRef, cleanData);
@@ -275,6 +277,7 @@ export async function batchCreateStudents(
       nikSiswa: item.nikSiswa?.trim() || '',
       nikIbu: item.nikIbu?.trim() || '',
       nkk: item.nkk?.trim() || '',
+      customAttributes: item.customAttributes || {},
       createdAt: now,
       updatedAt: now,
     };
@@ -466,6 +469,12 @@ export async function atomicImportStudentsWithEnrollment(
         if (item.nikSiswa !== undefined && item.nikSiswa.trim() !== '') updateData.nikSiswa = item.nikSiswa.trim();
         if (item.nikIbu !== undefined && item.nikIbu.trim() !== '') updateData.nikIbu = item.nikIbu.trim();
         if (item.nkk !== undefined && item.nkk.trim() !== '') updateData.nkk = item.nkk.trim();
+        if (item.customAttributes && Object.keys(item.customAttributes).length > 0) {
+          updateData.customAttributes = {
+            ...(matchedStudent?.customAttributes || {}),
+            ...item.customAttributes,
+          };
+        }
 
         batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
       }
@@ -531,6 +540,7 @@ export async function atomicImportStudentsWithEnrollment(
         nikSiswa: item.nikSiswa?.trim() || '',
         nikIbu: item.nikIbu?.trim() || '',
         nkk: item.nkk?.trim() || '',
+        customAttributes: item.customAttributes || {},
         createdAt: now,
         updatedAt: now,
       };

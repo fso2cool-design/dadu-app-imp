@@ -202,19 +202,32 @@ export async function runIntegrityAudit(uid: string): Promise<DiagnosticResult> 
     }
   });
 
-  // Check 3: Orphan Subject Attendance Records
+  // Check 3: Subject Attendance Records Governance
   attendanceSnap.docs.forEach(docSnap => {
     const data = docSnap.data();
-    if (data.meetingId && !meetingIds.has(data.meetingId)) {
+    // Critical: Orphaned teaching assignment relation
+    if (data.teachingAssignmentId && !assignmentIds.has(data.teachingAssignmentId)) {
       issues.push({
         type: 'ORPHAN_ATTENDANCE',
         severity: 'CRITICAL',
-        description: `Rekam presensi mata pelajaran merujuk ke Jurnal Pertemuan (${data.meetingId}) yang tidak ditemukan.`,
+        description: `Rekam presensi mata pelajaran merujuk ke Tugas Mengajar (${data.teachingAssignmentId}) yang tidak ditemukan di master data.`,
         documentId: docSnap.id,
         collectionName: 'attendanceRecords',
         details: data,
       });
     }
+    // Informational: Broken optional link to meeting (presensi remains valid independently)
+    if (data.meetingId && !meetingIds.has(data.meetingId)) {
+      issues.push({
+        type: 'ORPHAN_ATTENDANCE',
+        severity: 'INFO',
+        description: `Rekam presensi mapel memiliki tautan ke pertemuan (${data.meetingId}) yang tidak ditemukan, namun presensi tetap sah sebagai presensi mandiri.`,
+        documentId: docSnap.id,
+        collectionName: 'attendanceRecords',
+        details: data,
+      });
+    }
+    // Warning: Student ID not found in master students
     if (data.studentId && !studentIds.has(data.studentId)) {
       issues.push({
         type: 'ORPHAN_ATTENDANCE',

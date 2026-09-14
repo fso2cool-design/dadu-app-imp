@@ -33,6 +33,9 @@ interface MeetingsJournalPageProps {
   onNavigate?: (route: string, state?: any) => void;
 }
 
+// In-memory module cache for instant SWR navigation without skeleton flicker
+const meetingsJournalCache = new Map<string, Meeting[]>();
+
 export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({ 
   initialAssignmentId,
   onNavigate 
@@ -50,8 +53,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>(initialAssignmentId || selectedAssignment?.id || '');
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  const currentCacheKey = `${user?.uid}_${activeAcademicYear?.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;
+  const cachedMeetings = meetingsJournalCache.get(currentCacheKey);
+
+  const [meetings, setMeetings] = useState<Meeting[]>(cachedMeetings || []);
+  const [loading, setLoading] = useState(!cachedMeetings);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
@@ -70,15 +77,21 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
     return teachingAssignments.find(ta => ta.id === selectedAssignmentId) || null;
   }, [teachingAssignments, selectedAssignmentId]);
 
-  const loadMeetings = async () => {
+  const loadMeetings = async (silent = false) => {
     if (!user || !activeAcademicYear) return;
+    const key = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;
+    const hasCache = meetingsJournalCache.has(key);
+    
     try {
-      setLoading(true);
+      if (!silent && !hasCache) {
+        setLoading(true);
+      }
       const data = await getMeetings(user.uid, {
         academicYearId: activeAcademicYear.id,
         semester: activeSemester,
         teachingAssignmentId: selectedAssignmentId || undefined,
       });
+      meetingsJournalCache.set(key, data);
       setMeetings(data);
     } catch (err) {
       console.error('Error loading meetings journal:', err);
@@ -88,7 +101,17 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   };
 
   useEffect(() => {
-    loadMeetings();
+    // When assignment, year, or semester changes, immediately use cached data if present
+    const key = `${user?.uid}_${activeAcademicYear?.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;
+    const cached = meetingsJournalCache.get(key);
+    if (cached) {
+      setMeetings(cached);
+      setLoading(false);
+      // Quiet background revalidation
+      loadMeetings(true);
+    } else {
+      loadMeetings(false);
+    }
   }, [user, activeAcademicYear, activeSemester, selectedAssignmentId]);
 
   // Overall attendance calculation for current view
@@ -138,7 +161,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       setIsDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus data pertemuan jurnal...');
       await deleteMeeting(user.uid, meetingToDelete.id);
-      setMeetings(prev => prev.filter(m => m.id !== meetingToDelete.id));
+      setMeetings(prev => {
+        const next = prev.filter(m => m.id !== meetingToDelete.id);
+        const key = `${user.uid}_${activeAcademicYear?.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;
+        meetingsJournalCache.set(key, next);
+        return next;
+      });
       triggerSyncFeedback('saved', 'Pertemuan berhasil dihapus.');
       setMeetingToDelete(null);
     } catch (err) {
@@ -552,15 +580,15 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               Apakah Anda yakin ingin menghapus <strong className="text-slate-900 dark:text-white">Pertemuan #{meetingToDelete.meetingNumber} ({meetingToDelete.topic})</strong>? 
             </p>
 
-            {/* Attendance Dependency Warning */}
+            {/* Attendance Decoupled Preservation Notice */}
             {meetingToDelete.attendanceSummary && (meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total) > 0 ? (
-              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-amber-700 dark:text-amber-300">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Peringatan Data Terkait</span>
+              <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-800 dark:text-blue-200 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Jaminan Integritas Presensi</span>
                 </div>
                 <p>
-                  Pertemuan ini telah memiliki <strong>{meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total} rekaman presensi siswa</strong>. Menghapus pertemuan ini akan menghapus seluruh rekaman presensi tersebut dari cloud.
+                  Pertemuan ini terhubung dengan <strong>{meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total} rekaman presensi siswa</strong>. Menghapus jurnal pertemuan ini <u>tidak akan menghapus data kehadiran siswa</u>. Rekaman kehadiran tetap aman tersimpan sebagai presensi mandiri.
                 </p>
               </div>
             ) : (

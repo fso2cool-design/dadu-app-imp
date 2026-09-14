@@ -12,6 +12,42 @@ export interface ChangeLogItem {
 
 export const APP_CHANGELOGS: ChangeLogItem[] = [
   {
+    version: 'ver. 2.2-JRA',
+    versionCode: '2.2.0-JRA',
+    releaseDate: '12 September 2026',
+    title: 'Pembaruan Antarmuka: Akses Cepat 1-Klik, Penataan Hirarki & Stabilitas Matriks',
+    badge: 'Pembaruan UI/UX',
+    highlights: [
+      {
+        category: 'Navigasi Efisien 1-Klik (Sidebar Accordion)',
+        items: [
+          'Akses langsung ke Jurnal KBM, Presensi Sesi, Input Nilai, dan Roster Wali Kelas langsung dari bilah sisi (Sidebar) tanpa harus masuk melalui tab bertingkat ganda.',
+          'Sub-menu cerdas yang otomatis terbuka sesuai modul aktif dan dapat diperluas/diciutkan sesuai kebutuhan guru.',
+        ]
+      },
+      {
+        category: 'Pengalaman Pengguna & Tata Letak Bersih',
+        items: [
+          'Pengelompokan aksi yang lebih lapang dan bebas distraksi, dengan prioritas utama pada KBM hari ini.',
+          'Penyempurnaan kontras warna dan ukuran target sentuh (touch target) yang ramah perangkat tablet dan smartphone.',
+        ]
+      },
+      {
+        category: 'Kenyamanan Tabel & Matriks Lebar',
+        items: [
+          'Kolom nomor urut dan nama siswa pada Rekap Presensi Bulanan terkunci presisi (sticky) saat tabel digulir secara horizontal.',
+          'Dukungan penuh tema gelap dan terang pada kolom terkunci tanpa distorsi visual.',
+        ]
+      },
+      {
+        category: 'Konektivitas & Keandalan Basis Data',
+        items: [
+          'Konfigurasi Firestore dengan protokol HTTP long-polling adaptif untuk mencegah kendala koneksi pada lingkungan iframe/proxy jaringan sekolah.',
+        ]
+      }
+    ]
+  },
+  {
     version: 'ver. 2.1-JRA',
     versionCode: '2.1.0-JRA',
     releaseDate: '9 September 2026',

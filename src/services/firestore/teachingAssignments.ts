@@ -19,6 +19,7 @@ export interface TeachingAssignmentUsageSummary {
   reasons: string[];
   counts: {
     meetings: number;
+    attendanceRecords: number;
     assessmentItems: number;
     teacherAttendanceRecords: number;
   };
@@ -28,14 +29,16 @@ export async function checkTeachingAssignmentUsage(
   uid: string, 
   assignmentId: string
 ): Promise<TeachingAssignmentUsageSummary> {
-  const [meetSnap, aiSnap, teacherAttSnap] = await Promise.all([
+  const [meetSnap, attSnap, aiSnap, teacherAttSnap] = await Promise.all([
     getDocs(query(collection(db, 'users', uid, 'meetings'), where('teachingAssignmentId', '==', assignmentId))),
+    getDocs(query(collection(db, 'users', uid, 'attendanceRecords'), where('teachingAssignmentId', '==', assignmentId))),
     getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('teachingAssignmentId', '==', assignmentId))),
     getDocs(query(collection(db, 'users', uid, 'teacherAttendanceRecords'), where('teachingAssignmentId', '==', assignmentId))),
   ]);
 
   const counts = {
     meetings: meetSnap.size,
+    attendanceRecords: attSnap.size,
     assessmentItems: aiSnap.size,
     teacherAttendanceRecords: teacherAttSnap.size,
   };
@@ -43,6 +46,9 @@ export async function checkTeachingAssignmentUsage(
   const reasons: string[] = [];
   if (counts.meetings > 0) {
     reasons.push(`Memiliki ${counts.meetings} rekam jurnal pertemuan tatap muka`);
+  }
+  if (counts.attendanceRecords > 0) {
+    reasons.push(`Memiliki ${counts.attendanceRecords} rekam presensi siswa`);
   }
   if (counts.assessmentItems > 0) {
     reasons.push(`Memiliki ${counts.assessmentItems} format/kolom penilaian siswa`);

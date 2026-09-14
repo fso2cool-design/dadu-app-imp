@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { 
   getAllUsers, 
   setAccountStatus, 
+  adminUpdateUserProfile,
   purgeEntireUserWorkspace, 
   purgeOrphanedResiduals,
   scanOrphanResiduals,
@@ -12,6 +13,7 @@ import {
 } from '../../services/firestore/users';
 import { getUnreadFeedbackCount } from '../../services/firestore/feedbacks';
 import { AdminFeedbackTab } from './AdminFeedbackTab';
+import { EditUserModal } from './EditUserModal';
 import { UserProfile } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
@@ -36,7 +38,8 @@ import {
   AlertCircle,
   MessageSquare,
   Sparkles,
-  Clock
+  Clock,
+  Edit
 } from 'lucide-react';
 
 const formatLastLoginDate = (timestamp: any): string => {
@@ -132,6 +135,9 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const [purgeConfirmText, setPurgeConfirmText] = useState<string>('');
   const [purging, setPurging] = useState<boolean>(false);
   const [purgeSuccessCount, setPurgeSuccessCount] = useState<number | null>(null);
+
+  // Edit user modal state
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   const showToast = (type: 'success' | 'error', text: string) => {
     if (type === 'success') {
@@ -310,6 +316,18 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       showToast('error', 'Gagal menghapus total data: ' + err.message);
     } finally {
       setPurging(false);
+    }
+  };
+
+  const handleSaveUserProfile = async (targetUid: string, updatedData: Partial<UserProfile>) => {
+    try {
+      await adminUpdateUserProfile(targetUid, updatedData);
+      setUsersList(prev => prev.map(u => u.uid === targetUid ? { ...u, ...updatedData } : u));
+      showToast('success', 'Profil pengguna berhasil diperbarui.');
+    } catch (err: any) {
+      console.error('Error updating user profile:', err);
+      showToast('error', 'Gagal memperbarui profil: ' + (err.message || 'Kesalahan sistem'));
+      throw err;
     }
   };
 
@@ -668,6 +686,17 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {/* Edit User Profile button */}
+                            <button
+                              type="button"
+                              onClick={() => setEditingUser(u)}
+                              className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[11px] font-semibold border border-indigo-500/30 transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Edit Profil & Hak Akses"
+                            >
+                              <Edit className="w-3 h-3" />
+                              <span>Edit Profil</span>
+                            </button>
+
                             {/* Suspend / Activate toggle */}
                             {!isProtected && (
                               <button
@@ -1045,6 +1074,17 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* EDIT USER PROFILE MODAL */}
+      {editingUser && (
+        <EditUserModal
+          isOpen={!!editingUser}
+          onClose={() => setEditingUser(null)}
+          targetUser={editingUser}
+          onSave={handleSaveUserProfile}
+          isCurrentUser={editingUser.uid === user?.uid}
+        />
       )}
     </div>
   );

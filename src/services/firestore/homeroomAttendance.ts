@@ -80,10 +80,13 @@ export async function getMonthlyDailyAttendanceRecords(
 
 export async function getAllDailyAttendanceRecordsForClass(
   uid: string,
-  classId: string
+  classId: string,
+  academicYearId?: string
 ): Promise<DailyAttendanceRecord[]> {
   const colRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
-  const q = query(colRef, where('classId', '==', classId));
+  const q = academicYearId
+    ? query(colRef, where('classId', '==', classId), where('academicYearId', '==', academicYearId))
+    : query(colRef, where('classId', '==', classId));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as DailyAttendanceRecord));
 }

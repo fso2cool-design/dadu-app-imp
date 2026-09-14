@@ -4,6 +4,8 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, Student, DailyAttendanceRecord, StudentNote, SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
+import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
+import { getStudentNotesByStudent } from '../../services/firestore/studentNotes';
 import { Modal } from '../../components/common/Modal';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { 
@@ -19,23 +21,24 @@ import {
   User,
   HeartHandshake,
   MessageCircle,
-  Building2
+  Building2,
+  ExternalLink
 } from 'lucide-react';
 
 interface StudentProgressReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   enrollment: Enrollment | null;
-  attendanceRecords: DailyAttendanceRecord[];
-  studentNotes: StudentNote[];
+  attendanceRecords?: DailyAttendanceRecord[];
+  studentNotes?: StudentNote[];
 }
 
 export const StudentProgressReportModal: React.FC<StudentProgressReportModalProps> = ({
   isOpen,
   onClose,
   enrollment,
-  attendanceRecords,
-  studentNotes,
+  attendanceRecords: initialAttendanceRecords,
+  studentNotes: initialStudentNotes,
 }) => {
   const { user, profile } = useAuth();
   const { activeAcademicYear, activeSemester } = useWorkspace();
@@ -44,9 +47,21 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
   const [docSettings, setDocSettings] = useState<DocumentSettings | null>(null);
   const [copiedWA, setCopiedWA] = useState(false);
 
+  // Local state for fetched data if not passed in props
+  const [attendanceRecords, setAttendanceRecords] = useState<DailyAttendanceRecord[]>(initialAttendanceRecords || []);
+  const [studentNotes, setStudentNotes] = useState<StudentNote[]>(initialStudentNotes || []);
+  const [loadingData, setLoadingData] = useState(false);
+
   useEffect(() => {
-    if (!user || !isOpen) return;
-    const loadSettings = async () => {
+    if (initialAttendanceRecords) setAttendanceRecords(initialAttendanceRecords);
+    if (initialStudentNotes) setStudentNotes(initialStudentNotes);
+  }, [initialAttendanceRecords, initialStudentNotes]);
+
+  useEffect(() => {
+    if (!user || !isOpen || !enrollment) return;
+
+    const loadData = async () => {
+      setLoadingData(true);
       try {
         const [sch, docS] = await Promise.all([
           getSchoolSettings(user.uid),
@@ -54,12 +69,36 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
         ]);
         if (sch) setSchoolSettings(sch);
         if (docS) setDocSettings(docS);
+
+        // If attendance or notes were not passed in props, load them directly from Firestore
+        const promises: Promise<any>[] = [];
+        if (!initialAttendanceRecords && enrollment.classId) {
+          promises.push(
+            getAllDailyAttendanceRecordsForClass(user.uid, enrollment.classId)
+              .then(records => setAttendanceRecords(records))
+              .catch(err => console.error('Error fetching attendance:', err))
+          );
+        }
+        if (!initialStudentNotes && enrollment.studentId) {
+          promises.push(
+            getStudentNotesByStudent(user.uid, enrollment.studentId)
+              .then(notes => setStudentNotes(notes))
+              .catch(err => console.error('Error fetching notes:', err))
+          );
+        }
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
       } catch (err) {
         console.error('Error loading settings for progress report:', err);
+      } finally {
+        setLoadingData(false);
       }
     };
-    loadSettings();
-  }, [user, isOpen]);
+
+    loadData();
+  }, [user, isOpen, enrollment, initialAttendanceRecords, initialStudentNotes]);
 
   if (!isOpen || !enrollment) return null;
 
@@ -69,7 +108,7 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
   const nisn = student?.nisn || '-';
   const className = enrollment.className || 'Kelas';
 
-  // Attendance stats for this student
+  // Attendance statistics calculation for this specific student
   let hadirCount = 0;
   let sakitCount = 0;
   let izinCount = 0;
@@ -77,28 +116,37 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
   let dispCount = 0;
 
   attendanceRecords.forEach(rec => {
-    const item = rec.records?.find(r => r.studentId === enrollment.studentId);
-    if (item) {
-      if (item.status === 'H') hadirCount++;
-      else if (item.status === 'S') sakitCount++;
-      else if (item.status === 'I') izinCount++;
-      else if (item.status === 'A') alpaCount++;
-      else if (item.status === 'D') dispCount++;
+    // Check both structure: direct studentId on record or nested records
+    if (rec.studentId === enrollment.studentId) {
+      if (rec.status === 'PRESENT' || (rec.status as any) === 'H') hadirCount++;
+      else if (rec.status === 'SICK' || (rec.status as any) === 'S') sakitCount++;
+      else if (rec.status === 'PERMITTED' || (rec.status as any) === 'I') izinCount++;
+      else if (rec.status === 'ABSENT' || (rec.status as any) === 'A') alpaCount++;
+      else if (rec.status === 'DISPENSATION' || (rec.status as any) === 'D') dispCount++;
+    } else if (rec.records && Array.isArray(rec.records)) {
+      const item = rec.records.find((r: any) => r.studentId === enrollment.studentId);
+      if (item) {
+        if (item.status === 'H' || item.status === 'PRESENT') hadirCount++;
+        else if (item.status === 'S' || item.status === 'SICK') sakitCount++;
+        else if (item.status === 'I' || item.status === 'PERMITTED') izinCount++;
+        else if (item.status === 'A' || item.status === 'ABSENT') alpaCount++;
+        else if (item.status === 'D' || item.status === 'DISPENSATION') dispCount++;
+      }
     }
   });
 
   const totalDays = hadirCount + sakitCount + izinCount + alpaCount + dispCount;
   const attendanceRate = totalDays > 0 ? Math.round(((hadirCount + dispCount) / totalDays) * 100) : 100;
 
-  // Positive vs disciplinary notes count
-  const achievements = studentNotes.filter(n => n.category === 'ACHIEVEMENT');
-  const counselings = studentNotes.filter(n => n.category === 'DISCIPLINE' || n.category === 'BEHAVIOR');
+  // Format WhatsApp message text
+  const generateWAMessageText = () => {
+    const noteSummaries = studentNotes.length > 0 
+      ? studentNotes.slice(0, 3).map(n => `- [${n.category}] ${n.note || (n as any).content}`).join('\n') 
+      : '- Perkembangan belajar, kepribadian, dan kedisiplinan ananda berjalan baik serta tertib.';
 
-  // Generate WhatsApp Message text for Parents
-  const generateWAMessage = () => {
-    const text = `Assalamu'alaikum Wr. Wb.
+    return `Assalamu'alaikum Wr. Wb.
 Yth. Bapak/Ibu Wali dari Ananda *${studentName}* (${className})
-Berikut kami sampaikan Ringkasan Capaian & Kehadiran Siswa Semester ${activeSemester === 'GANJIL' ? 'Ganjil' : 'Genap'} ${activeAcademicYear?.label || ''}:
+Berikut kami sampaikan Ringkasan Capaian & Kehadiran Siswa Semester ${activeSemester === 'GANJIL' ? 'Ganjil' : 'Genap'} T.A ${activeAcademicYear?.label || ''}:
 
 📊 *REKAP KEHADIRAN KELAS*:
 - Hadir: ${hadirCount} hari
@@ -107,19 +155,26 @@ Berikut kami sampaikan Ringkasan Capaian & Kehadiran Siswa Semester ${activeSeme
 - Tanpa Keterangan (Alpa): ${alpaCount} hari
 - Persentase Kehadiran: *${attendanceRate}%*
 
-📝 *CATATAN PERKEMBANGAN & KARAKTER*:
-${studentNotes.length > 0 ? studentNotes.slice(0, 3).map(n => `- [${n.category}] ${n.content}`).join('\n') : '- Perkembangan belajar dan kepribadian ananda berjalan baik dan tertib.'}
+📝 *CATATAN PERKEMBANGAN & SIKAP KARAKTER*:
+${noteSummaries}
 
-Demikian informasi perkembangan belajar ananda. Terima kasih atas kerja sama dan bimbingan Bapak/Ibu di rumah.
+Demikian laporan kemajuan belajar ananda. Terima kasih atas kerja sama dan pendampingan Bapak/Ibu di rumah.
 Wassalamu'alaikum Wr. Wb.
 
 _Wali Kelas: ${profile?.displayName || 'Guru Madrasah'}_
 _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
+  };
 
+  const handleCopyWA = () => {
+    const text = generateWAMessageText();
     navigator.clipboard.writeText(text);
     setCopiedWA(true);
     setTimeout(() => setCopiedWA(false), 3000);
   };
+
+  const cleanPhone = student?.parentPhone ? student.parentPhone.replace(/[^0-9]/g, '') : null;
+  const waTarget = cleanPhone ? (cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone) : null;
+  const waUrl = waTarget ? `https://wa.me/${waTarget}?text=${encodeURIComponent(generateWAMessageText())}` : null;
 
   const handlePrint = () => {
     window.print();
@@ -130,29 +185,64 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
       isOpen={isOpen}
       onClose={onClose}
       title="Lembar Capaian & Rapor Sisipan Siswa"
-      size="2xl"
+      maxWidth="3xl"
     >
-      <div className="space-y-6">
-        {/* Action Header in Modal */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-100 no-print">
+      <div className="space-y-5 text-slate-800">
+        {/* Scoped print styling */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+            body {
+              background: white !important;
+              color: black !important;
+            }
+            .no-print, nav, sidebar, header, aside, button, footer {
+              display: none !important;
+            }
+            #printable-progress-report {
+              display: block !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              border: none !important;
+            }
+          }
+        `}} />
+
+        {/* Action Header Bar in Modal (no-print) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50/90 to-emerald-50/70 border border-indigo-100 shadow-2xs no-print">
           <div>
             <span className="text-xs font-bold text-indigo-950 block">Rapor Sisipan / Laporan Perkembangan Siswa</span>
-            <p className="text-[11px] text-indigo-700">Dapat langsung dicetak resmi atau dikirimkan salinan teks via WhatsApp ke Wali Murid.</p>
+            <p className="text-[11px] text-slate-600">Dapat dicetak langsung atau dikirimkan ke orang tua/wali melalui WhatsApp.</p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {waUrl && (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all"
+                title="Buka WhatsApp Web / App untuk kirim langsung ke wali siswa"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Kirim via WA</span>
+              </a>
+            )}
+
             <button
               type="button"
-              onClick={generateWAMessage}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              onClick={handleCopyWA}
+              className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             >
-              {copiedWA ? <Check className="w-3.5 h-3.5" /> : <MessageCircle className="w-3.5 h-3.5" />}
-              <span>{copiedWA ? 'Teks WA Tersalin!' : 'Salin Laporan WA'}</span>
+              {copiedWA ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedWA ? 'Teks Tersalin!' : 'Salin Teks WA'}</span>
             </button>
+
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak Lembar Resmi</span>
@@ -161,7 +251,10 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
         </div>
 
         {/* PRINTABLE DOCUMENT BODY */}
-        <div className="bg-white border border-slate-300 rounded-2xl p-6 shadow-xs space-y-6 text-slate-800 font-sans print:border-none print:shadow-none print:p-0">
+        <div 
+          id="printable-progress-report"
+          className="bg-white border border-slate-300 rounded-2xl p-6 shadow-xs space-y-5 text-slate-800 font-sans print:border-none print:shadow-none print:p-0"
+        >
           {/* 4-TIER OFFICIAL KOP SURAT */}
           <div className="pb-3">
             <div className="flex items-center justify-between gap-3 text-center pb-2">
@@ -220,7 +313,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
           {/* DOCUMENT TITLE */}
           <div className="text-center space-y-0.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              LEMBAR KEMAJUAN BELAJAR & RAPOR SISIPAN (STS)
+              LEMBAR KEMAJUAN BELAJAR & RAPOR SISIPAN
             </h3>
             <p className="text-[11px] text-slate-600">
               Tahun Ajaran {activeAcademicYear?.label || '2026/2027'} — Semester {activeSemester === 'GANJIL' ? 'Ganjil (1)' : 'Genap (2)'}
@@ -281,9 +374,11 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-1">
               B. Catatan Perkembangan Karakter & Konseling
             </h4>
-            {studentNotes.length === 0 ? (
+            {loadingData ? (
+              <p className="text-xs text-slate-400 py-3 text-center">Memuat catatan perkembangan siswa...</p>
+            ) : studentNotes.length === 0 ? (
               <p className="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl border border-slate-200">
-                Siswa menunjukkan sikap dan kedisiplinan yang baik, tertib dalam mengikuti seluruh kegiatan pembelajaran.
+                Siswa menunjukkan sikap dan kedisiplinan yang baik, tertib dalam mengikuti seluruh kegiatan pembelajaran madrasah.
               </p>
             ) : (
               <div className="space-y-2">
@@ -291,15 +386,18 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   <div key={n.id} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-slate-800">
-                        {n.category === 'ACHIEVEMENT' ? '🏆 Prestasi' :
-                         n.category === 'DISCIPLINE' ? '⚠️ Kedisiplinan' :
-                         n.category === 'BEHAVIOR' ? '🤝 Sikap / Perilaku' : 'Catatan'}
+                        {n.category === 'ACHIEVEMENT' ? '🏆 Prestasi & Capaian' :
+                         n.category === 'BEHAVIOR' ? '🤝 Sikap / Karakter' :
+                         n.category === 'ACADEMIC' ? '📚 Akademik' :
+                         n.category === 'ATTENDANCE' ? '⏰ Presensi & Disiplin' : 'Catatan Pembinaan'}
                       </span>
                       <span className="text-[10px] text-slate-400">{n.date}</span>
                     </div>
-                    <p className="text-slate-700">{n.content}</p>
+                    <p className="text-slate-700">{n.note || (n as any).content}</p>
                     {n.actionPlan && (
-                      <p className="text-[11px] text-indigo-700 mt-1 font-medium">Tindak lanjut: {n.actionPlan}</p>
+                      <p className="text-[11px] text-emerald-800 mt-1 font-medium bg-emerald-50/80 p-1.5 rounded-lg">
+                        <strong>Tindak lanjut:</strong> {n.actionPlan}
+                      </p>
                     )}
                   </div>
                 ))}

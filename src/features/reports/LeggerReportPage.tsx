@@ -12,8 +12,10 @@ import { getSchoolSettings, getDocumentSettings } from '../../services/firestore
 import { getUserProfile } from '../../services/firestore/users';
 import { StudentRaporModal } from './StudentRaporModal';
 import { BatchRaporPrintModal } from './BatchRaporPrintModal';
+import { ShareReportModal } from './ShareReportModal';
 import { StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
+import { getTodayISO } from '../../utils/date';
 import { 
   TeachingAssignment, 
   AssessmentItem, 
@@ -42,7 +44,8 @@ import {
   Printer,
   FileText,
   Filter,
-  GraduationCap
+  GraduationCap,
+  Share2
 } from 'lucide-react';
 
 interface StudentLeggerRow {
@@ -96,6 +99,7 @@ export const LeggerReportPage: React.FC = () => {
   const [isRaporModalOpen, setIsRaporModalOpen] = useState(false);
   const [selectedRaporData, setSelectedRaporData] = useState<StudentRaporData | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // Initialize selected class
   useEffect(() => {
@@ -526,8 +530,18 @@ export const LeggerReportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Quick Batch Action */}
+        {/* Quick Batch Action & Share via Link */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsShareModalOpen(true)}
+            disabled={calculatedRows.length === 0}
+            className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Bagikan Tautan Publik</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setIsBatchModalOpen(true)}
@@ -920,6 +934,48 @@ export const LeggerReportPage: React.FC = () => {
         className={selectedClassObj?.name || 'Kelas'}
         homeroomTeacherName={homeroomTeacher?.name}
         homeroomTeacherNip={homeroomTeacher?.nip}
+      />
+
+      {/* Public Share via Link Modal */}
+      <ShareReportModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        reportType="LEGGER"
+        defaultTitle={`LEGGER NILAI AKADEMIK ROMBEL ${selectedClassObj?.name || ''}`}
+        payload={{
+          reportType: 'LEGGER',
+          title: `LEGGER NILAI AKADEMIK ROMBEL ${selectedClassObj?.name || ''}`,
+          schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
+          schoolLevel: schoolSettings?.schoolLevel || 'MA',
+          kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
+          academicYearLabel: activeAcademicYear?.label || '2026/2027',
+          semester: activeSemester,
+          className: selectedClassObj?.name || 'Kelas',
+          teacherName: homeroomTeacher?.name || schoolSettings?.teacherName || 'Wali Kelas',
+          teacherNip: homeroomTeacher?.nip || schoolSettings?.teacherNip || '-',
+          headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
+          headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
+          generatedDate: getTodayISO(),
+          leggerData: {
+            kkm: schoolSettings?.defaultKkm || DEFAULT_KKM,
+            subjects: classSubjects.map(s => ({
+              id: s.id,
+              name: s.name,
+              code: s.code || s.name.substring(0, 5).toUpperCase()
+            })),
+            rows: calculatedRows.map(r => ({
+              rollNumber: r.rollNumber,
+              nis: r.nis,
+              nisn: r.nisn,
+              name: r.name,
+              gender: r.gender,
+              subjectScores: r.subjectScores,
+              totalScore: r.totalScore,
+              averageScore: r.averageScore,
+              rank: r.rank
+            }))
+          }
+        }}
       />
     </div>
   );

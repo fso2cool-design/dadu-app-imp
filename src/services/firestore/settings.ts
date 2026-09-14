@@ -8,16 +8,25 @@ export const DEFAULT_ATTENDANCE_SETTINGS: AttendanceSettings = {
   holidays: [],
 };
 
+// In-memory caching for settings to avoid redundant Firestore reads
+const schoolSettingsCache = new Map<string, SchoolSettings | null>();
+const documentSettingsCache = new Map<string, DocumentSettings | null>();
+const userPreferencesCache = new Map<string, UserPreferences | null>();
+const attendanceSettingsCache = new Map<string, AttendanceSettings>();
+
 export async function getSchoolSettings(uid: string): Promise<SchoolSettings | null> {
+  if (schoolSettingsCache.has(uid)) {
+    return schoolSettingsCache.get(uid) || null;
+  }
   const docRef = doc(db, 'users', uid, 'settings', 'school');
   const snap = await getDoc(docRef);
-  if (snap.exists()) {
-    return snap.data() as SchoolSettings;
-  }
-  return null;
+  const data = snap.exists() ? (snap.data() as SchoolSettings) : null;
+  schoolSettingsCache.set(uid, data);
+  return data;
 }
 
 export async function saveSchoolSettings(uid: string, data: SchoolSettings): Promise<void> {
+  schoolSettingsCache.set(uid, data);
   return trackSync((async () => {
     const docRef = doc(db, 'users', uid, 'settings', 'school');
     await setDoc(docRef, {
@@ -31,15 +40,18 @@ export async function saveSchoolSettings(uid: string, data: SchoolSettings): Pro
 }
 
 export async function getDocumentSettings(uid: string): Promise<DocumentSettings | null> {
+  if (documentSettingsCache.has(uid)) {
+    return documentSettingsCache.get(uid) || null;
+  }
   const docRef = doc(db, 'users', uid, 'settings', 'document');
   const snap = await getDoc(docRef);
-  if (snap.exists()) {
-    return snap.data() as DocumentSettings;
-  }
-  return null;
+  const data = snap.exists() ? (snap.data() as DocumentSettings) : null;
+  documentSettingsCache.set(uid, data);
+  return data;
 }
 
 export async function saveDocumentSettings(uid: string, data: DocumentSettings): Promise<void> {
+  documentSettingsCache.set(uid, data);
   return trackSync((async () => {
     const docRef = doc(db, 'users', uid, 'settings', 'document');
     await setDoc(docRef, {
@@ -53,15 +65,18 @@ export async function saveDocumentSettings(uid: string, data: DocumentSettings):
 }
 
 export async function getUserPreferences(uid: string): Promise<UserPreferences | null> {
+  if (userPreferencesCache.has(uid)) {
+    return userPreferencesCache.get(uid) || null;
+  }
   const docRef = doc(db, 'users', uid, 'settings', 'preferences');
   const snap = await getDoc(docRef);
-  if (snap.exists()) {
-    return snap.data() as UserPreferences;
-  }
-  return null;
+  const data = snap.exists() ? (snap.data() as UserPreferences) : null;
+  userPreferencesCache.set(uid, data);
+  return data;
 }
 
 export async function saveUserPreferences(uid: string, data: UserPreferences): Promise<void> {
+  userPreferencesCache.set(uid, data);
   return trackSync((async () => {
     const docRef = doc(db, 'users', uid, 'settings', 'preferences');
     await setDoc(docRef, {
@@ -74,23 +89,30 @@ export async function saveUserPreferences(uid: string, data: UserPreferences): P
 }
 
 export async function getAttendanceSettings(uid: string): Promise<AttendanceSettings> {
+  if (attendanceSettingsCache.has(uid)) {
+    return attendanceSettingsCache.get(uid)!;
+  }
   try {
     const docRef = doc(db, 'users', uid, 'settings', 'attendance');
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       const data = snap.data() as AttendanceSettings;
-      return {
+      const res = {
         schoolDaysOption: data.schoolDaysOption || 6,
         holidays: Array.isArray(data.holidays) ? data.holidays : [],
       };
+      attendanceSettingsCache.set(uid, res);
+      return res;
     }
   } catch (err) {
     console.error('Error fetching attendance settings:', err);
   }
+  attendanceSettingsCache.set(uid, DEFAULT_ATTENDANCE_SETTINGS);
   return DEFAULT_ATTENDANCE_SETTINGS;
 }
 
 export async function saveAttendanceSettings(uid: string, data: AttendanceSettings): Promise<void> {
+  attendanceSettingsCache.set(uid, data);
   return trackSync((async () => {
     const docRef = doc(db, 'users', uid, 'settings', 'attendance');
     await setDoc(docRef, {

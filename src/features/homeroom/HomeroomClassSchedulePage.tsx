@@ -26,12 +26,15 @@ import {
   Clock, 
   BookOpen, 
   User, 
-  Copy, 
   AlertCircle, 
   CheckCircle2, 
   Sparkles,
   ArrowRight,
-  Layers
+  Layers,
+  Info,
+  ExternalLink,
+  Building2,
+  CalendarCheck
 } from 'lucide-react';
 
 const DAYS_OF_WEEK: Array<{ key: ClassScheduleDay; label: string }> = [
@@ -55,7 +58,52 @@ const DEFAULT_TIME_SLOTS = [
   '12.15 - 12.50',
 ];
 
-export const HomeroomClassSchedulePage: React.FC = () => {
+interface ScheduleDisplayItem {
+  id: string;
+  day: ClassScheduleDay;
+  period?: number;
+  timeSlot: string;
+  subjectName: string;
+  subjectCode?: string;
+  teacherName: string;
+  roomOrNotes?: string;
+  isFromPlotting: boolean;
+  assignmentId?: string;
+}
+
+interface HomeroomClassSchedulePageProps {
+  onNavigate?: (route: string, state?: any) => void;
+}
+
+// Normalizer for day string into ClassScheduleDay
+function normalizeDay(rawDay?: string): ClassScheduleDay | null {
+  if (!rawDay) return null;
+  const upper = rawDay.trim().toUpperCase();
+  if (upper.includes('SENIN')) return 'SENIN';
+  if (upper.includes('SELASA')) return 'SELASA';
+  if (upper.includes('RABU')) return 'RABU';
+  if (upper.includes('KAMIS')) return 'KAMIS';
+  if (upper.includes('JUMAT') || upper.includes("JUM'AT")) return 'JUMAT';
+  if (upper.includes('SABTU')) return 'SABTU';
+  return null;
+}
+
+// Helper to extract numeric start time for chronological sorting
+function getSortableTime(timeSlot?: string): number {
+  if (!timeSlot) return 9999;
+  // Match patterns like "07:15", "07.15", "7:30", "Jam 1", etc.
+  const timeMatch = timeSlot.match(/(\d{1,2})[:.](\d{2})/);
+  if (timeMatch) {
+    return parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+  }
+  const jamMatch = timeSlot.match(/jam\s*(?:ke-?|\s*)(\d+)/i);
+  if (jamMatch) {
+    return parseInt(jamMatch[1], 10) * 100;
+  }
+  return 9000;
+}
+
+export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const { 
     activeAcademicYear, 
@@ -68,12 +116,12 @@ export const HomeroomClassSchedulePage: React.FC = () => {
   } = useWorkspace();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
 
-  const [schedule, setSchedule] = useState<ClassSchedule | null>(null);
+  const [customSchedule, setCustomSchedule] = useState<ClassSchedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeView, setActiveView] = useState<'matrix' | 'print'>('matrix');
 
-  // Modal item state
+  // Modal item state for custom ad-hoc activities (e.g. Upacara, Literasi, Wali Kelas)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ClassScheduleItem | null>(null);
   const [formDay, setFormDay] = useState<ClassScheduleDay>('SENIN');
@@ -82,7 +130,6 @@ export const HomeroomClassSchedulePage: React.FC = () => {
   const [formSubjectName, setFormSubjectName] = useState<string>('');
   const [formTeacherName, setFormTeacherName] = useState<string>('');
   const [formRoomOrNotes, setFormRoomOrNotes] = useState<string>('');
-  const [addDoublePeriod, setAddDoublePeriod] = useState<boolean>(false);
 
   // Available classes for homeroom
   const availableClasses = useMemo(() => {
@@ -108,10 +155,10 @@ export const HomeroomClassSchedulePage: React.FC = () => {
     }
   }, [availableClasses, selectedClassId, setSelectedClassId, user?.uid]);
 
-  // Load schedule from Firestore
+  // Load any ad-hoc/custom class activities from Firestore
   useEffect(() => {
     if (!user || !currentClass || !activeAcademicYear || !activeSemester) {
-      setSchedule(null);
+      setCustomSchedule(null);
       setLoading(false);
       return;
     }
@@ -127,11 +174,10 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           activeSemester as SemesterType
         );
         if (isMounted) {
-          setSchedule(data);
+          setCustomSchedule(data);
         }
       } catch (err) {
-        console.error('Error loading class schedule:', err);
-        toastError('Gagal memuat jadwal pelajaran kelas');
+        console.error('Error loading custom class schedule items:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -141,27 +187,80 @@ export const HomeroomClassSchedulePage: React.FC = () => {
     return () => { isMounted = false; };
   }, [user, currentClass, activeAcademicYear, activeSemester]);
 
-  // Distinct subjects and teachers suggestions for auto-complete
-  const subjectSuggestions = useMemo(() => {
-    const list = new Set<string>();
-    subjects.forEach(s => list.add(s.name));
-    teachingAssignments.forEach(ta => {
-      if (ta.subjectName) list.add(ta.subjectName);
-    });
-    return Array.from(list);
-  }, [subjects, teachingAssignments]);
+  // 1. ALL Teaching Assignments for the current class in active year & semester (SINGLE SOURCE OF TRUTH)
+  const classAssignments = useMemo(() => {
+    if (!currentClass || !activeAcademicYear || !activeSemester) return [];
+    return teachingAssignments.filter(ta => 
+      ta.classId === currentClass.id &&
+      ta.academicYearId === activeAcademicYear.id &&
+      ta.semester === activeSemester &&
+      !ta.isArchived &&
+      ta.isActive !== false
+    );
+  }, [teachingAssignments, currentClass, activeAcademicYear, activeSemester]);
 
-  const teacherSuggestions = useMemo(() => {
-    const list = new Set<string>();
-    teachingAssignments.forEach(ta => {
-      if (ta.teacherName) list.add(ta.teacherName);
-    });
-    return Array.from(list);
-  }, [teachingAssignments]);
+  // 2. Identify scheduled vs unscheduled assignments from plotting
+  const { scheduledFromPlotting, unscheduledFromPlotting } = useMemo(() => {
+    const scheduled: ScheduleDisplayItem[] = [];
+    const unscheduled: typeof classAssignments = [];
 
-  // Group items by day and sort by period
-  const scheduleByDay = useMemo(() => {
-    const map: Record<ClassScheduleDay, ClassScheduleItem[]> = {
+    classAssignments.forEach(ta => {
+      let hasSchedule = false;
+
+      // Check if assignment has multiple schedules array
+      if (Array.isArray(ta.schedules) && ta.schedules.length > 0) {
+        ta.schedules.forEach((sch, idx) => {
+          const dayKey = normalizeDay(sch.day);
+          if (dayKey) {
+            hasSchedule = true;
+            scheduled.push({
+              id: `plot_${ta.id}_${idx}`,
+              day: dayKey,
+              timeSlot: sch.timeSlot || ta.timeSlot || 'Jam KBM',
+              subjectName: ta.subjectName || 'Mata Pelajaran',
+              subjectCode: ta.subjectCode,
+              teacherName: ta.teacherName || 'Guru Pengampu',
+              roomOrNotes: sch.room || ta.room || '',
+              isFromPlotting: true,
+              assignmentId: ta.id,
+            });
+          }
+        });
+      }
+
+      // Check single dayOfWeek field
+      if (ta.dayOfWeek) {
+        const dayKey = normalizeDay(ta.dayOfWeek);
+        if (dayKey) {
+          hasSchedule = true;
+          // Avoid duplicate if already caught in schedules array
+          if (!scheduled.some(s => s.assignmentId === ta.id && s.day === dayKey)) {
+            scheduled.push({
+              id: `plot_${ta.id}`,
+              day: dayKey,
+              timeSlot: ta.timeSlot || 'Jam KBM',
+              subjectName: ta.subjectName || 'Mata Pelajaran',
+              subjectCode: ta.subjectCode,
+              teacherName: ta.teacherName || 'Guru Pengampu',
+              roomOrNotes: ta.room || '',
+              isFromPlotting: true,
+              assignmentId: ta.id,
+            });
+          }
+        }
+      }
+
+      if (!hasSchedule) {
+        unscheduled.push(ta);
+      }
+    });
+
+    return { scheduledFromPlotting: scheduled, unscheduledFromPlotting: unscheduled };
+  }, [classAssignments]);
+
+  // 3. Merge plotting schedules with any custom school activities saved in classSchedule
+  const allItemsByDay = useMemo(() => {
+    const map: Record<ClassScheduleDay, ScheduleDisplayItem[]> = {
       SENIN: [],
       SELASA: [],
       RABU: [],
@@ -170,69 +269,99 @@ export const HomeroomClassSchedulePage: React.FC = () => {
       SABTU: [],
     };
 
-    if (schedule?.items) {
-      schedule.items.forEach(item => {
-        if (map[item.day]) {
-          map[item.day].push(item);
-        }
-      });
+    // Add items from plotting
+    scheduledFromPlotting.forEach(item => {
+      map[item.day].push(item);
+    });
 
-      // Sort items by period ascending
-      Object.keys(map).forEach(dayKey => {
-        map[dayKey as ClassScheduleDay].sort((a, b) => a.period - b.period);
+    // Add custom/ad-hoc activities from customSchedule
+    if (customSchedule?.items) {
+      customSchedule.items.forEach(customItem => {
+        if (map[customItem.day]) {
+          map[customItem.day].push({
+            id: customItem.id,
+            day: customItem.day,
+            period: customItem.period,
+            timeSlot: customItem.timeSlot || 'Jam KBM',
+            subjectName: customItem.subjectName,
+            teacherName: customItem.teacherName || '-',
+            roomOrNotes: customItem.roomOrNotes,
+            isFromPlotting: false,
+          });
+        }
       });
     }
 
-    return map;
-  }, [schedule]);
+    // Sort items chronologically by time slot or period
+    Object.keys(map).forEach(dayKey => {
+      const day = dayKey as ClassScheduleDay;
+      map[day].sort((a, b) => {
+        const timeA = getSortableTime(a.timeSlot);
+        const timeB = getSortableTime(b.timeSlot);
+        if (timeA !== timeB) return timeA - timeB;
+        return (a.period || 0) - (b.period || 0);
+      });
 
-  // Open modal to add new item for a specific day
-  const handleOpenAdd = (day: ClassScheduleDay) => {
+      // Assign sequential period numbers for display consistency
+      map[day].forEach((item, idx) => {
+        item.period = idx + 1;
+      });
+    });
+
+    return map;
+  }, [scheduledFromPlotting, customSchedule]);
+
+  const totalScheduledItems = useMemo(() => {
+    return (Object.values(allItemsByDay) as ScheduleDisplayItem[][]).reduce((acc, list) => acc + list.length, 0);
+  }, [allItemsByDay]);
+
+  // Modal actions for custom extra activities
+  const handleOpenAddCustom = (day: ClassScheduleDay) => {
     setEditingItem(null);
     setFormDay(day);
-    const dayItems = scheduleByDay[day] || [];
-    const nextPeriod = dayItems.length > 0 ? Math.max(...dayItems.map(i => i.period)) + 1 : 1;
+    const dayItems = allItemsByDay[day] || [];
+    const nextPeriod = dayItems.length + 1;
     setFormPeriod(nextPeriod);
-
-    // Auto pick next time slot if in range
-    const slotIdx = nextPeriod - 1;
-    setFormTimeSlot(DEFAULT_TIME_SLOTS[slotIdx] || '07.15 - 07.50');
+    setFormTimeSlot(DEFAULT_TIME_SLOTS[nextPeriod - 1] || '07.15 - 07.50');
     setFormSubjectName('');
-    setFormTeacherName('');
+    setFormTeacherName(user?.displayName || '');
     setFormRoomOrNotes('');
-    setAddDoublePeriod(false);
     setIsModalOpen(true);
   };
 
-  // Open modal to edit existing item
-  const handleOpenEdit = (item: ClassScheduleItem) => {
-    setEditingItem(item);
+  const handleOpenEditCustom = (item: ScheduleDisplayItem) => {
+    setEditingItem({
+      id: item.id,
+      day: item.day,
+      period: item.period || 1,
+      timeSlot: item.timeSlot,
+      subjectName: item.subjectName,
+      teacherName: item.teacherName,
+      roomOrNotes: item.roomOrNotes,
+    });
     setFormDay(item.day);
-    setFormPeriod(item.period);
-    setFormTimeSlot(item.timeSlot || '07.15 - 07.50');
+    setFormPeriod(item.period || 1);
+    setFormTimeSlot(item.timeSlot);
     setFormSubjectName(item.subjectName);
     setFormTeacherName(item.teacherName);
     setFormRoomOrNotes(item.roomOrNotes || '');
-    setAddDoublePeriod(false);
     setIsModalOpen(true);
   };
 
-  // Save item (add or update)
-  const handleSaveItem = async (e: React.FormEvent) => {
+  const handleSaveCustomItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !currentClass || !activeAcademicYear || !activeSemester) return;
 
     if (!formSubjectName.trim()) {
-      toastWarning('Nama mata pelajaran wajib diisi');
+      toastWarning('Nama kegiatan/mapel wajib diisi');
       return;
     }
 
     setSaving(true);
     try {
-      let currentItems = [...(schedule?.items || [])];
+      let currentItems = [...(customSchedule?.items || [])];
 
       if (editingItem) {
-        // Update existing item
         currentItems = currentItems.map(i => {
           if (i.id === editingItem.id) {
             return {
@@ -248,7 +377,6 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           return i;
         });
       } else {
-        // Create new item
         const newItem: ClassScheduleItem = {
           id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
           day: formDay,
@@ -259,27 +387,9 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           roomOrNotes: formRoomOrNotes.trim() || undefined,
         };
         currentItems.push(newItem);
-
-        // If double period is checked, add consecutive period
-        if (addDoublePeriod) {
-          const nextPeriod = Number(formPeriod) + 1;
-          const nextSlotIdx = nextPeriod - 1;
-          const nextSlot = DEFAULT_TIME_SLOTS[nextSlotIdx] || '';
-          const doubleItem: ClassScheduleItem = {
-            id: `item_${Date.now() + 1}_${Math.random().toString(36).substr(2, 5)}`,
-            day: formDay,
-            period: nextPeriod,
-            timeSlot: nextSlot,
-            subjectName: formSubjectName.trim(),
-            teacherName: formTeacherName.trim(),
-            roomOrNotes: formRoomOrNotes.trim() || undefined,
-          };
-          currentItems.push(doubleItem);
-        }
       }
 
-      // Persist to Firestore
-      const updatedSchedule = await saveClassSchedule(user.uid, {
+      const updated = await saveClassSchedule(user.uid, {
         classId: currentClass.id,
         className: currentClass.name,
         academicYearId: activeAcademicYear.id,
@@ -288,52 +398,52 @@ export const HomeroomClassSchedulePage: React.FC = () => {
         items: currentItems,
       });
 
-      setSchedule(updatedSchedule);
+      setCustomSchedule(updated);
       setIsModalOpen(false);
-      toastSuccess(editingItem ? 'Jam pelajaran diperbarui' : 'Jam pelajaran berhasil ditambahkan');
+      toastSuccess('Jadwal kegiatan berhasil disimpan');
     } catch (err) {
-      console.error('Error saving class schedule item:', err);
-      toastError('Gagal menyimpan jadwal');
+      console.error('Error saving custom schedule item:', err);
+      toastError('Gagal menyimpan kegiatan');
     } finally {
       setSaving(false);
     }
   };
 
-  // Delete item
-  const handleDeleteItem = async (itemId: string) => {
-    if (!user || !currentClass || !activeAcademicYear || !activeSemester || !schedule) return;
-    if (!window.confirm('Hapus baris jadwal pelajaran ini?')) return;
+  const handleDeleteCustomItem = async (itemId: string) => {
+    if (!user || !currentClass || !activeAcademicYear || !activeSemester || !customSchedule) return;
+    if (!window.confirm('Hapus kegiatan jadwal khusus ini?')) return;
 
     try {
-      const updatedItems = schedule.items.filter(i => i.id !== itemId);
+      const updatedItems = customSchedule.items.filter(i => i.id !== itemId);
       const updated = await saveClassSchedule(user.uid, {
-        ...schedule,
+        ...customSchedule,
         items: updatedItems,
       });
-      setSchedule(updated);
-      toastSuccess('Baris jadwal dihapus');
+      setCustomSchedule(updated);
+      toastSuccess('Kegiatan dihapus');
     } catch (err) {
       console.error('Error deleting schedule item:', err);
-      toastError('Gagal menghapus jadwal');
+      toastError('Gagal menghapus kegiatan');
     }
   };
 
   // Export to Excel (.xlsx)
   const handleExportExcel = () => {
-    if (!currentClass || !schedule) return;
+    if (!currentClass) return;
 
     const rows: any[] = [];
     DAYS_OF_WEEK.forEach(d => {
-      const items = scheduleByDay[d.key];
+      const items = allItemsByDay[d.key];
       if (items.length > 0) {
         items.forEach(i => {
           rows.push({
             'Hari': d.label.toUpperCase(),
-            'Jam Ke': i.period,
+            'Jam Ke': i.period || '-',
             'Waktu': i.timeSlot || '-',
             'Mata Pelajaran': i.subjectName,
             'Guru Pengampu': i.teacherName || '-',
             'Ruang / Catatan': i.roomOrNotes || '-',
+            'Sumber': i.isFromPlotting ? 'Plotting Tugas Mengajar' : 'Jadwal Khusus Kelas',
           });
         });
       } else {
@@ -341,9 +451,10 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           'Hari': d.label.toUpperCase(),
           'Jam Ke': '-',
           'Waktu': '-',
-          'Mata Pelajaran': '(Tidak ada jadwal KBM)',
+          'Mata Pelajaran': '(Tidak ada KBM)',
           'Guru Pengampu': '-',
           'Ruang / Catatan': '-',
+          'Sumber': '-',
         });
       }
     });
@@ -362,25 +473,26 @@ export const HomeroomClassSchedulePage: React.FC = () => {
       {/* Header Banner */}
       <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 dark:bg-cyan-950/40 text-orange-700 dark:text-cyan-300 border border-orange-200 dark:border-cyan-800">
-              Jadwal Pelajaran Kelas Binaan
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Sinkron Otomatis dari Plotting Guru & Mapel</span>
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
               T.A {activeAcademicYear?.label} • Semester {activeSemester}
             </span>
           </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            {currentClass ? `Roster Pelajaran Kelas ${currentClass.name}` : 'Jadwal Pelajaran Kelas Binaan'}
+            {currentClass ? `Jadwal Pelajaran Kelas ${currentClass.name}` : 'Jadwal Pelajaran Kelas Binaan'}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Pemetaan mata pelajaran dan guru pengampu mingguan untuk kendali KBM wali kelas
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Informasi rujukan KBM mingguan kelas binaan, terpusat dari SK Pembagian Tugas Mengajar.
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Class selector if multiple */}
+          {/* Class selector */}
           {availableClasses.length > 1 && (
             <select
               id="select-homeroom-class-schedule"
@@ -396,6 +508,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
             </select>
           )}
 
+          {/* Toggle View: Matriks vs Cetak */}
           <button
             type="button"
             id="btn-toggle-view-schedule"
@@ -404,49 +517,157 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           >
             {activeView === 'matrix' ? (
               <>
-                <Printer className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
+                <Printer className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Format Cetak Resmi</span>
               </>
             ) : (
               <>
-                <Layers className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
+                <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" />
                 <span>Kembali ke Matriks</span>
               </>
             )}
           </button>
 
+          {/* Excel Export */}
           <button
             type="button"
             id="btn-export-schedule-excel"
             onClick={handleExportExcel}
-            disabled={!schedule || schedule.items.length === 0}
+            disabled={totalScheduledItems === 0}
             className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Excel (.xlsx)</span>
           </button>
+
+          {/* Shortcut to Plotting Master if user has access */}
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('master-teaching')}
+              className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Atur hari & jam mengajar di menu Plotting Mengajar"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Atur di Plotting</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Summary KPI Cards & Informativeness Notice */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Mapel di Kelas Ini */}
+        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Total Mapel Diplot
+          </p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {classAssignments.length}
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Mata Pelajaran</span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            Penugasan mengajar di Kelas {currentClass?.name || '-'}
+          </p>
+        </div>
+
+        {/* Mapel Terjadwal */}
+        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Sesi KBM Terjadwal
+          </p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              {totalScheduledItems}
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Jam / Sesi</span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            {scheduledFromPlotting.length} dari plotting master
+          </p>
+        </div>
+
+        {/* Status Belum Terjadwal */}
+        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Belum Diatur Jadwalnya
+          </p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className={`text-2xl font-bold ${unscheduledFromPlotting.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-slate-100'}`}>
+              {unscheduledFromPlotting.length}
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Mapel</span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+            {unscheduledFromPlotting.length === 0 ? 'Semua mapel telah terjadwal' : 'Hari & jam belum diisi di plotting'}
+          </p>
+        </div>
+
+        {/* Wali Kelas & Info Kelas */}
+        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Wali Kelas Rombel
+          </p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+              {currentClass?.classTeacherName || user?.displayName || '-'}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            {currentClass ? `Rombel: ${currentClass.name} • Tingkat ${currentClass.gradeLevel || '-'}` : '-'}
+          </p>
+        </div>
+      </div>
+
+      {/* Notice jika ada mapel yang belum diatur jadwalnya di plotting */}
+      {unscheduledFromPlotting.length > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <Info className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div>
+              <span className="font-bold">Informasi: Terdapat {unscheduledFromPlotting.length} mapel yang belum memiliki jadwal (hari/jam) di Master Plotting:</span>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {unscheduledFromPlotting.map(ta => (
+                  <span key={ta.id} className="px-2 py-0.5 rounded-md bg-white/80 dark:bg-amber-900/40 border border-amber-200 dark:border-amber-700/50 text-[11px] font-semibold">
+                    {ta.subjectName} ({ta.teacherName || 'Guru belum diisi'})
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('master-teaching')}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold shrink-0 shadow-2xs transition-colors cursor-pointer"
+            >
+              Lengkapi di Plotting
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Main View: Matrix Grid vs Official Print Document */}
       {activeView === 'print' ? (
         <PrintDocumentLayout
           title={`JADWAL PELAJARAN KELAS ${currentClass?.name ? currentClass.name.toUpperCase() : ''}`}
-          documentSubtitle={`TAHUN PELAJARAN ${activeAcademicYear?.label || ''}`}
+          documentSubtitle={`TAHUN PELAJARAN ${activeAcademicYear?.label || ''} • SEMESTER ${activeSemester || ''}`}
           signatureType="HOMEROOM_AND_HEADMASTER"
           paperOrientation="LANDSCAPE"
           metaItems={[
-            { label: 'Kelas', value: currentClass?.name || '-' },
+            { label: 'Kelas / Rombel', value: currentClass?.name || '-' },
+            { label: 'Wali Kelas', value: currentClass?.classTeacherName || user?.displayName || '-' },
             { label: 'Tahun Pelajaran', value: activeAcademicYear?.label || '-' },
             { label: 'Semester', value: activeSemester || '-' },
-            { label: 'Kurikulum', value: 'Kurikulum Merdeka / Nasional' },
           ]}
           onExportExcel={handleExportExcel}
         >
           {/* Printable 6-Day Schedule Matrix */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-2 text-slate-950">
             {DAYS_OF_WEEK.map(d => {
-              const dayItems = scheduleByDay[d.key];
+              const dayItems = allItemsByDay[d.key];
               return (
                 <div key={d.key} className="border-2 border-slate-900 rounded-none bg-white p-0 overflow-hidden">
                   <div className="bg-slate-200 border-b-2 border-slate-900 py-1.5 px-3 font-bold text-xs uppercase tracking-wider text-center">
@@ -456,7 +677,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                     <thead>
                       <tr className="bg-slate-100 border-b border-slate-900 font-bold">
                         <th className="border-r border-slate-900 px-1.5 py-1 text-center w-8">NO</th>
-                        <th className="border-r border-slate-900 px-1.5 py-1 text-center w-20">WAKTU</th>
+                        <th className="border-r border-slate-900 px-1.5 py-1 text-center w-24">WAKTU</th>
                         <th className="border-r border-slate-900 px-2 py-1 text-left">MAPEL</th>
                         <th className="px-2 py-1 text-left">GURU</th>
                       </tr>
@@ -465,7 +686,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                       {dayItems.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="px-2 py-3 text-center text-[10px] text-slate-400 italic">
-                            Tidak ada jadwal pelajaran
+                            Tidak ada kegiatan KBM
                           </td>
                         </tr>
                       ) : (
@@ -499,10 +720,10 @@ export const HomeroomClassSchedulePage: React.FC = () => {
           </div>
         </PrintDocumentLayout>
       ) : (
-        /* Matrix Grid (Interactive Work View) */
+        /* Matrix Grid View: Monday to Saturday */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {DAYS_OF_WEEK.map(d => {
-            const dayItems = scheduleByDay[d.key];
+            const dayItems = allItemsByDay[d.key];
             const hasItems = dayItems.length > 0;
 
             return (
@@ -513,7 +734,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                 {/* Day Header */}
                 <div className="px-4 py-3 bg-slate-50 dark:bg-[#0c0e15] border-b border-slate-200 dark:border-[#232838] flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-cyan-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-cyan-400" />
                     <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 uppercase tracking-wide">
                       {d.label}
                     </h2>
@@ -522,32 +743,43 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                     </span>
                   </div>
 
+                  {/* Add ad-hoc custom school activity button */}
                   <button
                     type="button"
-                    onClick={() => handleOpenAdd(d.key)}
-                    className="p-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 dark:bg-cyan-500/10 dark:hover:bg-cyan-500/20 text-orange-600 dark:text-cyan-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                    title={`Tambah jam pelajaran hari ${d.label}`}
+                    onClick={() => handleOpenAddCustom(d.key)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-[#1b1f2e] text-slate-500 dark:text-slate-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    title={`Tambah kegiatan rutin/khusus hari ${d.label} (Upacara, Literasi, dll)`}
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span className="text-[11px]">Tambah</span>
+                    <span className="text-[11px]">Khusus</span>
                   </button>
                 </div>
 
-                {/* Day Schedule Table */}
+                {/* Day Schedule List */}
                 <div className="flex-1 p-3 overflow-x-auto">
                   {!hasItems ? (
                     <div className="py-8 text-center">
                       <Clock className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2 opacity-60" />
                       <p className="text-xs text-slate-400 dark:text-slate-500">
-                        Belum ada jadwal KBM
+                        Belum ada KBM terjadwal
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenAdd(d.key)}
-                        className="mt-2 text-xs font-semibold text-orange-600 dark:text-cyan-400 hover:underline inline-flex items-center gap-1"
-                      >
-                        <Plus className="w-3 h-3" /> Tambah jam ke-1
-                      </button>
+                      {onNavigate ? (
+                        <button
+                          type="button"
+                          onClick={() => onNavigate('master-teaching')}
+                          className="mt-2 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <ExternalLink className="w-3 h-3" /> Atur jadwal di Plotting
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAddCustom(d.key)}
+                          className="mt-2 text-xs font-semibold text-blue-600 dark:text-cyan-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" /> Tambah kegiatan khusus
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -559,7 +791,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                           <div className="flex items-start gap-2.5 min-w-0">
                             {/* Period badge */}
                             <div className="shrink-0 text-center w-8 py-1 rounded-lg bg-white dark:bg-[#1b1f2e] border border-slate-200 dark:border-[#232838] shadow-2xs">
-                              <span className="block text-[10px] text-slate-400 uppercase leading-none">JAM</span>
+                              <span className="block text-[9px] text-slate-400 uppercase leading-none font-semibold">JAM</span>
                               <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
                                 #{item.period}
                               </span>
@@ -571,15 +803,24 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                                   {item.subjectName}
                                 </h3>
                                 {item.timeSlot && (
-                                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-[#181c2a] border border-slate-200 dark:border-[#232838] px-1.5 py-0.2 rounded">
+                                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-white dark:bg-[#181c2a] border border-slate-200 dark:border-[#232838] px-1.5 py-0.2 rounded font-medium">
                                     {item.timeSlot}
+                                  </span>
+                                )}
+                                {item.isFromPlotting ? (
+                                  <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-1.5 py-0.2 rounded">
+                                    Plotting
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 px-1.5 py-0.2 rounded">
+                                    Khusus
                                   </span>
                                 )}
                               </div>
 
-                              <div className="flex items-center gap-1 mt-0.5 text-[11px] text-slate-600 dark:text-slate-400 truncate">
+                              <div className="flex items-center gap-1 mt-1 text-[11px] text-slate-600 dark:text-slate-400 truncate">
                                 <User className="w-3 h-3 shrink-0 text-slate-400" />
-                                <span className="truncate">{item.teacherName || 'Guru belum ditentukan'}</span>
+                                <span className="truncate">{item.teacherName || '-'}</span>
                               </div>
 
                               {item.roomOrNotes && (
@@ -590,25 +831,27 @@ export const HomeroomClassSchedulePage: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Quick Action Buttons */}
-                          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(item)}
-                              className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
-                              title="Edit jam pelajaran"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteItem(item.id)}
-                              className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                              title="Hapus baris ini"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          {/* Action button if custom item */}
+                          {!item.isFromPlotting && (
+                            <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditCustom(item)}
+                                className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
+                                title="Edit kegiatan"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCustomItem(item.id)}
+                                className="p-1 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                                title="Hapus kegiatan khusus"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -620,15 +863,19 @@ export const HomeroomClassSchedulePage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Add / Edit Schedule Item */}
+      {/* Modal Add / Edit Custom School Activity (e.g. Upacara, Literasi, Wali Kelas) */}
       {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={editingItem ? 'Edit Jam Pelajaran' : `Tambah Jam Pelajaran • ${formDay}`}
+          title={editingItem ? 'Edit Kegiatan Khusus' : `Tambah Kegiatan Khusus Kelas • ${formDay}`}
           maxWidth="md"
         >
-          <form onSubmit={handleSaveItem} className="space-y-4 text-xs">
+          <form onSubmit={handleSaveCustomItem} className="space-y-4 text-xs">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/40 rounded-xl text-blue-800 dark:text-blue-200 text-xs">
+              Form ini untuk kegiatan khusus non-mapel (seperti Upacara Bendera, Pembinaan Wali Kelas, Sholat Dhuha, atau Literasi). Jadwal mata pelajaran KBM utama otomatis diambil dari Master Plotting Guru & Mapel.
+            </div>
+
             {/* Day and Period */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -648,7 +895,7 @@ export const HomeroomClassSchedulePage: React.FC = () => {
 
               <div>
                 <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Jam Pelajaran Ke-:
+                  Jam Ke-:
                 </label>
                 <input
                   type="number"
@@ -665,14 +912,14 @@ export const HomeroomClassSchedulePage: React.FC = () => {
             {/* Time slot */}
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Alokasi Waktu (Jam Ke):
+                Alokasi Waktu (Jam):
               </label>
               <input
                 type="text"
                 list="time-slot-presets"
                 value={formTimeSlot}
                 onChange={(e) => setFormTimeSlot(e.target.value)}
-                placeholder="e.g. 07.15 - 07.50"
+                placeholder="e.g. 07.00 - 07.45"
                 className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-mono"
               />
               <datalist id="time-slot-presets">
@@ -682,92 +929,64 @@ export const HomeroomClassSchedulePage: React.FC = () => {
               </datalist>
             </div>
 
-            {/* Subject Name with suggestion datalist */}
+            {/* Activity Name */}
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Mata Pelajaran:
+                Nama Kegiatan:
               </label>
               <input
                 type="text"
-                list="subject-presets"
                 value={formSubjectName}
                 onChange={(e) => setFormSubjectName(e.target.value)}
-                placeholder="e.g. Bahasa Arab, Biologi, Matematika..."
+                placeholder="e.g. Upacara Bendera, Pembinaan Wali Kelas, Literasi Pagi..."
                 className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-bold"
                 required
               />
-              <datalist id="subject-presets">
-                {subjectSuggestions.map((sub, idx) => (
-                  <option key={idx} value={sub} />
-                ))}
-              </datalist>
             </div>
 
-            {/* Teacher Name with suggestion datalist */}
+            {/* Responsible Person */}
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Guru Pengampu:
+                Penanggung Jawab / Pembina:
               </label>
               <input
                 type="text"
-                list="teacher-presets"
                 value={formTeacherName}
                 onChange={(e) => setFormTeacherName(e.target.value)}
-                placeholder="e.g. MACHFUD AFFANDI, S.Pd.I"
+                placeholder="e.g. Wali Kelas / Petugas Piket"
                 className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-medium"
               />
-              <datalist id="teacher-presets">
-                {teacherSuggestions.map((tea, idx) => (
-                  <option key={idx} value={tea} />
-                ))}
-              </datalist>
             </div>
 
             {/* Room / Notes */}
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Ruang / Catatan Tambahan (Opsional):
+                Lokasi / Catatan (Opsional):
               </label>
               <input
                 type="text"
                 value={formRoomOrNotes}
                 onChange={(e) => setFormRoomOrNotes(e.target.value)}
-                placeholder="e.g. Lab Komputer / Ruang Multimedia"
+                placeholder="e.g. Lapangan Utama / Ruang Kelas"
                 className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200"
               />
             </div>
-
-            {/* Consecutive double period option if adding new */}
-            {!editingItem && (
-              <div className="p-3 bg-orange-50 dark:bg-cyan-950/30 border border-orange-200 dark:border-cyan-800/40 rounded-xl flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="chk-double-period"
-                  checked={addDoublePeriod}
-                  onChange={(e) => setAddDoublePeriod(e.target.checked)}
-                  className="rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                />
-                <label htmlFor="chk-double-period" className="text-xs font-medium text-slate-800 dark:text-slate-200 cursor-pointer">
-                  Tambahkan 2 Jam Berturut-turut Sekaligus (Jam #{formPeriod} & #{Number(formPeriod) + 1})
-                </label>
-              </div>
-            )}
 
             {/* Action buttons */}
             <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-[#232838]">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 dark:border-[#232838] rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e]"
+                className="px-4 py-2 border border-slate-300 dark:border-[#232838] rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 rounded-xl font-semibold shadow-xs disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
               >
-                {saving ? 'Menyimpan...' : (editingItem ? 'Simpan Perubahan' : 'Tambahkan Jam')}
+                {saving ? 'Menyimpan...' : (editingItem ? 'Simpan Perubahan' : 'Tambahkan Kegiatan')}
               </button>
             </div>
           </form>

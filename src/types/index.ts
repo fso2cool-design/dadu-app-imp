@@ -78,10 +78,24 @@ export interface Student {
   nikSiswa?: string;
   nikIbu?: string;
   nkk?: string;
+  customAttributes?: Record<string, string>;
   isArchived?: boolean;
   archivedAt?: any;
   createdAt: any;
   updatedAt: any;
+}
+
+export interface StudentCustomFieldDefinition {
+  id: string;
+  name: string; // e.g. "KIP / PIP", "Golongan Darah", "Asal Sekolah"
+  key: string; // e.g. "kip", "bloodType", "previousSchool"
+  type: 'TEXT' | 'NUMBER' | 'SELECT' | 'DATE';
+  options?: string[]; // e.g. ["A", "B", "AB", "O"] for SELECT
+  description?: string;
+  showInTable?: boolean;
+  isActive: boolean;
+  createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Enrollment {
@@ -194,13 +208,21 @@ export interface AttendanceSession {
 
 export interface AttendanceRecord {
   id: string;
-  meetingId: string;
   studentId: string;
+  meetingId?: string | null;
+  meetingNumber?: number | null;
+  academicYearId?: string;
+  semester?: SemesterType;
+  classId?: string;
+  teachingAssignmentId?: string;
+  subjectId?: string;
+  date?: string; // YYYY-MM-DD
   rollNumber?: number;
   studentName?: string;
   gender?: GenderType;
   status: AttendanceStatus;
   note?: string;
+  recordedBy?: string;
   createdAt: any;
   updatedAt: any;
 }
@@ -484,3 +506,102 @@ export interface ClassSchedule {
   updatedAt?: any;
   updatedBy?: string;
 }
+
+export type SharedReportType = 'ATTENDANCE' | 'JOURNAL' | 'LEGGER';
+
+export interface SharedReportPayload {
+  // Snapshot/Metadata
+  title: string;
+  subtitle?: string;
+  schoolName: string;
+  schoolLevel?: string;
+  kemenagDistrict?: string;
+  academicYearLabel: string;
+  semester: SemesterType;
+  className: string;
+  subjectName?: string;
+  teacherName: string;
+  teacherNip?: string;
+  headmasterName?: string;
+  headmasterNip?: string;
+  generatedDate: string;
+  
+  // Specific data for each report type
+  attendanceData?: {
+    reportMode: 'SUBJECT' | 'HOMEROOM';
+    totalMeetingsOrDays: number;
+    summaries: Array<{
+      rollNumber: number;
+      nis: string;
+      nisn: string;
+      name: string;
+      gender: 'L' | 'P';
+      presentCount: number;
+      sickCount: number;
+      permittedCount: number;
+      absentCount: number;
+      dispensationCount: number;
+      totalMeetings: number;
+      presentPercentage: number;
+    }>;
+    statistics: {
+      avgPercentage: number;
+      perfectCount: number;
+      criticalCount: number;
+      totalP: number;
+      totalS: number;
+      totalI: number;
+      totalA: number;
+    };
+  };
+
+  journalData?: {
+    meetings: Array<{
+      meetingNumber: number;
+      date: string;
+      topic: string;
+      learningObjectives?: string;
+      activities?: string;
+      method?: string;
+      status: string;
+      attendancePresent?: number;
+      attendanceAbsent?: number;
+      notes?: string;
+    }>;
+  };
+
+  leggerData?: {
+    kkm: number;
+    subjects: Array<{ id: string; name: string; code?: string }>;
+    rows: Array<{
+      rollNumber: number;
+      nis: string;
+      nisn: string;
+      name: string;
+      gender: 'L' | 'P';
+      subjectScores: Record<string, number | null>;
+      totalScore: number;
+      averageScore: number;
+      rank: number;
+    }>;
+    classAverage: number;
+  };
+}
+
+export interface SharedReport {
+  id: string; // The public access token / code
+  reportType: SharedReportType;
+  userId: string;
+  userName: string;
+  title: string;
+  description?: string;
+  passcode?: string; // Optional 4-6 digit access passcode
+  expiresAt: any; // Timestamp or ISO string or null for no expiration
+  isRevoked: boolean;
+  viewCount: number;
+  lastViewedAt?: any;
+  payload: SharedReportPayload;
+  createdAt: any;
+  updatedAt: any;
+}
+

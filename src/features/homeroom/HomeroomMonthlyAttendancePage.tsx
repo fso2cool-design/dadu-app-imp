@@ -23,6 +23,10 @@ import * as XLSX from 'xlsx';
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 
+// In-memory module cache for instant SWR navigation without skeleton flicker
+const homeroomMonthlyRosterCache = new Map<string, Enrollment[]>();
+const homeroomMonthlyRecordsCache = new Map<string, DailyAttendanceRecord[]>();
+
 export const HomeroomMonthlyAttendancePage: React.FC = () => {
   const { user, profile } = useAuth();
   const { 
@@ -93,7 +97,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
     return `${selectedYear}-${mm}`;
   }, [selectedYear, selectedMonth]);
 
-  // Load roster & attendance records for this month
+  // Load roster & attendance records for this month with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !currentClass) {
       setEnrollments([]);
@@ -102,17 +106,38 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
       return;
     }
 
+    const rosterKey = `${user.uid}_${activeAcademicYear.id}_${currentClass.id}`;
+    const recordsKey = `${user.uid}_${currentClass.id}_${yearMonthPrefix}`;
+
+    const cachedEnrs = homeroomMonthlyRosterCache.get(rosterKey);
+    const cachedRecs = homeroomMonthlyRecordsCache.get(recordsKey);
+
+    if (cachedEnrs && cachedRecs) {
+      setEnrollments(cachedEnrs);
+      setRecords(cachedRecs);
+      setLoading(false);
+    } else if (cachedEnrs) {
+      setEnrollments(cachedEnrs);
+    }
+
     let isMounted = true;
     async function loadMonthlyData() {
-      setLoading(true);
+      if (!cachedEnrs || !cachedRecs) {
+        setLoading(true);
+      }
       try {
-        const [enrs, recs] = await Promise.all([
-          getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          getMonthlyDailyAttendanceRecords(user!.uid, currentClass!.id, yearMonthPrefix),
-        ]);
+        let enrs = cachedEnrs;
+        if (!enrs) {
+          const rawEnrs = await getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
+          enrs = rawEnrs.filter(e => e.status === 'ACTIVE');
+          homeroomMonthlyRosterCache.set(rosterKey, enrs);
+        }
+
+        const recs = await getMonthlyDailyAttendanceRecords(user!.uid, currentClass!.id, yearMonthPrefix);
+        homeroomMonthlyRecordsCache.set(recordsKey, recs);
 
         if (isMounted) {
-          setEnrollments(enrs.filter(e => e.status === 'ACTIVE'));
+          setEnrollments(enrs);
           setRecords(recs);
         }
       } catch (err) {
@@ -457,7 +482,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
                 <th className="py-2.5 px-2 w-8 text-center sticky left-0 z-20 bg-slate-900 border-r border-slate-800">
                   No
                 </th>
-                <th className="py-2.5 px-3 min-w-[150px] sticky left-8 z-20 bg-slate-900 border-r border-slate-800">
+                <th className="py-2.5 px-3 min-w-[150px] sticky left-8 z-20 bg-slate-900 border-r border-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.4)]">
                   Nama Siswa
                 </th>
                 <th className="py-2.5 px-1.5 w-8 text-center border-r border-slate-800">
@@ -508,11 +533,11 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
                   const summary = studentSummaries.get(enr.studentId) || { present: 0, sick: 0, permitted: 0, absent: 0, dispensation: 0, total: 0, rate: 100 };
 
                   return (
-                    <tr key={enr.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2 px-2 text-center font-medium text-slate-500 sticky left-0 z-10 bg-white border-r border-slate-200">
+                    <tr key={enr.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group">
+                      <td className="py-2 px-2 text-center font-medium text-slate-500 sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#0c0e15] dark:group-hover:bg-[#141722] border-r border-slate-200 dark:border-slate-800">
                         {enr.rollNumber}
                       </td>
-                      <td className="py-2 px-3 font-semibold text-slate-900 sticky left-8 z-10 bg-white border-r border-slate-200 truncate max-w-[180px]">
+                      <td className="py-2 px-3 font-semibold text-slate-900 dark:text-slate-100 sticky left-8 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#0c0e15] dark:group-hover:bg-[#141722] border-r border-slate-200 dark:border-slate-800 truncate max-w-[180px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]">
                         {enr.student?.fullName || '-'}
                       </td>
                       <td className="py-2 px-1.5 text-center border-r border-slate-200">

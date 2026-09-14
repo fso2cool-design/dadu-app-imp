@@ -111,6 +111,21 @@ export async function setAccountRole(targetUid: string, role: 'ADMIN' | 'TEACHER
   });
 }
 
+/**
+ * Admin update for any user profile data (displayName, nip, nuptk, nik, phone, role, accountStatus, mainSubject, employmentStatus)
+ */
+export async function adminUpdateUserProfile(
+  targetUid: string, 
+  data: Partial<Omit<UserProfile, 'uid' | 'createdAt' | 'updatedAt'>>
+): Promise<void> {
+  const docRef = doc(db, 'users', targetUid);
+  await updateDoc(docRef, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+
 export interface UserStorageStats {
   classesCount: number;
   subjectsCount: number;

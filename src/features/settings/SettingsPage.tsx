@@ -60,6 +60,7 @@ import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { ChangeLogModal } from '../../components/common/ChangeLogModal';
 import { APP_CONFIG } from '../../constants/app';
+import { APP_CHANGELOGS } from '../../constants/changelog';
 import { RelationshipRecoverySection } from './RelationshipRecoverySection';
 
 interface SettingsPageProps {
@@ -1802,7 +1803,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                       Versi Aplikasi: {APP_CONFIG.versionDisplay}
                     </span>
                     <span className="text-[10px] bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold border border-indigo-100 dark:border-slate-700">
-                      Rilis 7 Sept 2026
+                      Rilis {APP_CHANGELOGS[0]?.releaseDate || APP_CONFIG.releaseDate}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">

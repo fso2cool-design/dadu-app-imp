@@ -1,10 +1,16 @@
 import * as XLSX from 'xlsx';
-import { ClassItem } from '../types';
+import { ClassItem, StudentCustomFieldDefinition } from '../types';
 
-export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = []) {
+export function downloadStudentExcelTemplate(
+  availableClasses: ClassItem[] = [],
+  customFields: StudentCustomFieldDefinition[] = []
+) {
   const activeClasses = availableClasses.filter(c => !c.isArchived);
   const sampleClass1 = activeClasses[0]?.name || 'X-A';
   const sampleClass2 = activeClasses[1]?.name || (activeClasses[0]?.name ? `${activeClasses[0].name}-B` : 'X-B');
+
+  // Siapkan data custom field contoh
+  const activeCustomFields = customFields.filter(f => f.isActive !== false);
 
   const templateData = [
     {
@@ -23,6 +29,10 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'NIK SISWA': '8105014481210001',
       'NIK IBU': '8105135511840001',
       'NKK': '8105142312140001',
+      ...activeCustomFields.reduce((acc, field) => {
+        acc[field.name] = field.type === 'SELECT' ? (field.options?.[0] || '') : (field.key === 'kip' ? 'KIP-2026-001' : field.key === 'previousSchool' ? 'SMPN 1' : 'Contoh');
+        return acc;
+      }, {} as Record<string, string>),
     },
     {
       'No Absen': 2,
@@ -40,6 +50,10 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'NIK SISWA': '8105066303110001',
       'NIK IBU': '8105064402830001',
       'NKK': '8105060704080984',
+      ...activeCustomFields.reduce((acc, field) => {
+        acc[field.name] = field.type === 'SELECT' ? (field.options?.[1] || field.options?.[0] || '') : (field.key === 'kip' ? '' : field.key === 'previousSchool' ? 'MTsN 2' : '');
+        return acc;
+      }, {} as Record<string, string>),
     },
     {
       'No Absen': 1,
@@ -57,30 +71,17 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
       'NIK SISWA': '',
       'NIK IBU': '',
       'NKK': '',
-    },
-    {
-      'No Absen': 2,
-      'Nama Lengkap': 'Citra Lestari',
-      'Kelas': sampleClass2,
-      'NIS': '20261004',
-      'NISN': '0085544332',
-      'Jenis Kelamin (L/P)': 'P',
-      'Tempat Lahir': 'Bandung',
-      'Tanggal Lahir (YYYY-MM-DD)': '2009-11-15',
-      'No HP Siswa': '081355667788',
-      'Nama Orang Tua / Wali': 'Iwan',
-      'No HP Ortu': '081377889900',
-      'Alamat': 'Jl. Riau No. 45',
-      'NIK SISWA': '',
-      'NIK IBU': '',
-      'NKK': '',
+      ...activeCustomFields.reduce((acc, field) => {
+        acc[field.name] = '';
+        return acc;
+      }, {} as Record<string, string>),
     },
   ];
 
   const ws = XLSX.utils.json_to_sheet(templateData);
 
   // Set friendly column widths
-  ws['!cols'] = [
+  const baseCols = [
     { wch: 10 }, // No Absen
     { wch: 28 }, // Nama Lengkap
     { wch: 14 }, // Kelas
@@ -98,6 +99,9 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
     { wch: 20 }, // NKK
   ];
 
+  const customCols = activeCustomFields.map(f => ({ wch: Math.max(16, f.name.length + 4) }));
+  ws['!cols'] = [...baseCols, ...customCols];
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Template Siswa');
 
@@ -110,6 +114,7 @@ export function downloadStudentExcelTemplate(availableClasses: ClassItem[] = [])
     { 'Panduan Impor Siswa Multi-Kelas': '5. Kolom Wajib: Hanya kolom "Nama Lengkap" yang wajib diisi. Kolom lainnya bebas diisi, dikosongkan, atau dihapus.' },
     { 'Panduan Impor Siswa Multi-Kelas': '6. Kolom Kelamin: Gunakan huruf "L" untuk Laki-laki dan "P" untuk Perempuan.' },
     { 'Panduan Impor Siswa Multi-Kelas': '7. Data Kependudukan (NIK Siswa, NIK Ibu, NKK): Bersifat opsional untuk sinkronisasi EMIS/Buku Induk. Tuliskan dalam format angka 16 digit.' },
+    { 'Panduan Impor Siswa Multi-Kelas': '8. Kolom Kustom Dinamis: Anda dapat menambahkan atau mengisi kolom kustom tambahan (misal: Nomor KIP, Asal Sekolah, Golongan Darah). Header Excel akan dipetakan otomatis!' },
   ];
   const guideWs = XLSX.utils.json_to_sheet(guideData);
   guideWs['!cols'] = [{ wch: 110 }];

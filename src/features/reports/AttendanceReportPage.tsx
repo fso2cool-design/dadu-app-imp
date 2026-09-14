@@ -4,10 +4,12 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { getMeetings } from '../../services/firestore/meetings';
-import { getAttendanceRecordsByMeetingIds } from '../../services/firestore/attendance';
+import { getAttendanceRecordsByAssignment, getAttendanceRecordsByMeetingIds } from '../../services/firestore/attendance';
 import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
 import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
-import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment } from '../../types';
+import { getSchoolSettings } from '../../services/firestore/settings';
+import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
+import { getTodayISO } from '../../utils/date';
 import * as XLSX from 'xlsx';
 import { 
   BarChart3, 
@@ -20,8 +22,10 @@ import {
   Layers, 
   Download,
   Percent,
-  Clock
+  Clock,
+  Share2
 } from 'lucide-react';
+import { ShareReportModal } from './ShareReportModal';
 
 interface StudentAttendanceSummary {
   enrollmentId: string;
@@ -40,8 +44,12 @@ interface StudentAttendanceSummary {
   presentPercentage: number;
 }
 
+// In-memory module cache for instant SWR report rendering
+const subjectReportCache = new Map<string, { meetings: Meeting[]; enrollments: Enrollment[]; records: AttendanceRecord[] }>();
+const homeroomReportCache = new Map<string, { enrollments: Enrollment[]; dailyRecords: DailyAttendanceRecord[] }>();
+
 export const AttendanceReportPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -55,6 +63,13 @@ export const AttendanceReportPage: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
+  }, [user]);
   
   // Subject Attendance State
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -74,16 +89,29 @@ export const AttendanceReportPage: React.FC = () => {
     }
   }, [teachingAssignments, classes, selectedAssignment, selectedClassId]);
 
-  // Fetch Subject Attendance Data
+  // Fetch Subject Attendance Data with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || reportMode !== 'SUBJECT' || !selectedAssignment) return;
 
+    const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
+    const cached = subjectReportCache.get(cacheKey);
+
+    if (cached) {
+      setMeetings(cached.meetings);
+      setEnrollments(cached.enrollments);
+      setAttendanceRecords(cached.records);
+      setLoading(false);
+    }
+
     const fetchSubjectData = async () => {
-      setLoading(true);
+      if (!cached) setLoading(true);
       try {
         // 1. Fetch meetings for this assignment
-        const mets = await getMeetings(user.uid, { teachingAssignmentId: selectedAssignment.id });
-        setMeetings(mets);
+        const mets = await getMeetings(user.uid, { 
+          teachingAssignmentId: selectedAssignment.id,
+          academicYearId: activeAcademicYear.id,
+          semester: activeSemester
+        });
 
         // 2. Fetch class enrollments
         const enrs = await getEnrollmentsByClass(
@@ -92,16 +120,30 @@ export const AttendanceReportPage: React.FC = () => {
           selectedAssignment.classId
         );
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
-        setEnrollments(enrs);
 
-        // 3. Fetch all attendance records across these meetings
+        // 3. Fetch all attendance records for this assignment (both independent and meeting-linked)
+        const recs = await getAttendanceRecordsByAssignment(user.uid, selectedAssignment.id);
+        
+        // If there are legacy records queried via meetingIds that might not have assignmentId stamped, merge them
+        let finalRecords = recs;
         if (mets.length > 0) {
           const mIds = mets.map(m => m.id);
-          const recs = await getAttendanceRecordsByMeetingIds(user.uid, mIds);
-          setAttendanceRecords(recs);
-        } else {
-          setAttendanceRecords([]);
+          const legacyRecs = await getAttendanceRecordsByMeetingIds(user.uid, mIds);
+          const map = new Map<string, AttendanceRecord>();
+          legacyRecs.forEach(r => map.set(r.id, r));
+          recs.forEach(r => map.set(r.id, r));
+          finalRecords = Array.from(map.values());
         }
+
+        subjectReportCache.set(cacheKey, {
+          meetings: mets,
+          enrollments: enrs,
+          records: finalRecords
+        });
+
+        setMeetings(mets);
+        setEnrollments(enrs);
+        setAttendanceRecords(finalRecords);
       } catch (err) {
         console.error('Error fetching subject attendance report data:', err);
       } finally {
@@ -110,14 +152,23 @@ export const AttendanceReportPage: React.FC = () => {
     };
 
     fetchSubjectData();
-  }, [user, activeAcademicYear, reportMode, selectedAssignment]);
+  }, [user, activeAcademicYear, activeSemester, reportMode, selectedAssignment]);
 
-  // Fetch Homeroom Daily Attendance Data
+  // Fetch Homeroom Daily Attendance Data with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || reportMode !== 'HOMEROOM' || !selectedClassId) return;
 
+    const cacheKey = `${user.uid}_${activeAcademicYear.id}_${selectedClassId}`;
+    const cached = homeroomReportCache.get(cacheKey);
+
+    if (cached) {
+      setEnrollments(cached.enrollments);
+      setDailyRecords(cached.dailyRecords);
+      setLoading(false);
+    }
+
     const fetchHomeroomData = async () => {
-      setLoading(true);
+      if (!cached) setLoading(true);
       try {
         // 1. Fetch class enrollments
         const enrs = await getEnrollmentsByClass(
@@ -126,10 +177,16 @@ export const AttendanceReportPage: React.FC = () => {
           selectedClassId
         );
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
-        setEnrollments(enrs);
 
-        // 2. Fetch all daily records for this class
-        const recs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId);
+        // 2. Fetch all daily records for this class within the active academic year
+        const recs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId, activeAcademicYear.id);
+
+        homeroomReportCache.set(cacheKey, {
+          enrollments: enrs,
+          dailyRecords: recs
+        });
+
+        setEnrollments(enrs);
         setDailyRecords(recs);
       } catch (err) {
         console.error('Error fetching homeroom attendance report data:', err);
@@ -145,7 +202,8 @@ export const AttendanceReportPage: React.FC = () => {
   const subjectSummaries = useMemo<StudentAttendanceSummary[]>(() => {
     if (reportMode !== 'SUBJECT') return [];
 
-    const totalM = meetings.length;
+    const distinctDates = new Set(attendanceRecords.map(r => r.date || r.meetingId).filter(Boolean));
+    const totalM = Math.max(meetings.length, distinctDates.size);
     return enrollments.map(enr => {
       const studentRecs = attendanceRecords.filter(r => r.studentId === enr.studentId);
       
@@ -366,31 +424,43 @@ export const AttendanceReportPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Mode Switcher */}
-        <div className="bg-slate-100 dark:bg-[#0c0e15] p-1 rounded-xl flex items-center border border-slate-200/80 dark:border-[#232838] self-start md:self-auto transition-colors">
+        {/* Mode Switcher & Share Link Action */}
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+          <div className="bg-slate-100 dark:bg-[#0c0e15] p-1 rounded-xl flex items-center border border-slate-200/80 dark:border-[#232838] transition-colors">
+            <button
+              type="button"
+              onClick={() => setReportMode('SUBJECT')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                reportMode === 'SUBJECT'
+                  ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <CalendarCheck2 className="w-3.5 h-3.5" />
+              Presensi Mapel
+            </button>
+            <button
+              type="button"
+              onClick={() => setReportMode('HOMEROOM')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                reportMode === 'HOMEROOM'
+                  ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              Presensi Harian Wali Kelas
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => setReportMode('SUBJECT')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              reportMode === 'SUBJECT'
-                ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+            onClick={() => setIsShareModalOpen(true)}
+            disabled={activeSummaries.length === 0}
+            className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
-            <CalendarCheck2 className="w-3.5 h-3.5" />
-            Presensi Mapel
-          </button>
-          <button
-            type="button"
-            onClick={() => setReportMode('HOMEROOM')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              reportMode === 'HOMEROOM'
-                ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            Presensi Harian Wali Kelas
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Bagikan Tautan Publik</span>
           </button>
         </div>
       </div>
@@ -610,6 +680,49 @@ export const AttendanceReportPage: React.FC = () => {
           </div>
         )}
       </PrintDocumentLayout>
+
+      {/* Public Share via Link Modal */}
+      <ShareReportModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        reportType="ATTENDANCE"
+        defaultTitle={documentTitle}
+        payload={{
+          reportType: 'ATTENDANCE',
+          title: documentTitle,
+          schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
+          schoolLevel: schoolSettings?.schoolLevel || 'MA',
+          kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
+          academicYearLabel: activeAcademicYear?.label || '2026/2027',
+          semester: activeSemester,
+          className: selectedClassObj?.name || 'Kelas',
+          subjectName: reportMode === 'SUBJECT' ? (selectedAssignment?.subjectName || '-') : undefined,
+          teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Pengampu',
+          teacherNip: schoolSettings?.teacherNip || '-',
+          headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
+          headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
+          generatedDate: getTodayISO(),
+          attendanceData: {
+            reportMode,
+            totalMeetingsOrDays: reportMode === 'SUBJECT' ? meetings.length : activeSummaries[0]?.totalMeetings || 0,
+            summaries: activeSummaries.map(s => ({
+              rollNumber: s.rollNumber,
+              nis: s.nis,
+              nisn: s.nisn,
+              name: s.name,
+              gender: s.gender,
+              presentCount: s.presentCount,
+              sickCount: s.sickCount,
+              permittedCount: s.permittedCount,
+              absentCount: s.absentCount,
+              dispensationCount: s.dispensationCount,
+              totalMeetings: s.totalMeetings,
+              presentPercentage: s.presentPercentage
+            })),
+            statistics: stats
+          }
+        }}
+      />
     </div>
   );
 };

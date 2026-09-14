@@ -9,8 +9,8 @@ import {
 } from '../../services/firestore/students';
 import { createEnrollment, updateEnrollment } from '../../services/firestore/enrollments';
 import { Modal } from '../../components/common/Modal';
-import { Student, GenderType, StudentStatus, Enrollment } from '../../types';
-import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck } from 'lucide-react';
+import { Student, GenderType, StudentStatus, Enrollment, StudentCustomFieldDefinition } from '../../types';
+import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck, Sliders } from 'lucide-react';
 
 interface StudentFormModalProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ interface StudentFormModalProps {
   existingEnrollment?: Enrollment | null;
   defaultClassId?: string;
   suggestedRollNumber?: number;
+  customFields?: StudentCustomFieldDefinition[];
 }
 
 export const StudentFormModal: React.FC<StudentFormModalProps> = ({
@@ -30,6 +31,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
   existingEnrollment,
   defaultClassId,
   suggestedRollNumber,
+  customFields = [],
 }) => {
   const { user } = useAuth();
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
@@ -52,6 +54,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
     nikSiswa: '',
     nikIbu: '',
     nkk: '',
+    customAttributes: {} as Record<string, string>,
   });
 
   const [enrollClassId, setEnrollClassId] = useState<string>('');
@@ -93,6 +96,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         nikSiswa: studentToEdit.nikSiswa || '',
         nikIbu: studentToEdit.nikIbu || '',
         nkk: studentToEdit.nkk || '',
+        customAttributes: studentToEdit.customAttributes || {},
       });
       if (existingEnrollment) {
         setEnrollClassId(existingEnrollment.classId);
@@ -117,13 +121,14 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         nikSiswa: '',
         nikIbu: '',
         nkk: '',
+        customAttributes: {},
       });
       setEnrollClassId(defaultClassId || (classes[0]?.id || ''));
       setRollNumber(suggestedRollNumber || 1);
     }
   }, [studentToEdit, existingEnrollment, defaultClassId, suggestedRollNumber, classes, isOpen]);
 
-  const [activeTab, setActiveTab] = useState<'IDENTITY' | 'ENROLLMENT' | 'CONTACT'>('IDENTITY');
+  const [activeTab, setActiveTab] = useState<'IDENTITY' | 'ENROLLMENT' | 'CONTACT' | 'CUSTOM'>('IDENTITY');
 
   useEffect(() => {
     if (isOpen) {
@@ -249,6 +254,19 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
           >
             <Phone className="w-3.5 h-3.5" />
             <span>Kontak & Wali</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('CUSTOM')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              activeTab === 'CUSTOM'
+                ? 'bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Kolom Kustom ({customFields.length})</span>
           </button>
         </div>
 
@@ -516,6 +534,114 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
               />
             </div>
+          </div>
+        )}
+
+        {/* Tab 4: Kolom Kustom Dinamis */}
+        {activeTab === 'CUSTOM' && (
+          <div className="space-y-3 animate-in fade-in duration-150">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
+              <span>Kolom tambahan di bawah ini disesuaikan dengan kebutuhan madrasah / sekolah Anda.</span>
+            </div>
+
+            {customFields.length === 0 ? (
+              <div className="p-8 text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-400">
+                Belum ada kolom kustom yang didefinisikan. Anda dapat menambahkannya melalui tombol "Kolom Kustom" di toolbar halaman siswa.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {customFields.map((field) => {
+                  const currentValue = formData.customAttributes?.[field.key] ?? formData.customAttributes?.[field.name] ?? '';
+
+                  return (
+                    <div key={field.id} className="space-y-1">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        {field.name}
+                        {field.description && (
+                          <span className="text-[10px] text-slate-400 font-normal ml-1.5">
+                            ({field.description})
+                          </span>
+                        )}
+                      </label>
+
+                      {field.type === 'SELECT' ? (
+                        <select
+                          value={currentValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              customAttributes: {
+                                ...prev.customAttributes,
+                                [field.key]: val,
+                              },
+                            }));
+                          }}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer"
+                        >
+                          <option value="">-- Pilih {field.name} --</option>
+                          {field.options?.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : field.type === 'DATE' ? (
+                        <input
+                          type="date"
+                          value={currentValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              customAttributes: {
+                                ...prev.customAttributes,
+                                [field.key]: val,
+                              },
+                            }));
+                          }}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                        />
+                      ) : field.type === 'NUMBER' ? (
+                        <input
+                          type="number"
+                          value={currentValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              customAttributes: {
+                                ...prev.customAttributes,
+                                [field.key]: val,
+                              },
+                            }));
+                          }}
+                          placeholder={`Masukkan ${field.name}`}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={currentValue}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              customAttributes: {
+                                ...prev.customAttributes,
+                                [field.key]: val,
+                              },
+                            }));
+                          }}
+                          placeholder={`Masukkan ${field.name}`}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

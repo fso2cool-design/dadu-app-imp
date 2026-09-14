@@ -5,7 +5,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { atomicImportStudentsWithEnrollment, ImportStudentItem, getStudents } from '../../services/firestore/students';
 import { Modal } from '../../components/common/Modal';
 import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle, RefreshCw, Sparkles, ShieldCheck } from 'lucide-react';
-import { GenderType, ClassItem, Student } from '../../types';
+import { GenderType, ClassItem, Student, StudentCustomFieldDefinition } from '../../types';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 import { sanitizeExcelDate, getRowValueByAliases } from '../../utils/excelImportSanitizer';
 
@@ -14,6 +14,7 @@ interface ImportStudentsModalProps {
   onClose: () => void;
   onSuccess: () => void;
   targetClassId?: string;
+  customFields?: StudentCustomFieldDefinition[];
 }
 
 interface ParsedRow {
@@ -36,6 +37,7 @@ interface ParsedRow {
   nikSiswa?: string;
   nikIbu?: string;
   nkk?: string;
+  customAttributes?: Record<string, string>;
   isExistingInDb?: boolean;
   existingStudentName?: string;
   isValid: boolean;
@@ -47,6 +49,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   onClose,
   onSuccess,
   targetClassId,
+  customFields = [],
 }) => {
   const { user } = useAuth();
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
@@ -106,7 +109,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   };
 
   const handleDownload = () => {
-    downloadStudentExcelTemplate(activeClasses);
+    downloadStudentExcelTemplate(activeClasses, customFields);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,6 +220,24 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
           ]);
           const nkk = rawNkk ? String(rawNkk).replace(/[^0-9]/g, '').slice(0, 16) : '';
 
+          // Ekstrak Kolom Kustom Tambahan Dinamis
+          const rowCustomAttributes: Record<string, string> = {};
+          if (customFields && customFields.length > 0) {
+            customFields.forEach((cf) => {
+              const aliases = [
+                cf.name,
+                cf.key,
+                cf.name.toLowerCase(),
+                cf.key.toLowerCase(),
+                cf.name.toUpperCase(),
+              ];
+              const val = getRowValueByAliases(row, aliases);
+              if (val !== undefined && val !== null && String(val).trim() !== '') {
+                rowCustomAttributes[cf.key] = String(val).trim();
+              }
+            });
+          }
+
           // Deteksi Kelas Otomatis
           let targetId = '';
           let targetName = '';
@@ -295,6 +316,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             nikSiswa,
             nikIbu,
             nkk,
+            customAttributes: rowCustomAttributes,
             isExistingInDb,
             existingStudentName,
             isValid,
@@ -412,6 +434,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         nikSiswa: r.nikSiswa,
         nikIbu: r.nikIbu,
         nkk: r.nkk,
+        customAttributes: r.customAttributes || {},
         notes: r.rawClassName ? `Diimpor via Excel (Kelas asal: ${r.rawClassName})` : 'Diimpor via Excel',
         status: 'ACTIVE' as const,
         rollNumber: r.rollNumber,
@@ -715,6 +738,14 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                           {r.isExistingInDb && (
                             <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-200" title={`Siswa sudah ada di database (${r.existingStudentName || ''})`}>
                               Ada di DB
+                            </span>
+                          )}
+                          {r.customAttributes && Object.keys(r.customAttributes).length > 0 && (
+                            <span 
+                              className="text-[9px] bg-purple-50 text-purple-700 font-semibold px-1.5 py-0.5 rounded border border-purple-200" 
+                              title={`Kolom kustom terdeteksi: ${Object.keys(r.customAttributes).join(', ')}`}
+                            >
+                              +{Object.keys(r.customAttributes).length} Kustom
                             </span>
                           )}
                         </div>

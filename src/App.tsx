@@ -17,6 +17,7 @@ import { PhaseShellPage } from './components/common/PhaseShellPage';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { FeedbackModal } from './components/common/FeedbackModal';
 import { getUnreadFeedbackCount } from './services/firestore/feedbacks';
+import { PublicReportViewerPage } from './features/public/PublicReportViewerPage';
 
 function MainApp() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -26,6 +27,24 @@ function MainApp() {
   const [isAdminView, setIsAdminView] = useState<boolean | null>(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [adminBadgeCount, setAdminBadgeCount] = useState<number>(0);
+
+  // Check for public share token in URL query params: ?share=<token> or /share/<token>
+  const [publicShareToken, setPublicShareToken] = useState<string | null>(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareParam = urlParams.get('share');
+      if (shareParam) return shareParam;
+      
+      const pathParts = window.location.pathname.split('/');
+      const shareIdx = pathParts.indexOf('share');
+      if (shareIdx !== -1 && pathParts[shareIdx + 1]) {
+        return pathParts[shareIdx + 1];
+      }
+    } catch {
+      // Ignore
+    }
+    return null;
+  });
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
 
@@ -58,6 +77,11 @@ function MainApp() {
     setRouteState(state || null);
     setCurrentRoute(route);
   };
+
+  // If public share token is present in the URL, directly render read-only public viewer
+  if (publicShareToken) {
+    return <PublicReportViewerPage token={publicShareToken} />;
+  }
 
   if (authLoading) {
     return <LoadingScreen message="Memeriksa sesi login..." />;
@@ -112,6 +136,8 @@ function MainApp() {
       case 'teacher':
       case 'teaching':
       case 'teaching-classes':
+      case 'teaching-schedule':
+      case 'schedule':
       case 'meetings':
       case 'attendance-subject':
       case 'grades':
@@ -126,6 +152,8 @@ function MainApp() {
       case 'homeroom-attendance-teacher':
       case 'homeroom-students':
       case 'homeroom-notes':
+      case 'homeroom-class-schedule':
+      case 'homeroom-schedule':
         return <HomeroomHubPage initialTab={currentRoute} routeState={routeState} onNavigate={handleNavigate} />;
       case 'reports':
       case 'reports-center':

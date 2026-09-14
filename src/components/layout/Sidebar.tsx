@@ -11,10 +11,41 @@ import {
   X,
   PanelLeftClose,
   PanelLeftOpen,
+  CalendarCheck2,
+  CheckSquare,
+  Award,
+  Layers,
+  CalendarDays,
+  CalendarRange,
+  Clock,
+  UserCheck,
+  FileSpreadsheet,
+  StickyNote,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { useAppTheme } from '../../context/ThemeContext';
 import { DaduLogo } from '../common/DaduLogo';
 import { APP_CONFIG } from '../../constants/app';
+
+interface SubMenuItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badgeCount?: number;
+  subItems?: SubMenuItem[];
+}
+
+interface MenuGroup {
+  groupTitle: string | null;
+  items: MenuItem[];
+}
 
 interface SidebarProps {
   currentRoute: string;
@@ -47,6 +78,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<{ label: string; top: number } | null>(null);
 
+  // Expanded accordion groups state (Single open accordion model)
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
+    teacher: true,
+    homeroom: false,
+    master: false,
+    settings: false,
+  });
+
+  // Automatically expand group if currentRoute belongs to it, and auto-collapse others
+  useEffect(() => {
+    if (currentRoute === 'teacher' || currentRoute === 'meetings' || currentRoute === 'attendance-subject' || currentRoute === 'grades' || currentRoute === 'teaching-classes' || currentRoute.startsWith('teacher-')) {
+      setExpandedGroups({ teacher: true, homeroom: false, master: false, settings: false });
+    } else if (currentRoute === 'homeroom' || currentRoute.startsWith('homeroom-')) {
+      setExpandedGroups({ teacher: false, homeroom: true, master: false, settings: false });
+    } else if (currentRoute === 'master' || currentRoute.startsWith('master-')) {
+      setExpandedGroups({ teacher: false, homeroom: false, master: true, settings: false });
+    } else if (currentRoute === 'settings' || currentRoute.startsWith('settings-')) {
+      setExpandedGroups({ teacher: false, homeroom: false, master: false, settings: true });
+    } else if (currentRoute === 'dashboard' || currentRoute.startsWith('reports-')) {
+      // Keep menus neatly closed on independent standalone pages
+      setExpandedGroups({ teacher: false, homeroom: false, master: false, settings: false });
+    }
+  }, [currentRoute]);
+
   // Always reset hover state when sidebar compact mode toggles
   useEffect(() => {
     setHoveredTopToggle(false);
@@ -57,31 +112,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Dynamic accent style for active menu item based on theme
   const getActiveStyle = () => {
     if (isDark) {
-      return 'bg-cyan-950/60 text-cyan-400 font-bold border border-cyan-500/50 shadow-[0_0_12px_rgba(0,229,255,0.25)]';
+      return 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-400/70 shadow-[0_0_14px_rgba(0,229,255,0.35)]';
     }
-    return 'bg-orange-500 text-white font-bold shadow-sm shadow-orange-500/30';
+    return 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
   };
 
-  const menuGroups = [
+  const getSubActiveStyle = () => {
+    if (isDark) {
+      return 'bg-cyan-950/70 text-cyan-300 font-semibold border border-cyan-500/40 shadow-[0_0_10px_rgba(0,229,255,0.2)]';
+    }
+    return 'bg-orange-50 text-orange-600 font-semibold border border-orange-300/80 shadow-xs shadow-orange-500/10';
+  };
+
+  const menuGroups: MenuGroup[] = [
     {
       groupTitle: null,
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { id: 'teacher', label: 'Ruang Guru', icon: BookOpen },
-        { id: 'homeroom', label: 'Ruang Wali Kelas', icon: Users },
+        { 
+          id: 'teacher', 
+          label: 'Ruang Guru', 
+          icon: BookOpen,
+          subItems: [
+            { id: 'teaching-classes', label: 'Rombel Ampuan', icon: Layers },
+            { id: 'teaching-schedule', label: 'Jadwal Mengajar', icon: CalendarDays },
+            { id: 'meetings', label: 'Agenda & Jurnal KBM', icon: CalendarCheck2 },
+            { id: 'attendance-subject', label: 'Presensi Sesi Mapel', icon: CheckSquare },
+            { id: 'grades', label: 'Penilaian Siswa', icon: Award },
+          ]
+        },
+        { 
+          id: 'homeroom', 
+          label: 'Ruang Wali Kelas', 
+          icon: Users,
+          subItems: [
+            { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: FileSpreadsheet },
+            { id: 'homeroom-class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
+            { id: 'homeroom-teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
+            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarRange },
+          ]
+        },
       ],
     },
     {
       groupTitle: 'LAPORAN & DOKUMEN',
       items: [
-        { id: 'reports-center', label: 'Pusat Laporan', icon: Printer },
+        { id: 'reports-center', label: 'Pusat Laporan & Cetak', icon: Printer },
       ],
     },
     {
       groupTitle: 'PENGELOLAAN',
       items: [
-        { id: 'master', label: 'Data Master', icon: Database },
-        { id: 'settings', label: 'Pengaturan', icon: Sliders },
+        { 
+          id: 'master', 
+          label: 'Data Master', 
+          icon: Database,
+          subItems: [
+            { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarDays },
+            { id: 'master-classes', label: 'Data Rombel / Kelas', icon: Layers },
+            { id: 'master-students', label: 'Data Siswa Terpadu', icon: Users },
+            { id: 'master-subjects', label: 'Mata Pelajaran', icon: BookOpen },
+            { id: 'master-teaching', label: 'Plotting Mengajar', icon: Clock },
+          ]
+        },
+        { 
+          id: 'settings', 
+          label: 'Pengaturan', 
+          icon: Sliders,
+          subItems: [
+            { id: 'settings-profile', label: 'Profil & Madrasah', icon: Sliders },
+            { id: 'settings-backup', label: 'Cadangkan & Pulihkan', icon: Database },
+          ]
+        },
       ],
     },
     ...(!isAdmin ? [{
@@ -92,17 +194,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }] : []),
   ];
 
-  const handleItemClick = (id: string) => {
+  const handleItemClick = (id: string, hasSubItems?: boolean) => {
     if (id === 'feedback-modal') {
       if (onOpenFeedbackModal) onOpenFeedbackModal();
       onCloseMobile();
       return;
     }
+
+    if (hasSubItems && !isCompact) {
+      // Toggle expansion (single-open accordion behavior)
+      setExpandedGroups(prev => {
+        const isCurrentlyOpen = Boolean(prev[id]);
+        return {
+          teacher: false,
+          homeroom: false,
+          master: false,
+          settings: false,
+          [id]: !isCurrentlyOpen,
+        };
+      });
+    }
+
     onNavigate(id);
+    if (!hasSubItems || isCompact) {
+      onCloseMobile();
+    }
+  };
+
+  const handleSubItemClick = (subId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onNavigate(subId);
     onCloseMobile();
   };
 
+  const toggleGroupCollapse = (groupId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedGroups(prev => {
+      const isCurrentlyOpen = Boolean(prev[groupId]);
+      return {
+        teacher: false,
+        homeroom: false,
+        master: false,
+        settings: false,
+        [groupId]: !isCurrentlyOpen,
+      };
+    });
+  };
+
   const activeStyle = getActiveStyle();
+  const subActiveStyle = getSubActiveStyle();
+
+  const isSubItemActive = (subId: string) => {
+    if (currentRoute === subId) return true;
+    if (subId === 'meetings' && (currentRoute === 'meetings' || currentRoute === 'teacher-journal')) return true;
+    if (subId === 'attendance-subject' && (currentRoute === 'attendance-subject' || currentRoute === 'teacher-attendance')) return true;
+    if (subId === 'grades' && (currentRoute === 'grades' || currentRoute === 'teacher-grades')) return true;
+    if (subId === 'teaching-classes' && (currentRoute === 'teaching-classes' || currentRoute === 'teacher-classes')) return true;
+    if (subId === 'homeroom-class-schedule' && (currentRoute === 'homeroom-class-schedule' || currentRoute === 'homeroom-schedule')) return true;
+    if (subId === 'homeroom-daily-attendance' && (currentRoute === 'homeroom-daily-attendance' || currentRoute === 'homeroom-attendance-daily')) return true;
+    if (subId === 'homeroom-monthly-attendance' && (currentRoute === 'homeroom-monthly-attendance' || currentRoute === 'homeroom-attendance-monthly')) return true;
+    if (subId === 'homeroom-teacher-attendance' && (currentRoute === 'homeroom-teacher-attendance' || currentRoute === 'homeroom-attendance-teacher')) return true;
+    if (subId === 'homeroom-students' && currentRoute === 'homeroom-students') return true;
+    if (subId === 'homeroom-notes' && currentRoute === 'homeroom-notes') return true;
+    if (subId.startsWith('master-') && currentRoute === subId) return true;
+    if (subId.startsWith('settings-') && currentRoute === subId) return true;
+    return false;
+  };
 
   const isItemActive = (itemId: string) => {
     if (currentRoute === itemId) return true;
@@ -217,56 +374,156 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
             {group.items.map((item) => {
               const Icon = item.icon;
-              const isActive = isItemActive(item.id);
+              const hasSub = item.subItems && item.subItems.length > 0;
+              const isExpanded = !compact && hasSub && Boolean(expandedGroups[item.id]);
+              const isGroupActive = isItemActive(item.id);
+              const isDirectParentActive = currentRoute === item.id;
 
               return (
-                <div 
-                  key={item.id} 
-                  className="relative"
-                  onMouseEnter={(e) => {
-                    if (compact) {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setActiveTooltip({
-                        label: item.label,
-                        top: rect.top + rect.height / 2,
-                      });
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (compact) {
-                      setActiveTooltip(null);
-                    }
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTooltip(null);
-                      handleItemClick(item.id);
+                <div key={item.id} className="space-y-0.5">
+                  <div 
+                    className="relative"
+                    onMouseEnter={(e) => {
+                      if (compact) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setActiveTooltip({
+                          label: item.label,
+                          top: rect.top + rect.height / 2,
+                        });
+                      }
                     }}
-                    className={`w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                      compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
-                    } ${
-                      isActive
-                        ? activeStyle
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 dark:hover:bg-[#141722] dark:hover:text-cyan-300 active:scale-[0.98]'
-                    }`}
+                    onMouseLeave={() => {
+                      if (compact) {
+                        setActiveTooltip(null);
+                      }
+                    }}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? '' : 'text-slate-400'}`} />
-                    {!compact && (
-                      <div className="flex items-center justify-between flex-1 min-w-0">
-                        <span className="truncate">{item.label}</span>
-                        {'badgeCount' in item && typeof (item as any).badgeCount === 'number' && (item as any).badgeCount > 0 ? (
-                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0">
-                            {(item as any).badgeCount}
-                          </span>
-                        ) : null}
-                      </div>
-                    )}
-                    {compact && 'badgeCount' in item && typeof (item as any).badgeCount === 'number' && (item as any).badgeCount > 0 ? (
-                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-900 animate-pulse" />
-                    ) : null}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTooltip(null);
+                        handleItemClick(item.id, hasSub);
+                      }}
+                      className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                        compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
+                      } ${
+                        isDirectParentActive
+                          ? isDark ? 'bg-cyan-950/80 text-cyan-300 font-bold active-nav-glow-dark' : 'bg-orange-500 text-white font-bold active-nav-glow-light'
+                          : isGroupActive
+                            ? 'bg-slate-800/70 dark:bg-[#141722] text-white font-semibold'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 dark:hover:bg-[#141722] dark:hover:text-cyan-300 active:scale-[0.98]'
+                      }`}
+                    >
+                      {/* Animated Border Light Trail for standalone active parent item */}
+                      {isDirectParentActive && (
+                        <>
+                          <div
+                            className="pointer-events-none absolute -inset-[150%] animate-border-beam opacity-90"
+                            style={{
+                              background: isDark
+                                ? 'conic-gradient(from 0deg, transparent 0 310deg, #00e5ff 340deg, transparent 360deg)'
+                                : 'conic-gradient(from 0deg, transparent 0 310deg, #ffffff 340deg, transparent 360deg)',
+                            }}
+                          />
+                          <div
+                            className={`pointer-events-none absolute inset-[1.5px] rounded-[10px] ${
+                              isDark ? 'bg-[#0c121e]/95' : 'bg-orange-500'
+                            }`}
+                          />
+                        </>
+                      )}
+
+                      <span className="relative z-10 flex items-center w-full min-w-0">
+                        <Icon className={`w-4 h-4 shrink-0 ${isDirectParentActive || isGroupActive ? 'text-orange-400 dark:text-cyan-400' : 'text-slate-400'}`} />
+                        {!compact && (
+                          <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
+                            <span className="truncate">{item.label}</span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {item.badgeCount && item.badgeCount > 0 ? (
+                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                                  {item.badgeCount}
+                                </span>
+                              ) : null}
+                              {hasSub && (
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={(e) => toggleGroupCollapse(item.id, e)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      toggleGroupCollapse(item.id, e as any);
+                                    }
+                                  }}
+                                  className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                  aria-label={isExpanded ? 'Ciutkan menu' : 'Buka menu'}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </span>
+
+                      {compact && item.badgeCount && item.badgeCount > 0 ? (
+                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-900 animate-pulse z-20" />
+                      ) : null}
+                    </button>
+                  </div>
+
+                  {/* Render Accordion Sub-items when expanded */}
+                  {isExpanded && item.subItems && (
+                    <div className="ml-5 pl-2 border-l border-slate-800/80 dark:border-[#202534] space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
+                      {item.subItems.map((sub) => {
+                        const SubIcon = sub.icon;
+                        const isSubActive = isSubItemActive(sub.id);
+
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={(e) => handleSubItemClick(sub.id, e)}
+                            className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
+                              isSubActive
+                                ? isDark 
+                                  ? 'bg-cyan-950/80 text-cyan-300 font-semibold active-nav-glow-dark' 
+                                  : 'bg-orange-50 text-orange-600 font-semibold active-nav-glow-light'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 dark:hover:bg-[#141722]/60 dark:hover:text-cyan-200'
+                            }`}
+                          >
+                            {/* Glowing Animated Border Beam around Active Sub-menu item */}
+                            {isSubActive && (
+                              <>
+                                <div
+                                  className="pointer-events-none absolute -inset-[180%] animate-border-beam opacity-95"
+                                  style={{
+                                    background: isDark
+                                      ? 'conic-gradient(from 0deg, transparent 0 300deg, #00e5ff 335deg, #a5f3fc 350deg, transparent 360deg)'
+                                      : 'conic-gradient(from 0deg, transparent 0 300deg, #f97316 335deg, #fdba74 350deg, transparent 360deg)',
+                                  }}
+                                />
+                                <div
+                                  className={`pointer-events-none absolute inset-[1.5px] rounded-[7px] ${
+                                    isDark ? 'bg-[#0f1422]/95' : 'bg-orange-50/95'
+                                  }`}
+                                />
+                              </>
+                            )}
+
+                            <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
+                              <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-orange-500 dark:text-cyan-400' : 'text-slate-500'}`} />
+                              <span className="truncate flex-1">{sub.label}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}

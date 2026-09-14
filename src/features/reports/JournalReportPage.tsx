@@ -4,8 +4,10 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { getMeetings } from '../../services/firestore/meetings';
-import { TeachingAssignment, Meeting } from '../../types';
-import { formatDateWithDay } from '../../utils/date';
+import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
+import { formatDateWithDay, getTodayISO } from '../../utils/date';
+import { getSchoolSettings } from '../../services/firestore/settings';
+import { ShareReportModal } from './ShareReportModal';
 import * as XLSX from 'xlsx';
 import { 
   CalendarCheck2, 
@@ -16,8 +18,12 @@ import {
   CheckCircle2, 
   FileSpreadsheet, 
   Clock,
-  Sparkles
+  Sparkles,
+  Share2
 } from 'lucide-react';
+
+// In-memory module cache for instant SWR journal report rendering
+const journalReportCache = new Map<string, Meeting[]>();
 
 export const JournalReportPage: React.FC = () => {
   const { user } = useAuth();
@@ -32,6 +38,13 @@ export const JournalReportPage: React.FC = () => {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
+  }, [user]);
 
   // Initialize selected assignment
   useEffect(() => {
@@ -40,15 +53,28 @@ export const JournalReportPage: React.FC = () => {
     }
   }, [teachingAssignments, selectedAssignment]);
 
-  // Fetch meetings
+  // Fetch meetings with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !selectedAssignment) return;
 
+    const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
+    const cached = journalReportCache.get(cacheKey);
+
+    if (cached) {
+      setMeetings(cached);
+      setLoading(false);
+    }
+
     const fetchJournalData = async () => {
-      setLoading(true);
+      if (!cached) setLoading(true);
       try {
-        const mets = await getMeetings(user.uid, { teachingAssignmentId: selectedAssignment.id });
+        const mets = await getMeetings(user.uid, { 
+          teachingAssignmentId: selectedAssignment.id,
+          academicYearId: activeAcademicYear.id,
+          semester: activeSemester
+        });
         mets.sort((a, b) => (a.meetingNumber || 0) - (b.meetingNumber || 0));
+        journalReportCache.set(cacheKey, mets);
         setMeetings(mets);
       } catch (err) {
         console.error('Error fetching journal report data:', err);
@@ -58,7 +84,7 @@ export const JournalReportPage: React.FC = () => {
     };
 
     fetchJournalData();
-  }, [user, activeAcademicYear, selectedAssignment]);
+  }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
 
   // Filtered meetings
   const filteredMeetings = useMemo(() => {
@@ -155,6 +181,18 @@ export const JournalReportPage: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
             Dokumen resmi rekapitulasi pelaksanaan pembelajaran (KBM), materi, dan absensi per semester.
           </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsShareModalOpen(true)}
+            disabled={meetings.length === 0}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span>Bagikan Tautan Publik</span>
+          </button>
         </div>
       </div>
 
@@ -326,6 +364,44 @@ export const JournalReportPage: React.FC = () => {
           </div>
         )}
       </PrintDocumentLayout>
+
+      {/* Public Share via Link Modal */}
+      <ShareReportModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        reportType="JOURNAL"
+        defaultTitle="BUKU JURNAL AGENDA MENGAJAR GURU"
+        payload={{
+          reportType: 'JOURNAL',
+          title: 'BUKU JURNAL AGENDA MENGAJAR GURU',
+          schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
+          schoolLevel: schoolSettings?.schoolLevel || 'MA',
+          kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
+          academicYearLabel: activeAcademicYear?.label || '2026/2027',
+          semester: activeSemester,
+          className: selectedAssignment?.className || 'Kelas',
+          subjectName: selectedAssignment?.subjectName || '-',
+          teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Mata Pelajaran',
+          teacherNip: schoolSettings?.teacherNip || '-',
+          headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
+          headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
+          generatedDate: getTodayISO(),
+          journalData: {
+            meetings: meetings.map((m, idx) => ({
+              meetingNumber: m.meetingNumber || idx + 1,
+              date: m.date,
+              topic: m.topic || 'Kegiatan Pembelajaran',
+              learningObjectives: m.learningObjectives,
+              activities: m.activities,
+              method: m.method,
+              status: m.status,
+              attendancePresent: m.attendanceSummary?.present,
+              attendanceAbsent: m.attendanceSummary?.absent,
+              notes: m.notes
+            }))
+          }
+        }}
+      />
     </div>
   );
 };

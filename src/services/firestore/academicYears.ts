@@ -79,6 +79,7 @@ export interface AcademicYearUsageSummary {
     enrollments: number;
     teachingAssignments: number;
     meetings: number;
+    attendanceRecords: number;
     dailyAttendanceSessions: number;
     dailyAttendanceRecords: number;
     assessmentItems: number;
@@ -96,6 +97,7 @@ export async function checkAcademicYearUsage(
     enrSnap,
     taSnap,
     meetSnap,
+    attSnap,
     dailySessSnap,
     dailyAttSnap,
     aiSnap,
@@ -106,6 +108,7 @@ export async function checkAcademicYearUsage(
     getDocs(query(collection(db, 'users', uid, 'enrollments'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'teachingAssignments'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'meetings'), where('academicYearId', '==', yearId))),
+    getDocs(query(collection(db, 'users', uid, 'attendanceRecords'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'dailyAttendanceSessions'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'dailyAttendanceRecords'), where('academicYearId', '==', yearId))),
     getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('academicYearId', '==', yearId))),
@@ -118,6 +121,7 @@ export async function checkAcademicYearUsage(
     enrollments: enrSnap.size,
     teachingAssignments: taSnap.size,
     meetings: meetSnap.size,
+    attendanceRecords: attSnap.size,
     dailyAttendanceSessions: dailySessSnap.size,
     dailyAttendanceRecords: dailyAttSnap.size,
     assessmentItems: aiSnap.size,
@@ -130,6 +134,7 @@ export async function checkAcademicYearUsage(
   if (counts.enrollments > 0) reasons.push(`${counts.enrollments} data penempatan siswa`);
   if (counts.teachingAssignments > 0) reasons.push(`${counts.teachingAssignments} tugas mengajar`);
   if (counts.meetings > 0) reasons.push(`${counts.meetings} jurnal pertemuan tatap muka`);
+  if (counts.attendanceRecords > 0) reasons.push(`${counts.attendanceRecords} rekam presensi mata pelajaran`);
   if (counts.dailyAttendanceSessions > 0 || counts.dailyAttendanceRecords > 0) {
     reasons.push(`${counts.dailyAttendanceSessions + counts.dailyAttendanceRecords} rekam presensi harian`);
   }

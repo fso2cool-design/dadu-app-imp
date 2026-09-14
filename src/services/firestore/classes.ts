@@ -70,6 +70,7 @@ export async function checkClassUsage(uid: string, classId: string): Promise<Cla
     enrSnap,
     taSnap,
     meetSnap,
+    subjAttSnap,
     attSessSnap,
     attRecSnap,
     assessSnap,
@@ -78,6 +79,7 @@ export async function checkClassUsage(uid: string, classId: string): Promise<Cla
     getDocs(query(collection(db, 'users', uid, 'enrollments'), where('classId', '==', classId), limit(1))),
     getDocs(query(collection(db, 'users', uid, 'teachingAssignments'), where('classId', '==', classId), limit(1))),
     getDocs(query(collection(db, 'users', uid, 'meetings'), where('classId', '==', classId), limit(1))),
+    getDocs(query(collection(db, 'users', uid, 'attendanceRecords'), where('classId', '==', classId), limit(1))),
     getDocs(query(collection(db, 'users', uid, 'dailyAttendanceSessions'), where('classId', '==', classId), limit(1))),
     getDocs(query(collection(db, 'users', uid, 'dailyAttendanceRecords'), where('classId', '==', classId), limit(1))),
     getDocs(query(collection(db, 'users', uid, 'assessmentItems'), where('classId', '==', classId), limit(1))),
@@ -89,6 +91,7 @@ export async function checkClassUsage(uid: string, classId: string): Promise<Cla
     enrollments: enrSnap.size,
     teachingAssignments: taSnap.size,
     meetings: meetSnap.size,
+    subjectAttendance: subjAttSnap.size,
     dailyAttendance: attSessSnap.size + attRecSnap.size,
     assessmentItems: assessSnap.size,
     studentNotes: notesSnap.size,
@@ -97,6 +100,7 @@ export async function checkClassUsage(uid: string, classId: string): Promise<Cla
   if (counts.enrollments > 0) reasons.push('Terdapat data penempatan siswa (enrollment)');
   if (counts.teachingAssignments > 0) reasons.push('Terdapat pembagian tugas mengajar guru');
   if (counts.meetings > 0) reasons.push('Terdapat jurnal/agenda pertemuan mengajar');
+  if (counts.subjectAttendance > 0) reasons.push('Terdapat riwayat presensi mata pelajaran');
   if (counts.dailyAttendance > 0) reasons.push('Terdapat riwayat presensi harian');
   if (counts.assessmentItems > 0) reasons.push('Terdapat butir asesmen dan penilaian nilai siswa');
   if (counts.studentNotes > 0) reasons.push('Terdapat catatan pembinaan siswa');
