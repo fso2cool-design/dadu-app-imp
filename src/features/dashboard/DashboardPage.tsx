@@ -339,12 +339,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* 1. Header Greeting & Academic Context */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
             Selamat datang, {teacherName} <span className="inline-block animate-bounce">👋</span>
           </h1>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-zinc-400 mt-1 flex items-center gap-2">
+          <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-indigo-600 dark:text-red-400" />
             <span>{formatDateWithDay(todayISO)}</span>
             <span className="text-slate-300 dark:text-neutral-700">•</span>
@@ -355,7 +355,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-xs font-semibold text-slate-700 dark:text-zinc-300">
+          <span className="px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-neutral-900 border border-orange-200/80 dark:border-neutral-800 text-xs font-bold text-orange-700 dark:text-zinc-300 shadow-2xs">
             {teachingAssignments.length} Kelas Diampu
           </span>
         </div>
@@ -364,18 +364,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       {/* 2. ⚡ AKSI CEPAT (Main Action Buttons) */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+          <h2 className="text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-amber-500" />
             Aksi Cepat
           </h2>
-          <span className="text-[11px] text-slate-400 dark:text-zinc-500">Pintasan administrasi guru</span>
+          <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-500">Pintasan administrasi guru</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <button
             type="button"
             onClick={() => onNavigate('attendance-subject')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-red-500/50 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-red-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
           >
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-red-950/60 dark:text-red-400 border border-indigo-100 dark:border-red-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <CheckSquare className="w-5 h-5" />
@@ -384,7 +384,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-red-400 block truncate">
                 + Presensi Sesi
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-400 block truncate">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
                 Kehadiran tatap muka
               </span>
             </div>
@@ -393,7 +393,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('meetings')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <CalendarCheck2 className="w-5 h-5" />
@@ -402,7 +402,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
                 + Jurnal Mengajar
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-400 block truncate">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
                 Materi & kegiatan
               </span>
             </div>
@@ -411,7 +411,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('grades')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-amber-300 dark:hover:border-amber-500/50 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-amber-300 dark:hover:border-amber-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
           >
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <Award className="w-5 h-5" />
@@ -420,7 +420,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
                 + Input Nilai
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-400 block truncate">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
                 Formatif & sumatif
               </span>
             </div>
@@ -429,7 +429,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('homeroom-attendance-daily')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-500/50 shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
           >
             <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400 border border-sky-100 dark:border-sky-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <CalendarDays className="w-5 h-5" />
@@ -438,7 +438,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 block truncate">
                 Presensi Harian
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-zinc-400 block truncate">
+              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
                 Buku absensi harian
               </span>
             </div>
@@ -447,7 +447,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 3. 📅 JADWAL HARI INI */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-4">
+      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-red-950/60 border border-indigo-100 dark:border-red-500/40 flex items-center justify-center text-indigo-600 dark:text-red-400">
@@ -457,7 +457,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                 Jadwal Hari Ini ({todayDayName})
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+              <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">
                 Status presensi dan jurnal tatap muka kelas hari ini
               </p>
             </div>
@@ -481,7 +481,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
                 Tidak Ada Jadwal Mengajar Hari Ini
               </h4>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+              <p className="text-[11px] font-medium text-slate-600 dark:text-zinc-400 mt-0.5">
                 Bebas jam tatap muka hari ini. Anda dapat fokus menyelesaikan administrasi, rekap nilai, dan kelengkapan jurnal mengajar.
               </p>
             </div>
@@ -495,12 +495,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/80 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
                 >
                   {/* Left info: Time, Class, Subject */}
                   <div className="flex items-center gap-3">
                     <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-center shrink-0">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 block uppercase">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-500 block uppercase">
                         Jam
                       </span>
                       <span className="text-xs font-black text-slate-800 dark:text-zinc-200">
@@ -517,7 +517,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                           {assign.subjectName}
                         </h4>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 mt-0.5">
                         {assign.room ? `Ruang: ${assign.room}` : `${item.totalStudents} Siswa Terdaftar`}
                       </p>
                     </div>
@@ -590,7 +590,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 4. 💡 REKOMENDASI & PERLU DIKERJAKAN (Smart Workflow Reminders) */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-3.5">
+      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -600,13 +600,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                 Rekomendasi & Perlu Dikerjakan
               </h2>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+              <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">
                 Pengingat cerdas kelengkapan administrasi dan penilaian
               </p>
             </div>
           </div>
 
-          <span className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-500">
             {pendingTasks.length} Catatan
           </span>
         </div>
@@ -628,7 +628,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             {pendingTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-3.5 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700 transition-all flex items-center justify-between gap-3"
+                className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -641,7 +641,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       {task.title}
                     </h4>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5 truncate">
+                  <p className="text-[11px] font-medium text-slate-600 dark:text-zinc-400 mt-0.5 truncate">
                     {task.desc}
                   </p>
                 </div>
@@ -657,7 +657,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       onNavigate('homeroom-attendance-daily');
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 hover:bg-indigo-600 hover:text-white dark:hover:bg-red-600 text-slate-700 dark:text-zinc-300 text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300/90 dark:border-neutral-800 hover:border-slate-400 dark:bg-neutral-950 dark:hover:bg-red-600 text-slate-800 dark:text-zinc-300 hover:text-indigo-700 dark:hover:text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
                 >
                   {task.actionLabel}
                 </button>

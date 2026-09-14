@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, [teachingAssignments]);
 
   return (
-    <header className="h-14 lg:h-16 bg-white/90 dark:bg-[#0c0e15]/90 backdrop-blur-md border-b border-slate-200/90 dark:border-[#232838] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors">
+    <header className="h-14 lg:h-16 bg-white/95 dark:bg-[#0c0e15]/90 backdrop-blur-md border-b border-slate-200/90 dark:border-[#232838] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
       {/* Left Side: Class/Subject Focus Switcher, Clock, Cloud Sync, & Fullscreen (Ultra-Compact Left Group) */}
       <div className="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
         {/* 1. Class & Subject Context Switcher with Natural Ordering */}
@@ -197,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({
               setShowClassDropdown(!showClassDropdown);
               setShowUserDropdown(false);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#141722] hover:bg-slate-200/80 dark:hover:bg-[#1b1f2e] border border-slate-200/90 dark:border-[#232838] text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] border border-slate-200/90 dark:border-[#232838] text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-xs group"
           >
             <div className="w-6 h-6 rounded-lg bg-orange-50 dark:bg-cyan-950/70 border border-orange-200/60 dark:border-cyan-500/40 text-orange-600 dark:text-cyan-400 flex items-center justify-center font-black text-[11px] shrink-0">
               {selectedAssignment ? selectedAssignment.className.split('-')[0] : 'K'}

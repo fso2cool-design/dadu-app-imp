@@ -114,14 +114,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (isDark) {
       return 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-400/70 shadow-[0_0_14px_rgba(0,229,255,0.35)]';
     }
-    return 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/30';
+    return 'bg-orange-500 text-white font-bold shadow-sm shadow-orange-500/25';
   };
 
   const getSubActiveStyle = () => {
     if (isDark) {
       return 'bg-cyan-950/70 text-cyan-300 font-semibold border border-cyan-500/40 shadow-[0_0_10px_rgba(0,229,255,0.2)]';
     }
-    return 'bg-orange-50 text-orange-600 font-semibold border border-orange-300/80 shadow-xs shadow-orange-500/10';
+    return 'bg-white text-orange-700 font-bold border border-orange-200/90 shadow-xs';
   };
 
   const menuGroups: MenuGroup[] = [
@@ -272,9 +272,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const renderContent = (compact: boolean) => (
-    <div className="flex flex-col h-full bg-slate-900 dark:bg-[#0c0e15] text-slate-300 select-none">
+    <div className="flex flex-col h-full bg-slate-50/95 dark:bg-[#0c0e15] text-slate-700 dark:text-slate-300 select-none">
       {/* Brand Header with Hover Toggle */}
-      <div className={`relative flex items-center border-b border-slate-800 dark:border-[#232838] transition-all ${
+      <div className={`relative flex items-center border-b border-slate-200/90 dark:border-[#232838] transition-all ${
         compact ? 'justify-center p-3' : 'justify-between px-4 py-3.5'
       }`}>
         {compact ? (
@@ -301,11 +301,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <button
               type="button"
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-slate-800/90 hover:bg-slate-700 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] dark:hover:border-cyan-500/50 text-slate-200 cursor-pointer shadow-sm border border-transparent dark:border-[#232838]"
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white hover:bg-slate-100 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] dark:hover:border-cyan-500/50 text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs border border-slate-200 dark:border-[#232838]"
               aria-label="Buka sidebar"
             >
               {hoveredTopToggle ? (
-                <PanelLeftOpen className="w-5 h-5 text-orange-400 dark:text-cyan-400 animate-in zoom-in-75 duration-150" />
+                <PanelLeftOpen className="w-5 h-5 text-orange-500 dark:text-cyan-400 animate-in zoom-in-75 duration-150" />
               ) : (
                 <DaduLogo size="sm" />
               )}
@@ -317,10 +317,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center gap-3 overflow-hidden">
               <DaduLogo size="md" />
               <div className="overflow-hidden">
-                <h1 className="font-extrabold text-white text-base tracking-tight leading-none truncate flex items-center gap-1.5">
+                <h1 className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight leading-none truncate flex items-center gap-1.5">
                   <span>Dadu</span>
                 </h1>
-                <p className="text-[10px] text-slate-400 dark:text-slate-400 font-medium tracking-tight truncate mt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-tight truncate mt-1">
                   Digitalisasi Data Guru
                 </p>
               </div>
@@ -335,7 +335,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     setActiveTooltip(null);
                     onToggleCompact();
                   }}
-                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
+                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
                   aria-label="Tutup sidebar"
                 >
                   <PanelLeftClose className="w-4 h-4" />
@@ -346,7 +346,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800"
                 aria-label="Tutup menu"
               >
                 <X className="w-5 h-5" />
@@ -365,9 +365,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div key={gIdx} className="space-y-1">
             {group.groupTitle && (
               compact ? (
-                <div className="my-2 border-t border-slate-800/80 dark:border-[#232838] mx-1" />
+                <div className="my-2 border-t border-slate-200 dark:border-[#232838] mx-1" />
               ) : (
-                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   {group.groupTitle}
                 </div>
               )
@@ -408,10 +408,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                       } ${
                         isDirectParentActive
-                          ? isDark ? 'bg-cyan-950/80 text-cyan-300 font-bold active-nav-glow-dark' : 'bg-orange-500 text-white font-bold active-nav-glow-light'
+                          ? isDark 
+                            ? 'bg-cyan-950/80 text-cyan-300 font-bold active-nav-glow-dark' 
+                            : 'bg-orange-500 text-white font-bold active-nav-glow-light shadow-sm shadow-orange-500/25'
                           : isGroupActive
-                            ? 'bg-slate-800/70 dark:bg-[#141722] text-white font-semibold'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 dark:hover:bg-[#141722] dark:hover:text-cyan-300 active:scale-[0.98]'
+                            ? 'bg-slate-200/80 dark:bg-[#141722] text-slate-900 dark:text-white font-bold shadow-2xs'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-cyan-300 hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
                       }`}
                     >
                       {/* Animated Border Light Trail for standalone active parent item */}
@@ -434,7 +436,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       )}
 
                       <span className="relative z-10 flex items-center w-full min-w-0">
-                        <Icon className={`w-4 h-4 shrink-0 ${isDirectParentActive || isGroupActive ? 'text-orange-400 dark:text-cyan-400' : 'text-slate-400'}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${
+                          isDirectParentActive 
+                            ? isDark ? 'text-cyan-300' : 'text-white' 
+                            : isGroupActive 
+                            ? isDark ? 'text-cyan-400' : 'text-orange-600' 
+                            : 'text-slate-500 dark:text-slate-400'
+                        }`} />
                         {!compact && (
                           <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
                             <span className="truncate">{item.label}</span>
@@ -455,13 +463,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                       toggleGroupCollapse(item.id, e as any);
                                     }
                                   }}
-                                  className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                  className="p-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
                                   aria-label={isExpanded ? 'Ciutkan menu' : 'Buka menu'}
                                 >
                                   {isExpanded ? (
                                     <ChevronDown className="w-3.5 h-3.5" />
                                   ) : (
-                                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                                   )}
                                 </span>
                               )}
@@ -471,14 +479,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
 
                       {compact && item.badgeCount && item.badgeCount > 0 ? (
-                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-900 animate-pulse z-20" />
+                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-50 dark:border-slate-900 animate-pulse z-20" />
                       ) : null}
                     </button>
                   </div>
 
                   {/* Render Accordion Sub-items when expanded */}
                   {isExpanded && item.subItems && (
-                    <div className="ml-5 pl-2 border-l border-slate-800/80 dark:border-[#202534] space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
+                    <div className="ml-5 pl-2 border-l border-slate-200 dark:border-[#202534] space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
                       {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = isSubItemActive(sub.id);
@@ -492,8 +500,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               isSubActive
                                 ? isDark 
                                   ? 'bg-cyan-950/80 text-cyan-300 font-semibold active-nav-glow-dark' 
-                                  : 'bg-orange-50 text-orange-600 font-semibold active-nav-glow-light'
-                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 dark:hover:bg-[#141722]/60 dark:hover:text-cyan-200'
+                                  : 'bg-white text-orange-700 font-bold border border-orange-200/90 shadow-xs active-nav-glow-light'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-cyan-200 hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
                             }`}
                           >
                             {/* Glowing Animated Border Beam around Active Sub-menu item */}
@@ -516,7 +524,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             )}
 
                             <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
-                              <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? 'text-orange-500 dark:text-cyan-400' : 'text-slate-500'}`} />
+                              <SubIcon className={`w-3.5 h-3.5 shrink-0 ${
+                                isSubActive 
+                                  ? isDark ? 'text-cyan-400' : 'text-orange-600' 
+                                  : 'text-slate-500 dark:text-slate-500'
+                              }`} />
                               <span className="truncate flex-1">{sub.label}</span>
                             </span>
                           </button>
@@ -533,28 +545,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Workspace Footer Status with Dadu version and developer signature */}
       {!compact && (
-        <div className="p-3 border-t border-slate-800 dark:border-[#232838]">
-          <div className="px-2 pt-0.5 text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-between">
+        <div className="p-3 border-t border-slate-200 dark:border-[#232838]">
+          <div className="px-2 pt-0.5 text-[11px] text-slate-500 dark:text-slate-500 flex items-center justify-between">
             <div className="flex items-center gap-1.5 font-medium">
-              <span className="font-bold text-slate-300 dark:text-slate-200">{APP_CONFIG.name}</span>
-              <span className="text-slate-600 dark:text-slate-700">•</span>
+              <span className="font-bold text-slate-700 dark:text-slate-200">{APP_CONFIG.name}</span>
+              <span className="text-slate-300 dark:text-slate-700">•</span>
               <button
                 type="button"
                 onClick={onOpenChangeLog}
                 title="Lihat Catatan Pembaruan (Release Notes)"
-                className="font-mono text-[10px] text-slate-400 hover:text-indigo-400 dark:text-slate-400 dark:hover:text-cyan-300 transition-colors underline decoration-dotted cursor-pointer"
+                className="font-mono text-[10px] text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-cyan-300 transition-colors underline decoration-dotted cursor-pointer"
               >
                 {APP_CONFIG.versionDisplay}
               </button>
               <span 
                 title={`Pengembang: ${APP_CONFIG.developerName}`} 
-                className="px-1.5 py-0.5 rounded-md bg-orange-950/80 dark:bg-cyan-950/80 text-orange-300 dark:text-cyan-300 border border-orange-700/60 dark:border-cyan-500/50 text-[9px] font-mono font-bold tracking-wider uppercase shadow-2xs"
+                className="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-800 border border-orange-200 dark:bg-cyan-950/80 dark:text-cyan-300 dark:border-cyan-500/50 text-[9px] font-mono font-bold tracking-wider uppercase shadow-2xs"
               >
                 {APP_CONFIG.developer}
               </span>
             </div>
-            <span className="flex items-center gap-1 text-emerald-400 dark:text-emerald-400 text-[10px] font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Ready
             </span>
           </div>
@@ -566,7 +578,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar with z-40 to prevent Header overlap */}
-      <aside className={`hidden lg:block shrink-0 h-screen sticky top-0 z-40 border-r border-slate-800 dark:border-[#232838] transition-all duration-200 ${
+      <aside className={`hidden lg:block shrink-0 h-screen sticky top-0 z-40 border-r border-slate-200 dark:border-[#232838] transition-all duration-200 ${
         isCompact ? 'w-18' : 'w-64'
       }`}>
         {renderContent(isCompact)}
