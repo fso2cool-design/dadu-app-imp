@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getStudents, deleteStudent, canDeleteStudent } from '../../services/firestore/students';
+import { getStudents, getStudentsPaginated, deleteStudent, canDeleteStudent } from '../../services/firestore/students';
 import { 
   getEnrollmentsByClass, 
   deleteEnrollment, 
@@ -48,7 +48,9 @@ import {
   FileSpreadsheet,
   Sliders,
   CreditCard,
-  FileText
+  FileText,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 
@@ -80,6 +82,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [loading, setLoading] = useState(cachedStudents.length === 0);
   const [reordering, setReordering] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
+
+  // Firestore Native Pagination states for Master Students
+  const PAGE_SIZE = 25;
+  const [paginatedStudents, setPaginatedStudents] = useState<Student[]>([]);
+  const [hasMorePages, setHasMorePages] = useState<boolean>(false);
+  const [pageIndex, setPageIndex] = useState<number>(0);
+  const [pageCursors, setPageCursors] = useState<any[]>([null]);
+  const [loadingPagination, setLoadingPagination] = useState<boolean>(false);
 
   // Sync cached students when workspace updates
   useEffect(() => {
@@ -131,6 +141,39 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   }, [selectedClassId]);
 
+  // Fetch Paginated Master Students with Firestore Cursor
+  const fetchPaginatedStudents = async (
+    targetPage: number = 0,
+    cursorToUse?: any,
+    currentCursorsList?: any[]
+  ) => {
+    if (!user) return;
+    try {
+      setLoadingPagination(true);
+      const cursor = cursorToUse !== undefined ? cursorToUse : (pageCursors[targetPage] ?? null);
+      const result = await getStudentsPaginated(user.uid, {
+        pageSize: PAGE_SIZE,
+        cursorDoc: cursor,
+      });
+
+      setPaginatedStudents(result.students);
+      setHasMorePages(result.hasMore);
+      setPageIndex(targetPage);
+
+      if (result.lastDoc) {
+        setPageCursors(prev => {
+          const list = currentCursorsList ? [...currentCursorsList] : [...prev];
+          list[targetPage + 1] = result.lastDoc;
+          return list;
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching paginated students:', err);
+    } finally {
+      setLoadingPagination(false);
+    }
+  };
+
   // Fetch data
   const fetchData = async (forceRefreshStudents = false) => {
     if (!user) return;
@@ -143,6 +186,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         ]);
         setStudents(allStuds);
         setCustomFields(fetchedFields);
+        // Refresh paginated students as well
+        fetchPaginatedStudents(0, null, [null]);
       } else if (customFields.length === 0) {
         const fetchedFields = await getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]);
         setCustomFields(fetchedFields);
@@ -165,6 +210,13 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   useEffect(() => {
     fetchData();
   }, [user, currentClassId, activeAcademicYear]);
+
+  // Initial load or view mode switch for paginated students
+  useEffect(() => {
+    if (viewMode === 'all' && paginatedStudents.length === 0 && user) {
+      fetchPaginatedStudents(0, null, [null]);
+    }
+  }, [viewMode, user]);
 
   // Filtered Class Enrollments
   const filteredEnrollments = useMemo(() => {
@@ -196,28 +248,37 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     });
   }, [enrollments, genderFilter, statusFilter, searchQuery]);
 
+  // Master Students list to display (paginated by Firestore cursor when browsing, or full filtered list if user searched/filtered)
+  const isAllFilterActive = searchQuery.trim() !== '' || genderFilter !== 'ALL' || statusFilter !== 'ALL';
+
   // Filtered All Master Students
   const filteredAllStudents = useMemo(() => {
-    return students.filter(stud => {
-      // Gender filter
-      if (genderFilter !== 'ALL' && stud.gender !== genderFilter) return false;
+    // If user is searching or filtering, run filter over full cached students
+    if (isAllFilterActive) {
+      return students.filter(stud => {
+        // Gender filter
+        if (genderFilter !== 'ALL' && stud.gender !== genderFilter) return false;
 
-      // Status filter
-      if (statusFilter !== 'ALL' && stud.status !== statusFilter) return false;
+        // Status filter
+        if (statusFilter !== 'ALL' && stud.status !== statusFilter) return false;
 
-      // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchName = stud.fullName.toLowerCase().includes(q);
-        const matchNis = stud.nis?.toLowerCase().includes(q);
-        const matchNisn = stud.nisn?.toLowerCase().includes(q);
-        const matchParent = stud.parentName?.toLowerCase().includes(q);
-        return matchName || matchNis || matchNisn || matchParent;
-      }
+        // Search query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const matchName = stud.fullName.toLowerCase().includes(q);
+          const matchNis = stud.nis?.toLowerCase().includes(q);
+          const matchNisn = stud.nisn?.toLowerCase().includes(q);
+          const matchParent = stud.parentName?.toLowerCase().includes(q);
+          return matchName || matchNis || matchNisn || matchParent;
+        }
 
-      return true;
-    });
-  }, [students, genderFilter, statusFilter, searchQuery]);
+        return true;
+      });
+    }
+
+    // Default view: use Firestore cursor-paginated students
+    return paginatedStudents.length > 0 ? paginatedStudents : students.slice(0, PAGE_SIZE);
+  }, [isAllFilterActive, students, paginatedStudents, genderFilter, statusFilter, searchQuery]);
 
   // Active stats
   const activeTargetList = viewMode === 'class' 
@@ -961,10 +1022,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                 ) : (
                   filteredAllStudents.map((stud, idx) => {
                     const waLink = stud.parentPhone ? `https://wa.me/${stud.parentPhone.replace(/[^0-9]/g, '')}` : null;
+                    const rowNumber = isAllFilterActive ? idx + 1 : pageIndex * PAGE_SIZE + (idx + 1);
                     return (
                       <tr key={stud.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-3.5 text-center font-mono text-slate-400 font-semibold">
-                          {idx + 1}
+                          {rowNumber}
                         </td>
                         <td className="py-3 px-3.5">
                           <button
@@ -1070,6 +1132,57 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls for Master Students (when in 'all' view and not searching/filtering) */}
+        {viewMode === 'all' && !loading && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/50 rounded-b-2xl">
+            <div className="text-xs text-slate-500 font-medium">
+              {isAllFilterActive ? (
+                <span>Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian/filter</span>
+              ) : (
+                <span>
+                  Halaman <span className="font-semibold text-slate-700">{pageIndex + 1}</span> (Menampilkan {paginatedStudents.length} siswa per halaman)
+                </span>
+              )}
+            </div>
+
+            {!isAllFilterActive && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (pageIndex > 0) {
+                      fetchPaginatedStudents(pageIndex - 1);
+                    }
+                  }}
+                  disabled={pageIndex === 0 || loadingPagination}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Sebelumnya
+                </button>
+
+                <span className="text-xs font-semibold text-slate-700 px-2 py-1 bg-white border border-slate-200 rounded-md">
+                  {pageIndex + 1}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasMorePages) {
+                      fetchPaginatedStudents(pageIndex + 1);
+                    }
+                  }}
+                  disabled={!hasMorePages || loadingPagination}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
+                >
+                  Berikutnya
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

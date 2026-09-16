@@ -10,10 +10,15 @@ import {
   where, 
   orderBy, 
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  limit,
+  startAfter,
+  QueryConstraint,
+  QueryDocumentSnapshot,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Student } from '../../types';
+import { Student, StudentPaginationOptions, PaginatedStudentsResult } from '../../types';
 
 export async function getStudents(uid: string, status?: string): Promise<Student[]> {
   const colRef = collection(db, 'users', uid, 'students');
@@ -25,6 +30,61 @@ export async function getStudents(uid: string, status?: string): Promise<Student
   }
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Student));
+}
+
+/**
+ * Native Firestore pagination for Master Students listing.
+ * Menggunakan orderBy('fullName', 'asc') dengan limit + startAfter cursor.
+ * Mengambil (pageSize + 1) item untuk menentukan ketersediaan halaman berikutnya (hasMore)
+ * tanpa read query count tambahan.
+ */
+export async function getStudentsPaginated(
+  uid: string,
+  options?: StudentPaginationOptions
+): Promise<PaginatedStudentsResult> {
+  const colRef = collection(db, 'users', uid, 'students');
+  const pageSize = options?.pageSize || 25;
+  const constraints: QueryConstraint[] = [];
+
+  // Filter status jika spesifik
+  if (options?.status && options.status !== 'ALL') {
+    constraints.push(where('status', '==', options.status));
+  }
+
+  // Filter gender jika spesifik
+  if (options?.gender && options.gender !== 'ALL') {
+    constraints.push(where('gender', '==', options.gender));
+  }
+
+  // Default ordering konsisten by fullName lalu by document ID (deterministic)
+  constraints.push(orderBy('fullName', 'asc'));
+
+  // Gunakan cursor startAfter jika ada
+  if (options?.cursorDoc) {
+    constraints.push(startAfter(options.cursorDoc));
+  }
+
+  // Fetch pageSize + 1 untuk mengetahui apakah masih ada data setelah halaman ini
+  constraints.push(limit(pageSize + 1));
+
+  const q = query(colRef, ...constraints);
+  const snap = await getDocs(q);
+
+  const docs = snap.docs;
+  const hasMore = docs.length > pageSize;
+  const pageDocs = hasMore ? docs.slice(0, pageSize) : docs;
+
+  const students: Student[] = pageDocs.map(d => ({
+    id: d.id,
+    ...(d.data() as any),
+  } as Student));
+
+  return {
+    students,
+    hasMore,
+    firstDoc: pageDocs.length > 0 ? pageDocs[0] : null,
+    lastDoc: pageDocs.length > 0 ? pageDocs[pageDocs.length - 1] : null,
+  };
 }
 
 export async function getStudentById(uid: string, studentId: string): Promise<Student | null> {

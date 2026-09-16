@@ -34,6 +34,8 @@ export interface DatabaseBackup {
     scores: any[];
     studentNotes: any[];
     teacherAttendanceRecords?: any[];
+    teacherMonthlyAttendance?: any[];
+    classSchedules?: any[];
     settings: Record<string, any>;
   };
 }
@@ -50,6 +52,8 @@ export interface DatabaseStatistics {
   dailyAttendanceSessionsCount: number;
   dailyAttendanceRecordsCount: number;
   teacherAttendanceRecordsCount?: number;
+  teacherMonthlyAttendanceCount?: number;
+  classSchedulesCount?: number;
   assessmentItemsCount: number;
   scoresCount: number;
   studentNotesCount: number;
@@ -91,6 +95,8 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     scores,
     studentNotes,
     teacherAttendanceRecords,
+    teacherMonthlyAttendance,
+    classSchedules,
     settingsList
   ] = await Promise.all([
     fetchCollectionData(uid, 'academicYears'),
@@ -107,6 +113,8 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     fetchCollectionData(uid, 'scores'),
     fetchCollectionData(uid, 'studentNotes'),
     fetchCollectionData(uid, 'teacherAttendanceRecords'),
+    fetchCollectionData(uid, 'teacherMonthlyAttendance'),
+    fetchCollectionData(uid, 'classSchedules'),
     fetchCollectionData(uid, 'settings'),
   ]);
 
@@ -131,6 +139,8 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     scores.length +
     studentNotes.length +
     teacherAttendanceRecords.length +
+    teacherMonthlyAttendance.length +
+    classSchedules.length +
     settingsList.length;
 
   return {
@@ -140,7 +150,7 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
     metadata: {
       teacherName: teacherName || 'Guru',
       schoolName: schoolName || 'Madrasah',
-      totalCollections: 15,
+      totalCollections: 17,
       totalDocuments,
     },
     collections: {
@@ -158,6 +168,8 @@ export async function exportFullDatabase(uid: string, teacherName?: string, scho
       scores,
       studentNotes,
       teacherAttendanceRecords,
+      teacherMonthlyAttendance,
+      classSchedules,
       settings: settingsMap,
     },
   };
@@ -190,6 +202,8 @@ export async function importFullDatabase(
     { name: 'scores', items: backup.collections.scores || [] },
     { name: 'studentNotes', items: backup.collections.studentNotes || [] },
     { name: 'teacherAttendanceRecords', items: backup.collections.teacherAttendanceRecords || [] },
+    { name: 'teacherMonthlyAttendance', items: backup.collections.teacherMonthlyAttendance || [] },
+    { name: 'classSchedules', items: backup.collections.classSchedules || [] },
   ];
 
   let totalRestored = 0;
@@ -260,7 +274,9 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     assessmentItems,
     scores,
     studentNotes,
-    teacherAttendanceRecords
+    teacherAttendanceRecords,
+    teacherMonthlyAttendance,
+    classSchedules
   ] = await Promise.all([
     fetchCollectionData(uid, 'academicYears'),
     fetchCollectionData(uid, 'classes'),
@@ -276,6 +292,8 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     fetchCollectionData(uid, 'scores'),
     fetchCollectionData(uid, 'studentNotes'),
     fetchCollectionData(uid, 'teacherAttendanceRecords'),
+    fetchCollectionData(uid, 'teacherMonthlyAttendance'),
+    fetchCollectionData(uid, 'classSchedules'),
   ]);
 
   const totalDocuments = 
@@ -292,7 +310,9 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     assessmentItems.length +
     scores.length +
     studentNotes.length +
-    teacherAttendanceRecords.length;
+    teacherAttendanceRecords.length +
+    teacherMonthlyAttendance.length +
+    classSchedules.length;
 
   return {
     academicYearsCount: academicYears.length,
@@ -306,6 +326,8 @@ export async function getDatabaseStatistics(uid: string): Promise<DatabaseStatis
     dailyAttendanceSessionsCount: dailyAttendanceSessions.length,
     dailyAttendanceRecordsCount: dailyAttendanceRecords.length,
     teacherAttendanceRecordsCount: teacherAttendanceRecords.length,
+    teacherMonthlyAttendanceCount: teacherMonthlyAttendance.length,
+    classSchedulesCount: classSchedules.length,
     assessmentItemsCount: assessmentItems.length,
     scoresCount: scores.length,
     studentNotesCount: studentNotes.length,

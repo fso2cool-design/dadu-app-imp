@@ -98,6 +98,21 @@ export interface StudentCustomFieldDefinition {
   updatedAt?: any;
 }
 
+export interface StudentPaginationOptions {
+  pageSize?: number;
+  status?: string;
+  gender?: GenderType | 'ALL';
+  cursorDoc?: any; // QueryDocumentSnapshot
+  direction?: 'next' | 'initial';
+}
+
+export interface PaginatedStudentsResult {
+  students: Student[];
+  hasMore: boolean;
+  firstDoc: any; // QueryDocumentSnapshot
+  lastDoc: any; // QueryDocumentSnapshot
+}
+
 export interface Enrollment {
   id: string;
   academicYearId: string;

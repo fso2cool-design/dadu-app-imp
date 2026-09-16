@@ -275,12 +275,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex flex-col h-full bg-slate-50/95 dark:bg-[#0c0e15] text-slate-700 dark:text-slate-300 select-none">
       {/* Brand Header with Hover Toggle */}
       <div className={`relative flex items-center border-b border-slate-200/90 dark:border-[#232838] transition-all ${
-        compact ? 'justify-center p-3' : 'justify-between px-4 py-3.5'
+        compact ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3.5'
       }`}>
         {compact ? (
           /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
           <div 
-            className="relative flex items-center justify-center cursor-pointer"
+            className="w-full flex items-center justify-center cursor-pointer"
             onMouseEnter={(e) => {
               setHoveredTopToggle(true);
               const rect = e.currentTarget.getBoundingClientRect();
@@ -435,7 +435,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         </>
                       )}
 
-                      <span className="relative z-10 flex items-center w-full min-w-0">
+                      <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
                         <Icon className={`w-4 h-4 shrink-0 ${
                           isDirectParentActive 
                             ? isDark ? 'text-cyan-300' : 'text-white' 
