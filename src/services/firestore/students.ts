@@ -96,11 +96,13 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
 
 /**
  * Helper terpusat untuk membangkitkan word-prefix search tokens dari fullName dan parentName.
- * Normalisasi:
- * - lowercase, trim, collapse multiple whitespace
- * - pecah per kata (token)
- * - buat prefix bertahap mulai dari 1 karakter hingga panjang kata penuh
- * - deduplikasi token
+ * Spesifikasi token:
+ * - Minimum prefix length = 2
+ * - Maximum prefix length = 20
+ * - Full token tetap dimasukkan jika panjangnya <= 20
+ * - Kata lebih panjang dari 20 karakter menghasilkan prefix sampai 20 karakter
+ * - Normalisasi: lowercase, trim, collapse multiple whitespace
+ * - Tidak menghasilkan prefix 1 karakter ("a") dan tidak membuat arbitrary substring/n-gram
  */
 export function buildStudentSearchTokens(fullName?: string, parentName?: string): string[] {
   const tokenSet = new Set<string>();
@@ -116,9 +118,9 @@ export function buildStudentSearchTokens(fullName?: string, parentName?: string)
     // Pecah per kata
     const words = normalized.split(' ').filter(Boolean);
     for (const word of words) {
-      // Hasilkan prefix bertahap (word-prefix indexing)
-      // Contoh "ahmad" -> "a", "ah", "ahm", "ahma", "ahmad"
-      for (let i = 1; i <= word.length; i++) {
+      // Hasilkan prefix bertahap dengan min length 2 dan max length 20
+      const maxLen = Math.min(word.length, 20);
+      for (let i = 2; i <= maxLen; i++) {
         tokenSet.add(word.substring(0, i));
       }
     }
@@ -130,14 +132,23 @@ export function buildStudentSearchTokens(fullName?: string, parentName?: string)
   return Array.from(tokenSet);
 }
 
+export interface StudentSearchFilterOptions {
+  status?: string;
+  gender?: string;
+  maxResults?: number;
+  limitPerToken?: number;
+}
+
 /**
  * Targeted exact search untuk NIS atau NISN.
  * Tidak melakukan full collection getStudents().
- * Menggunakan query equality ('==') langsung terhadap field 'nis' dan 'nisn'.
+ * Menggunakan query equality ('==') langsung terhadap field 'nis' dan 'nisn',
+ * dilengkapi filter 'status' dan 'gender' secara langsung di Firestore constraint jika ditentukan.
  */
 export async function searchStudentsByExactIdentifier(
   uid: string,
-  rawQuery: string
+  rawQuery: string,
+  options?: StudentSearchFilterOptions
 ): Promise<Student[]> {
   const clean = rawQuery?.trim();
   if (!clean) {
@@ -146,10 +157,20 @@ export async function searchStudentsByExactIdentifier(
 
   const colRef = collection(db, 'users', uid, 'students');
 
+  const baseConstraints: QueryConstraint[] = [];
+  if (options?.status && options.status !== 'ALL') {
+    baseConstraints.push(where('status', '==', options.status));
+  }
+  if (options?.gender && options.gender !== 'ALL') {
+    baseConstraints.push(where('gender', '==', options.gender));
+  }
+
+  const maxRes = options?.maxResults || 10;
+
   // Query exact match paralel terhadap NIS dan NISN
   const [nisSnap, nisnSnap] = await Promise.all([
-    getDocs(query(colRef, where('nis', '==', clean), limit(10))),
-    getDocs(query(colRef, where('nisn', '==', clean), limit(10))),
+    getDocs(query(colRef, where('nis', '==', clean), ...baseConstraints, limit(maxRes))),
+    getDocs(query(colRef, where('nisn', '==', clean), ...baseConstraints, limit(maxRes))),
   ]);
 
   const map = new Map<string, Student>();
@@ -170,46 +191,136 @@ export async function searchStudentsByExactIdentifier(
 /**
  * Targeted name/parent prefix search menggunakan array searchTokens di Firestore.
  * Tidak melakukan full collection scan maupun getStudents(uid).
- * Query menggunakan: where('searchTokens', 'array-contains', primaryToken) dengan limit(25).
- * Jika query memiliki multi-word, token pertama digunakan untuk Firestore filter,
- * lalu token berikutnya diverifikasi terhadap nama siswa/orang tua dokumen hasil pencarian.
+ * 
+ * Target behavior:
+ * - Filter status/gender diaplikasikan langsung sebagai Firestore query constraint.
+ * - Multi-word search menjalankan targeted query untuk setiap token pencarian (min length 2, max 20).
+ * - Hasil dari setiap targeted token query digabungkan ke candidate pool, lalu diverifikasi
+ *   bahwa dokumen memenuhi seluruh token pencarian (AND semantics), tanpa false negative.
+ * - Batas hasil (maxResults) dan batas per token query (limitPerToken) terdefinisi jelas untuk
+ *   menjaga kuota read Firestore sekaligus menjamin correctness.
  */
 export async function searchStudentsByNameToken(
   uid: string,
   rawQuery: string,
-  maxResults = 25
+  options?: StudentSearchFilterOptions | number
 ): Promise<Student[]> {
   const clean = rawQuery?.toLowerCase().trim().replace(/\s+/g, ' ');
   if (!clean) return [];
 
-  const tokens = clean.split(' ').filter(Boolean);
-  if (tokens.length === 0) return [];
+  const rawTokens = clean.split(' ').filter(Boolean);
+  if (rawTokens.length === 0) return [];
 
-  // Ambil token utama (token pertama) untuk query array-contains di Firestore
-  const primaryToken = tokens[0];
+  const maxResults = typeof options === 'number' ? options : (options?.maxResults || 50);
+  const statusFilter = typeof options === 'object' ? options.status : undefined;
+  const genderFilter = typeof options === 'object' ? options.gender : undefined;
+  const limitPerToken = typeof options === 'object' && options.limitPerToken ? options.limitPerToken : 100;
 
-  const colRef = collection(db, 'users', uid, 'students');
-  const q = query(
-    colRef,
-    where('searchTokens', 'array-contains', primaryToken),
-    limit(maxResults)
-  );
+  // Ambil token yang memenuhi panjang minimum 2 karakter (karena searchTokens memiliki min prefix 2)
+  const validTokens = rawTokens
+    .filter(t => t.length >= 2)
+    .map(t => t.substring(0, 20));
 
-  const snap = await getDocs(q);
-  const matchedDocs = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Student));
+  // Deduplikasi token
+  const uniqueQueryTokens = Array.from(new Set(validTokens));
 
-  // Jika single token, langsung kembalikan hasil
-  if (tokens.length === 1) {
-    return matchedDocs;
+  // Jika tidak ada satu pun token yang memiliki panjang minimal 2 karakter, belum cukup untuk dicocokkan
+  if (uniqueQueryTokens.length === 0) {
+    return [];
   }
 
-  // Multi-word search refinement:
-  // Verifikasi bahwa token kata kedua dan seterusnya juga cocok sebagai prefix kata di fullName atau parentName
-  const secondaryTokens = tokens.slice(1);
-  return matchedDocs.filter(student => {
-    const studentTokens = new Set(student.searchTokens || buildStudentSearchTokens(student.fullName, student.parentName));
-    return secondaryTokens.every(secToken => studentTokens.has(secToken));
-  });
+  const colRef = collection(db, 'users', uid, 'students');
+
+  // Siapkan Firestore constraint untuk status dan gender
+  const baseConstraints: QueryConstraint[] = [];
+  if (statusFilter && statusFilter !== 'ALL') {
+    baseConstraints.push(where('status', '==', statusFilter));
+  }
+  if (genderFilter && genderFilter !== 'ALL') {
+    baseConstraints.push(where('gender', '==', genderFilter));
+  }
+
+  // Token berkarakter 1 (misal ketikan sementara "Ahmad B") untuk verifikasi sekunder
+  const shortTokens = rawTokens.filter(t => t.length < 2);
+
+  // KASUS 1: Single Token
+  if (uniqueQueryTokens.length === 1) {
+    const primaryToken = uniqueQueryTokens[0];
+    const q = query(
+      colRef,
+      where('searchTokens', 'array-contains', primaryToken),
+      ...baseConstraints,
+      limit(maxResults)
+    );
+
+    const snap = await getDocs(q);
+    const matchedDocs = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Student));
+
+    if (shortTokens.length === 0) {
+      return matchedDocs;
+    }
+
+    // Jika ada token 1-karakter tambahan, filter sekunder di candidate doc
+    return matchedDocs.filter(student => {
+      const normName = `${student.fullName || ''} ${student.parentName || ''}`.toLowerCase();
+      const words = normName.split(' ').filter(Boolean);
+      return shortTokens.every(st => words.some(w => w.startsWith(st)));
+    });
+  }
+
+  // KASUS 2: Multi-Word Search
+  // Untuk setiap token pencarian, jalankan targeted query ke Firestore secara paralel
+  // Batasi hingga 4 token terpanjang jika query sangat panjang untuk efisiensi network
+  const tokensToQuery = uniqueQueryTokens.slice(0, 4);
+
+  const snaps = await Promise.all(
+    tokensToQuery.map(token => {
+      const q = query(
+        colRef,
+        where('searchTokens', 'array-contains', token),
+        ...baseConstraints,
+        limit(limitPerToken)
+      );
+      return getDocs(q);
+    })
+  );
+
+  // Kumpulkan dokumen kandidat unik dari seluruh query token
+  const candidateMap = new Map<string, Student>();
+  for (const snap of snaps) {
+    for (const d of snap.docs) {
+      if (!candidateMap.has(d.id)) {
+        candidateMap.set(d.id, { id: d.id, ...(d.data() as any) } as Student);
+      }
+    }
+  }
+
+  // Verifikasi bahwa dokumen kandidat memenuhi SELURUH token pencarian (AND semantics)
+  const results: Student[] = [];
+  for (const student of candidateMap.values()) {
+    const studentTokenSet = new Set(
+      student.searchTokens && student.searchTokens.length > 0
+        ? student.searchTokens
+        : buildStudentSearchTokens(student.fullName, student.parentName)
+    );
+
+    const matchesAllTokens = uniqueQueryTokens.every(tok => studentTokenSet.has(tok));
+    if (!matchesAllTokens) continue;
+
+    if (shortTokens.length > 0) {
+      const normName = `${student.fullName || ''} ${student.parentName || ''}`.toLowerCase();
+      const words = normName.split(' ').filter(Boolean);
+      const matchesShort = shortTokens.every(st => words.some(w => w.startsWith(st)));
+      if (!matchesShort) continue;
+    }
+
+    results.push(student);
+    if (results.length >= maxResults) {
+      break;
+    }
+  }
+
+  return results;
 }
 
 /**

@@ -187,7 +187,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   }, [genderFilter, statusFilter, viewMode, user]);
 
-  // Debounced Search (Exact NIS/NISN + Name/Parent Token Search)
+  // Debounced Search (Exact NIS/NISN + Name/Parent Token Search) with Firestore status/gender constraints
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -204,11 +204,19 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       setLoadingSearch(true);
       searchTimeoutRef.current = setTimeout(async () => {
         try {
+          const filterOptions = {
+            status: statusFilter !== 'ALL' ? statusFilter : undefined,
+            gender: genderFilter !== 'ALL' ? genderFilter : undefined,
+            maxResults: 50,
+            limitPerToken: 100,
+          };
+
           // Cari paralel: exact identifier (NIS/NISN) dan word-prefix searchTokens (nama/orang tua)
+          // Filter status dan gender diaplikasikan langsung pada query constraint Firestore
           const isNumeric = /^[0-9]+$/.test(trimmed);
           const [idResults, nameResults] = await Promise.all([
-            isNumeric ? searchStudentsByExactIdentifier(user.uid, trimmed) : Promise.resolve([]),
-            searchStudentsByNameToken(user.uid, trimmed, 25),
+            isNumeric ? searchStudentsByExactIdentifier(user.uid, trimmed, filterOptions) : Promise.resolve([]),
+            searchStudentsByNameToken(user.uid, trimmed, filterOptions),
           ]);
 
           // Gabungkan hasil dan deduplikasi berdasarkan student ID
@@ -235,7 +243,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery, viewMode, user]);
+  }, [searchQuery, statusFilter, genderFilter, viewMode, user]);
 
   // Fetch data without full collection scan
   const fetchData = async (forceRefreshStudents = false) => {
@@ -311,19 +319,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const isSearchActive = searchQuery.trim() !== '';
 
   // Master Students list to display:
-  // - If searching NIS/NISN: show searchResults (targeted query)
+  // - If searching NIS/NISN/Name: show searchResults (targeted query with status & gender constrained in Firestore)
   // - If browsing: show paginatedStudents (native Firestore paginated + filtered)
   const filteredAllStudents = useMemo(() => {
     if (isSearchActive) {
-      const list = searchResults || [];
-      return list.filter(stud => {
-        if (genderFilter !== 'ALL' && stud.gender !== genderFilter) return false;
-        if (statusFilter !== 'ALL' && stud.status !== statusFilter) return false;
-        return true;
-      });
+      return searchResults || [];
     }
     return paginatedStudents;
-  }, [isSearchActive, searchResults, paginatedStudents, genderFilter, statusFilter]);
+  }, [isSearchActive, searchResults, paginatedStudents]);
 
   // Active stats
   const activeTargetList = viewMode === 'class' 
