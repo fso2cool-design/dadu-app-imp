@@ -78,6 +78,7 @@ export interface Student {
   nikSiswa?: string;
   nikIbu?: string;
   nkk?: string;
+  searchTokens?: string[];
   customAttributes?: Record<string, string>;
   isArchived?: boolean;
   archivedAt?: any;

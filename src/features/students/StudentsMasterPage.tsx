@@ -5,6 +5,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
   getStudentsPaginated, 
   searchStudentsByExactIdentifier,
+  searchStudentsByNameToken,
   deleteStudent, 
   canDeleteStudent 
 } from '../../services/firestore/students';
@@ -186,7 +187,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   }, [genderFilter, statusFilter, viewMode, user]);
 
-  // Debounced Exact Identifier Search (NIS / NISN)
+  // Debounced Search (Exact NIS/NISN + Name/Parent Token Search)
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -203,10 +204,25 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       setLoadingSearch(true);
       searchTimeoutRef.current = setTimeout(async () => {
         try {
-          const results = await searchStudentsByExactIdentifier(user.uid, trimmed);
-          setSearchResults(results);
+          // Cari paralel: exact identifier (NIS/NISN) dan word-prefix searchTokens (nama/orang tua)
+          const isNumeric = /^[0-9]+$/.test(trimmed);
+          const [idResults, nameResults] = await Promise.all([
+            isNumeric ? searchStudentsByExactIdentifier(user.uid, trimmed) : Promise.resolve([]),
+            searchStudentsByNameToken(user.uid, trimmed, 25),
+          ]);
+
+          // Gabungkan hasil dan deduplikasi berdasarkan student ID
+          const resultMap = new Map<string, Student>();
+          idResults.forEach(s => resultMap.set(s.id, s));
+          nameResults.forEach(s => {
+            if (!resultMap.has(s.id)) {
+              resultMap.set(s.id, s);
+            }
+          });
+
+          setSearchResults(Array.from(resultMap.values()));
         } catch (err) {
-          console.error('Error during identifier search:', err);
+          console.error('Error during student search:', err);
           setSearchResults([]);
         } finally {
           setLoadingSearch(false);
@@ -754,7 +770,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={viewMode === 'all' ? 'Cari NIS atau NISN...' : 'Cari nama, NIS, NISN...'}
+              placeholder="Cari nama, NIS, NISN, atau orang tua..."
               className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
             />
             {loadingSearch && (
@@ -838,11 +854,15 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
               <Users className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-sm text-slate-800">Belum Ada Data Siswa</h3>
+            <h3 className="font-bold text-sm text-slate-800">
+              {isSearchActive ? 'Siswa Tidak Ditemukan' : 'Belum Ada Data Siswa'}
+            </h3>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-              {viewMode === 'class' 
-                ? `Belum ada siswa yang ditempatkan pada Kelas ${currentSelectedClassObj?.name || ''}. Tambah siswa baru atau impor dari file Excel.`
-                : 'Belum ada siswa yang terdaftar di basis data madrasah Anda.'}
+              {isSearchActive
+                ? `Tidak ada siswa yang cocok dengan kata kunci "${searchQuery}". Coba periksa kembali ejaan nama, NIS, NISN, atau nama orang tua.`
+                : viewMode === 'class' 
+                  ? `Belum ada siswa yang ditempatkan pada Kelas ${currentSelectedClassObj?.name || ''}. Tambah siswa baru atau impor dari file Excel.`
+                  : 'Belum ada siswa yang terdaftar di basis data madrasah Anda.'}
             </p>
             <div className="flex justify-center gap-2 mt-4">
               <button
@@ -1187,7 +1207,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             <div className="text-xs text-slate-500 font-medium">
               {isSearchActive ? (
                 <span>
-                  Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian NIS/NISN
+                  Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian "{searchQuery}"
                 </span>
               ) : (
                 <span>

@@ -12,6 +12,7 @@ import {
 import { db } from '../firebase/config';
 import { Student, Enrollment } from '../../types';
 import { sanitizeExcelDate } from '../../utils/excelImportSanitizer';
+import { buildStudentSearchTokens } from './students';
 
 export interface DuplicateStudentGroup {
   key: string;
@@ -330,6 +331,9 @@ export async function executeZeroResidueDeduplication(
     }
 
     if (Object.keys(enrichmentData).length > 0) {
+      const effectiveFullName = enrichmentData.fullName || master.fullName;
+      const effectiveParentName = enrichmentData.parentName !== undefined ? enrichmentData.parentName : master.parentName;
+      enrichmentData.searchTokens = buildStudentSearchTokens(effectiveFullName, effectiveParentName);
       enrichmentData.updatedAt = serverTimestamp();
       operations.push({
         type: 'UPDATE',

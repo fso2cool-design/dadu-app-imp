@@ -8,6 +8,7 @@ import {
   getDocFromServer 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { buildStudentSearchTokens } from './students';
 
 export interface DatabaseBackup {
   version: string;
@@ -222,6 +223,12 @@ export async function importFullDatabase(
         const targetDocRef = id 
           ? doc(db, 'users', uid, col.name, id)
           : doc(collection(db, 'users', uid, col.name));
+
+        if (col.name === 'students') {
+          if (!data.searchTokens || !Array.isArray(data.searchTokens) || data.searchTokens.length === 0) {
+            data.searchTokens = buildStudentSearchTokens(data.fullName, data.parentName);
+          }
+        }
         
         batch.set(targetDocRef, data, { merge: mode === 'merge' });
         totalRestored++;

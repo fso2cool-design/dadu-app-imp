@@ -95,6 +95,42 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
 }
 
 /**
+ * Helper terpusat untuk membangkitkan word-prefix search tokens dari fullName dan parentName.
+ * Normalisasi:
+ * - lowercase, trim, collapse multiple whitespace
+ * - pecah per kata (token)
+ * - buat prefix bertahap mulai dari 1 karakter hingga panjang kata penuh
+ * - deduplikasi token
+ */
+export function buildStudentSearchTokens(fullName?: string, parentName?: string): string[] {
+  const tokenSet = new Set<string>();
+
+  const processText = (text?: string) => {
+    if (!text) return;
+    const normalized = text
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, ' ');
+    if (!normalized) return;
+
+    // Pecah per kata
+    const words = normalized.split(' ').filter(Boolean);
+    for (const word of words) {
+      // Hasilkan prefix bertahap (word-prefix indexing)
+      // Contoh "ahmad" -> "a", "ah", "ahm", "ahma", "ahmad"
+      for (let i = 1; i <= word.length; i++) {
+        tokenSet.add(word.substring(0, i));
+      }
+    }
+  };
+
+  processText(fullName);
+  processText(parentName);
+
+  return Array.from(tokenSet);
+}
+
+/**
  * Targeted exact search untuk NIS atau NISN.
  * Tidak melakukan full collection getStudents().
  * Menggunakan query equality ('==') langsung terhadap field 'nis' dan 'nisn'.
@@ -129,6 +165,51 @@ export async function searchStudentsByExactIdentifier(
   });
 
   return Array.from(map.values());
+}
+
+/**
+ * Targeted name/parent prefix search menggunakan array searchTokens di Firestore.
+ * Tidak melakukan full collection scan maupun getStudents(uid).
+ * Query menggunakan: where('searchTokens', 'array-contains', primaryToken) dengan limit(25).
+ * Jika query memiliki multi-word, token pertama digunakan untuk Firestore filter,
+ * lalu token berikutnya diverifikasi terhadap nama siswa/orang tua dokumen hasil pencarian.
+ */
+export async function searchStudentsByNameToken(
+  uid: string,
+  rawQuery: string,
+  maxResults = 25
+): Promise<Student[]> {
+  const clean = rawQuery?.toLowerCase().trim().replace(/\s+/g, ' ');
+  if (!clean) return [];
+
+  const tokens = clean.split(' ').filter(Boolean);
+  if (tokens.length === 0) return [];
+
+  // Ambil token utama (token pertama) untuk query array-contains di Firestore
+  const primaryToken = tokens[0];
+
+  const colRef = collection(db, 'users', uid, 'students');
+  const q = query(
+    colRef,
+    where('searchTokens', 'array-contains', primaryToken),
+    limit(maxResults)
+  );
+
+  const snap = await getDocs(q);
+  const matchedDocs = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as Student));
+
+  // Jika single token, langsung kembalikan hasil
+  if (tokens.length === 1) {
+    return matchedDocs;
+  }
+
+  // Multi-word search refinement:
+  // Verifikasi bahwa token kata kedua dan seterusnya juga cocok sebagai prefix kata di fullName atau parentName
+  const secondaryTokens = tokens.slice(1);
+  return matchedDocs.filter(student => {
+    const studentTokens = new Set(student.searchTokens || buildStudentSearchTokens(student.fullName, student.parentName));
+    return secondaryTokens.every(secToken => studentTokens.has(secToken));
+  });
 }
 
 /**
@@ -178,6 +259,7 @@ export async function createStudent(
 
   const colRef = collection(db, 'users', uid, 'students');
   const now = serverTimestamp();
+  const searchTokens = buildStudentSearchTokens(data.fullName, data.parentName);
   const studentData = {
     nis: data.nis?.trim() || '',
     nisn: cleanNisn,
@@ -196,6 +278,7 @@ export async function createStudent(
     nikSiswa: data.nikSiswa?.trim() || '',
     nikIbu: data.nikIbu?.trim() || '',
     nkk: data.nkk?.trim() || '',
+    searchTokens,
     customAttributes: data.customAttributes || {},
     createdAt: now,
     updatedAt: now,
@@ -281,12 +364,21 @@ export async function updateStudent(
   // karena seluruh transaksi (enrollment, nilai, presensi) terikat pada studentId.
   const cleanData: any = { ...data };
   if (cleanData.fullName) cleanData.fullName = cleanData.fullName.trim();
+  if (cleanData.parentName !== undefined) cleanData.parentName = cleanData.parentName.trim();
   if (cleanData.nis !== undefined) cleanData.nis = cleanData.nis.trim();
   if (cleanData.nisn !== undefined) cleanData.nisn = cleanData.nisn.trim();
   if (cleanData.nikSiswa !== undefined) cleanData.nikSiswa = cleanData.nikSiswa.trim();
   if (cleanData.nikIbu !== undefined) cleanData.nikIbu = cleanData.nikIbu.trim();
   if (cleanData.nkk !== undefined) cleanData.nkk = cleanData.nkk.trim();
   if (cleanData.customAttributes !== undefined) cleanData.customAttributes = cleanData.customAttributes;
+
+  // Sinkronisasi index searchTokens jika fullName atau parentName berubah atau belum ada searchTokens
+  const effectiveFullName = cleanData.fullName !== undefined ? cleanData.fullName : currentData.fullName;
+  const effectiveParentName = cleanData.parentName !== undefined ? cleanData.parentName : currentData.parentName;
+  if (cleanData.fullName !== undefined || cleanData.parentName !== undefined || !currentData.searchTokens) {
+    cleanData.searchTokens = buildStudentSearchTokens(effectiveFullName, effectiveParentName);
+  }
+
   cleanData.updatedAt = serverTimestamp();
 
   await updateDoc(docRef, cleanData);
@@ -356,6 +448,7 @@ export async function batchCreateStudents(
 
   for (const item of studentsList) {
     const newDocRef = doc(colRef);
+    const searchTokens = buildStudentSearchTokens(item.fullName, item.parentName);
     const studentData = {
       nis: item.nis?.trim() || '',
       nisn: item.nisn?.trim() || '',
@@ -374,6 +467,7 @@ export async function batchCreateStudents(
       nikSiswa: item.nikSiswa?.trim() || '',
       nikIbu: item.nikIbu?.trim() || '',
       nkk: item.nkk?.trim() || '',
+      searchTokens,
       customAttributes: item.customAttributes || {},
       createdAt: now,
       updatedAt: now,
@@ -573,6 +667,11 @@ export async function atomicImportStudentsWithEnrollment(
           };
         }
 
+        // Perbarui searchTokens dengan nama dan wali yang efektif
+        const effectiveFullName = updateData.fullName || matchedStudent?.fullName || '';
+        const effectiveParentName = updateData.parentName !== undefined ? updateData.parentName : (matchedStudent?.parentName || '');
+        updateData.searchTokens = buildStudentSearchTokens(effectiveFullName, effectiveParentName);
+
         batchTasks.push({ type: 'UPDATE', ref: studentDocRef, data: updateData });
       }
 
@@ -619,6 +718,7 @@ export async function atomicImportStudentsWithEnrollment(
       const studentDocRef = doc(studentsColRef);
       matchedStudentId = studentDocRef.id;
 
+      const searchTokens = buildStudentSearchTokens(item.fullName, item.parentName);
       const studentData = {
         nis: item.nis?.trim() || '',
         nisn: item.nisn?.trim() || '',
@@ -637,6 +737,7 @@ export async function atomicImportStudentsWithEnrollment(
         nikSiswa: item.nikSiswa?.trim() || '',
         nikIbu: item.nikIbu?.trim() || '',
         nkk: item.nkk?.trim() || '',
+        searchTokens,
         customAttributes: item.customAttributes || {},
         createdAt: now,
         updatedAt: now,
@@ -694,5 +795,56 @@ export async function atomicImportStudentsWithEnrollment(
     createdCount,
     updatedCount,
   };
+}
+
+/**
+ * Utility untuk backfill searchTokens pada data siswa yang sudah ada.
+ * Tidak dipanggil otomatis saat booting agar tidak ada overhead background scan.
+ * Dapat dipanggil on-demand melalui panel perbaikan atau console admin jika diperlukan.
+ * Membaca siswa tanpa searchTokens, menghitung tokens, dan memperbarui dokumen dalam chunk writeBatch.
+ */
+export async function backfillStudentSearchTokens(
+  uid: string,
+  onProgress?: (processed: number, total: number) => void
+): Promise<{ processed: number; updated: number }> {
+  const colRef = collection(db, 'users', uid, 'students');
+  const snap = await getDocs(colRef);
+
+  let updated = 0;
+  let processed = 0;
+  const total = snap.docs.length;
+
+  const docsToUpdate: Array<{ id: string; tokens: string[] }> = [];
+
+  for (const docSnap of snap.docs) {
+    processed++;
+    const data = docSnap.data() as Student;
+    // Cek apakah searchTokens belum ada atau kosong padahal siswa punya fullName
+    if (!data.searchTokens || !Array.isArray(data.searchTokens) || (data.fullName && data.searchTokens.length === 0)) {
+      const tokens = buildStudentSearchTokens(data.fullName, data.parentName);
+      docsToUpdate.push({ id: docSnap.id, tokens });
+    }
+  }
+
+  // Tulis per batch maksimal 400 dokumen
+  const BATCH_SIZE = 400;
+  for (let i = 0; i < docsToUpdate.length; i += BATCH_SIZE) {
+    const chunk = docsToUpdate.slice(i, i + BATCH_SIZE);
+    const batch = writeBatch(db);
+    chunk.forEach(item => {
+      const dRef = doc(db, 'users', uid, 'students', item.id);
+      batch.update(dRef, {
+        searchTokens: item.tokens,
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+    updated += chunk.length;
+    if (onProgress) {
+      onProgress(processed, total);
+    }
+  }
+
+  return { processed, updated };
 }
 
