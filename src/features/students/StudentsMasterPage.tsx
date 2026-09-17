@@ -1,8 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getStudents, getStudentsPaginated, deleteStudent, canDeleteStudent } from '../../services/firestore/students';
+import { 
+  getStudentsPaginated, 
+  searchStudentsByExactIdentifier,
+  deleteStudent, 
+  canDeleteStudent 
+} from '../../services/firestore/students';
 import { 
   getEnrollmentsByClass, 
   deleteEnrollment, 
@@ -67,7 +72,6 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     activeSemester, 
     selectedClassId, 
     setSelectedClassId,
-    students: cachedStudents,
     reloadWorkspaceData,
     triggerSyncFeedback
   } = useWorkspace();
@@ -77,9 +81,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [currentClassId, setCurrentClassId] = useState<string>(selectedClassId || classes[0]?.id || '');
 
   // Data states
-  const [students, setStudents] = useState<Student[]>(cachedStudents || []);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [loading, setLoading] = useState(cachedStudents.length === 0);
+  const [loading, setLoading] = useState(true);
   const [reordering, setReordering] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
@@ -91,17 +94,15 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   const [pageCursors, setPageCursors] = useState<any[]>([null]);
   const [loadingPagination, setLoadingPagination] = useState<boolean>(false);
 
-  // Sync cached students when workspace updates
-  useEffect(() => {
-    if (cachedStudents && cachedStudents.length > 0) {
-      setStudents(cachedStudents);
-    }
-  }, [cachedStudents]);
-
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'ALL' | 'L' | 'P'>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  // Search Results State for Exact Identifier Search
+  const [searchResults, setSearchResults] = useState<Student[] | null>(null);
+  const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Modals
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -141,7 +142,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   }, [selectedClassId]);
 
-  // Fetch Paginated Master Students with Firestore Cursor
+  // Fetch Paginated Master Students with Firestore Cursor and Native Filters
   const fetchPaginatedStudents = async (
     targetPage: number = 0,
     cursorToUse?: any,
@@ -154,6 +155,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       const result = await getStudentsPaginated(user.uid, {
         pageSize: PAGE_SIZE,
         cursorDoc: cursor,
+        status: statusFilter,
+        gender: genderFilter,
       });
 
       setPaginatedStudents(result.students);
@@ -174,27 +177,67 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   };
 
-  // Fetch data
+  // Reset pagination cursors and re-fetch page 0 when filters change in 'all' view
+  useEffect(() => {
+    if (viewMode === 'all' && user) {
+      setPageIndex(0);
+      setPageCursors([null]);
+      fetchPaginatedStudents(0, null, [null]);
+    }
+  }, [genderFilter, statusFilter, viewMode, user]);
+
+  // Debounced Exact Identifier Search (NIS / NISN)
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setSearchResults(null);
+      setLoadingSearch(false);
+      return;
+    }
+
+    if (viewMode === 'all' && user) {
+      setLoadingSearch(true);
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          const results = await searchStudentsByExactIdentifier(user.uid, trimmed);
+          setSearchResults(results);
+        } catch (err) {
+          console.error('Error during identifier search:', err);
+          setSearchResults([]);
+        } finally {
+          setLoadingSearch(false);
+        }
+      }, 350);
+    }
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, viewMode, user]);
+
+  // Fetch data without full collection scan
   const fetchData = async (forceRefreshStudents = false) => {
     if (!user) return;
     try {
-      if (students.length === 0 || forceRefreshStudents) {
-        setLoading(true);
-        const [allStuds, fetchedFields] = await Promise.all([
-          getStudents(user.uid),
-          getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]),
-        ]);
-        setStudents(allStuds);
-        setCustomFields(fetchedFields);
-        // Refresh paginated students as well
-        fetchPaginatedStudents(0, null, [null]);
-      } else if (customFields.length === 0) {
+      if (customFields.length === 0 || forceRefreshStudents) {
         const fetchedFields = await getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]);
         setCustomFields(fetchedFields);
       }
 
+      if (forceRefreshStudents && viewMode === 'all') {
+        setPageIndex(0);
+        setPageCursors([null]);
+        fetchPaginatedStudents(0, null, [null]);
+      }
+
       if (currentClassId && activeAcademicYear) {
-        setLoading(prev => (students.length === 0 ? true : prev));
+        setLoading(true);
         const classEnrolls = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId, { status: 'ALL' });
         setEnrollments(classEnrolls);
       } else {
@@ -234,7 +277,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         }
       }
 
-      // Search query
+      // Search query (in class view, local filter over class enrollments)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = stud.fullName.toLowerCase().includes(q);
@@ -248,37 +291,23 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     });
   }, [enrollments, genderFilter, statusFilter, searchQuery]);
 
-  // Master Students list to display (paginated by Firestore cursor when browsing, or full filtered list if user searched/filtered)
-  const isAllFilterActive = searchQuery.trim() !== '' || genderFilter !== 'ALL' || statusFilter !== 'ALL';
+  // Is Search Active in All View
+  const isSearchActive = searchQuery.trim() !== '';
 
-  // Filtered All Master Students
+  // Master Students list to display:
+  // - If searching NIS/NISN: show searchResults (targeted query)
+  // - If browsing: show paginatedStudents (native Firestore paginated + filtered)
   const filteredAllStudents = useMemo(() => {
-    // If user is searching or filtering, run filter over full cached students
-    if (isAllFilterActive) {
-      return students.filter(stud => {
-        // Gender filter
+    if (isSearchActive) {
+      const list = searchResults || [];
+      return list.filter(stud => {
         if (genderFilter !== 'ALL' && stud.gender !== genderFilter) return false;
-
-        // Status filter
         if (statusFilter !== 'ALL' && stud.status !== statusFilter) return false;
-
-        // Search query
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = stud.fullName.toLowerCase().includes(q);
-          const matchNis = stud.nis?.toLowerCase().includes(q);
-          const matchNisn = stud.nisn?.toLowerCase().includes(q);
-          const matchParent = stud.parentName?.toLowerCase().includes(q);
-          return matchName || matchNis || matchNisn || matchParent;
-        }
-
         return true;
       });
     }
-
-    // Default view: use Firestore cursor-paginated students
-    return paginatedStudents.length > 0 ? paginatedStudents : students.slice(0, PAGE_SIZE);
-  }, [isAllFilterActive, students, paginatedStudents, genderFilter, statusFilter, searchQuery]);
+    return paginatedStudents;
+  }, [isSearchActive, searchResults, paginatedStudents, genderFilter, statusFilter]);
 
   // Active stats
   const activeTargetList = viewMode === 'class' 
@@ -311,11 +340,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     }
   }, [viewMode, filteredEnrollments, filteredAllStudents, currentSelectedClassObj]);
 
-  // Deteksi duplikasi siswa pada rombel aktif atau seluruh data master secara real-time
+  // Deteksi duplikasi siswa pada rombel aktif atau halaman aktif master secara real-time
   const duplicateDetected = useMemo(() => {
     const listToCheck = viewMode === 'class'
       ? enrollments.map(e => e.student).filter(Boolean) as Student[]
-      : students;
+      : paginatedStudents;
 
     const seenNis = new Set<string>();
     const seenNisn = new Set<string>();
@@ -336,7 +365,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       if (name) seenNames.add(name);
     }
     return false;
-  }, [viewMode, enrollments, students]);
+  }, [viewMode, enrollments, paginatedStudents]);
 
   // Reorder roll numbers alphabetically
   const handleAutoReorderRollNumbers = () => {
@@ -626,7 +655,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           <span className="text-xs text-slate-500 font-medium block">Total Siswa</span>
           <div className="text-2xl font-bold text-slate-800 mt-1">{totalCount}</div>
           <span className="text-[11px] text-slate-400 mt-0.5 block">
-            {viewMode === 'class' ? `Di Kelas ${currentSelectedClassObj?.name || 'Aktif'}` : 'Seluruh Database'}
+            {viewMode === 'class' 
+              ? `Di Kelas ${currentSelectedClassObj?.name || 'Aktif'}` 
+              : isSearchActive 
+                ? 'Hasil Pencarian' 
+                : 'Halaman Ini'}
           </span>
         </div>
 
@@ -678,7 +711,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                   : 'text-slate-600 hover:text-slate-800'
               }`}
             >
-              Semua Siswa Master ({students.length})
+              Semua Siswa Master
             </button>
           </div>
 
@@ -721,9 +754,22 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Cari nama, NIS, NISN..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
+              placeholder={viewMode === 'all' ? 'Cari NIS atau NISN...' : 'Cari nama, NIS, NISN...'}
+              className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
             />
+            {loadingSearch && (
+              <div className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin absolute right-3 top-2.5" />
+            )}
+            {!loadingSearch && searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer p-0.5"
+                title="Hapus pencarian"
+              >
+                ✕
+              </button>
+            )}
           </div>
 
           {/* Class Selector (if in Class View) */}
@@ -1022,7 +1068,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                 ) : (
                   filteredAllStudents.map((stud, idx) => {
                     const waLink = stud.parentPhone ? `https://wa.me/${stud.parentPhone.replace(/[^0-9]/g, '')}` : null;
-                    const rowNumber = isAllFilterActive ? idx + 1 : pageIndex * PAGE_SIZE + (idx + 1);
+                    const rowNumber = isSearchActive ? idx + 1 : pageIndex * PAGE_SIZE + (idx + 1);
                     return (
                       <tr key={stud.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-3.5 text-center font-mono text-slate-400 font-semibold">
@@ -1135,12 +1181,14 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </div>
         )}
 
-        {/* Pagination Controls for Master Students (when in 'all' view and not searching/filtering) */}
+        {/* Pagination Controls for Master Students (when in 'all' view and not searching) */}
         {viewMode === 'all' && !loading && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/50 rounded-b-2xl">
             <div className="text-xs text-slate-500 font-medium">
-              {isAllFilterActive ? (
-                <span>Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian/filter</span>
+              {isSearchActive ? (
+                <span>
+                  Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian NIS/NISN
+                </span>
               ) : (
                 <span>
                   Halaman <span className="font-semibold text-slate-700">{pageIndex + 1}</span> (Menampilkan {paginatedStudents.length} siswa per halaman)
@@ -1148,7 +1196,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               )}
             </div>
 
-            {!isAllFilterActive && (
+            {!isSearchActive && (
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -1353,7 +1401,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         isOpen={deduplicateModalOpen}
         onClose={() => setDeduplicateModalOpen(false)}
         onSuccess={() => {
-          fetchData();
+          fetchData(true);
         }}
         targetClassId={viewMode === 'class' ? currentClassId : undefined}
       />

@@ -13,11 +13,11 @@ import {
   serverTimestamp,
   writeBatch,
   runTransaction,
-  limit
+  limit,
+  documentId
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Enrollment, Student } from '../../types';
-import { getStudents } from './students';
 
 export interface GetEnrollmentsOptions {
   status?: 'ACTIVE' | 'TRANSFERRED' | 'INACTIVE' | 'GRADUATED' | 'ALL';
@@ -42,15 +42,56 @@ export async function getEnrollmentsByClass(
     orderBy('rollNumber', 'asc')
   );
   
-  const [snap, allStudents] = await Promise.all([
-    getDocs(q),
-    getStudents(uid)
-  ]);
+  const snap = await getDocs(q);
 
+  // Filter based on options.status early if requested (default: ACTIVE)
+  const targetStatus = options?.status ?? 'ACTIVE';
+  const filteredDocs = targetStatus === 'ALL'
+    ? snap.docs
+    : snap.docs.filter(d => (d.data() as any).status === targetStatus);
+
+  // Collect unique valid studentIds
+  const studentIdSet = new Set<string>();
+  filteredDocs.forEach(d => {
+    const sId = (d.data() as any).studentId;
+    if (sId && typeof sId === 'string') {
+      studentIdSet.add(sId);
+    }
+  });
+
+  const studentIds = Array.from(studentIdSet);
   const studentMap = new Map<string, Student>();
-  allStudents.forEach(s => studentMap.set(s.id, s));
 
-  let enrollments = snap.docs.map(d => {
+  if (studentIds.length > 0) {
+    const studentsColRef = collection(db, 'users', uid, 'students');
+    // Firestore 'in' query limit is 30 items per batch
+    const CHUNK_SIZE = 30;
+    const chunks: string[][] = [];
+    for (let i = 0; i < studentIds.length; i += CHUNK_SIZE) {
+      chunks.push(studentIds.slice(i, i + CHUNK_SIZE));
+    }
+
+    const chunkResults = await Promise.all(
+      chunks.map(chunk => {
+        const studentQuery = query(
+          studentsColRef,
+          where(documentId(), 'in', chunk)
+        );
+        return getDocs(studentQuery);
+      })
+    );
+
+    chunkResults.forEach(chunkSnap => {
+      chunkSnap.docs.forEach(docSnap => {
+        studentMap.set(docSnap.id, {
+          id: docSnap.id,
+          ...(docSnap.data() as any),
+        } as Student);
+      });
+    });
+  }
+
+  const enrollments: Enrollment[] = filteredDocs.map(d => {
     const data = d.data() as any;
     return {
       id: d.id,
@@ -58,11 +99,6 @@ export async function getEnrollmentsByClass(
       student: studentMap.get(data.studentId),
     } as Enrollment;
   });
-
-  const targetStatus = options?.status ?? 'ACTIVE';
-  if (targetStatus !== 'ALL') {
-    enrollments = enrollments.filter(e => e.status === targetStatus);
-  }
 
   return enrollments;
 }

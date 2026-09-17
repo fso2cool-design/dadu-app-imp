@@ -27,10 +27,9 @@ import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { getMeetings } from '../../services/firestore/meetings';
 import { getEnrollmentsByAcademicYear } from '../../services/firestore/enrollments';
-import { getStudents } from '../../services/firestore/students';
 import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services/firestore/assessments';
 import { getDailyAttendanceSession } from '../../services/firestore/homeroomAttendance';
-import { Meeting, Enrollment, TeachingAssignment, Student, AssessmentItem, Score, DailyAttendanceSession } from '../../types';
+import { Meeting, Enrollment, TeachingAssignment, AssessmentItem, Score, DailyAttendanceSession } from '../../types';
 import { getTodayISO, formatDateWithDay, INDONESIAN_DAYS } from '../../utils/date';
 
 interface DashboardPageProps {
@@ -49,7 +48,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [assessmentItems, setAssessmentItems] = useState<AssessmentItem[]>([]);
   const [scores, setScores] = useState<Score[]>([]);
   const [homeroomDailySession, setHomeroomDailySession] = useState<DailyAttendanceSession | null>(null);
@@ -77,13 +75,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     const loadRealMetrics = async () => {
       setLoadingStats(true);
       try {
-        const [meetingData, enrollmentData, studentData, assessmentData] = await Promise.all([
+        const [meetingData, enrollmentData, assessmentData] = await Promise.all([
           getMeetings(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
           getEnrollmentsByAcademicYear(user.uid, activeAcademicYear.id),
-          getStudents(user.uid, 'ACTIVE'),
           getAssessmentItems(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
@@ -104,7 +101,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         if (isMounted) {
           setMeetings(meetingData);
           setEnrollments(enrollmentData);
-          setStudents(studentData);
           setAssessmentItems(assessmentData);
           setScores(scoreData);
           setHomeroomDailySession(dailySession);

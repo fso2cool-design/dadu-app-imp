@@ -95,6 +95,43 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
 }
 
 /**
+ * Targeted exact search untuk NIS atau NISN.
+ * Tidak melakukan full collection getStudents().
+ * Menggunakan query equality ('==') langsung terhadap field 'nis' dan 'nisn'.
+ */
+export async function searchStudentsByExactIdentifier(
+  uid: string,
+  rawQuery: string
+): Promise<Student[]> {
+  const clean = rawQuery?.trim();
+  if (!clean) {
+    return [];
+  }
+
+  const colRef = collection(db, 'users', uid, 'students');
+
+  // Query exact match paralel terhadap NIS dan NISN
+  const [nisSnap, nisnSnap] = await Promise.all([
+    getDocs(query(colRef, where('nis', '==', clean), limit(10))),
+    getDocs(query(colRef, where('nisn', '==', clean), limit(10))),
+  ]);
+
+  const map = new Map<string, Student>();
+
+  nisSnap.docs.forEach(d => {
+    map.set(d.id, { id: d.id, ...(d.data() as any) } as Student);
+  });
+
+  nisnSnap.docs.forEach(d => {
+    if (!map.has(d.id)) {
+      map.set(d.id, { id: d.id, ...(d.data() as any) } as Student);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
+/**
  * Validasi ketersediaan NISN untuk siswa aktif di ruang kerja pengguna.
  * Jika NISN kosong/belum ada, dianggap valid (tidak dipaksakan unik).
  */

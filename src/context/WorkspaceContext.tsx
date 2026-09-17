@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
-import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings, Student } from '../types';
+import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../types';
 import { getAcademicYears } from '../services/firestore/academicYears';
 import { getClasses } from '../services/firestore/classes';
 import { getSubjects } from '../services/firestore/subjects';
 import { getTeachingAssignments } from '../services/firestore/teachingAssignments';
-import { getStudents } from '../services/firestore/students';
 import { getUserPreferences, saveUserPreferences, getAttendanceSettings, saveAttendanceSettings, DEFAULT_ATTENDANCE_SETTINGS } from '../services/firestore/settings';
 
 interface WorkspaceContextType {
@@ -15,7 +14,6 @@ interface WorkspaceContextType {
   classes: ClassItem[];
   subjects: Subject[];
   teachingAssignments: TeachingAssignment[];
-  students: Student[];
   
   // Selection
   selectedClassId: string;
@@ -55,7 +53,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [teachingAssignments, setTeachingAssignments] = useState<TeachingAssignment[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
 
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('');
@@ -162,7 +159,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       setClasses([]);
       setSubjects([]);
       setTeachingAssignments([]);
-      setStudents([]);
       setLoading(false);
       return;
     }
@@ -171,12 +167,11 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       setLoading(true);
       setSyncStatus('syncing');
       
-      const [yearsList, classesList, subjectsList, assignmentsList, studentsList, prefs, attSettings] = await Promise.all([
+      const [yearsList, classesList, subjectsList, assignmentsList, prefs, attSettings] = await Promise.all([
         getAcademicYears(user.uid),
         getClasses(user.uid),
         getSubjects(user.uid),
         getTeachingAssignments(user.uid),
-        getStudents(user.uid),
         getUserPreferences(user.uid),
         getAttendanceSettings(user.uid),
       ]);
@@ -184,7 +179,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       setAcademicYears(yearsList);
       setClasses(classesList);
       setSubjects(subjectsList);
-      setStudents(studentsList);
       setAttendanceSettings(attSettings);
       // Naturally sort teaching assignments (e.g. X-A < X-B < X-C < XII-A)
       const sortedAssignments = [...assignmentsList].sort((a, b) => {
@@ -327,7 +321,6 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         classes,
         subjects,
         teachingAssignments,
-        students,
         selectedClassId,
         selectedSubjectId,
         selectedAssignment,
