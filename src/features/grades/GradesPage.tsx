@@ -5,7 +5,8 @@ import {
   getAssessmentItems, 
   getScoresByAssessmentItemIds, 
   saveMatrixScores, 
-  deleteAssessmentItem 
+  deleteAssessmentItem,
+  canDeleteAssessmentItem
 } from '../../services/firestore/assessments';
 import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
 import { AssessmentItemModal } from './AssessmentItemModal';
@@ -335,12 +336,24 @@ export const GradesPage: React.FC = () => {
   };
 
   // Delete assessment column
-  const handleDeleteItem = (itemId: string, itemName: string) => {
+  const handleDeleteItem = async (itemId: string, itemName: string) => {
     if (isArchivedYear) {
       toastWarning('Tahun Ajaran ini telah diarsipkan. Kolom nilai tidak dapat dihapus.');
       return;
     }
-    setItemToDelete({ id: itemId, name: itemName });
+    if (!user) return;
+
+    try {
+      const check = await canDeleteAssessmentItem(user.uid, itemId);
+      if (!check.canDelete) {
+        toastWarning(check.reason || 'Kolom penilaian tidak dapat dihapus karena sudah memiliki nilai siswa.');
+        return;
+      }
+      setItemToDelete({ id: itemId, name: itemName });
+    } catch (err: any) {
+      console.error('Error checking assessment item deletion:', err);
+      toastError('Gagal memverifikasi status kolom: ' + (err.message || 'Error'));
+    }
   };
 
   const executeDeleteItem = async () => {
@@ -1404,7 +1417,7 @@ export const GradesPage: React.FC = () => {
           <>
             Apakah Anda yakin ingin menghapus kolom penilaian <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{itemToDelete?.name}&quot;</strong>?
             <br />
-            Semua nilai siswa yang tersimpan di kolom ini akan dihapus permanen.
+            Kolom penilaian ini belum memiliki nilai siswa dan akan dihapus dari daftar asesmen.
           </>
         }
         confirmLabel="Hapus Kolom"

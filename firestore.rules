@@ -138,6 +138,11 @@ service cloud.firestore {
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
       }
 
+      match /dailyAttendanceSessions/{sessionId} {
+        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      }
+
       match /dailyAttendanceRecords/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())

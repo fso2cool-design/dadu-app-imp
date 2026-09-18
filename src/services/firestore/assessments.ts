@@ -8,6 +8,7 @@ import {
   deleteDoc,
   query, 
   where, 
+  limit,
   orderBy, 
   serverTimestamp,
   writeBatch
@@ -138,40 +139,78 @@ export async function updateAssessmentItem(
   });
 }
 
-export async function deleteAssessmentItem(
-  uid: string, 
+export interface CanDeleteAssessmentItemResult {
+  canDelete: boolean;
+  reason?: string;
+  hasScores: boolean;
+  scoresCount?: number;
+}
+
+/**
+  * Guard check to determine if an AssessmentItem can be safely deleted.
+  * Ensures the item exists and uses limit(1) to check if any student scores exist.
+  * If scores exist, deletion is prohibited to prevent cascading loss of historical grades.
+  */
+export async function canDeleteAssessmentItem(
+  uid: string,
   itemId: string
-): Promise<void> {
+): Promise<CanDeleteAssessmentItemResult> {
   const itemDoc = await getDoc(doc(db, 'users', uid, 'assessmentItems', itemId));
   if (!itemDoc.exists()) {
-    throw new Error('Kolom penilaian tidak ditemukan.');
+    return {
+      canDelete: false,
+      reason: 'Kolom penilaian tidak ditemukan.',
+      hasScores: false,
+    };
   }
+
   const itemData = itemDoc.data() as any;
   if (itemData?.academicYearId) {
     const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', itemData.academicYearId));
     if (ayDoc.exists() && ayDoc.data()?.isArchived) {
-      throw new Error('Tidak dapat menghapus kolom penilaian pada Tahun Ajaran yang telah diarsipkan (read-only).');
+      return {
+        canDelete: false,
+        reason: 'Kolom penilaian berada pada Tahun Ajaran yang telah diarsipkan (read-only).',
+        hasScores: false,
+      };
     }
   }
 
+  // Efficient limit(1) check for existing student scores
+  const scoresColRef = collection(db, 'users', uid, 'scores');
+  const scoreSnap = await getDocs(
+    query(scoresColRef, where('assessmentItemId', '==', itemId), limit(1))
+  );
+
+  if (!scoreSnap.empty) {
+    return {
+      canDelete: false,
+      reason: 'Kolom penilaian tidak dapat dihapus karena sudah memiliki nilai siswa. Gunakan opsi edit atau kosongkan nilai terlebih dahulu.',
+      hasScores: true,
+    };
+  }
+
+  return {
+    canDelete: true,
+    hasScores: false,
+  };
+}
+
+export async function deleteAssessmentItem(
+  uid: string, 
+  itemId: string
+): Promise<void> {
+  const guard = await canDeleteAssessmentItem(uid, itemId);
+  if (!guard.canDelete) {
+    throw new Error(guard.reason || 'Kolom penilaian tidak dapat dihapus.');
+  }
+
   return trackSync((async () => {
-    // First delete associated scores
-    const scoresColRef = collection(db, 'users', uid, 'scores');
-    const scoreQuery = query(scoresColRef, where('assessmentItemId', '==', itemId));
-    const scoreSnap = await getDocs(scoreQuery);
-
-    const batch = writeBatch(db);
-    scoreSnap.docs.forEach(docSnap => {
-      batch.delete(docSnap.ref);
-    });
-
-    // Delete the item itself
+    // Only delete the assessmentItem itself. Cascade delete on scores is strictly forbidden.
     const itemRef = doc(db, 'users', uid, 'assessmentItems', itemId);
-    batch.delete(itemRef);
-
-    await batch.commit();
+    await deleteDoc(itemRef);
   })(), {
-    startMessage: 'Menghapus kolom asesmen & nilai terkait...',
+    startMessage: 'Menghapus kolom asesmen...',
     successMessage: 'Kolom asesmen berhasil dihapus!'
   });
 }

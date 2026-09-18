@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Modal } from '../../components/common/Modal';
@@ -113,6 +113,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived || assignment?.isArchived);
 
@@ -167,7 +168,12 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       return;
     }
 
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     try {
+      isSubmittingRef.current = true;
       setLoading(true);
       setError(null);
       triggerSyncFeedback('syncing', 'Menyimpan kolom penilaian ke cloud...');
@@ -208,6 +214,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       triggerSyncFeedback('synced');
       setError(err.message || 'Gagal menyimpan kolom penilaian.');
     } finally {
+      isSubmittingRef.current = false;
       setLoading(false);
     }
   };
