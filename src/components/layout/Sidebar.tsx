@@ -305,7 +305,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               aria-label="Buka sidebar"
             >
               {hoveredTopToggle ? (
-                <PanelLeftOpen className="w-5 h-5 text-fuchsia-500 dark:text-fuchsia-400 animate-in zoom-in-75 duration-150" />
+                <PanelLeftOpen className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
               ) : (
                 <Logo size="sm" />
               )}

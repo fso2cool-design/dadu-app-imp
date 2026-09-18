@@ -6,75 +6,75 @@
       <stop offset="100%" stop-color="#F1F5F9" />
     </linearGradient>
 
-    <!-- 1. Prisma Facets Gradients -->
+    <!-- 1. Prisma Facets Gradients (Deep Emerald & Islamic Forest Teal) -->
     <linearGradient id="favFacetTop" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#831843" />
-      <stop offset="30%" stop-color="#701A75" />
-      <stop offset="100%" stop-color="#4A044E" />
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="40%" stop-color="#065F46" />
+      <stop offset="100%" stop-color="#064E3B" />
     </linearGradient>
 
     <linearGradient id="favFacetLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3B0764" />
-      <stop offset="60%" stop-color="#2E1065" />
-      <stop offset="100%" stop-color="#17072B" />
+      <stop offset="0%" stop-color="#064E3B" />
+      <stop offset="60%" stop-color="#022C22" />
+      <stop offset="100%" stop-color="#011B15" />
     </linearGradient>
 
     <linearGradient id="favFacetRight" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#581C87" />
-      <stop offset="60%" stop-color="#311042" />
-      <stop offset="100%" stop-color="#150524" />
+      <stop offset="0%" stop-color="#0F766E" />
+      <stop offset="60%" stop-color="#044E46" />
+      <stop offset="100%" stop-color="#012420" />
     </linearGradient>
 
-    <!-- 2. Inner Crystal Cube Gradients -->
+    <!-- 2. Inner Crystal Cube Gradients (Digital Gold & Amber) -->
     <linearGradient id="favCubeTop" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#C026D3" stop-opacity="0.85" />
-      <stop offset="50%" stop-color="#E879F9" stop-opacity="0.9" />
-      <stop offset="100%" stop-color="#F472B6" stop-opacity="0.95" />
+      <stop offset="0%" stop-color="#D97706" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#FDE047" stop-opacity="0.95" />
     </linearGradient>
 
     <linearGradient id="favCubeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#86198F" stop-opacity="0.75" />
-      <stop offset="100%" stop-color="#4A044E" stop-opacity="0.85" />
+      <stop offset="0%" stop-color="#B45309" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#78350F" stop-opacity="0.9" />
     </linearGradient>
 
     <linearGradient id="favCubeRight" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#A21CAF" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#581C87" stop-opacity="0.7" />
+      <stop offset="0%" stop-color="#D97706" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#92400E" stop-opacity="0.8" />
     </linearGradient>
 
-    <!-- 3. Outer Nodes Gradients -->
+    <!-- 3. Outer Nodes Gradients (Gold & Emerald) -->
     <radialGradient id="favNodeTop" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#F472B6" />
-      <stop offset="50%" stop-color="#DB2777" />
-      <stop offset="100%" stop-color="#831843" />
+      <stop offset="0%" stop-color="#FEF08A" />
+      <stop offset="50%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
     </radialGradient>
 
     <radialGradient id="favNodeMid" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#E879F9" />
-      <stop offset="55%" stop-color="#A21CAF" />
-      <stop offset="100%" stop-color="#581C87" />
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="55%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#78350F" />
     </radialGradient>
 
     <radialGradient id="favNodeBottom" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#A855F7" />
-      <stop offset="60%" stop-color="#6B21A8" />
-      <stop offset="100%" stop-color="#2E1065" />
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="60%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#064E3B" />
     </radialGradient>
   </defs>
 
   <!-- Clean squircle border badge for sharp contrast across any browser tab theme -->
   <rect width="120" height="120" rx="26" fill="url(#favBgGrad)" />
-  <rect width="118" height="118" x="1" y="1" rx="25" stroke="#E2E8F0" stroke-width="1.5" />
+  <rect width="118" height="118" x="1" y="1" rx="25" stroke="#CBD5E1" stroke-width="1.5" />
 
-  <!-- 1. Prisma Solid Luar -->
+  <!-- 1. Prisma Solid Luar (Emerald & Teal) -->
   <polygon points="60,18 96,38 60,60 24,38" fill="url(#favFacetTop)" />
   <polygon points="24,38 60,60 60,100 24,80" fill="url(#favFacetLeft)" />
   <polygon points="60,60 96,38 96,80 60,100" fill="url(#favFacetRight)" />
 
-  <!-- 2. Inti Kubus Kristal Dalam -->
-  <polygon points="60,48 73,55.5 60,63 47,55.5" fill="url(#favCubeTop)" stroke="#F472B6" stroke-width="0.8" />
-  <polygon points="47,55.5 60,63 60,78 47,70.5" fill="url(#favCubeLeft)" stroke="#A855F7" stroke-width="0.8" />
-  <polygon points="60,63 73,55.5 73,70.5 60,78" fill="url(#favCubeRight)" stroke="#EC4899" stroke-width="0.8" />
+  <!-- 2. Inti Kubus Kristal Dalam (Gold) -->
+  <polygon points="60,48 73,55.5 60,63 47,55.5" fill="url(#favCubeTop)" stroke="#FDE047" stroke-width="0.85" />
+  <polygon points="47,55.5 60,63 60,78 47,70.5" fill="url(#favCubeLeft)" stroke="#F59E0B" stroke-width="0.85" />
+  <polygon points="60,63 73,55.5 73,70.5 60,78" fill="url(#favCubeRight)" stroke="#FBBF24" stroke-width="0.85" />
 
   <!-- 3. Jaringan Garis Data Putih -->
   <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
@@ -98,9 +98,9 @@
   <circle cx="24" cy="80" r="5.5" fill="url(#favNodeBottom)" stroke="#FFFFFF" stroke-width="1.2" />
   <circle cx="24" cy="38" r="5.5" fill="url(#favNodeMid)" stroke="#FFFFFF" stroke-width="1.2" />
 
-  <!-- 5. Simpul Data Putih -->
-  <circle cx="60" cy="33" r="4.5" fill="#FFFFFF" />
-  <circle cx="36" cy="74" r="4.5" fill="#FFFFFF" />
-  <circle cx="84" cy="74" r="4.5" fill="#FFFFFF" />
-  <circle cx="60" cy="60" r="6" fill="#FFFFFF" stroke="#F472B6" stroke-width="1.2" />
+  <!-- 5. Simpul Data Putih-Emas -->
+  <circle cx="60" cy="33" r="4.5" fill="#FFFFFF" stroke="#FEF08A" stroke-width="1" />
+  <circle cx="36" cy="74" r="4.5" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1" />
+  <circle cx="84" cy="74" r="4.5" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1" />
+  <circle cx="60" cy="60" r="6" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" />
 </svg>

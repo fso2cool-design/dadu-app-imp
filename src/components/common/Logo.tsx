@@ -12,13 +12,13 @@ export interface LogoProps extends Omit<React.SVGProps<SVGSVGElement>, 'size'> {
 }
 
 /**
- * Logo Resmi DADU (Digitalisasi Data Guru)
+ * Logo Resmi DADU (Digitalisasi Data Guru) - Edisi Madrasah Tech
  * Berdasarkan desain visual prisma isometrik dengan jaringan data dan simpul lingkaran:
- * - Prisma luar solid gelap (ungu tua ke navy)
- * - Inti kubus dalam dengan pendaran gradien magenta/pink
- * - Jaringan garis data putih presisi
- * - Simpul putih di pusat (central hub) & bidang permukaan
- * - Simpul lingkaran ungu/magenta di sudut-sudut luar
+ * - Prisma luar solid bernuansa Kemenag & Keislaman (Deep Emerald, Forest Pine, & Islamic Teal)
+ * - Inti kubus kristal dalam dengan pendaran gradien Emas Digital (Digital Gold / Luminous Amber)
+ * - Jaringan garis data putih/emas presisi
+ * - Simpul putih keemasan di pusat (central hub) & bidang permukaan
+ * - Simpul lingkaran luar bernuansa Emas & Zamrud
  * - Dilengkapi animasi CSS (pulse nodes, ambient core glow, dan hover interaction)
  */
 export const Logo: React.FC<LogoProps> = ({
@@ -80,68 +80,68 @@ export const Logo: React.FC<LogoProps> = ({
           </feMerge>
         </filter>
 
-        {/* 1. Prisma Luar Solid: Facet Gradients (Dark Purple to Navy/Deep Violet) */}
+        {/* 1. Prisma Luar Solid: Facet Gradients (Deep Emerald to Islamic Forest Teal) */}
         {/* Top Facet */}
         <linearGradient id="facetTopGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-          <stop offset="0%" stopColor="#831843" />
-          <stop offset="30%" stopColor="#701A75" />
-          <stop offset="100%" stopColor="#4A044E" />
+          <stop offset="0%" stopColor="#047857" />
+          <stop offset="40%" stopColor="#065F46" />
+          <stop offset="100%" stopColor="#064E3B" />
         </linearGradient>
 
         {/* Left Facet */}
         <linearGradient id="facetLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#3B0764" />
-          <stop offset="60%" stopColor="#2E1065" />
-          <stop offset="100%" stopColor="#17072B" />
+          <stop offset="0%" stopColor="#064E3B" />
+          <stop offset="60%" stopColor="#022C22" />
+          <stop offset="100%" stopColor="#011B15" />
         </linearGradient>
 
         {/* Right Facet */}
         <linearGradient id="facetRightGrad" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#581C87" />
-          <stop offset="60%" stopColor="#311042" />
-          <stop offset="100%" stopColor="#150524" />
+          <stop offset="0%" stopColor="#0F766E" />
+          <stop offset="60%" stopColor="#044E46" />
+          <stop offset="100%" stopColor="#012420" />
         </linearGradient>
 
         {/* Bottom Tip Shadow Gradient */}
         <linearGradient id="facetBottomTip" x1="50%" y1="0%" x2="50%" y2="100%">
-          <stop offset="0%" stopColor="#3B0764" stopOpacity="0" />
-          <stop offset="100%" stopColor="#0B0314" stopOpacity="0.8" />
+          <stop offset="0%" stopColor="#047857" stopOpacity="0" />
+          <stop offset="100%" stopColor="#01140F" stopOpacity="0.85" />
         </linearGradient>
 
-        {/* 2. Inti Kubus Kristal Dalam: Translucent Neon Magenta/Pink */}
+        {/* 2. Inti Kubus Kristal Dalam: Translucent Digital Gold / Amber */}
         <linearGradient id="innerCubeTop" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#C026D3" stopOpacity="0.85" />
-          <stop offset="50%" stopColor="#E879F9" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#F472B6" stopOpacity="0.95" />
+          <stop offset="0%" stopColor="#D97706" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#F59E0B" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#FDE047" stopOpacity="0.95" />
         </linearGradient>
 
         <linearGradient id="innerCubeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#86198F" stopOpacity="0.75" />
-          <stop offset="100%" stopColor="#4A044E" stopOpacity="0.85" />
+          <stop offset="0%" stopColor="#B45309" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#78350F" stopOpacity="0.9" />
         </linearGradient>
 
         <linearGradient id="innerCubeRight" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#A21CAF" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#581C87" stopOpacity="0.7" />
+          <stop offset="0%" stopColor="#D97706" stopOpacity="0.85" />
+          <stop offset="100%" stopColor="#92400E" stopOpacity="0.8" />
         </linearGradient>
 
-        {/* 3. Outer Corner Nodes Gradients (Purple to Magenta) */}
+        {/* 3. Outer Corner Nodes Gradients (Warm Gold to Amber & Emerald) */}
         <radialGradient id="outerNodeTop" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#F472B6" />
-          <stop offset="50%" stopColor="#DB2777" />
-          <stop offset="100%" stopColor="#831843" />
+          <stop offset="0%" stopColor="#FEF08A" />
+          <stop offset="50%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#B45309" />
         </radialGradient>
 
         <radialGradient id="outerNodeMid" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#E879F9" />
-          <stop offset="55%" stopColor="#A21CAF" />
-          <stop offset="100%" stopColor="#581C87" />
+          <stop offset="0%" stopColor="#FBBF24" />
+          <stop offset="55%" stopColor="#D97706" />
+          <stop offset="100%" stopColor="#78350F" />
         </radialGradient>
 
         <radialGradient id="outerNodeBottom" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#A855F7" />
-          <stop offset="60%" stopColor="#6B21A8" />
-          <stop offset="100%" stopColor="#2E1065" />
+          <stop offset="0%" stopColor="#34D399" />
+          <stop offset="60%" stopColor="#059669" />
+          <stop offset="100%" stopColor="#064E3B" />
         </radialGradient>
 
         {/* CSS Keyframe Animation Rules */}
@@ -149,7 +149,7 @@ export const Logo: React.FC<LogoProps> = ({
           <style>{`
             @keyframes daduPulseHeartbeat {
               0%, 100% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.18); opacity: 0.88; filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)); }
+              50% { transform: scale(1.18); opacity: 0.9; filter: drop-shadow(0 0 6px rgba(254, 240, 138, 0.95)); }
             }
             @keyframes daduSubNodePulse {
               0%, 100% { transform: scale(1); opacity: 0.95; }
@@ -157,11 +157,11 @@ export const Logo: React.FC<LogoProps> = ({
             }
             @keyframes daduCoreBreath {
               0%, 100% { opacity: 0.85; }
-              50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(244,114,182,0.6)); }
+              50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7)); }
             }
             @keyframes daduOuterRhythm {
               0%, 100% { opacity: 0.9; }
-              50% { opacity: 1; filter: drop-shadow(0 0 4px rgba(217,70,239,0.7)); }
+              50% { opacity: 1; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.75)); }
             }
             .dadu-center-node {
               transform-origin: 60px 60px;
@@ -190,31 +190,22 @@ export const Logo: React.FC<LogoProps> = ({
       </defs>
 
       {/* ========================================================= */}
-      {/* 1. PRISMA SOLID LUAR (Dark Purple/Violet 3D Isometric Body) */}
-      {/* Outer Hexagon Vertices:
-          Top: (60, 18)
-          Top-Right: (96, 38)
-          Bottom-Right: (96, 80)
-          Bottom: (60, 100)
-          Bottom-Left: (24, 80)
-          Top-Left: (24, 38)
-          Center: (60, 60)
-      */}
+      {/* 1. PRISMA SOLID LUAR (Deep Emerald / Forest Teal 3D Isometric Body) */}
       {/* ========================================================= */}
       <g>
-        {/* Top Facet: (60,18) -> (96,38) -> (60,60) -> (24,38) */}
+        {/* Top Facet */}
         <polygon 
           points="60,18 96,38 60,60 24,38" 
           fill="url(#facetTopGrad)" 
         />
 
-        {/* Left Facet: (24,38) -> (60,60) -> (60,100) -> (24,80) */}
+        {/* Left Facet */}
         <polygon 
           points="24,38 60,60 60,100 24,80" 
           fill="url(#facetLeftGrad)" 
         />
 
-        {/* Right Facet: (60,60) -> (96,38) -> (96,80) -> (60,100) */}
+        {/* Right Facet */}
         <polygon 
           points="60,60 96,38 96,80 60,100" 
           fill="url(#facetRightGrad)" 
@@ -228,45 +219,39 @@ export const Logo: React.FC<LogoProps> = ({
       </g>
 
       {/* ========================================================= */}
-      {/* 2. INTI KUBUS KRISTAL (Glowing Translucent Inner Cube)   */}
-      {/* Scaled & centered around (60,60):
-          Top face: (60, 48) -> (72, 55) -> (60, 62) -> (48, 55)
-          Left face: (48, 55) -> (60, 62) -> (60, 77) -> (48, 70)
-          Right face: (60, 62) -> (72, 55) -> (72, 70) -> (60, 77)
-      */}
+      {/* 2. INTI KUBUS KRISTAL (Glowing Translucent Gold Core)     */}
       {/* ========================================================= */}
       <g className={animated ? 'dadu-inner-core' : ''} filter="url(#daduCoreAmbient)">
         {/* Top Face */}
         <polygon 
           points="60,48 73,55.5 60,63 47,55.5" 
           fill="url(#innerCubeTop)" 
-          stroke="#F472B6" 
-          strokeWidth="0.75"
-          strokeOpacity="0.8"
+          stroke="#FDE047" 
+          strokeWidth="0.85"
+          strokeOpacity="0.85"
         />
 
         {/* Left Face */}
         <polygon 
           points="47,55.5 60,63 60,78 47,70.5" 
           fill="url(#innerCubeLeft)" 
-          stroke="#A855F7" 
-          strokeWidth="0.75"
-          strokeOpacity="0.7"
+          stroke="#F59E0B" 
+          strokeWidth="0.85"
+          strokeOpacity="0.75"
         />
 
         {/* Right Face */}
         <polygon 
           points="60,63 73,55.5 73,70.5 60,78" 
           fill="url(#innerCubeRight)" 
-          stroke="#EC4899" 
-          strokeWidth="0.75"
-          strokeOpacity="0.75"
+          stroke="#FBBF24" 
+          strokeWidth="0.85"
+          strokeOpacity="0.8"
         />
       </g>
 
       {/* ========================================================= */}
       {/* 3. JARINGAN GARIS DATA PUTIH (Data Network Lines)        */}
-      {/* Menghubungkan simpul pusat ke sudut-sudut & sub-simpul  */}
       {/* ========================================================= */}
       <g stroke="#FFFFFF" strokeLinecap="round" strokeLinejoin="round">
         {/* Garis sumbu utama dari pusat (60,60) ke sudut luar */}
@@ -281,15 +266,15 @@ export const Logo: React.FC<LogoProps> = ({
           strokeOpacity="0.95" 
         />
 
-        {/* Garis jaringan facet atas (menghubungkan simpul bidang atas ke sudut) */}
+        {/* Garis jaringan facet atas */}
         <line x1="60" y1="33" x2="24" y2="38" strokeWidth="1.8" strokeOpacity="0.85" />
         <line x1="60" y1="33" x2="96" y2="38" strokeWidth="1.8" strokeOpacity="0.85" />
 
-        {/* Garis jaringan facet kiri (menghubungkan simpul bidang kiri ke sudut) */}
+        {/* Garis jaringan facet kiri */}
         <line x1="36" y1="74" x2="24" y2="38" strokeWidth="1.8" strokeOpacity="0.85" />
         <line x1="36" y1="74" x2="60" y2="100" strokeWidth="1.8" strokeOpacity="0.85" />
 
-        {/* Garis jaringan facet kanan (menghubungkan simpul bidang kanan ke sudut) */}
+        {/* Garis jaringan facet kanan */}
         <line x1="84" y1="74" x2="96" y2="38" strokeWidth="1.8" strokeOpacity="0.85" />
         <line x1="84" y1="74" x2="60" y2="100" strokeWidth="1.8" strokeOpacity="0.85" />
 
@@ -302,58 +287,56 @@ export const Logo: React.FC<LogoProps> = ({
       {/* 4. SIMPUL LUAR (Outer Spherical Nodes pada 6 Sudut)      */}
       {/* ========================================================= */}
       <g className={animated ? 'dadu-outer-nodes' : ''}>
-        {/* Top (60,18) */}
+        {/* Top (60,18) - Gold */}
         <circle cx="60" cy="18" r="5.5" fill="url(#outerNodeTop)" filter="url(#daduNodeGlow)" />
-        <circle cx="60" cy="18" r="2.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="60" cy="18" r="2.2" fill="#FFFFFF" opacity="0.9" />
 
-        {/* Top-Right (96,38) */}
+        {/* Top-Right (96,38) - Gold */}
         <circle cx="96" cy="38" r="5.5" fill="url(#outerNodeTop)" filter="url(#daduNodeGlow)" />
-        <circle cx="96" cy="38" r="2.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="96" cy="38" r="2.2" fill="#FFFFFF" opacity="0.9" />
 
-        {/* Bottom-Right (96,80) */}
+        {/* Bottom-Right (96,80) - Amber */}
         <circle cx="96" cy="80" r="5.5" fill="url(#outerNodeMid)" filter="url(#daduNodeGlow)" />
-        <circle cx="96" cy="80" r="2.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="96" cy="80" r="2.2" fill="#FFFFFF" opacity="0.9" />
 
-        {/* Bottom (60,100) */}
+        {/* Bottom (60,100) - Emerald */}
         <circle cx="60" cy="100" r="6" fill="url(#outerNodeBottom)" filter="url(#daduNodeGlow)" />
-        <circle cx="60" cy="100" r="2.4" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="60" cy="100" r="2.4" fill="#FFFFFF" opacity="0.9" />
 
-        {/* Bottom-Left (24,80) */}
+        {/* Bottom-Left (24,80) - Emerald */}
         <circle cx="24" cy="80" r="5.5" fill="url(#outerNodeBottom)" filter="url(#daduNodeGlow)" />
-        <circle cx="24" cy="80" r="2.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="24" cy="80" r="2.2" fill="#FFFFFF" opacity="0.9" />
 
-        {/* Top-Left (24,38) */}
+        {/* Top-Left (24,38) - Amber */}
         <circle cx="24" cy="38" r="5.5" fill="url(#outerNodeMid)" filter="url(#daduNodeGlow)" />
-        <circle cx="24" cy="38" r="2.2" fill="#FFFFFF" opacity="0.85" />
+        <circle cx="24" cy="38" r="2.2" fill="#FFFFFF" opacity="0.9" />
       </g>
 
       {/* ========================================================= */}
-      {/* 5. SIMPUL DATA PUTIH (White Internal Data Nodes)          */}
-      {/* - 1 Simpul Hub Tengah Utama di (60, 60)                   */}
-      {/* - 3 Simpul Pembagi di bidang permukaan (Atas, Kiri, Kanan) */}
+      {/* 5. SIMPUL DATA PUTIH-EMAS (White-Gold Internal Data Nodes) */}
       {/* ========================================================= */}
       {/* Simpul Bidang Atas (60, 33) */}
       <g className={animated ? 'dadu-sub-node-top' : ''}>
         <circle cx="60" cy="33" r="4.5" fill="#FFFFFF" filter="url(#daduNodeGlow)" />
-        <circle cx="60" cy="33" r="2" fill="#FDF4FF" />
+        <circle cx="60" cy="33" r="2" fill="#FEF08A" />
       </g>
 
       {/* Simpul Bidang Kiri (36, 74) */}
       <g className={animated ? 'dadu-sub-node-left' : ''}>
         <circle cx="36" cy="74" r="4.5" fill="#FFFFFF" filter="url(#daduNodeGlow)" />
-        <circle cx="36" cy="74" r="2" fill="#FDF4FF" />
+        <circle cx="36" cy="74" r="2" fill="#A7F3D0" />
       </g>
 
       {/* Simpul Bidang Kanan (84, 74) */}
       <g className={animated ? 'dadu-sub-node-right' : ''}>
         <circle cx="84" cy="74" r="4.5" fill="#FFFFFF" filter="url(#daduNodeGlow)" />
-        <circle cx="84" cy="74" r="2" fill="#FDF4FF" />
+        <circle cx="84" cy="74" r="2" fill="#A7F3D0" />
       </g>
 
       {/* Simpul Pusat Utama (Central Data Hub) di (60, 60) */}
       <g className={animated ? 'dadu-center-node' : ''}>
         <circle cx="60" cy="60" r="5.8" fill="#FFFFFF" filter="url(#daduCenterGlow)" />
-        <circle cx="60" cy="60" r="3" fill="#FAF5FF" />
+        <circle cx="60" cy="60" r="3" fill="#FEF9C3" />
       </g>
     </svg>
   );

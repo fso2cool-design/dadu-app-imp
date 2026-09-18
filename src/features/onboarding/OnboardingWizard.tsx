@@ -267,11 +267,11 @@ export const OnboardingWizard: React.FC = () => {
         {/* Header Branding with Dadu Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-[#2A103E] to-[#12061C] border border-fuchsia-500/30 shadow-lg shadow-fuchsia-950/30 flex items-center justify-center p-2">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-[#064E3B] to-[#022C22] border border-emerald-500/30 shadow-lg shadow-emerald-950/30 flex items-center justify-center p-2">
               <Logo size={36} />
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 text-fuchsia-400 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               Inisialisasi {APP_CONFIG.name}
             </div>
           </div>
