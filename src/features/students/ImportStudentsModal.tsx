@@ -666,28 +666,28 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             {/* OVERWRITE / UPDATE CONFIRMATION OPTION */}
             <div className={`p-3.5 rounded-xl border transition-all ${
               overwriteExisting 
-                ? 'bg-blue-50/70 border-blue-200 text-blue-900' 
-                : 'bg-slate-50 border-slate-200 text-slate-700'
+                ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60 text-blue-950 dark:text-blue-200' 
+                : 'bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
             }`}>
               <div className="flex items-start sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-2.5">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
-                    overwriteExisting ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'
+                    overwriteExisting ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   }`}>
-                    <RefreshCw className={`w-4 h-4 ${overwriteExisting ? 'text-blue-600' : 'text-slate-500'}`} />
+                    <RefreshCw className={`w-4 h-4 ${overwriteExisting ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                         Timpa Data Siswa yang Sudah Terdaftar (Overwrite)
                       </span>
                       {enrolledSummary.existingInDbCount > 0 && (
-                        <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full border border-amber-200">
+                        <span className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-900/60">
                           {enrolledSummary.existingInDbCount} Siswa cocok dengan database
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
                       {overwriteExisting
                         ? 'Aktif: Kolom tanggal lahir, alamat, NIS, rombel, dan info siswa yang ada di dokumen Excel akan langsung memperbarui data di aplikasi.'
                         : 'Nonaktif: Siswa yang sudah terdaftar di database akan dilewati tanpa mengubah tanggal lahir atau data lamanya.'}
@@ -702,47 +702,47 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                     onChange={(e) => setOverwriteExisting(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 dark:after:border-slate-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
 
             {/* Preview Table */}
-            <div className="max-h-72 overflow-y-auto border border-slate-200 rounded-xl bg-white">
+            <div className="max-h-72 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#141722]">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-100 text-slate-700 sticky top-0 font-semibold border-b border-slate-200 z-10">
+                <thead className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 sticky top-0 font-semibold border-b border-slate-200 dark:border-slate-800 z-10">
                   <tr>
-                    <th className="p-2.5 w-12 text-center">No Absen</th>
-                    <th className="p-2.5 min-w-36">Nama Siswa (A-Z)</th>
-                    <th className="p-2.5 min-w-44">Rombel / Kelas Tujuan</th>
-                    <th className="p-2.5 w-24">NIS / NISN</th>
-                    <th className="p-2.5 w-14 text-center">L/P</th>
-                    <th className="p-2.5 min-w-32">TTL (Tgl Lahir)</th>
-                    <th className="p-2.5 min-w-36">Alamat</th>
-                    <th className="p-2.5 min-w-32">Ortu / Kontak</th>
-                    <th className="p-2.5 w-20 text-center">Status</th>
+                    <th className="p-2.5 w-12 text-center font-semibold">No Absen</th>
+                    <th className="p-2.5 min-w-36 font-semibold">Nama Siswa (A-Z)</th>
+                    <th className="p-2.5 min-w-44 font-semibold">Rombel / Kelas Tujuan</th>
+                    <th className="p-2.5 w-24 font-semibold">NIS / NISN</th>
+                    <th className="p-2.5 w-14 text-center font-semibold">L/P</th>
+                    <th className="p-2.5 min-w-32 font-semibold">TTL (Tgl Lahir)</th>
+                    <th className="p-2.5 min-w-36 font-semibold">Alamat</th>
+                    <th className="p-2.5 min-w-32 font-semibold">Ortu / Kontak</th>
+                    <th className="p-2.5 w-20 text-center font-semibold">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-600">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-slate-700 dark:text-slate-200">
                   {rowsWithComputedRoll.map((r, i) => (
-                    <tr key={i} className={r.isValid ? 'hover:bg-slate-50' : 'bg-rose-50/50'}>
+                    <tr key={i} className={r.isValid ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50' : 'bg-rose-50/50 dark:bg-rose-950/30'}>
                       {/* Roll number */}
-                      <td className="p-2 text-center font-mono font-semibold text-slate-700">
+                      <td className="p-2 text-center font-mono font-semibold text-slate-800 dark:text-slate-200">
                         {r.computedRoll}
                       </td>
 
                       {/* Full Name */}
-                      <td className="p-2 font-medium text-slate-900">
+                      <td className="p-2 font-medium text-slate-900 dark:text-slate-100">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span>{r.fullName}</span>
                           {r.isExistingInDb && (
-                            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-200" title={`Siswa sudah ada di database (${r.existingStudentName || ''})`}>
+                            <span className="text-[9px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold px-1.5 py-0.2 rounded border border-amber-200 dark:border-amber-800" title={`Siswa sudah ada di database (${r.existingStudentName || ''})`}>
                               Ada di DB
                             </span>
                           )}
                           {r.customAttributes && Object.keys(r.customAttributes).length > 0 && (
                             <span 
-                              className="text-[9px] bg-purple-50 text-purple-700 font-semibold px-1.5 py-0.5 rounded border border-purple-200" 
+                              className="text-[9px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800" 
                               title={`Kolom kustom terdeteksi: ${Object.keys(r.customAttributes).join(', ')}`}
                             >
                               +{Object.keys(r.customAttributes).length} Kustom
@@ -759,24 +759,24 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                             onChange={e => handleRowClassChange(i, e.target.value)}
                             className={`w-full px-2 py-1 rounded-lg text-xs border font-medium cursor-pointer ${
                               r.targetClassId
-                                ? 'bg-emerald-50/50 border-emerald-300 text-emerald-900'
-                                : 'bg-slate-50 border-slate-300 text-slate-600'
+                                ? 'bg-emerald-50/50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-950 dark:text-emerald-200'
+                                : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                             }`}
                           >
-                            <option value="">-- Tanpa Rombel (Master Saja) --</option>
+                            <option value="" className="dark:bg-slate-900">-- Tanpa Rombel (Master Saja) --</option>
                             {activeClasses.map(c => (
-                              <option key={c.id} value={c.id}>
+                              <option key={c.id} value={c.id} className="dark:bg-slate-900">
                                 Kelas {c.name} (Tk. {c.gradeLevel})
                               </option>
                             ))}
                           </select>
                           {r.classMatchStatus === 'MATCHED' && (
-                            <span title="Cocok otomatis" className="shrink-0 text-emerald-600">
+                            <span title="Cocok otomatis" className="shrink-0 text-emerald-600 dark:text-emerald-400">
                               <Check className="w-3.5 h-3.5" />
                             </span>
                           )}
                           {r.classMatchStatus === 'UNMATCHED' && (
-                            <span title="Nama kelas tidak ditemukan di sistem, perlu diarahkan" className="shrink-0 text-amber-500">
+                            <span title="Nama kelas tidak ditemukan di sistem, perlu diarahkan" className="shrink-0 text-amber-500 dark:text-amber-400">
                               <AlertTriangle className="w-3.5 h-3.5" />
                             </span>
                           )}
@@ -784,34 +784,38 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                       </td>
 
                       {/* NIS / NISN */}
-                      <td className="p-2 font-mono text-[11px] text-slate-500">
+                      <td className="p-2 font-mono text-[11px] text-slate-600 dark:text-slate-300">
                         {r.nis || '-'}{r.nisn ? ` / ${r.nisn}` : ''}
                       </td>
 
                       {/* Gender */}
                       <td className="p-2 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${r.gender === 'L' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          r.gender === 'L' 
+                            ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' 
+                            : 'bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800'
+                        }`}>
                           {r.gender}
                         </span>
                       </td>
 
                       {/* TTL (Tempat & Tanggal Lahir) */}
-                      <td className="p-2 text-[11px] text-slate-600">
+                      <td className="p-2 text-[11px] text-slate-700 dark:text-slate-300">
                         <div>{r.birthPlace || '-'}</div>
-                        <div className="font-mono text-[10px] text-indigo-600 font-semibold">
-                          {r.birthDate ? r.birthDate : <span className="text-slate-400 font-normal italic">Tidak ada</span>}
+                        <div className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">
+                          {r.birthDate ? r.birthDate : <span className="text-slate-400 dark:text-slate-500 font-normal italic">Tidak ada</span>}
                         </div>
                       </td>
 
                       {/* Alamat */}
-                      <td className="p-2 text-[11px] text-slate-600 max-w-xs truncate" title={r.address}>
-                        {r.address ? r.address : <span className="text-slate-400 italic">-</span>}
+                      <td className="p-2 text-[11px] text-slate-700 dark:text-slate-300 max-w-xs truncate" title={r.address}>
+                        {r.address ? r.address : <span className="text-slate-400 dark:text-slate-500 italic">-</span>}
                       </td>
 
                       {/* Parent & Phone */}
-                      <td className="p-2 text-[11px] text-slate-600">
-                        <div>{r.parentName || '-'}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{r.parentPhone || r.phone || ''}</div>
+                      <td className="p-2 text-[11px] text-slate-700 dark:text-slate-300">
+                        <div className="font-medium text-slate-900 dark:text-slate-100">{r.parentName || '-'}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{r.parentPhone || r.phone || ''}</div>
                       </td>
 
                       {/* Status */}
@@ -819,21 +823,21 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                         {r.isValid ? (
                           r.isExistingInDb ? (
                             overwriteExisting ? (
-                              <span className="inline-flex items-center text-blue-600 text-[10px] font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                              <span className="inline-flex items-center text-blue-600 dark:text-blue-400 text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                                 <RefreshCw className="w-2.5 h-2.5 mr-0.5" /> Ditimpa
                               </span>
                             ) : (
-                              <span className="inline-flex items-center text-slate-500 text-[10px] font-bold bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                              <span className="inline-flex items-center text-slate-600 dark:text-slate-300 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                                 Dilewati
                               </span>
                             )
                           ) : (
-                            <span className="inline-flex items-center text-emerald-600 text-[10px] font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                               <Check className="w-3 h-3 mr-0.5" /> Baru
                             </span>
                           )
                         ) : (
-                          <span className="text-rose-600 text-[10px] font-bold">
+                          <span className="text-rose-600 dark:text-rose-400 text-[10px] font-bold">
                             {r.validationError}
                           </span>
                         )}

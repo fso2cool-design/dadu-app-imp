@@ -25,7 +25,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useAppTheme } from '../../context/ThemeContext';
-import { DaduLogo } from '../common/DaduLogo';
+import { Logo } from '../common/Logo';
 import { APP_CONFIG } from '../../constants/app';
 
 interface SubMenuItem {
@@ -305,9 +305,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
               aria-label="Buka sidebar"
             >
               {hoveredTopToggle ? (
-                <PanelLeftOpen className="w-5 h-5 text-orange-500 dark:text-cyan-400 animate-in zoom-in-75 duration-150" />
+                <PanelLeftOpen className="w-5 h-5 text-fuchsia-500 dark:text-fuchsia-400 animate-in zoom-in-75 duration-150" />
               ) : (
-                <DaduLogo size="sm" />
+                <Logo size="sm" />
               )}
             </button>
           </div>
@@ -315,7 +315,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           /* EXPANDED MODE: Logo + Brand Title + Close Toggle on the Right */
           <>
             <div className="flex items-center gap-3 overflow-hidden">
-              <DaduLogo size="md" />
+              <Logo size="md" />
               <div className="overflow-hidden">
                 <h1 className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight leading-none truncate flex items-center gap-1.5">
                   <span>Dadu</span>

@@ -151,7 +151,7 @@ export const LeggerReportPage: React.FC = () => {
       }
 
       // 5. Fetch all daily homeroom attendance records for this class
-      const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId);
+      const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId, activeAcademicYear.id);
       setDailyAttendanceRecords(attRecs);
 
       // 6. Fetch student notes for this class

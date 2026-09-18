@@ -229,6 +229,11 @@ export async function importFullDatabase(
             data.searchTokens = buildStudentSearchTokens(data.fullName, data.parentName);
           }
         }
+
+        // Sanitize userId if present to ensure strict tenant alignment
+        if ('userId' in data) {
+          data.userId = uid;
+        }
         
         batch.set(targetDocRef, data, { merge: mode === 'merge' });
         totalRestored++;
@@ -436,6 +441,37 @@ export async function resetSemesterData(uid: string, academicYearId: string): Pr
       });
       await batch.commit();
     }
+  }
+
+  // 3. Delete homeroom daily attendance records & sessions for this academic year
+  const dailyRecsQ = query(
+    collection(db, 'users', uid, 'dailyAttendanceRecords'), 
+    where('academicYearId', '==', academicYearId)
+  );
+  const dailyRecsSnap = await getDocs(dailyRecsQ);
+  for (let j = 0; j < dailyRecsSnap.docs.length; j += maxBatchSize) {
+    const chunkDocs = dailyRecsSnap.docs.slice(j, j + maxBatchSize);
+    const batch = writeBatch(db);
+    chunkDocs.forEach(d => {
+      batch.delete(d.ref);
+      deletedCount++;
+    });
+    await batch.commit();
+  }
+
+  const dailySessionsQ = query(
+    collection(db, 'users', uid, 'dailyAttendanceSessions'), 
+    where('academicYearId', '==', academicYearId)
+  );
+  const dailySessionsSnap = await getDocs(dailySessionsQ);
+  for (let j = 0; j < dailySessionsSnap.docs.length; j += maxBatchSize) {
+    const chunkDocs = dailySessionsSnap.docs.slice(j, j + maxBatchSize);
+    const batch = writeBatch(db);
+    chunkDocs.forEach(d => {
+      batch.delete(d.ref);
+      deletedCount++;
+    });
+    await batch.commit();
   }
 
   return deletedCount;

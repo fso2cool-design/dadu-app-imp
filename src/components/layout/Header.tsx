@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
+import { Logo } from '../common/Logo';
 
 interface HeaderProps {
   currentRoute: string;
@@ -187,6 +188,21 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-14 lg:h-16 bg-white/95 dark:bg-[#0c0e15]/90 backdrop-blur-md border-b border-slate-200/90 dark:border-[#232838] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
+      {/* Mobile App Branding & Drawer Toggle (Visible only on mobile screens < lg) */}
+      <div className="flex items-center gap-1.5 lg:hidden mr-2 shrink-0">
+        <button
+          type="button"
+          onClick={onOpenMobileMenu}
+          className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+          aria-label="Buka Menu"
+        >
+          <Logo size={28} />
+          <span className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight hidden xs:inline">
+            Dadu
+          </span>
+        </button>
+      </div>
+
       {/* Left Side: Class/Subject Focus Switcher, Clock, Cloud Sync, & Fullscreen (Ultra-Compact Left Group) */}
       <div className="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
         {/* 1. Class & Subject Context Switcher with Natural Ordering */}

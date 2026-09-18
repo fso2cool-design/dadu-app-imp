@@ -132,7 +132,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
       }
 
       // 5. Daily Attendance
-      const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, currentClassId);
+      const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, currentClassId, activeAcademicYear.id);
       setAttendanceRecords(attRecs);
 
       // 6. Student Notes

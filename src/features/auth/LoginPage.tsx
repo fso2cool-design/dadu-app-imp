@@ -19,7 +19,7 @@ import {
   CalendarCheck
 } from 'lucide-react';
 import { WorkflowDemoModal } from './WorkflowDemoModal';
-import { DaduLogo } from '../../components/common/DaduLogo';
+import { Logo } from '../../components/common/Logo';
 import { KemenagLogo } from '../../components/common/KemenagLogo';
 import { KemenagBerdampakLogo } from '../../components/common/KemenagBerdampakLogo';
 import { APP_CONFIG } from '../../constants/app';
@@ -220,7 +220,7 @@ export const LoginPage: React.FC = () => {
           <div className="relative z-10 pt-4 border-t border-emerald-900/80">
             <div className="bg-[#031d1b] border border-emerald-800/60 rounded-xl p-3 flex items-center justify-between gap-3 shadow-inner">
               <div className="flex items-center gap-2">
-                <DaduLogo size="sm" withGlow={false} className="shrink-0" />
+                <Logo size={28} className="shrink-0" />
                 <div className="min-w-0">
                   <span className="text-xs font-bold text-white block leading-tight truncate">
                     {APP_CONFIG.shortName}
@@ -255,8 +255,8 @@ export const LoginPage: React.FC = () => {
             
             {/* Top Brand / Motif Icon */}
             <div className="flex items-center justify-center mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-700 shadow-sm transition-transform hover:scale-105 duration-200">
-                <DaduLogo size="sm" withGlow={false} />
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-[#2A103E] to-[#12061C] border border-fuchsia-500/30 flex items-center justify-center shadow-lg shadow-fuchsia-950/20 transition-transform hover:scale-105 duration-200">
+                <Logo size={36} />
               </div>
             </div>
 

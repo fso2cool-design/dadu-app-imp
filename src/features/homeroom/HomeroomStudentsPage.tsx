@@ -451,16 +451,16 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
           <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-semibold border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="py-3 px-3.5 w-12 text-center">No</th>
-                    <th className="py-3 px-3.5 w-28">NIS / NISN</th>
-                    <th className="py-3 px-3.5 min-w-[200px]">Nama Siswa</th>
-                    <th className="py-3 px-2 w-12 text-center">L/P</th>
-                    <th className="py-3 px-3.5 min-w-[150px]">Kontak Orang Tua</th>
-                    <th className="py-3 px-3.5 min-w-[150px]">Alamat Domisili</th>
-                    <th className="py-3 px-3.5 text-center">Kehadiran</th>
-                    <th className="py-3 px-3.5 text-center">Aksi</th>
+                    <th className="py-3 px-3.5 w-12 text-center font-semibold">No</th>
+                    <th className="py-3 px-3.5 w-28 font-semibold">NIS / NISN</th>
+                    <th className="py-3 px-3.5 min-w-[200px] font-semibold">Nama Siswa</th>
+                    <th className="py-3 px-2 w-12 text-center font-semibold">L/P</th>
+                    <th className="py-3 px-3.5 min-w-[150px] font-semibold">Kontak Orang Tua</th>
+                    <th className="py-3 px-3.5 min-w-[150px] font-semibold">Alamat Domisili</th>
+                    <th className="py-3 px-3.5 text-center font-semibold">Kehadiran</th>
+                    <th className="py-3 px-3.5 text-center font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">

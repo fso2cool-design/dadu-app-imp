@@ -1,79 +1,106 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 105" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
   <defs>
-    <!-- Top Red Cap Gradient -->
-    <linearGradient id="topRedCapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF4A5A" />
-      <stop offset="100%" stop-color="#E22436" />
+    <!-- Background Gradient for Browser Tab: Squircle Crisp Off-White Card -->
+    <linearGradient id="favBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F1F5F9" />
     </linearGradient>
 
-    <!-- Left Red Block Gradient -->
-    <linearGradient id="leftRedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#EB3949" />
-      <stop offset="100%" stop-color="#C91B2D" />
+    <!-- 1. Prisma Facets Gradients -->
+    <linearGradient id="favFacetTop" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#831843" />
+      <stop offset="30%" stop-color="#701A75" />
+      <stop offset="100%" stop-color="#4A044E" />
     </linearGradient>
 
-    <!-- Right Sky Blue Block Gradient -->
-    <linearGradient id="rightBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1CC1FF" />
-      <stop offset="100%" stop-color="#008FE0" />
+    <linearGradient id="favFacetLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B0764" />
+      <stop offset="60%" stop-color="#2E1065" />
+      <stop offset="100%" stop-color="#17072B" />
     </linearGradient>
 
-    <!-- Center Cube: Top Orange Diamond -->
-    <linearGradient id="centerOrangeGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#E67D15" />
-      <stop offset="60%" stop-color="#F59325" />
-      <stop offset="100%" stop-color="#FFA642" />
+    <linearGradient id="favFacetRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#581C87" />
+      <stop offset="60%" stop-color="#311042" />
+      <stop offset="100%" stop-color="#150524" />
     </linearGradient>
 
-    <!-- Center Cube: Right Yellow Face -->
-    <linearGradient id="centerYellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFD338" />
-      <stop offset="100%" stop-color="#F5AC08" />
+    <!-- 2. Inner Crystal Cube Gradients -->
+    <linearGradient id="favCubeTop" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C026D3" stop-opacity="0.85" />
+      <stop offset="50%" stop-color="#E879F9" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#F472B6" stop-opacity="0.95" />
     </linearGradient>
 
-    <!-- Bottom Green Block Gradient -->
-    <linearGradient id="bottomGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#53D263" />
-      <stop offset="100%" stop-color="#35A344" />
+    <linearGradient id="favCubeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86198F" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#4A044E" stop-opacity="0.85" />
     </linearGradient>
 
-    <!-- Floating Lower Left Green Tab -->
-    <linearGradient id="tabGreenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#43C754" />
-      <stop offset="100%" stop-color="#2E993D" />
+    <linearGradient id="favCubeRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A21CAF" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#581C87" stop-opacity="0.7" />
     </linearGradient>
 
-    <!-- Floating Lower Right Blue Tab -->
-    <linearGradient id="tabBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#14BAFC" />
-      <stop offset="100%" stop-color="#007ECC" />
-    </linearGradient>
+    <!-- 3. Outer Nodes Gradients -->
+    <radialGradient id="favNodeTop" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#F472B6" />
+      <stop offset="50%" stop-color="#DB2777" />
+      <stop offset="100%" stop-color="#831843" />
+    </radialGradient>
+
+    <radialGradient id="favNodeMid" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#E879F9" />
+      <stop offset="55%" stop-color="#A21CAF" />
+      <stop offset="100%" stop-color="#581C87" />
+    </radialGradient>
+
+    <radialGradient id="favNodeBottom" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#A855F7" />
+      <stop offset="60%" stop-color="#6B21A8" />
+      <stop offset="100%" stop-color="#2E1065" />
+    </radialGradient>
   </defs>
 
-  <!-- Ground contact shadow -->
-  <ellipse cx="50" cy="98" rx="26" ry="4.5" fill="#000000" opacity="0.35" />
+  <!-- Clean squircle border badge for sharp contrast across any browser tab theme -->
+  <rect width="120" height="120" rx="26" fill="url(#favBgGrad)" />
+  <rect width="118" height="118" x="1" y="1" rx="25" stroke="#E2E8F0" stroke-width="1.5" />
 
-  <!-- 1. TOP RED CAP -->
-  <path d="M 50 11.5 Q 59 14.5 60.5 21 L 50 26.5 L 39.5 21 Q 41 14.5 50 11.5 Z" fill="url(#topRedCapGrad)"/>
+  <!-- 1. Prisma Solid Luar -->
+  <polygon points="60,18 96,38 60,60 24,38" fill="url(#favFacetTop)" />
+  <polygon points="24,38 60,60 60,100 24,80" fill="url(#favFacetLeft)" />
+  <polygon points="60,60 96,38 96,80 60,100" fill="url(#favFacetRight)" />
 
-  <!-- 2. TOP-LEFT RED BLOCK -->
-  <path d="M 37.5 22.5 L 48 28 L 31 38 L 31 60 L 14 50.5 L 14 34 Q 14 26 22 21.5 L 34 14.5 L 37.5 22.5 Z" fill="url(#leftRedGrad)"/>
+  <!-- 2. Inti Kubus Kristal Dalam -->
+  <polygon points="60,48 73,55.5 60,63 47,55.5" fill="url(#favCubeTop)" stroke="#F472B6" stroke-width="0.8" />
+  <polygon points="47,55.5 60,63 60,78 47,70.5" fill="url(#favCubeLeft)" stroke="#A855F7" stroke-width="0.8" />
+  <polygon points="60,63 73,55.5 73,70.5 60,78" fill="url(#favCubeRight)" stroke="#EC4899" stroke-width="0.8" />
 
-  <!-- 3. TOP-RIGHT SKY BLUE BLOCK -->
-  <path d="M 62.5 22.5 L 52 28 L 69 38 L 69 60 L 86 50.5 L 86 34 Q 86 26 78 21.5 L 66 14.5 L 62.5 22.5 Z" fill="url(#rightBlueGrad)"/>
+  <!-- 3. Jaringan Garis Data Putih -->
+  <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="60" y1="60" x2="60" y2="18" stroke-width="2.4" />
+    <line x1="60" y1="60" x2="24" y2="80" stroke-width="2.4" />
+    <line x1="60" y1="60" x2="96" y2="80" stroke-width="2.4" />
+    <path d="M 60 18 L 96 38 L 96 80 L 60 100 L 24 80 L 24 38 Z" stroke-width="2.4" />
+    <line x1="60" y1="33" x2="24" y2="38" stroke-width="2" />
+    <line x1="60" y1="33" x2="96" y2="38" stroke-width="2" />
+    <line x1="36" y1="74" x2="24" y2="38" stroke-width="2" />
+    <line x1="36" y1="74" x2="60" y2="100" stroke-width="2" />
+    <line x1="84" y1="74" x2="96" y2="38" stroke-width="2" />
+    <line x1="84" y1="74" x2="60" y2="100" stroke-width="2" />
+  </g>
 
-  <!-- 4. CENTER CUBE - TOP DIAMOND FACE -->
-  <path d="M 50 29 L 68 39.5 L 50 50 L 32 39.5 Z" fill="url(#centerOrangeGrad)"/>
+  <!-- 4. Simpul Luar -->
+  <circle cx="60" cy="18" r="5.5" fill="url(#favNodeTop)" stroke="#FFFFFF" stroke-width="1.2" />
+  <circle cx="96" cy="38" r="5.5" fill="url(#favNodeTop)" stroke="#FFFFFF" stroke-width="1.2" />
+  <circle cx="96" cy="80" r="5.5" fill="url(#favNodeMid)" stroke="#FFFFFF" stroke-width="1.2" />
+  <circle cx="60" cy="100" r="6" fill="url(#favNodeBottom)" stroke="#FFFFFF" stroke-width="1.2" />
+  <circle cx="24" cy="80" r="5.5" fill="url(#favNodeBottom)" stroke="#FFFFFF" stroke-width="1.2" />
+  <circle cx="24" cy="38" r="5.5" fill="url(#favNodeMid)" stroke="#FFFFFF" stroke-width="1.2" />
 
-  <!-- 5. CENTER CUBE - RIGHT FACE -->
-  <path d="M 50 50 L 68 39.5 L 68 61 L 50 71.5 Z" fill="url(#centerYellowGrad)"/>
-
-  <!-- 6. BOTTOM GREEN BLOCK -->
-  <path d="M 32 61 L 50 50 L 50 71.5 L 68 61 L 68 77 L 54 85 Q 50 87.5 46 85 L 32 77 Z" fill="url(#bottomGreenGrad)"/>
-
-  <!-- 7. FLOATING LOWER-LEFT GREEN TAB -->
-  <path d="M 14 59 L 24 59 L 24 71 L 23 72.5 Q 14 74 14 65.5 Z" fill="url(#tabGreenGrad)"/>
-
-  <!-- 8. FLOATING LOWER-RIGHT SKY BLUE TAB -->
-  <path d="M 86 59 L 76 59 L 76 71 L 77 72.5 Q 86 74 86 65.5 Z" fill="url(#tabBlueGrad)"/>
+  <!-- 5. Simpul Data Putih -->
+  <circle cx="60" cy="33" r="4.5" fill="#FFFFFF" />
+  <circle cx="36" cy="74" r="4.5" fill="#FFFFFF" />
+  <circle cx="84" cy="74" r="4.5" fill="#FFFFFF" />
+  <circle cx="60" cy="60" r="6" fill="#FFFFFF" stroke="#F472B6" stroke-width="1.2" />
 </svg>

@@ -570,27 +570,27 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           <button
             type="button"
             onClick={() => setImportModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
-            <Upload className="w-3.5 h-3.5 text-indigo-600" /> Import Excel
+            <Upload className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Import Excel
           </button>
 
           <button
             type="button"
             onClick={() => downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived), customFields)}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Unduh format template Excel untuk data siswa beserta kolom kustom dan contoh kelas"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600" /> Unduh Template
+            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Unduh Template
           </button>
 
           <button
             type="button"
             onClick={() => setManageCustomFieldsOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Kelola kolom kustom tambahan siswa (KIP/PIP, No Registrasi, Asal Sekolah, dsb)"
           >
-            <Sliders className="w-3.5 h-3.5 text-orange-500" /> Kolom Kustom {customFields.length > 0 ? `(${customFields.length})` : ''}
+            <Sliders className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400" /> Kolom Kustom {customFields.length > 0 ? `(${customFields.length})` : ''}
           </button>
 
           <button
@@ -598,30 +598,30 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             onClick={() => setDeduplicateModalOpen(true)}
             className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer ${
               duplicateDetected
-                ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 ring-2 ring-amber-400/50'
-                : 'bg-white border-slate-200/90 hover:bg-slate-50 text-slate-700'
+                ? 'bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 ring-2 ring-amber-400/50'
+                : 'bg-white dark:bg-slate-800 border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
             }`}
             title="Pindai dan bersihkan data siswa ganda di Firestore tanpa meninggalkan residu"
           >
-            <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-amber-600' : 'text-slate-500'}`} />
+            <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'}`} />
             {duplicateDetected ? 'Bersihkan Duplikat (!)' : 'Deduplikasi'}
           </button>
 
           <button
             type="button"
             onClick={handleExportExcel}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5 text-emerald-600" /> Export (.xlsx)
+            <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Export (.xlsx)
           </button>
 
           <button
             type="button"
             onClick={() => setCustomPrintModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Cetak informasi data siswa lengkap dengan kop resmi dan kustomisasi kolom"
           >
-            <Printer className="w-3.5 h-3.5 text-indigo-600" /> Cetak Data Siswa
+            <Printer className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" /> Cetak Data Siswa
           </button>
 
           <button
@@ -630,22 +630,22 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               setSelectedEnrollment(null);
               setExamCardModalOpen(true);
             }}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Cetak Kartu Peserta Asesmen / Ujian Siswa Resmi (ASTS/ASAS/PAT/AM)"
           >
-            <CreditCard className="w-3.5 h-3.5 text-blue-600" /> Kartu Ujian
+            <CreditCard className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> Kartu Ujian
           </button>
         </div>
       </div>
 
       {/* Alert Terdeteksi Duplikasi */}
       {duplicateDetected && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-amber-50/90 border border-amber-300 rounded-2xl text-xs text-amber-950 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-amber-50/90 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/80 rounded-2xl text-xs text-amber-950 dark:text-amber-200 shadow-sm">
           <div className="flex items-start sm:items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 sm:mt-0" />
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
             <div>
-              <p className="font-bold text-amber-950 text-xs sm:text-sm">Terdeteksi Data Siswa Ganda di Tampilan Ini</p>
-              <p className="text-amber-800 text-[11px] mt-0.5">
+              <p className="font-bold text-amber-950 dark:text-amber-200 text-xs sm:text-sm">Terdeteksi Data Siswa Ganda di Tampilan Ini</p>
+              <p className="text-amber-800 dark:text-amber-300/90 text-[11px] mt-0.5">
                 Terdapat siswa dengan NIS atau Nama yang sama. Gunakan fitur <strong>Pembersihan Data Ganda</strong> untuk menggabungkan data terlengkap dan menghapus seluruh residu pendaftaran ganda di database.
               </p>
             </div>
@@ -662,18 +662,18 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       )}
 
       {actionSuccessMsg && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <span>{actionSuccessMsg}</span>
         </div>
       )}
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-xs text-slate-500 font-medium block">Total Siswa</span>
-          <div className="text-2xl font-bold text-slate-800 mt-1">{totalCount}</div>
-          <span className="text-[11px] text-slate-400 mt-0.5 block">
+        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+          <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Total Siswa</span>
+          <div className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{totalCount}</div>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
             {viewMode === 'class' 
               ? `Di Kelas ${currentSelectedClassObj?.name || 'Aktif'}` 
               : isSearchActive 
@@ -682,41 +682,41 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-xs text-slate-500 font-medium block">Laki-laki (L)</span>
-          <div className="text-2xl font-bold text-blue-600 mt-1">{maleCount}</div>
-          <span className="text-[11px] text-blue-400 mt-0.5 block">
+        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+          <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Laki-laki (L)</span>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{maleCount}</div>
+          <span className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5 block">
             {totalCount > 0 ? `${Math.round((maleCount / totalCount) * 100)}% dari total` : '0%'}
           </span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-xs text-slate-500 font-medium block">Perempuan (P)</span>
-          <div className="text-2xl font-bold text-pink-600 mt-1">{femaleCount}</div>
-          <span className="text-[11px] text-pink-400 mt-0.5 block">
+        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+          <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Perempuan (P)</span>
+          <div className="text-2xl font-bold text-pink-600 dark:text-pink-400 mt-1">{femaleCount}</div>
+          <span className="text-[11px] text-pink-500 dark:text-pink-400 mt-0.5 block">
             {totalCount > 0 ? `${Math.round((femaleCount / totalCount) * 100)}% dari total` : '0%'}
           </span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs">
-          <span className="text-xs text-slate-500 font-medium block">Siswa Aktif</span>
-          <div className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</div>
-          <span className="text-[11px] text-emerald-500 mt-0.5 block">Status Belajar Aktif</span>
+        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+          <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Siswa Aktif</span>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{activeCount}</div>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 block">Status Belajar Aktif</span>
         </div>
       </div>
 
       {/* Main Filter & View Controls Bar */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-2xs space-y-4">
+      <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Tabs View Mode */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100/80 rounded-xl w-fit">
+          <div className="flex items-center gap-1 p-1 bg-slate-200/80 dark:bg-slate-800/90 rounded-xl w-fit">
             <button
               type="button"
               onClick={() => setViewMode('class')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'class'
-                  ? 'bg-white text-indigo-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-800'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-400 shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Per Rombel / Kelas ({enrollments.length})
@@ -726,8 +726,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               onClick={() => setViewMode('all')}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'all'
-                  ? 'bg-white text-indigo-700 shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-800'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-400 shadow-2xs'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               Semua Siswa Master
@@ -741,9 +741,9 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                 type="button"
                 disabled={reordering}
                 onClick={handleAutoReorderRollNumbers}
-                className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 {reordering ? 'Mengurutkan...' : 'Urutkan No. Absen A-Z'}
               </button>
             )}
@@ -753,28 +753,28 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               onClick={() => setDeduplicateModalOpen(true)}
               className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 duplicateDetected
-                  ? 'bg-red-50 hover:bg-red-100 border-red-300 text-red-700 animate-pulse'
-                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                  ? 'bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 animate-pulse'
+                  : 'bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
               }`}
               title="Pindai dan bersihkan data siswa ganda di Firestore tanpa residu"
             >
-              <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-red-600' : 'text-slate-500'}`} />
+              <Sparkles className={`w-3.5 h-3.5 ${duplicateDetected ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`} />
               {duplicateDetected ? 'Bersihkan Duplikat (!)' : 'Cek Duplikat'}
             </button>
           </div>
         </div>
 
         {/* Filter Inputs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Cari nama, NIS, NISN, atau orang tua..."
-              className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             />
             {loadingSearch && (
               <div className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin absolute right-3 top-2.5" />
@@ -783,7 +783,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer p-0.5"
+                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer p-0.5"
                 title="Hapus pencarian"
               >
                 ✕
@@ -800,17 +800,17 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                   setCurrentClassId(e.target.value);
                   setSelectedClassId(e.target.value);
                 }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               >
                 {classes.map(c => (
-                  <option key={c.id} value={c.id}>
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                     Kelas {c.name} (Tingkat {c.gradeLevel}){c.isArchived ? ' [Diarsipkan]' : ''}
                   </option>
                 ))}
               </select>
             </div>
           ) : (
-            <div className="flex items-center px-3 py-2 rounded-xl bg-slate-100 text-xs text-slate-500 font-medium">
+            <div className="flex items-center px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium">
               Tahun Ajaran: {activeAcademicYear?.label || 'Aktif'}
             </div>
           )}
@@ -820,11 +820,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             <select
               value={genderFilter}
               onChange={e => setGenderFilter(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-700"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             >
-              <option value="ALL">Semua Jenis Kelamin (L/P)</option>
-              <option value="L">Laki-laki (L) saja</option>
-              <option value="P">Perempuan (P) saja</option>
+              <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Semua Jenis Kelamin (L/P)</option>
+              <option value="L" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Laki-laki (L) saja</option>
+              <option value="P" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Perempuan (P) saja</option>
             </select>
           </div>
 
@@ -833,34 +833,34 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-700"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
             >
-              <option value="ALL">Semua Status Siswa</option>
-              <option value="ACTIVE">Aktif Belajar</option>
-              <option value="INACTIVE">Nonaktif / Cuti</option>
-              <option value="TRANSFERRED">Mutasi / Keluar</option>
-              <option value="GRADUATED">Lulus</option>
+              <option value="ALL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Semua Status Siswa</option>
+              <option value="ACTIVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Aktif Belajar</option>
+              <option value="INACTIVE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Nonaktif / Cuti</option>
+              <option value="TRANSFERRED" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Mutasi / Keluar</option>
+              <option value="GRADUATED" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">Lulus</option>
             </select>
           </div>
         </div>
       </div>
 
       {/* Main Table Content */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl shadow-2xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-xs text-slate-400">
-            <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="w-8 h-8 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             Memuat data siswa dari Firestore...
           </div>
         ) : (viewMode === 'class' ? filteredEnrollments.length === 0 : filteredAllStudents.length === 0) ? (
           <div className="p-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3">
               <Users className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-sm text-slate-800">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">
               {isSearchActive ? 'Siswa Tidak Ditemukan' : 'Belum Ada Data Siswa'}
             </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
               {isSearchActive
                 ? `Tidak ada siswa yang cocok dengan kata kunci "${searchQuery}". Coba periksa kembali ejaan nama, NIS, NISN, atau nama orang tua.`
                 : viewMode === 'class' 
@@ -871,7 +871,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               <button
                 type="button"
                 onClick={() => setImportModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100"
+                className="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
               >
                 Import via Excel
               </button>
@@ -882,7 +882,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                   setSelectedEnrollment(null);
                   setFormModalOpen(true);
                 }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 + Tambah Manual
               </button>
@@ -891,28 +891,28 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50/90 text-slate-700 font-semibold border-b border-slate-200/80">
+              <thead className="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="py-3 px-3.5 w-14 text-center">
+                  <th className="py-3 px-3.5 w-14 text-center font-semibold">
                     {viewMode === 'class' ? 'Absen' : 'No'}
                   </th>
-                  <th className="py-3 px-3.5">Nama Siswa</th>
-                  <th className="py-3 px-3.5 w-28">NIS / NISN</th>
-                  <th className="py-3 px-3.5 w-16 text-center">L/P</th>
+                  <th className="py-3 px-3.5 font-semibold">Nama Siswa</th>
+                  <th className="py-3 px-3.5 w-28 font-semibold">NIS / NISN</th>
+                  <th className="py-3 px-3.5 w-16 text-center font-semibold">L/P</th>
                   {viewMode === 'all' && (
-                    <th className="py-3 px-3.5">Status Kelas</th>
+                    <th className="py-3 px-3.5 font-semibold">Status Kelas</th>
                   )}
-                  <th className="py-3 px-3.5">Orang Tua / Wali</th>
+                  <th className="py-3 px-3.5 font-semibold">Orang Tua / Wali</th>
                   {visibleTableCustomFields.map(f => (
-                    <th key={f.id} className="py-3 px-3.5 whitespace-nowrap text-amber-900 bg-amber-50/60 font-semibold border-x border-amber-200/50">
+                    <th key={f.id} className="py-3 px-3.5 whitespace-nowrap text-amber-900 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/50 font-semibold border-x border-amber-200/70 dark:border-amber-900/50">
                       {f.name}
                     </th>
                   ))}
-                  <th className="py-3 px-3.5 w-24 text-center">Status</th>
-                  <th className="py-3 px-3.5 w-28 text-right">Aksi</th>
+                  <th className="py-3 px-3.5 w-24 text-center font-semibold">Status</th>
+                  <th className="py-3 px-3.5 w-28 text-right font-semibold">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-600">
+              <tbody className="divide-y divide-slate-200/80 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
                 {viewMode === 'class' ? (
                   filteredEnrollments.map((en, idx) => {
                     const stud = en.student;
@@ -920,8 +920,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                     const waLink = stud.parentPhone ? `https://wa.me/${stud.parentPhone.replace(/[^0-9]/g, '')}` : null;
 
                     return (
-                      <tr key={en.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-3.5 text-center font-mono font-bold text-indigo-700">
+                      <tr key={en.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-3 px-3.5 text-center font-mono font-bold text-indigo-700 dark:text-indigo-400">
                           {en.rollNumber || (idx + 1)}
                         </td>
                         <td className="py-3 px-3.5">
@@ -932,45 +932,47 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               setSelectedEnrollment(en);
                               setDetailModalOpen(true);
                             }}
-                            className="font-bold text-slate-800 hover:text-indigo-600 text-left cursor-pointer transition-colors block"
+                            className="font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 text-left cursor-pointer transition-colors block"
                           >
                             {stud.fullName}
                           </button>
-                          <div className="text-[11px] text-slate-400 space-y-0.5">
+                          <div className="text-[11px] text-slate-600 dark:text-slate-300 space-y-0.5 mt-0.5">
                             {(stud.birthPlace || stud.birthDate) && (
                               <span>
                                 {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
                               </span>
                             )}
                             {stud.address && (
-                              <div className="text-slate-500 truncate max-w-xs text-[10px]" title={stud.address}>
+                              <div className="text-slate-500 dark:text-slate-400 truncate max-w-xs text-[10px]" title={stud.address}>
                                 📍 {stud.address}
                               </div>
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-3.5 font-mono text-[11px] text-slate-500">
+                        <td className="py-3 px-3.5 font-mono text-[11px] text-slate-700 dark:text-slate-200 font-medium">
                           <div>{stud.nis || '-'}</div>
-                          <div className="text-[10px] text-slate-400">{stud.nisn || ''}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">{stud.nisn || ''}</div>
                         </td>
                         <td className="py-3 px-3.5 text-center">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            stud.gender === 'L' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-pink-50 text-pink-700 border border-pink-100'
+                            stud.gender === 'L' 
+                              ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' 
+                              : 'bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800'
                           }`}>
                             {stud.gender}
                           </span>
                         </td>
                         <td className="py-3 px-3.5">
-                          <div className="text-slate-700 font-medium">{stud.parentName || '-'}</div>
+                          <div className="text-slate-800 dark:text-slate-200 font-medium">{stud.parentName || '-'}</div>
                           {stud.parentPhone && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                               <span>{stud.parentPhone}</span>
                               {waLink && (
                                 <a
                                   href={waLink}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className="text-emerald-600 hover:text-emerald-700 font-semibold inline-flex items-center gap-0.5"
+                                  className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold inline-flex items-center gap-0.5"
                                   title="Chat WhatsApp Orang Tua"
                                 >
                                   <Phone className="w-2.5 h-2.5" /> WA
@@ -982,8 +984,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                         {visibleTableCustomFields.map(f => {
                           const val = stud.customAttributes?.[f.key] ?? stud.customAttributes?.[f.name];
                           return (
-                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-700 font-medium bg-amber-50/20 border-x border-amber-100/60">
-                              {val || <span className="text-slate-300 font-normal italic">-</span>}
+                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-800 dark:text-slate-200 font-medium bg-amber-50/40 dark:bg-amber-950/20 border-x border-amber-200/40 dark:border-amber-900/40">
+                              {val || <span className="text-slate-400 dark:text-slate-500 font-normal italic">-</span>}
                             </td>
                           );
                         })}
@@ -994,7 +996,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 Mutasi Rombel
                               </Badge>
                               {en.transferredToClassName && (
-                                <span className="text-[10px] text-slate-500 font-medium">
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                                   ke {en.transferredToClassName}
                                 </span>
                               )}
@@ -1014,7 +1016,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(en);
                                 setDetailModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                               title="Lihat Detail Profil"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1027,7 +1029,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(en);
                                 setExamCardModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-blue-50 text-slate-500 hover:text-blue-600"
+                              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/50 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
                               title="Cetak Kartu Ujian Siswa Ini"
                             >
                               <CreditCard className="w-3.5 h-3.5" />
@@ -1040,7 +1042,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(en);
                                 setProgressReportModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-emerald-50 text-slate-500 hover:text-emerald-600"
+                              className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400"
                               title="Rapor Sisipan & Kirim WA"
                             >
                               <FileText className="w-3.5 h-3.5" />
@@ -1053,7 +1055,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                   setSelectedEnrollment(en);
                                   setTransferModalOpen(true);
                                 }}
-                                className="p-1.5 rounded-lg hover:bg-indigo-50 text-slate-500 hover:text-indigo-600"
+                                className="p-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
                                 title="Pindah / Mutasi Kelas"
                               >
                                 <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -1067,7 +1069,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(en);
                                 setFormModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                               title="Edit Data Siswa"
                             >
                               <Edit className="w-3.5 h-3.5" />
@@ -1077,7 +1079,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               <button
                                 type="button"
                                 onClick={() => handleDeleteStudent(stud.id, en.id, stud.fullName)}
-                                className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                                className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400"
                                 title="Hapus dari Kelas"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1093,8 +1095,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                     const waLink = stud.parentPhone ? `https://wa.me/${stud.parentPhone.replace(/[^0-9]/g, '')}` : null;
                     const rowNumber = isSearchActive ? idx + 1 : pageIndex * PAGE_SIZE + (idx + 1);
                     return (
-                      <tr key={stud.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-3.5 text-center font-mono text-slate-400 font-semibold">
+                      <tr key={stud.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-3 px-3.5 text-center font-mono text-slate-500 dark:text-slate-400 font-semibold">
                           {rowNumber}
                         </td>
                         <td className="py-3 px-3.5">
@@ -1105,50 +1107,63 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                               setSelectedEnrollment(null);
                               setDetailModalOpen(true);
                             }}
-                            className="font-bold text-slate-800 hover:text-indigo-600 text-left cursor-pointer transition-colors block"
+                            className="font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 text-left cursor-pointer transition-colors block"
                           >
                             {stud.fullName}
                           </button>
-                          <div className="text-[11px] text-slate-400 space-y-0.5">
+                          <div className="text-[11px] text-slate-600 dark:text-slate-300 space-y-0.5 mt-0.5">
                             {(stud.birthPlace || stud.birthDate) && (
                               <span>
                                 {stud.birthPlace ? `${stud.birthPlace}, ` : ''}{stud.birthDate || ''}
                               </span>
                             )}
                             {stud.address && (
-                              <div className="text-slate-500 truncate max-w-xs text-[10px]" title={stud.address}>
+                              <div className="text-slate-500 dark:text-slate-400 truncate max-w-xs text-[10px]" title={stud.address}>
                                 📍 {stud.address}
                               </div>
                             )}
                           </div>
                         </td>
-                        <td className="py-3 px-3.5 font-mono text-[11px] text-slate-500">
+                        <td className="py-3 px-3.5 font-mono text-[11px] text-slate-700 dark:text-slate-200 font-medium">
                           <div>{stud.nis || '-'}</div>
-                          <div className="text-[10px] text-slate-400">{stud.nisn || ''}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">{stud.nisn || ''}</div>
                         </td>
                         <td className="py-3 px-3.5 text-center">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            stud.gender === 'L' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
+                            stud.gender === 'L' 
+                              ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' 
+                              : 'bg-pink-50 dark:bg-pink-950/50 text-pink-700 dark:text-pink-300 border border-pink-200 dark:border-pink-800'
                           }`}>
                             {stud.gender}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-slate-600 text-[11px]">
+                        <td className="py-3 px-3.5 text-slate-700 dark:text-slate-300 text-[11px] font-medium">
                           Master Siswa
                         </td>
                         <td className="py-3 px-3.5">
-                          <div className="text-slate-700 font-medium">{stud.parentName || '-'}</div>
+                          <div className="text-slate-800 dark:text-slate-200 font-medium">{stud.parentName || '-'}</div>
                           {stud.parentPhone && (
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                               <span>{stud.parentPhone}</span>
+                              {waLink && (
+                                <a
+                                  href={waLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold inline-flex items-center gap-0.5"
+                                  title="Chat WhatsApp Orang Tua"
+                                >
+                                  <Phone className="w-2.5 h-2.5" /> WA
+                                </a>
+                              )}
                             </div>
                           )}
                         </td>
                         {visibleTableCustomFields.map(f => {
                           const val = stud.customAttributes?.[f.key] ?? stud.customAttributes?.[f.name];
                           return (
-                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-700 font-medium bg-amber-50/20 border-x border-amber-100/60">
-                              {val || <span className="text-slate-300 font-normal italic">-</span>}
+                            <td key={f.id} className="py-3 px-3.5 whitespace-nowrap text-xs text-slate-800 dark:text-slate-200 font-medium bg-amber-50/40 dark:bg-amber-950/20 border-x border-amber-200/40 dark:border-amber-900/40">
+                              {val || <span className="text-slate-400 dark:text-slate-500 font-normal italic">-</span>}
                             </td>
                           );
                         })}
@@ -1166,7 +1181,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(null);
                                 setDetailModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                               title="Lihat Detail Profil"
                             >
                               <Eye className="w-3.5 h-3.5" />
@@ -1179,7 +1194,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                                 setSelectedEnrollment(null);
                                 setFormModalOpen(true);
                               }}
-                              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                              className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                               title="Edit Data Siswa"
                             >
                               <Edit className="w-3.5 h-3.5" />
@@ -1188,7 +1203,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                             <button
                               type="button"
                               onClick={() => handleDeleteStudent(stud.id, undefined, stud.fullName)}
-                              className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600"
+                              className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400"
                               title="Hapus Permanen"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1206,15 +1221,15 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
         {/* Pagination Controls for Master Students (when in 'all' view and not searching) */}
         {viewMode === 'all' && !loading && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 bg-slate-50/50 rounded-b-2xl">
-            <div className="text-xs text-slate-500 font-medium">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 rounded-b-2xl">
+            <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">
               {isSearchActive ? (
                 <span>
-                  Menampilkan <span className="font-semibold text-slate-700">{filteredAllStudents.length}</span> siswa hasil pencarian "{searchQuery}"
+                  Menampilkan <span className="font-semibold text-slate-800 dark:text-slate-100">{filteredAllStudents.length}</span> siswa hasil pencarian "{searchQuery}"
                 </span>
               ) : (
                 <span>
-                  Halaman <span className="font-semibold text-slate-700">{pageIndex + 1}</span> (Menampilkan {paginatedStudents.length} siswa per halaman)
+                  Halaman <span className="font-semibold text-slate-800 dark:text-slate-100">{pageIndex + 1}</span> (Menampilkan {paginatedStudents.length} siswa per halaman)
                 </span>
               )}
             </div>
@@ -1229,13 +1244,13 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                     }
                   }}
                   disabled={pageIndex === 0 || loadingPagination}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   Sebelumnya
                 </button>
 
-                <span className="text-xs font-semibold text-slate-700 px-2 py-1 bg-white border border-slate-200 rounded-md">
+                <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md">
                   {pageIndex + 1}
                 </span>
 
@@ -1247,7 +1262,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                     }
                   }}
                   disabled={!hasMorePages || loadingPagination}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
                 >
                   Berikutnya
                   <ChevronRight className="w-4 h-4" />

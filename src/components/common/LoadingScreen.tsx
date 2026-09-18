@@ -1,5 +1,5 @@
 import React from 'react';
-import { DaduLogo } from './DaduLogo';
+import { Logo } from './Logo';
 import { APP_CONFIG } from '../../constants/app';
 import { useAppTheme } from '../../context/ThemeContext';
 
@@ -40,12 +40,12 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
           : 'bg-white/95 border-slate-200/80 shadow-slate-300/50'
       }`}>
         {/* Embossed circular logo badge with ambient glow */}
-        <div className={`relative p-4 rounded-full border shadow-inner flex items-center justify-center transition-colors ${
+        <div className={`relative p-4 rounded-3xl border shadow-inner flex items-center justify-center transition-colors ${
           isDark 
-            ? 'bg-gradient-to-b from-slate-800 to-slate-950 border-slate-700/60' 
-            : 'bg-gradient-to-b from-slate-50 to-slate-100 border-slate-200 shadow-sm'
+            ? 'bg-gradient-to-b from-[#2A103E] to-[#12061C] border-fuchsia-900/60 shadow-fuchsia-950/40' 
+            : 'bg-gradient-to-b from-purple-50 to-fuchsia-50/50 border-purple-200 shadow-sm'
         }`}>
-          <DaduLogo size="xl" />
+          <Logo size={64} />
         </div>
 
         <div className="space-y-1">
