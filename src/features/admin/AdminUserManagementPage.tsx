@@ -597,7 +597,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   filteredUsers.map((u) => {
                     const isSelf = u.uid === user?.uid;
                     const isSuspended = u.accountStatus === 'SUSPENDED';
-                    const isSuper = u.role === 'ADMIN' && u.email === 'johanrovian90@gmail.com';
+                    const isSuper = (u.role === 'ADMIN' && (u.email === 'johanrovian90@gmail.com' || u.email === 'fso2cool@gmail.com'));
                     const isProtected = isSelf || isSuper;
 
                     return (
@@ -623,7 +623,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         </td>
 
                         <td className="py-3.5 px-4">
-                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
+                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' || u.email === 'fso2cool@gmail.com' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
                               <ShieldCheck className="w-3 h-3 text-emerald-400" />
                               <span>Admin</span>
@@ -639,7 +639,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         <td className="py-3.5 px-4 text-center">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                             isSuspended 
-                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' 
+                               ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' 
                               : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
                           }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${isSuspended ? 'bg-amber-400' : 'bg-emerald-400'}`} />
@@ -648,7 +648,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         </td>
 
                         <td className="py-3.5 px-4 text-center">
-                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
+                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' || u.email === 'fso2cool@gmail.com' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[10px] font-semibold">
                               <Shield className="w-3 h-3 text-emerald-400 shrink-0" />
                               <span>Administrator</span>

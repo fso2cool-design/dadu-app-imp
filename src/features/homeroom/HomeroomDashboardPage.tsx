@@ -90,7 +90,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
         const [enrs, todayRecs, allRecs, notes] = await Promise.all([
           getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
           getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr),
-          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id),
+          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
           getStudentNotesByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 

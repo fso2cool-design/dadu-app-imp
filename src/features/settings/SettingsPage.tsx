@@ -14,8 +14,13 @@ import {
   importFullDatabase, 
   getDatabaseStatistics, 
   resetSemesterData,
+  previewSemesterReset,
   DatabaseBackup,
-  DatabaseStatistics 
+  DatabaseStatistics,
+  ResetSemesterOptions,
+  ResetSemesterScope,
+  ResetSemesterSummary,
+  ImportProgressInfo
 } from '../../services/firestore/backup';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useToast } from '../../context/ToastContext';
@@ -159,8 +164,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   const [isImporting, setIsImporting] = useState(false);
   const [importProgressText, setImportProgressText] = useState<string | null>(null);
 
-  // Maintenance State
+  // Maintenance & Semantic Reset State
   const [resetAcademicYearId, setResetAcademicYearId] = useState<string>('');
+  const [resetSemester, setResetSemester] = useState<'ALL' | '1' | '2'>('ALL');
+  const [resetScope, setResetScope] = useState<ResetSemesterScope>({
+    meetingsAndAttendance: true,
+    assessmentsAndScores: true,
+    dailyAttendance: true,
+    teacherAttendance: false,
+    classSchedules: false,
+    studentNotes: false,
+  });
+  const [resetPreview, setResetPreview] = useState<ResetSemesterSummary | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [lastResetSummary, setLastResetSummary] = useState<ResetSemesterSummary | null>(null);
   const [confirmResetText, setConfirmResetText] = useState<string>('');
   const [isResetting, setIsResetting] = useState(false);
   const [isChangeLogModalOpen, setIsChangeLogModalOpen] = useState(false);
@@ -509,7 +526,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     reader.readAsText(file);
   };
 
-  // 3. Execute Restore Backup
+  // 3. Execute Restore Backup with progress and idempotency feedback
   const handleExecuteRestore = async () => {
     if (!user || !backupFileContent) return;
     try {
@@ -518,9 +535,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setErrorMsg(null);
       setSuccessMsg(null);
 
-      const result = await importFullDatabase(user.uid, backupFileContent, importMode);
+      const result = await importFullDatabase(
+        user.uid, 
+        backupFileContent, 
+        importMode,
+        (prog) => {
+          setImportProgressText(`${prog.message} (${prog.percentage}%)`);
+        }
+      );
       
-      setSuccessMsg(`Restorasi berhasil! Total ${result.totalRestored} entri dokumen telah dipulihkan.`);
+      setSuccessMsg(`Restorasi berhasil! Total ${result.totalRestored} entri dokumen telah dipulihkan secara aman & idempoten.`);
       toastSuccess(`Restorasi berhasil! Total ${result.totalRestored} dokumen telah dipulihkan.`);
       setBackupFileContent(null);
       await reloadWorkspaceData();
@@ -535,11 +559,74 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     }
   };
 
-  // 4. Handle Reset Semester Data
+  // 3b. Quick Safety Backup Download Before Destructive Operation
+  const handleQuickSafetyBackup = async () => {
+    if (!user) return;
+    try {
+      setIsExporting(true);
+      const backupData = await exportFullDatabase(
+        user.uid, 
+        profileData.displayName, 
+        schoolData.schoolName
+      );
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `SAFETY_BACKUP_${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      toastSuccess('Cadangan pengaman berhasil diunduh sebelum tindakan pembersihan!');
+    } catch (err: any) {
+      toastError('Gagal mengunduh cadangan pengaman: ' + (err.message || 'Error'));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // 4a. Dry-Run / Pre-Flight Preview of Documents to be Reset
+  const handlePreviewReset = async () => {
+    if (!user || !resetAcademicYearId) return;
+    try {
+      setIsPreviewLoading(true);
+      setErrorMsg(null);
+      const preview = await previewSemesterReset(user.uid, {
+        academicYearId: resetAcademicYearId,
+        semester: resetSemester,
+        scope: resetScope,
+      });
+      setResetPreview(preview);
+    } catch (err: any) {
+      console.error('Error previewing reset:', err);
+      setErrorMsg('Gagal memuat pratinjau data reset: ' + (err.message || 'Error'));
+      toastError('Gagal memuat pratinjau data reset');
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
+
+  // 4b. Handle Semantic Reset Semester Data
   const handleResetSemester = async () => {
     if (!user || !resetAcademicYearId) return;
+
+    // Check if Academic Year is archived
+    const selectedAY = academicYears.find(ay => ay.id === resetAcademicYearId);
+    if (selectedAY?.isArchived) {
+      setErrorMsg('Tahun Ajaran ini berstatus diarsipkan (read-only). Buka status arsip terlebih dahulu di master Tahun Ajaran sebelum menghapus data KBM.');
+      toastError('Tahun Ajaran ini diarsipkan (read-only).');
+      return;
+    }
+
+    // Validate confirmation string
     if (confirmResetText !== 'RESET DATA') {
       setErrorMsg('Teks konfirmasi salah. Harap ketik "RESET DATA" secara tepat.');
+      return;
+    }
+
+    // Check if at least one scope is enabled
+    const hasAnyScope = Object.values(resetScope).some(v => Boolean(v));
+    if (!hasAnyScope) {
+      setErrorMsg('Pilih minimal satu cakupan data yang ingin dibersihkan.');
       return;
     }
 
@@ -548,13 +635,22 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setErrorMsg(null);
       setSuccessMsg(null);
 
-      const deletedCount = await resetSemesterData(user.uid, resetAcademicYearId);
-      setSuccessMsg(`Reset data selesai! Sebanyak ${deletedCount} catatan KBM & nilai berhasil dibersihkan.`);
+      const summary = await resetSemesterData(user.uid, {
+        academicYearId: resetAcademicYearId,
+        semester: resetSemester,
+        scope: resetScope,
+      });
+
+      setLastResetSummary(summary);
+      setSuccessMsg(`Reset data semester selesai! Total ${summary.totalDeleted} dokumen transaksional berhasil dibersihkan (${summary.meetings} KBM, ${summary.attendanceRecords} presensi mapel, ${summary.assessmentItems} asesmen, ${summary.scores} nilai, ${summary.dailyAttendanceSessions} sesi presensi harian).`);
+      toastSuccess(`Reset berhasil! Sebanyak ${summary.totalDeleted} dokumen dibersihkan.`);
       setConfirmResetText('');
+      setResetPreview(null);
       await reloadWorkspaceData();
     } catch (err: any) {
       console.error('Error resetting semester:', err);
       setErrorMsg('Gagal mereset data semester: ' + (err.message || 'Error'));
+      toastError('Gagal mereset data: ' + (err.message || 'Error'));
     } finally {
       setIsResetting(false);
     }
@@ -1823,68 +1919,321 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           </div>
         )}
 
-        {/* TAB 7: PEMELIHARAAN & RESET DATA */}
+        {/* TAB 7: PEMELIHARAAN & RESET DATA SEMANTIK */}
         {activeTab === 'maintenance' && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
                 <Trash2 className="w-4 h-4 text-rose-600" />
-                Pemeliharaan & Pembersihan Data Semester
+                Pemeliharaan & Pembersihan Data Semester (Semantic Reset)
               </h3>
-              <p className="text-[11px] text-slate-400">
-                Fitur proteksi untuk membersihkan data transaksional (jurnal KBM, presensi, dan nilai) pada akhir semester tanpa menghapus profil atau daftar master siswa.
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Fitur proteksi bergradasi untuk membersihkan data transaksional (jurnal KBM, absensi, dan nilai) pada pergantian semester secara aman dan terukur tanpa menghapus data master (siswa, kelas, mata pelajaran).
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-4 max-w-xl">
+            {/* Quick Safety Backup Banner */}
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-xs text-amber-950">Disarankan: Unduh Cadangan Pengaman</h4>
+                  <p className="text-[11px] text-amber-800 leading-relaxed mt-0.5">
+                    Sebelum melakukan tindakan destruktif, unduh file snapshot database JSON sebagai arsip cadangan pengaman darurat.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleQuickSafetyBackup}
+                disabled={isExporting}
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>{isExporting ? 'Mengunduh...' : 'Unduh Cadangan Pengaman'}</span>
+              </button>
+            </div>
+
+            {/* Main Semantic Reset Form */}
+            <div className="p-5 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-5 max-w-2xl">
+              <div className="flex items-start gap-3 border-b border-rose-100 pb-3">
                 <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-xs text-rose-950">Peringatan Penghapusan Selektif</h4>
+                  <h4 className="font-bold text-xs text-rose-950">Proteksi & Filter Semantik</h4>
                   <p className="text-[11px] text-rose-700 leading-relaxed mt-1">
-                    Operasi ini akan menghapus seluruh data pertemuan KBM, rekaman absensi, dan nilai siswa untuk tahun ajaran yang dipilih. Data master kelas dan nama siswa tidak akan dihapus.
+                    Pilih tahun ajaran, semester sasaran, dan cakupan data yang ingin dibersihkan. Operasi ini berjalan dengan batch chunking tahan-kuota Firestore dan dilengkapi pratinjau pra-eksekusi.
                   </p>
                 </div>
               </div>
 
+              {/* 1. Target Academic Year */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Pilih Tahun Ajaran yang Ingin Dibersihkan:</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  1. Pilih Tahun Ajaran Sasaran:
+                </label>
                 <select
                   value={resetAcademicYearId}
-                  onChange={e => setResetAcademicYearId(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium bg-white"
+                  onChange={e => {
+                    setResetAcademicYearId(e.target.value);
+                    setResetPreview(null);
+                  }}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-2 focus:ring-rose-400 focus:outline-none"
                 >
                   {academicYears.map(ay => (
                     <option key={ay.id} value={ay.id}>
-                      Tahun Ajaran {ay.label} ({ay.currentSemester})
+                      Tahun Ajaran {ay.label} ({ay.currentSemester}) {ay.isArchived ? '— [DIARSIPKAN]' : (ay.isActive ? '— [SEDANG AKTIF]' : '')}
                     </option>
                   ))}
                 </select>
+
+                {academicYears.find(ay => ay.id === resetAcademicYearId)?.isArchived && (
+                  <div className="mt-2 p-2.5 rounded-xl bg-red-100/90 border border-red-300 text-[11px] text-red-800 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                    <span>
+                      <strong>Tahun Ajaran ini Diarsipkan:</strong> Status read-only aktif. Reset data dikunci untuk menjaga integritas riwayat terdahulu.
+                    </span>
+                  </div>
+                )}
               </div>
 
+              {/* 2. Target Semester Filter */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Ketik <code className="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded font-mono font-bold">RESET DATA</code> untuk konfirmasi:
+                  2. Pilih Semester yang Dibersihkan:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setResetSemester('ALL'); setResetPreview(null); }}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
+                      resetSemester === 'ALL'
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${resetSemester === 'ALL' ? 'bg-white' : 'bg-rose-400'}`} />
+                    <span>Semua Semester (1 & 2)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setResetSemester('1'); setResetPreview(null); }}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
+                      resetSemester === '1'
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${resetSemester === '1' ? 'bg-white' : 'bg-rose-400'}`} />
+                    <span>Semester 1 (Ganjil)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setResetSemester('2'); setResetPreview(null); }}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
+                      resetSemester === '2'
+                        ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${resetSemester === '2' ? 'bg-white' : 'bg-rose-400'}`} />
+                    <span>Semester 2 (Genap)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Granular Scope Checkboxes */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  3. Tentukan Cakupan Koleksi Data yang Dihapus:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.meetingsAndAttendance}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, meetingsAndAttendance: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Jurnal KBM & Absensi Mapel</span>
+                      <span className="text-[10px] text-slate-500">Pertemuan agenda guru dan presensi pertemuan per mapel.</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.assessmentsAndScores}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, assessmentsAndScores: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Penilaian & Nilai Siswa</span>
+                      <span className="text-[10px] text-slate-500">Daftar butir asesmen formatif/sumatif serta skor nilai siswa.</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.dailyAttendance}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, dailyAttendance: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Presensi Harian Wali Kelas</span>
+                      <span className="text-[10px] text-slate-500">Sesi harian kelas dan rekam kehadiran siswa oleh wali kelas.</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.teacherAttendance}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, teacherAttendance: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Presensi Mandiri Guru (Opsional)</span>
+                      <span className="text-[10px] text-slate-500">Rekam presensi kedatangan guru dan log bulanan.</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.classSchedules}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, classSchedules: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Jadwal Pelajaran Kelas (Opsional)</span>
+                      <span className="text-[10px] text-slate-500">Alokasi jadwal KBM mingguan pada semester terpilih.</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={resetScope.studentNotes}
+                      onChange={e => {
+                        setResetScope(s => ({ ...s, studentNotes: e.target.checked }));
+                        setResetPreview(null);
+                      }}
+                      className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
+                    />
+                    <div>
+                      <span className="text-xs font-semibold text-slate-800 block">Catatan Perkembangan Siswa</span>
+                      <span className="text-[10px] text-slate-500">Catatan khusus BK dan karakter siswa pada semester ini.</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* 4. Pre-Flight Preview Button & Display */}
+              <div className="pt-1 border-t border-rose-100">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-slate-700">4. Pratinjau Dokumen Terdampak (Dry Run):</span>
+                  <button
+                    type="button"
+                    onClick={handlePreviewReset}
+                    disabled={isPreviewLoading || !resetAcademicYearId}
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{isPreviewLoading ? 'Menghitung Dokumen...' : 'Hitung Dokumen Terdampak'}</span>
+                  </button>
+                </div>
+
+                {resetPreview && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-white border border-rose-200 text-xs space-y-2">
+                    <div className="flex items-center justify-between font-bold text-rose-950 pb-2 border-b border-rose-100">
+                      <span>Total Dokumen yang Akan Dihapus:</span>
+                      <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-xs font-mono font-bold">
+                        {resetPreview.totalDeleted} Dokumen
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-600">
+                      <div>Pertemuan KBM: <strong className="text-slate-800">{resetPreview.meetings}</strong></div>
+                      <div>Presensi Mapel: <strong className="text-slate-800">{resetPreview.attendanceRecords}</strong></div>
+                      <div>Butir Penilaian: <strong className="text-slate-800">{resetPreview.assessmentItems}</strong></div>
+                      <div>Nilai Siswa: <strong className="text-slate-800">{resetPreview.scores}</strong></div>
+                      <div>Sesi Presensi Harian: <strong className="text-slate-800">{resetPreview.dailyAttendanceSessions}</strong></div>
+                      <div>Rekam Presensi Harian: <strong className="text-slate-800">{resetPreview.dailyAttendanceRecords}</strong></div>
+                      {resetScope.teacherAttendance && (
+                        <div>Presensi Guru: <strong className="text-slate-800">{resetPreview.teacherAttendanceRecords + resetPreview.teacherMonthlyAttendance}</strong></div>
+                      )}
+                      {resetScope.classSchedules && (
+                        <div>Jadwal Kelas: <strong className="text-slate-800">{resetPreview.classSchedules}</strong></div>
+                      )}
+                      {resetScope.studentNotes && (
+                        <div>Catatan Siswa: <strong className="text-slate-800">{resetPreview.studentNotes}</strong></div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Confirmation Input */}
+              <div className="pt-1 border-t border-rose-100">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  5. Ketik <code className="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded font-mono font-bold">RESET DATA</code> untuk konfirmasi eksekusi:
                 </label>
                 <input
                   type="text"
                   value={confirmResetText}
                   onChange={e => setConfirmResetText(e.target.value)}
                   placeholder="Ketik persis: RESET DATA"
-                  className="w-full px-3.5 py-2 rounded-xl border border-rose-300 text-xs font-mono font-bold bg-white"
+                  className="w-full px-3.5 py-2 rounded-xl border border-rose-300 text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
                 />
               </div>
 
+              {/* 6. Execution Button */}
               <button
                 type="button"
                 onClick={handleResetSemester}
-                disabled={isResetting || confirmResetText !== 'RESET DATA'}
-                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-40"
+                disabled={
+                  isResetting || 
+                  confirmResetText !== 'RESET DATA' || 
+                  academicYears.find(ay => ay.id === resetAcademicYearId)?.isArchived ||
+                  !Object.values(resetScope).some(v => Boolean(v))
+                }
+                className="w-full px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-40"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>{isResetting ? 'Mereset Data...' : 'Bersihkan Data KBM Semester Terpilih'}</span>
+                <span>{isResetting ? 'Mengeksekusi Pembersihan Batch...' : 'Bersihkan Data Semester Terpilih Sekarang'}</span>
               </button>
             </div>
+
+            {/* Last Reset Audit Result Card */}
+            {lastResetSummary && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-2 max-w-2xl">
+                <div className="flex items-center gap-2 font-bold text-emerald-950">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Audit Pembersihan Terakhir Berhasil</span>
+                </div>
+                <p className="text-[11px] text-emerald-800">
+                  Sebanyak <strong>{lastResetSummary.totalDeleted}</strong> dokumen transaksional berhasil dihapus secara aman dari koleksi pengguna tanpa kesalahan batch.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

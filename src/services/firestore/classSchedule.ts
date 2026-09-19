@@ -31,9 +31,16 @@ export async function saveClassSchedule(
   uid: string,
   schedule: Omit<ClassSchedule, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
 ): Promise<ClassSchedule> {
-  const docId = schedule.id || getScheduleDocId(schedule.classId, schedule.academicYearId, schedule.semester);
+  // Enforce strict deterministic identity: {classId}_{academicYearId}_{semester}
+  const docId = getScheduleDocId(schedule.classId, schedule.academicYearId, schedule.semester);
   const docRef = doc(db, 'users', uid, 'classSchedules', docId);
-  
+
+  // Archive check
+  const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', schedule.academicYearId));
+  if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+    throw new Error('Tidak dapat menyimpan jadwal pelajaran pada Tahun Ajaran yang telah diarsipkan (read-only).');
+  }
+
   const payload = {
     ...schedule,
     id: docId,
@@ -54,6 +61,17 @@ export async function saveClassSchedule(
 
 export async function deleteClassSchedule(uid: string, scheduleId: string): Promise<void> {
   const docRef = doc(db, 'users', uid, 'classSchedules', scheduleId);
+  const snap = await getDoc(docRef);
+  if (snap.exists()) {
+    const data = snap.data();
+    if (data?.academicYearId) {
+      const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', data.academicYearId));
+      if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+        throw new Error('Tidak dapat menghapus jadwal pelajaran pada Tahun Ajaran yang telah diarsipkan (read-only).');
+      }
+    }
+  }
+
   await trackSync(
     deleteDoc(docRef),
     { successMessage: 'Jadwal pelajaran dihapus' }

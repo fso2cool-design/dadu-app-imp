@@ -7,7 +7,7 @@ import {
   checkStudentUsage, 
   StudentUsageSummary 
 } from '../../services/firestore/students';
-import { createEnrollment, updateEnrollment } from '../../services/firestore/enrollments';
+import { createEnrollment, updateEnrollment, transferStudentEnrollment } from '../../services/firestore/enrollments';
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment, StudentCustomFieldDefinition } from '../../types';
 import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck, Sliders } from 'lucide-react';
@@ -151,11 +151,23 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
 
         // Update or create enrollment if class selected
         if (existingEnrollment) {
-          await updateEnrollment(user.uid, existingEnrollment.id, {
-            classId: enrollClassId,
-            rollNumber: Number(rollNumber),
-            status: formData.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-          });
+          if (enrollClassId && enrollClassId !== existingEnrollment.classId) {
+            // Perubahan kelas WAJIB menggunakan alur mutasi resmi
+            const targetCls = classes.find(c => c.id === enrollClassId);
+            await transferStudentEnrollment(
+              user.uid,
+              existingEnrollment.id,
+              enrollClassId,
+              targetCls?.name || '',
+              Number(rollNumber) || existingEnrollment.rollNumber || 1,
+              'Perubahan rombel melalui pembaruan profil siswa'
+            );
+          } else {
+            await updateEnrollment(user.uid, existingEnrollment.id, {
+              rollNumber: Number(rollNumber),
+              status: formData.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            });
+          }
         } else if (enrollClassId && activeAcademicYear) {
           const targetCls = classes.find(c => c.id === enrollClassId);
           await createEnrollment(user.uid, {

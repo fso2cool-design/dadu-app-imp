@@ -613,8 +613,12 @@ export interface SharedReport {
   userName: string;
   title: string;
   description?: string;
-  passcode?: string; // Optional 4-6 digit access passcode
-  expiresAt: any; // Timestamp or ISO string or null for no expiration
+  passcode?: string; // Memory-only or legacy plaintext passcode
+  hasPasscode?: boolean; // Whether the report is protected by passcode
+  salt?: string; // Hex salt for PBKDF2 key derivation
+  iv?: string; // Hex initialization vector for AES-GCM
+  encryptedPayload?: string; // Base64 AES-GCM ciphertext when passcode-protected
+  expiresAt: any; // Firestore Timestamp, ISO string, or null
   isRevoked: boolean;
   viewCount: number;
   lastViewedAt?: any;

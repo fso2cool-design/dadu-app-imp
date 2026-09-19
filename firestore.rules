@@ -4,7 +4,8 @@ service cloud.firestore {
     // Helper to check if current authenticated user is Super Admin
     function isSuperAdmin() {
       return request.auth != null && (
-        request.auth.token.email == 'johanrovian90@gmail.com'
+        request.auth.token.email == 'johanrovian90@gmail.com' ||
+        request.auth.token.email == 'fso2cool@gmail.com'
       );
     }
 
@@ -62,10 +63,12 @@ service cloud.firestore {
           && request.resource.data.academicYearId is string
           && request.resource.data.classId is string
           && request.resource.data.subjectId is string;
-        // Enforce academicYearId immutability on update to preserve historical academic ties
+        // Enforce academicYearId, classId, and subjectId immutability on update to preserve historical academic ties
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
-              || resource.data.academicYearId == request.resource.data.academicYearId);
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'classId', 'subjectId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.classId == request.resource.data.classId
+                  && resource.data.subjectId == request.resource.data.subjectId));
       }
 
       match /academicYears/{academicYearId} {
@@ -73,7 +76,8 @@ service cloud.firestore {
         allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true && resource.data.isActive != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.label is string;
-        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (resource.data.isArchived != true || isSuperAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isArchived']));
       }
 
       match /enrollments/{enrollmentId} {
@@ -82,14 +86,14 @@ service cloud.firestore {
           && request.resource.data.academicYearId is string
           && request.resource.data.classId is string
           && request.resource.data.studentId is string;
-        // Enforce immutability of academicYearId and studentId on normal updates to preserve identity and historical ties.
-        // Governed recovery/re-link allows studentId correction ONLY if academicYearId is unchanged and relinkedAt is supplied.
+        // Enforce immutability of academicYearId, classId, and studentId on normal updates to preserve identity and historical ties.
+        // Governed recovery/re-link allows studentId correction ONLY if academicYearId and classId are unchanged and relinkedAt is supplied.
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (
-            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'studentId'])
-              || (resource.data.academicYearId == request.resource.data.academicYearId && resource.data.studentId == request.resource.data.studentId))
-            || (resource.data.academicYearId == request.resource.data.academicYearId && ('relinkedAt' in request.resource.data))
-          );
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'classId', 'studentId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.classId == request.resource.data.classId
+                  && (resource.data.studentId == request.resource.data.studentId || ('relinkedAt' in request.resource.data))))
+          && (!('status' in request.resource.data) || request.resource.data.status in ['ACTIVE', 'TRANSFERRED', 'GRADUATED', 'DROPOUT', 'ARCHIVED']);
       }
 
       match /scores/{scoreId} {
@@ -100,15 +104,11 @@ service cloud.firestore {
           && (!('score' in request.resource.data) || (request.resource.data.score is number && request.resource.data.score >= 0 && request.resource.data.score <= 100));
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && (!('score' in request.resource.data) || (request.resource.data.score is number && request.resource.data.score >= 0 && request.resource.data.score <= 100))
-          && (
-            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['assessmentItemId'])
-            || resource.data.assessmentItemId == request.resource.data.assessmentItemId
-          )
-          && (
-            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['assessmentItemId'])
+              || resource.data.assessmentItemId == request.resource.data.assessmentItemId)
+          && ((!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
               || resource.data.studentId == request.resource.data.studentId)
-            || ('relinkedAt' in request.resource.data)
-          );
+              || ('relinkedAt' in request.resource.data));
       }
 
       match /meetings/{meetingId} {
@@ -118,14 +118,16 @@ service cloud.firestore {
           && request.resource.data.classId is string
           && request.resource.data.subjectId is string
           && request.resource.data.academicYearId is string
-          && request.resource.data.meetingNumber is number;
+          && request.resource.data.meetingNumber is number
+          && (!('semester' in request.resource.data) || request.resource.data.semester in ['GANJIL', 'GENAP']);
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId', 'classId', 'subjectId', 'academicYearId', 'meetingNumber'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId', 'classId', 'subjectId', 'academicYearId', 'meetingNumber', 'semester'])
               || (resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId 
                   && resource.data.classId == request.resource.data.classId
                   && resource.data.subjectId == request.resource.data.subjectId
                   && resource.data.academicYearId == request.resource.data.academicYearId
-                  && resource.data.meetingNumber == request.resource.data.meetingNumber));
+                  && resource.data.meetingNumber == request.resource.data.meetingNumber
+                  && (!('semester' in resource.data) || resource.data.semester == request.resource.data.semester)));
       }
 
       match /attendanceRecords/{recordId} {
@@ -135,26 +137,54 @@ service cloud.firestore {
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
           && (!('meetingId' in request.resource.data) || request.resource.data.meetingId == null || request.resource.data.meetingId is string);
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId', 'meetingId', 'academicYearId', 'classId', 'subjectId', 'teachingAssignmentId'])
+              || (resource.data.studentId == request.resource.data.studentId
+                  && (!('academicYearId' in resource.data) || resource.data.academicYearId == request.resource.data.academicYearId)));
       }
 
       match /dailyAttendanceSessions/{sessionId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.classId is string
+          && request.resource.data.academicYearId is string
+          && request.resource.data.date is string;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId', 'academicYearId', 'date'])
+              || (resource.data.classId == request.resource.data.classId
+                  && resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.date == request.resource.data.date));
       }
 
       match /dailyAttendanceRecords/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.studentId is string
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId', 'classId', 'academicYearId', 'date', 'sessionId'])
+              || resource.data.studentId == request.resource.data.studentId);
       }
 
       // Assessment Columns & Configuration
       match /assessmentItems/{itemId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.academicYearId is string
+          && request.resource.data.classId is string
+          && (!('subjectId' in request.resource.data) || request.resource.data.subjectId is string)
+          && (!('teachingAssignmentId' in request.resource.data) || request.resource.data.teachingAssignmentId is string)
+          && (!('semester' in request.resource.data) || request.resource.data.semester in ['GANJIL', 'GENAP'])
           && (!('weight' in request.resource.data) || request.resource.data.weight >= 0)
           && (!('maxScore' in request.resource.data) || (request.resource.data.maxScore > 0 && request.resource.data.maxScore <= 100));
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!('weight' in request.resource.data) || request.resource.data.weight >= 0)
+          && (!('maxScore' in request.resource.data) || (request.resource.data.maxScore > 0 && request.resource.data.maxScore <= 100))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'semester', 'teachingAssignmentId', 'classId', 'subjectId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId
+                  && (!('classId' in resource.data) || resource.data.classId == request.resource.data.classId)
+                  && (!('semester' in resource.data) || resource.data.semester == request.resource.data.semester)));
       }
 
       // Student Notes / Guidance
@@ -165,17 +195,11 @@ service cloud.firestore {
           && request.resource.data.classId is string
           && request.resource.data.academicYearId is string;
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          // academicYearId and classId are strictly immutable
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
-              || resource.data.academicYearId == request.resource.data.academicYearId)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId'])
-              || resource.data.classId == request.resource.data.classId)
-          // studentId is immutable on update, except in governed re-link with relinkedAt
-          && (
-            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'classId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId && resource.data.classId == request.resource.data.classId))
+          && ((!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId'])
               || resource.data.studentId == request.resource.data.studentId)
-            || ('relinkedAt' in request.resource.data)
-          );
+              || ('relinkedAt' in request.resource.data));
       }
 
       // Subject Teacher Attendance Records recorded by Homeroom Teacher
@@ -189,40 +213,52 @@ service cloud.firestore {
           && request.resource.data.teachingAssignmentId is string
           && (!('status' in request.resource.data) || request.resource.data.status in ['HADIR', 'SAKIT', 'IZIN', 'ALPA', 'DINAS']);
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          // Relational identifiers are strictly immutable
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId'])
-              || resource.data.academicYearId == request.resource.data.academicYearId)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['semester'])
-              || resource.data.semester == request.resource.data.semester)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId'])
-              || resource.data.classId == request.resource.data.classId)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['date'])
-              || resource.data.date == request.resource.data.date)
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId'])
-              || resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['academicYearId', 'semester', 'classId', 'date', 'teachingAssignmentId'])
+              || (resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.semester == request.resource.data.semester
+                  && resource.data.classId == request.resource.data.classId
+                  && resource.data.date == request.resource.data.date
+                  && resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId))
           && (!('status' in request.resource.data) || request.resource.data.status in ['HADIR', 'SAKIT', 'IZIN', 'ALPA', 'DINAS']);
       }
 
       match /teacherMonthlyAttendance/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.classId is string
           && request.resource.data.academicYearId is string
           && request.resource.data.semester in ['GANJIL', 'GENAP']
           && request.resource.data.year is number
           && request.resource.data.month is number;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId', 'academicYearId', 'semester', 'year', 'month'])
+              || (resource.data.classId == request.resource.data.classId
+                  && resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.semester == request.resource.data.semester
+                  && resource.data.year == request.resource.data.year
+                  && resource.data.month == request.resource.data.month));
       }
 
       match /classSchedules/{scheduleId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow create, update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.classId is string
           && request.resource.data.academicYearId is string
           && request.resource.data.semester in ['GANJIL', 'GENAP'];
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['classId', 'academicYearId', 'semester'])
+              || (resource.data.classId == request.resource.data.classId
+                  && resource.data.academicYearId == request.resource.data.academicYearId
+                  && resource.data.semester == request.resource.data.semester));
       }
 
-      // Match all other subcollections in user workspace
-      match /{allSubcollections=**} {
+      // School, Document, Preference & Attendance Settings
+      match /settings/{settingId} {
+        allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      }
+
+      // Custom fields defined for students
+      match /studentCustomFields/{fieldId} {
         allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
       }
     }
@@ -239,15 +275,32 @@ service cloud.firestore {
 
     // Shared Reports (Public Read-Only with Token / Passcode, Authenticated Owner Write/Revoke)
     match /sharedReports/{reportId} {
-      // Allow public get if document exists and is not revoked
-      // Anyone with the link/token can read the single snapshot document
-      allow get: if resource.data.isRevoked != true;
+      // Allow public get if document exists, is not revoked, and is not expired
+      allow get: if resource.data.isRevoked != true
+        && (!('expiresAt' in resource.data) || resource.data.expiresAt == null || !(resource.data.expiresAt is timestamp) || request.time < resource.data.expiresAt);
+
       // Listing is restricted to the creator or Super Admin
       allow list: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
+
       // Authenticated teacher can create a shared report with their own userId
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      // Owner or Super Admin can revoke/update/delete the link
-      allow update: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.id == reportId
+        && request.resource.data.isRevoked == false
+        && request.resource.data.viewCount == 0;
+
+      // Owner or Super Admin can revoke/update, or viewer can increment viewCount & lastViewedAt
+      allow update: if (
+        (request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin())
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['userId', 'id', 'reportType']))
+        ) ||
+        (resource.data.isRevoked != true
+          && (!('expiresAt' in resource.data) || resource.data.expiresAt == null || !(resource.data.expiresAt is timestamp) || request.time < resource.data.expiresAt)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'lastViewedAt'])
+        )
+      );
+
+      // Only owner or Super Admin can delete
       allow delete: if request.auth != null && (request.auth.uid == resource.data.userId || isSuperAdmin());
     }
 
@@ -276,7 +329,26 @@ service cloud.firestore {
     match /{path=**}/teacherAttendanceRecords/{docId} {
       allow read: if isSuperAdmin();
     }
+    match /{path=**}/studentCustomFields/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/enrollments/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/meetings/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/scores/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/assessmentItems/{docId} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/studentNotes/{docId} {
+      allow read: if isSuperAdmin();
+    }
   }
 }
+
 
 

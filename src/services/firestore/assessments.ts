@@ -328,19 +328,37 @@ export async function saveMatrixScores(
     throw new Error('Data matriks nilai tidak lengkap: ID Asesmen dan ID Siswa wajib diisi.');
   }
 
-  // Check archive status for unique assessment items
+  // Check existence, relationship integrity, and archive status for ALL unique assessment items
   const uniqueItemIds = Array.from(new Set(scoresToSave.map(s => s.assessmentItemId)));
-  for (const itemId of uniqueItemIds.slice(0, 5)) {
-    const itemDoc = await getDoc(doc(db, 'users', uid, 'assessmentItems', itemId));
-    if (itemDoc.exists()) {
-      const itemData = itemDoc.data() as any;
-      if (itemData?.academicYearId) {
-        const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', itemData.academicYearId));
-        if (ayDoc.exists() && ayDoc.data()?.isArchived) {
-          throw new Error('Tidak dapat menyimpan nilai pada Tahun Ajaran yang telah diarsipkan (read-only).');
-        }
-        break; // Academic year verified
-      }
+  const ayArchiveStatusCache = new Map<string, boolean>();
+
+  const itemDocs = await Promise.all(
+    uniqueItemIds.map(itemId => getDoc(doc(db, 'users', uid, 'assessmentItems', itemId)))
+  );
+
+  for (let idx = 0; idx < uniqueItemIds.length; idx++) {
+    const itemDoc = itemDocs[idx];
+    const itemId = uniqueItemIds[idx];
+
+    if (!itemDoc.exists()) {
+      throw new Error(`Item penilaian dengan ID '${itemId}' tidak ditemukan di database.`);
+    }
+
+    const itemData = itemDoc.data() as any;
+    const academicYearId = itemData?.academicYearId;
+
+    if (!academicYearId) {
+      throw new Error(`Item penilaian '${itemId}' tidak memiliki relasi tahun ajaran yang valid.`);
+    }
+
+    if (!ayArchiveStatusCache.has(academicYearId)) {
+      const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
+      const isArchived = Boolean(ayDoc.exists() && ayDoc.data()?.isArchived);
+      ayArchiveStatusCache.set(academicYearId, isArchived);
+    }
+
+    if (ayArchiveStatusCache.get(academicYearId)) {
+      throw new Error('Tidak dapat menyimpan nilai pada Tahun Ajaran yang telah diarsipkan (read-only).');
     }
   }
 

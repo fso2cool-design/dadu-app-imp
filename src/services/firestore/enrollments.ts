@@ -313,10 +313,52 @@ export async function updateEnrollment(
   data: Partial<Enrollment>
 ): Promise<void> {
   const docRef = doc(db, 'users', uid, 'enrollments', id);
-  await updateDoc(docRef, {
-    ...data,
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error('Data penempatan siswa tidak ditemukan.');
+  }
+  const existing = snap.data() as Enrollment;
+
+  // Immutability checks:
+  if (data.academicYearId && data.academicYearId !== existing.academicYearId) {
+    throw new Error('Tahun ajaran pada penempatan siswa bersifat tetap dan tidak dapat diubah.');
+  }
+
+  if (data.classId && data.classId !== existing.classId) {
+    throw new Error(
+      'Perubahan kelas tidak dapat dilakukan melalui pembaruan langsung penempatan. Harap gunakan alur mutasi siswa (transferStudentEnrollment) untuk menjaga integritas riwayat akademik.'
+    );
+  }
+
+  if (data.studentId && data.studentId !== existing.studentId) {
+    if (!data.relinkedAt) {
+      throw new Error('ID siswa pada penempatan bersifat tetap dan tidak dapat diubah kecuali melalui alur perbaikan relasi (relinkedAt).');
+    }
+  }
+
+  // Validate status if provided
+  const validStatuses = ['ACTIVE', 'INACTIVE', 'TRANSFERRED', 'GRADUATED', 'DROPOUT', 'ARCHIVED'];
+  if (data.status && !validStatuses.includes(data.status)) {
+    throw new Error(`Status penempatan '${data.status}' tidak valid.`);
+  }
+
+  // Build clean payload with only permitted mutable fields
+  const payload: Record<string, any> = {
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  if (data.rollNumber !== undefined) payload.rollNumber = Number(data.rollNumber) || 1;
+  if (data.status !== undefined) payload.status = data.status;
+  if (data.className !== undefined) payload.className = data.className;
+  if (data.academicYearLabel !== undefined) payload.academicYearLabel = data.academicYearLabel;
+  if (data.transferReason !== undefined) payload.transferReason = data.transferReason;
+  if (data.relinkReason !== undefined) payload.relinkReason = data.relinkReason;
+  if (data.relinkedAt !== undefined) {
+    payload.relinkedAt = data.relinkedAt;
+    if (data.studentId) payload.studentId = data.studentId;
+  }
+
+  await updateDoc(docRef, payload);
 }
 
 export async function archiveEnrollment(
@@ -460,6 +502,14 @@ export async function batchEnrollStudents(
   const targetClassData = targetClassSnap.data();
   if (targetClassData.academicYearId !== academicYearId) {
     throw new Error('Kelas tujuan tidak berada dalam Tahun Ajaran yang sesuai.');
+  }
+  if (targetClassData.isArchived) {
+    throw new Error('Tidak dapat menempatkan siswa pada kelas yang telah diarsipkan.');
+  }
+
+  const aySnap = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
+  if (aySnap.exists() && aySnap.data()?.isArchived) {
+    throw new Error('Tidak dapat menempatkan siswa pada Tahun Ajaran yang telah diarsipkan (read-only).');
   }
 
   const studentIds = deduplicatedItems.map(i => i.studentId);

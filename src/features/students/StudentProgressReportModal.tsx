@@ -74,7 +74,7 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
         const promises: Promise<any>[] = [];
         if (!initialAttendanceRecords && enrollment.classId) {
           promises.push(
-            getAllDailyAttendanceRecordsForClass(user.uid, enrollment.classId)
+            getAllDailyAttendanceRecordsForClass(user.uid, enrollment.classId, enrollment.academicYearId)
               .then(records => setAttendanceRecords(records))
               .catch(err => console.error('Error fetching attendance:', err))
           );

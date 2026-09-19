@@ -60,7 +60,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
 
   if (!isOpen || !targetUser) return null;
 
-  const isSuperAdminEmail = targetUser.email === 'johanrovian90@gmail.com';
+  const isSuperAdminEmail = targetUser.email === 'johanrovian90@gmail.com' || targetUser.email === 'fso2cool@gmail.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

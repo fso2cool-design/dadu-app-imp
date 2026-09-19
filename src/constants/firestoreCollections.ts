@@ -22,6 +22,7 @@ export const WORKSPACE_SUBCOLLECTIONS = [
   'teacherMonthlyAttendance',
   'classSchedules',
   'settings',
+  'studentCustomFields',
 ] as const;
 
 export type WorkspaceSubcollection = typeof WORKSPACE_SUBCOLLECTIONS[number];
@@ -29,6 +30,7 @@ export type WorkspaceSubcollection = typeof WORKSPACE_SUBCOLLECTIONS[number];
 export const ROOT_COLLECTIONS = [
   'users',
   'feedbacks',
+  'sharedReports',
 ] as const;
 
 export type RootCollection = typeof ROOT_COLLECTIONS[number];

@@ -234,6 +234,16 @@ export async function deleteTeacherAttendanceForDate(
   date: string
 ): Promise<void> {
   return trackSync((async () => {
+    const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
+    if (ayDoc.exists() && ayDoc.data()?.isArchived) {
+      throw new Error('Tidak dapat mereset kehadiran pada Tahun Ajaran yang telah diarsipkan (read-only).');
+    }
+
+    const classDoc = await getDoc(doc(db, 'users', uid, 'classes', classId));
+    if (classDoc.exists() && classDoc.data()?.isArchived) {
+      throw new Error('Tidak dapat mereset kehadiran pada Kelas yang telah diarsipkan (read-only).');
+    }
+
     const existing = await getTeacherAttendanceRecordsForDate(
       uid,
       academicYearId,

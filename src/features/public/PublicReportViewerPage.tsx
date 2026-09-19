@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   getSharedReportByToken, 
-  incrementReportViewCount 
+  incrementReportViewCount,
+  decryptSharedReport,
 } from '../../services/firestore/sharedReports';
 import { SharedReport } from '../../types';
 import { 
@@ -40,6 +41,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   const [enteredPasscode, setEnteredPasscode] = useState('');
   const [passcodeUnlocked, setPasscodeUnlocked] = useState(false);
   const [passcodeError, setPasscodeError] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -57,8 +59,9 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
         }
 
         setReport(rep);
-        // If no passcode required, unlock automatically
-        if (!rep.passcode) {
+        // If no passcode required and unencrypted payload is directly present, unlock automatically
+        const requiresPasscode = Boolean(rep.hasPasscode || rep.encryptedPayload || rep.passcode);
+        if (!requiresPasscode && rep.payload) {
           setPasscodeUnlocked(true);
           incrementReportViewCount(token);
         }
@@ -77,15 +80,43 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
     };
   }, [token]);
 
-  const handleVerifyPasscode = (e: React.FormEvent) => {
+  const handleVerifyPasscode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!report) return;
-    if (enteredPasscode.trim() === report.passcode?.trim()) {
-      setPasscodeUnlocked(true);
-      setPasscodeError(false);
-      incrementReportViewCount(token);
-    } else {
+    if (!report || isDecrypting) return;
+    const cleanPass = enteredPasscode.trim();
+    if (!cleanPass) {
       setPasscodeError(true);
+      return;
+    }
+
+    try {
+      setIsDecrypting(true);
+      setPasscodeError(false);
+
+      if (report.encryptedPayload) {
+        // Zero-Knowledge cryptographic decryption using Web Crypto AES-GCM
+        const decryptedPayload = await decryptSharedReport(report, cleanPass);
+        setReport(prev => (prev ? { ...prev, payload: decryptedPayload } : null));
+        setPasscodeUnlocked(true);
+        incrementReportViewCount(token);
+      } else if (report.passcode) {
+        // Legacy plaintext fallback
+        if (cleanPass === report.passcode.trim()) {
+          setPasscodeUnlocked(true);
+          incrementReportViewCount(token);
+        } else {
+          setPasscodeError(true);
+        }
+      } else {
+        // No passcode protection
+        setPasscodeUnlocked(true);
+        incrementReportViewCount(token);
+      }
+    } catch (err) {
+      console.warn('Gagal mendekripsi laporan dengan kode akses yang dimasukkan:', err);
+      setPasscodeError(true);
+    } finally {
+      setIsDecrypting(false);
     }
   };
 
@@ -250,9 +281,17 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+              disabled={isDecrypting}
+              className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              Buka Laporan
+              {isDecrypting ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Membuka Dokumen...</span>
+                </>
+              ) : (
+                'Buka Laporan'
+              )}
             </button>
           </form>
 
@@ -265,6 +304,26 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   }
 
   // State 4: Unlocked & Viewing Document
+  if (!report.payload) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-md space-y-3">
+          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-800">Dokumen Belum Terbuka</h3>
+          <p className="text-xs text-slate-500">
+            Silakan masukkan kode akses resmi untuk mendekripsi isi laporan ini.
+          </p>
+          <button
+            onClick={() => setPasscodeUnlocked(false)}
+            className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold"
+          >
+            Masukkan Kode Akses
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const { payload, reportType } = report;
 
   return (

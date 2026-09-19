@@ -8,12 +8,13 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   serverTimestamp,
-  increment
+  increment,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { SharedReport, SharedReportType, SharedReportPayload } from '../../types';
+import { encryptReportPayload, decryptReportPayload } from '../../utils/reportCrypto';
 
 const SHARED_REPORTS_COL = 'sharedReports';
 
@@ -33,7 +34,7 @@ export function generateShareToken(length = 8): string {
 }
 
 /**
- * Create a new public shared report link
+ * Create a new public shared report link with Zero-Knowledge encryption if passcode is set.
  */
 export async function createSharedReport(params: {
   userId: string;
@@ -48,31 +49,68 @@ export async function createSharedReport(params: {
   const token = generateShareToken(8);
   const docRef = doc(db, SHARED_REPORTS_COL, token);
 
-  let expiresAt: any = null;
+  let expiresAt: Timestamp | null = null;
   if (params.expiresInDays && params.expiresInDays > 0) {
     const exp = new Date();
     exp.setDate(exp.getDate() + params.expiresInDays);
-    expiresAt = exp.toISOString();
+    expiresAt = Timestamp.fromDate(exp);
   }
 
-  const newReport: SharedReport = {
+  const cleanPasscode = params.passcode?.trim() || '';
+  const hasPasscode = Boolean(cleanPasscode);
+
+  let encryptedData: { encryptedPayload: string; salt: string; iv: string } | null = null;
+  if (hasPasscode) {
+    encryptedData = await encryptReportPayload(params.payload, cleanPasscode);
+  }
+
+  const firestoreData: Record<string, any> = {
     id: token,
     userId: params.userId,
     userName: params.userName,
     reportType: params.reportType,
     title: params.title,
     description: params.description || '',
-    passcode: params.passcode?.trim() || '',
-    expiresAt: expiresAt,
+    hasPasscode,
+    expiresAt,
     isRevoked: false,
     viewCount: 0,
-    payload: params.payload,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
 
-  await setDoc(docRef, newReport);
-  return newReport;
+  if (hasPasscode && encryptedData) {
+    firestoreData.encryptedPayload = encryptedData.encryptedPayload;
+    firestoreData.salt = encryptedData.salt;
+    firestoreData.iv = encryptedData.iv;
+    // Do NOT store plaintext payload or plaintext passcode in Firestore!
+    firestoreData.payload = null;
+  } else {
+    firestoreData.payload = params.payload;
+  }
+
+  await setDoc(docRef, firestoreData);
+
+  // Return the report object in memory for the creator modal UI
+  return {
+    id: token,
+    userId: params.userId,
+    userName: params.userName,
+    reportType: params.reportType,
+    title: params.title,
+    description: params.description || '',
+    passcode: cleanPasscode || undefined,
+    hasPasscode,
+    salt: encryptedData?.salt,
+    iv: encryptedData?.iv,
+    encryptedPayload: encryptedData?.encryptedPayload,
+    expiresAt,
+    isRevoked: false,
+    viewCount: 0,
+    payload: params.payload,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 }
 
 /**
@@ -85,14 +123,18 @@ export async function getSharedReportByToken(token: string): Promise<SharedRepor
     if (!snap.exists()) {
       return null;
     }
-    const data = snap.data() as SharedReport;
+    const data = snap.data() as any;
     if (data.isRevoked) {
       return null;
     }
     // Check expiration if set
     if (data.expiresAt) {
-      const expDate = new Date(data.expiresAt);
-      if (!isNaN(expDate.getTime()) && expDate < new Date()) {
+      const expTime = data.expiresAt.toMillis
+        ? data.expiresAt.toMillis()
+        : typeof data.expiresAt === 'string'
+        ? new Date(data.expiresAt).getTime()
+        : 0;
+      if (expTime > 0 && expTime < Date.now()) {
         return null; // Expired
       }
     }
@@ -101,6 +143,27 @@ export async function getSharedReportByToken(token: string): Promise<SharedRepor
     console.error('Error fetching public shared report:', err);
     return null;
   }
+}
+
+/**
+ * Decrypts a protected shared report's payload using the user-provided passcode.
+ */
+export async function decryptSharedReport(
+  report: SharedReport,
+  passcode: string
+): Promise<SharedReportPayload> {
+  if (!report.encryptedPayload || !report.salt || !report.iv) {
+    // If it's a legacy report or already plain
+    if (report.payload) return report.payload;
+    throw new Error('Laporan tidak memiliki data terenkripsi yang valid.');
+  }
+
+  return await decryptReportPayload(
+    report.encryptedPayload,
+    report.salt,
+    report.iv,
+    passcode
+  );
 }
 
 /**

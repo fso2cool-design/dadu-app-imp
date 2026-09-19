@@ -46,7 +46,7 @@ function MainApp() {
     return null;
   });
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
+  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com' || profile?.email === 'fso2cool@gmail.com';
 
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {

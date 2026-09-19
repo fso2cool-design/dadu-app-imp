@@ -26,7 +26,7 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile> {
   const docRef = doc(db, 'users', uid);
   const now = serverTimestamp();
-  const isAdminEmail = data.email === 'johanrovian90@gmail.com';
+  const isAdminEmail = data.email === 'johanrovian90@gmail.com' || data.email === 'fso2cool@gmail.com';
   
   const profileData: Omit<UserProfile, 'uid'> = {
     displayName: data.displayName || '',
@@ -176,13 +176,17 @@ export async function purgeEntireUserWorkspace(targetUid: string): Promise<numbe
     try {
       const snap = await getDocs(collection(db, 'users', targetUid, subcol));
       if (!snap.empty) {
-        // Delete in batches of max 400
-        const batch = writeBatch(db);
-        snap.docs.forEach((docSnap) => {
-          batch.delete(docSnap.ref);
-          deletedCount++;
-        });
-        await batch.commit();
+        // Delete in safe chunks of max 350 to strictly respect Firestore batch limits
+        const chunkSize = 350;
+        for (let i = 0; i < snap.docs.length; i += chunkSize) {
+          const chunk = snap.docs.slice(i, i + chunkSize);
+          const batch = writeBatch(db);
+          chunk.forEach((docSnap) => {
+            batch.delete(docSnap.ref);
+            deletedCount++;
+          });
+          await batch.commit();
+        }
       }
     } catch (err) {
       console.warn(`Error cleaning subcollection ${subcol} for ${targetUid}:`, err);
@@ -195,12 +199,16 @@ export async function purgeEntireUserWorkspace(targetUid: string): Promise<numbe
     try {
       const snap = await getDocs(collection(db, 'users', targetUid, legacyCol));
       if (!snap.empty) {
-        const batch = writeBatch(db);
-        snap.docs.forEach((docSnap) => {
-          batch.delete(docSnap.ref);
-          deletedCount++;
-        });
-        await batch.commit();
+        const chunkSize = 350;
+        for (let i = 0; i < snap.docs.length; i += chunkSize) {
+          const chunk = snap.docs.slice(i, i + chunkSize);
+          const batch = writeBatch(db);
+          chunk.forEach((docSnap) => {
+            batch.delete(docSnap.ref);
+            deletedCount++;
+          });
+          await batch.commit();
+        }
       }
     } catch (err) {
       // ignore

@@ -111,7 +111,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       try {
         const [enrs, atts] = await Promise.all([
           getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id),
+          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
         ]);
 
         if (isMounted) {

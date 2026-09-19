@@ -133,7 +133,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
           homeroomMonthlyRosterCache.set(rosterKey, enrs);
         }
 
-        const recs = await getMonthlyDailyAttendanceRecords(user!.uid, currentClass!.id, yearMonthPrefix);
+        const recs = await getMonthlyDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, yearMonthPrefix);
         homeroomMonthlyRecordsCache.set(recordsKey, recs);
 
         if (isMounted) {

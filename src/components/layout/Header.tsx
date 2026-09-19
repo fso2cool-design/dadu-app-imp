@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
+  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com' || profile?.email === 'fso2cool@gmail.com';
 
   // Live Local Time Updater with dynamic Local Timezone
   useEffect(() => {

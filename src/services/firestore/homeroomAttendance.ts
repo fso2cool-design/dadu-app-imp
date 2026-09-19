@@ -50,11 +50,18 @@ export async function getDailyAttendanceRecords(
   date: string
 ): Promise<DailyAttendanceRecord[]> {
   const colRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
-  const q = query(
-    colRef,
-    where('classId', '==', classId),
-    where('date', '==', date)
-  );
+  const q = academicYearId
+    ? query(
+        colRef,
+        where('academicYearId', '==', academicYearId),
+        where('classId', '==', classId),
+        where('date', '==', date)
+      )
+    : query(
+        colRef,
+        where('classId', '==', classId),
+        where('date', '==', date)
+      );
   const snap = await getDocs(q);
   const records = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as DailyAttendanceRecord));
   return records.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
@@ -62,18 +69,27 @@ export async function getDailyAttendanceRecords(
 
 export async function getMonthlyDailyAttendanceRecords(
   uid: string,
+  academicYearId: string,
   classId: string,
   yearMonthPrefix: string // e.g. "2026-08"
 ): Promise<DailyAttendanceRecord[]> {
   const colRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
   const startDate = `${yearMonthPrefix}-01`;
   const endDate = `${yearMonthPrefix}-31`;
-  const q = query(
-    colRef,
-    where('classId', '==', classId),
-    where('date', '>=', startDate),
-    where('date', '<=', endDate)
-  );
+  const q = academicYearId
+    ? query(
+        colRef,
+        where('academicYearId', '==', academicYearId),
+        where('classId', '==', classId),
+        where('date', '>=', startDate),
+        where('date', '<=', endDate)
+      )
+    : query(
+        colRef,
+        where('classId', '==', classId),
+        where('date', '>=', startDate),
+        where('date', '<=', endDate)
+      );
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as DailyAttendanceRecord));
 }
@@ -85,7 +101,7 @@ export async function getAllDailyAttendanceRecordsForClass(
 ): Promise<DailyAttendanceRecord[]> {
   const colRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
   const q = academicYearId
-    ? query(colRef, where('classId', '==', classId), where('academicYearId', '==', academicYearId))
+    ? query(colRef, where('academicYearId', '==', academicYearId), where('classId', '==', classId))
     : query(colRef, where('classId', '==', classId));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as DailyAttendanceRecord));

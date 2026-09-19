@@ -643,7 +643,21 @@ export async function atomicImportStudentsWithEnrollment(
 
   // 2. Ambil penempatan kelas (enrollment) yang sudah ada pada tahun ajaran ini
   const existingEnrollmentsMap = new Map<string, { id: string; rollNumber?: number }>();
+  const existingActiveEnrByStudent = new Map<string, { id: string; classId: string; className: string }>();
+
   if (enrollmentConfig?.academicYearId) {
+    const aySnap = await getDoc(doc(db, 'users', uid, 'academicYears', enrollmentConfig.academicYearId));
+    if (aySnap.exists() && aySnap.data()?.isArchived) {
+      throw new Error('Tidak dapat mengimpor atau menempatkan siswa pada Tahun Ajaran yang telah diarsipkan (read-only).');
+    }
+
+    if (enrollmentConfig.classId) {
+      const clsSnap = await getDoc(doc(db, 'users', uid, 'classes', enrollmentConfig.classId));
+      if (clsSnap.exists() && clsSnap.data()?.isArchived) {
+        throw new Error('Tidak dapat mengimpor atau menempatkan siswa pada Kelas yang telah diarsipkan (read-only).');
+      }
+    }
+
     const enrollmentsColRef = collection(db, 'users', uid, 'enrollments');
     const enrSnap = await getDocs(
       query(enrollmentsColRef, where('academicYearId', '==', enrollmentConfig.academicYearId))
@@ -652,6 +666,13 @@ export async function atomicImportStudentsWithEnrollment(
       const data = d.data() as any;
       const key = `${data.studentId}_${data.classId}`;
       existingEnrollmentsMap.set(key, { id: d.id, rollNumber: data.rollNumber });
+      if (data.status === 'ACTIVE') {
+        existingActiveEnrByStudent.set(data.studentId, {
+          id: d.id,
+          classId: data.classId,
+          className: data.className || '',
+        });
+      }
     });
   }
 
@@ -790,6 +811,7 @@ export async function atomicImportStudentsWithEnrollment(
       if (item.targetClassId && enrollmentConfig?.academicYearId) {
         const enrKey = `${matchedStudentId}_${item.targetClassId}`;
         const existingEnr = existingEnrollmentsMap.get(enrKey);
+        const deterministicDocId = `${enrollmentConfig.academicYearId}_${item.targetClassId}_${matchedStudentId}`;
 
         if (existingEnr) {
           if (shouldOverwrite) {
@@ -806,9 +828,28 @@ export async function atomicImportStudentsWithEnrollment(
             });
           }
         } else {
-          // Belum terdaftar di kelas ini -> Tambah enrollment baru
-          const newEnrDocRef = doc(enrollmentsColRef);
-          const newEnrData = {
+          // Cek apakah siswa ini sudah aktif di kelas lain pada tahun ajaran yang sama
+          const previousActive = existingActiveEnrByStudent.get(matchedStudentId);
+          if (previousActive && previousActive.classId !== item.targetClassId) {
+            // Tandai kelas sebelumnya sebagai TRANSFERRED untuk menjaga histori akademik
+            const prevEnrDocRef = doc(enrollmentsColRef, previousActive.id);
+            batchTasks.push({
+              type: 'UPDATE',
+              ref: prevEnrDocRef,
+              data: {
+                status: 'TRANSFERRED',
+                transferredAt: now,
+                transferredToClassId: item.targetClassId,
+                transferredToClassName: item.targetClassName,
+                transferReason: 'Impor penataan rombel baru',
+                updatedAt: now,
+              },
+            });
+          }
+
+          // Tambah enrollment baru dengan deterministic ID
+          const newEnrDocRef = doc(enrollmentsColRef, deterministicDocId);
+          const newEnrData: Record<string, any> = {
             academicYearId: enrollmentConfig.academicYearId,
             classId: item.targetClassId,
             studentId: matchedStudentId,
@@ -819,8 +860,19 @@ export async function atomicImportStudentsWithEnrollment(
             createdAt: now,
             updatedAt: now,
           };
+          if (previousActive && previousActive.classId !== item.targetClassId) {
+            newEnrData.transferredFromClassId = previousActive.classId;
+            newEnrData.transferredFromClassName = previousActive.className;
+            newEnrData.transferredAt = now;
+            newEnrData.transferReason = 'Impor penataan rombel baru';
+          }
           batchTasks.push({ type: 'SET', ref: newEnrDocRef, data: newEnrData });
-          existingEnrollmentsMap.set(enrKey, { id: newEnrDocRef.id, rollNumber: item.assignedRollNumber });
+          existingEnrollmentsMap.set(enrKey, { id: deterministicDocId, rollNumber: item.assignedRollNumber });
+          existingActiveEnrByStudent.set(matchedStudentId, {
+            id: deterministicDocId,
+            classId: item.targetClassId,
+            className: item.targetClassName,
+          });
         }
       }
     } else {
@@ -860,9 +912,10 @@ export async function atomicImportStudentsWithEnrollment(
       if (cleanNisn) locallyCreatedNisn.set(cleanNisn, matchedStudentId);
       if (normName) locallyCreatedName.set(normName, matchedStudentId);
 
-      // Pendaftaran kelas baru
+      // Pendaftaran kelas baru dengan deterministic ID
       if (item.targetClassId && enrollmentConfig?.academicYearId) {
-        const enrollmentDocRef = doc(enrollmentsColRef);
+        const deterministicDocId = `${enrollmentConfig.academicYearId}_${item.targetClassId}_${matchedStudentId}`;
+        const enrollmentDocRef = doc(enrollmentsColRef, deterministicDocId);
         const enrollmentData = {
           academicYearId: enrollmentConfig.academicYearId,
           classId: item.targetClassId,
@@ -876,8 +929,13 @@ export async function atomicImportStudentsWithEnrollment(
         };
         batchTasks.push({ type: 'SET', ref: enrollmentDocRef, data: enrollmentData });
         existingEnrollmentsMap.set(`${matchedStudentId}_${item.targetClassId}`, {
-          id: enrollmentDocRef.id,
+          id: deterministicDocId,
           rollNumber: item.assignedRollNumber,
+        });
+        existingActiveEnrByStudent.set(matchedStudentId, {
+          id: deterministicDocId,
+          classId: item.targetClassId,
+          className: item.targetClassName,
         });
       }
     }
