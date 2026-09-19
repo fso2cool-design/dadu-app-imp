@@ -653,7 +653,7 @@ export const AttendanceReportPage: React.FC = () => {
                   <td className="border border-slate-900 px-2 py-2 text-rose-900">{stats.totalA}</td>
                   <td className="border border-slate-900 px-2 py-2 text-purple-900">-</td>
                   <td className="border border-slate-900 px-2 py-2">-</td>
-                  <td className="border border-slate-900 px-2 py-2 text-indigo-900 bg-indigo-50">
+                  <td className="border border-slate-900 px-2 py-2 text-emerald-950 bg-emerald-50/80 font-black">
                     {stats.avgPercentage}%
                   </td>
                   <td className="border border-slate-900 px-3 py-2 text-left text-[10px] text-slate-500">

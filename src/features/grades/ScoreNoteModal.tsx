@@ -57,8 +57,8 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
           <div className="flex items-center justify-between text-slate-500 text-[11px]">
             <span>Penilaian: <strong className="text-slate-700">{assessmentName}</strong></span>
             <span className="flex items-center gap-1">
-              <Award className="w-3 h-3 text-indigo-500" />
-              Skor: <strong className="text-indigo-700 font-mono text-xs">{currentScore || '-'}</strong>
+              <Award className="w-3 h-3 text-emerald-500" />
+              Skor: <strong className="text-emerald-700 font-mono text-xs">{currentScore || '-'}</strong>
             </span>
           </div>
         </div>
@@ -73,7 +73,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Tuliskan catatan khusus untuk nilai ini..."
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-slate-800 text-xs"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800 text-xs"
           />
         </div>
 
@@ -105,7 +105,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
           </button>
           <button
             type="submit"
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Simpan Catatan</span>

@@ -294,7 +294,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               Data Siswa Kelas Binaan
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -315,7 +315,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               type="button"
               id="btn-print-student-biodata"
               onClick={() => setIsCustomPrintModalOpen(true)}
-              className="px-3.5 py-2 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-semibold border border-indigo-200 dark:border-indigo-800 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-2 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               Cetak Rekap Data Diri Siswa
@@ -348,7 +348,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
 
       {!currentClass ? (
         <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-4 border border-indigo-100 dark:border-indigo-900/50">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
             <UserX className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
@@ -368,7 +368,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
             <button
               type="button"
               onClick={() => onNavigate && onNavigate('master-classes')}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               <Layers className="w-4 h-4" /> Atur Wali di Master Kelas
             </button>
@@ -389,7 +389,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                     const val = e.target.value;
                     setSelectedClassId(val === 'NONE' ? '' : val);
                   }}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
                   {availableClasses.map(c => (
@@ -442,7 +442,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama, NIS, atau NISN..."
-                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           </div>
@@ -499,7 +499,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                           <td className="py-3 px-3.5 text-[11px]">
                             <div className="font-medium text-slate-800 dark:text-slate-200">{enr.student?.parentName || '-'}</div>
                             {enr.student?.parentPhone ? (
-                              <div className="text-indigo-600 dark:text-cyan-400 flex items-center gap-1 mt-0.5">
+                              <div className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
                                 <Phone className="w-3 h-3" />
                                 {enr.student.parentPhone}
                               </div>
@@ -549,7 +549,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                               <button
                                 type="button"
                                 onClick={() => setSelectedEnrollment(enr)}
-                                className="px-2 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                                 title="Lihat Detail Profil"
                               >
                                 <Eye className="w-3 h-3" />
@@ -596,7 +596,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               <button
                 type="button"
                 onClick={() => setNoteModalOpen(true)}
-                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Catat Pembinaan
@@ -658,7 +658,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                     <div key={note.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-800">
                             {note.category}
                           </span>
                           {note.isImportant && (
@@ -703,7 +703,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               <select
                 value={noteCategory}
                 onChange={(e) => setNoteCategory(e.target.value as any)}
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="BEHAVIOR">Perilaku / Sikap (Karakter)</option>
                 <option value="ACADEMIC">Akademik / Prestasi Belajar</option>
@@ -720,7 +720,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 id="is-important-note"
                 checked={noteIsImportant}
                 onChange={(e) => setNoteIsImportant(e.target.checked)}
-                className="w-4 h-4 text-indigo-600 rounded-sm border-slate-300 focus:ring-indigo-500"
+                className="w-4 h-4 text-emerald-600 rounded-sm border-slate-300 focus:ring-emerald-500"
               />
               <label htmlFor="is-important-note" className="font-semibold text-slate-800">
                 Tandai sebagai Perlu Perhatian Khusus (Urgent)
@@ -735,7 +735,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 value={noteContent}
                 onChange={(e) => setNoteContent(e.target.value)}
                 placeholder="Deskripsikan pengamatan, perilaku, atau kondisi siswa..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -746,7 +746,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 value={noteActionPlan}
                 onChange={(e) => setNoteActionPlan(e.target.value)}
                 placeholder="Rencana pembinaan, bimbingan, atau tugas perbaikan..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -757,7 +757,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 value={noteParentFollowUp}
                 onChange={(e) => setNoteParentFollowUp(e.target.value)}
                 placeholder="e.g. Dihubungi via WA / Surat Panggilan Orang Tua..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -765,14 +765,14 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               <button
                 type="button"
                 onClick={() => setNoteModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl font-semibold text-slate-600 hover:bg-slate-50"
+                className="px-4 py-2 border border-slate-300 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={savingNote}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white rounded-xl font-semibold shadow-xs"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 text-white rounded-xl font-semibold shadow-xs cursor-pointer"
               >
                 {savingNote ? 'Menyimpan...' : 'Simpan Catatan'}
               </button>

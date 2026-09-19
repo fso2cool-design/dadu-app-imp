@@ -181,7 +181,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       {/* Top Header */}
       <div>
         <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-          <Printer className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+          <Printer className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           Pusat Laporan & Cetak Dokumen
         </h1>
         <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
@@ -196,7 +196,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               Katalog Dokumen Resmi Siap Cetak
             </h3>
             <span className="text-xs text-slate-400 font-medium">6 Format Laporan</span>
@@ -208,11 +208,11 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
               return (
                 <div
                   key={card.id}
-                  className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-sm hover:border-indigo-300 transition-all flex flex-col justify-between group"
+                  className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-sm hover:border-emerald-300 transition-all flex flex-col justify-between group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
                         <Icon className="w-5 h-5" />
                       </div>
                       <Badge variant={card.badgeColor as any} size="sm">
@@ -224,7 +224,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                       <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
                         {card.category}
                       </span>
-                      <h4 className="font-bold text-sm text-slate-800 group-hover:text-indigo-600 transition-colors">
+                      <h4 className="font-bold text-sm text-slate-800 group-hover:text-emerald-600 transition-colors">
                         {card.title}
                       </h4>
                       <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
@@ -237,7 +237,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                     <button
                       type="button"
                       onClick={() => onNavigate(card.route)}
-                      className="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer w-full justify-center"
+                      className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer w-full justify-center"
                     >
                       <span>Buka & Cetak Laporan</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -269,7 +269,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                 <select
                   value={docSettings.paperSize}
                   onChange={(e) => setDocSettings({ ...docSettings, paperSize: e.target.value as any })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"
                 >
                   <option value="A4">A4 (210 x 297 mm)</option>
                   <option value="F4">F4 / Folio (215 x 330 mm)</option>
@@ -283,7 +283,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                 <select
                   value={docSettings.defaultOrientation}
                   onChange={(e) => setDocSettings({ ...docSettings, defaultOrientation: e.target.value as any })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"
                 >
                   <option value="PORTRAIT">Tegak (Portrait)</option>
                   <option value="LANDSCAPE">Mendatar (Landscape)</option>
@@ -298,7 +298,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                   value={docSettings.city || ''}
                   onChange={(e) => setDocSettings({ ...docSettings, city: e.target.value })}
                   placeholder="Contoh: Surabaya, Malang, Jakarta"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -309,7 +309,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                     type="checkbox"
                     checked={docSettings.headerEnabled}
                     onChange={(e) => setDocSettings({ ...docSettings, headerEnabled: e.target.checked })}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   <span className="text-slate-700 font-medium">Sertakan Kop Surat Madrasah</span>
                 </label>
@@ -319,7 +319,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                     type="checkbox"
                     checked={docSettings.signatureEnabled}
                     onChange={(e) => setDocSettings({ ...docSettings, signatureEnabled: e.target.checked })}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
                   />
                   <span className="text-slate-700 font-medium">Sertakan Blok Tanda Tangan Resmi</span>
                 </label>
@@ -328,7 +328,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
               {/* School identity status info */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] text-slate-600">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-800 mb-1">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                  <Building2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Identitas Terdaftar:</span>
                 </div>
                 <p className="text-slate-700 font-medium truncate">

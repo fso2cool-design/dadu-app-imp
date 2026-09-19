@@ -220,7 +220,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-zinc-100 tracking-tight flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+            <Briefcase className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Plotting & Jadwal Mengajar
           </h1>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
@@ -269,7 +269,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Penugasan Mengajar
           </button>
@@ -278,7 +278,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
 
       {filteredAssignments.length === 0 ? (
         <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-10 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-neutral-900 border border-indigo-100 dark:border-neutral-800 flex items-center justify-center text-indigo-600 dark:text-red-400 mx-auto mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
             <Layers className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">
@@ -300,7 +300,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 className={`p-5 rounded-2xl bg-white dark:bg-neutral-950 border shadow-2xs transition-all flex flex-col justify-between group ${
                   isArchived 
                     ? 'border-dashed border-slate-300 dark:border-neutral-800 opacity-80' 
-                    : 'border-slate-200/90 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700'
+                    : 'border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-800'
                 }`}
               >
                 <div>
@@ -308,7 +308,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                     <span className={`px-2.5 py-1 rounded-lg border font-bold text-xs ${
                       isArchived
                         ? 'bg-slate-100 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-zinc-400'
-                        : 'bg-indigo-50 dark:bg-red-950/60 border border-indigo-100 dark:border-red-500/40 text-indigo-700 dark:text-red-400'
+                        : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
                     }`}>
                       Kelas {assign.className}
                     </span>
@@ -332,7 +332,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                   {/* Schedule info block */}
                   <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800 space-y-1.5 text-xs">
                     <div className="flex items-center gap-2 text-slate-700 dark:text-zinc-300">
-                      <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-red-400 shrink-0" />
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span className="font-semibold">
                         {assign.dayOfWeek ? `Hari ${assign.dayOfWeek}` : <span className="text-slate-400 dark:text-zinc-500 italic font-normal">Hari belum diatur</span>}
                       </span>
@@ -364,7 +364,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(assign)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
                           title="Edit Jadwal & Penugasan"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -441,7 +441,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
               value={selectedClassId}
               disabled={Boolean(assignmentUsage?.isUsed)}
               onChange={e => setSelectedClassId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
             >
               {classes
                 .filter(c => (c.academicYearId === activeAcademicYear?.id && !c.isArchived) || c.id === editingAssignment?.classId)
@@ -464,7 +464,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
               value={selectedSubjectId}
               disabled={Boolean(assignmentUsage?.isUsed)}
               onChange={e => setSelectedSubjectId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
             >
               {subjects.map(s => (
                 <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
@@ -475,7 +475,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
           {/* Schedule Configuration Group */}
           <div className="p-3.5 bg-slate-50 dark:bg-neutral-900 rounded-2xl border border-slate-200/80 dark:border-neutral-800 space-y-3">
             <h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-red-400" />
+              <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Pengaturan Jadwal Mingguan (Opsional)
             </h4>
 
@@ -487,7 +487,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 <select
                   value={dayOfWeek}
                   onChange={e => setDayOfWeek(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">-- Belum Diatur --</option>
                   {DAYS_OF_WEEK.map(d => (
@@ -505,7 +505,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                   placeholder="Contoh: 07:30 - 09:00"
                   value={timeSlot}
                   onChange={e => setTimeSlot(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -519,7 +519,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 placeholder="Contoh: Ruang X-A / Lab Komputer"
                 value={room}
                 onChange={e => setRoom(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
               />
             </div>
           </div>
@@ -541,7 +541,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
             >
               {loading ? 'Menyimpan...' : editingAssignment ? 'Simpan Perubahan' : 'Simpan Plotting'}
             </button>

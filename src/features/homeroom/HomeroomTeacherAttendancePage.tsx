@@ -520,7 +520,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold hover:bg-purple-100 dark:hover:bg-purple-900/60 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+              className="px-3.5 py-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 border border-violet-300 dark:border-violet-800 text-violet-700 dark:text-violet-300 text-xs font-bold hover:bg-violet-100 dark:hover:bg-violet-900/60 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Tambah Guru / Inval</span>
@@ -640,7 +640,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
           <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Target Pertemuan</span>
-              <CalendarDays className="w-4 h-4 text-purple-500" />
+              <CalendarDays className="w-4 h-4 text-violet-500" />
             </div>
             <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
               {stats.totalTarget} <span className="text-xs font-normal text-slate-500">Tatap Muka</span>
@@ -784,7 +784,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                       key={item.id}
                       className={`hover:bg-slate-50/70 dark:hover:bg-[#181d2a]/50 transition-colors ${
                         item.isSubstitute
-                          ? 'bg-purple-50/20 dark:bg-purple-950/10'
+                          ? 'bg-violet-50/20 dark:bg-violet-950/10'
                           : item.isManual
                           ? 'bg-blue-50/20 dark:bg-blue-950/10'
                           : ''
@@ -807,7 +807,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             )}
 
                             {item.isSubstitute && (
-                              <span className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-semibold px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                              <span className="text-[10px] bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 font-semibold px-1.5 py-0.2 rounded border border-violet-200 dark:border-violet-800">
                                 Inval / Pengganti
                               </span>
                             )}
@@ -824,13 +824,13 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                               value={item.teacherName}
                               onChange={(e) => handleUpdateField(item.id, 'teacherName', e.target.value)}
                               placeholder="Ketik nama guru pengampu..."
-                              className="w-full px-2 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 hover:bg-white focus:bg-white dark:bg-[#181d2a] dark:hover:bg-[#1f2536] dark:focus:bg-[#181d2a] rounded-lg border border-slate-200 dark:border-[#282e42] focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 focus:outline-none transition-colors"
+                              className="w-full px-2 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 hover:bg-white focus:bg-white dark:bg-[#181d2a] dark:hover:bg-[#1f2536] dark:focus:bg-[#181d2a] rounded-lg border border-slate-200 dark:border-[#282e42] focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-colors"
                               title="Klik untuk mengubah nama guru pengampu"
                             />
                           </div>
 
                           {item.substituteForTeacherName && (
-                            <p className="text-[11px] text-purple-600 dark:text-purple-400 italic">
+                            <p className="text-[11px] text-violet-600 dark:text-violet-400 italic">
                               Menggantikan: {item.substituteForTeacherName}
                             </p>
                           )}
@@ -931,7 +931,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           onChange={(e) => handleUpdateField(item.id, 'dinas', e.target.value)}
                           className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
                             item.dinas > 0
-                              ? 'border-purple-400 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/30 text-purple-800 dark:text-purple-300'
+                              ? 'border-violet-400 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-300'
                               : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
                           }`}
                         />

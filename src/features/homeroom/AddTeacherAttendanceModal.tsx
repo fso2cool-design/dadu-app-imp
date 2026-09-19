@@ -172,12 +172,12 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 onClick={() => setIsSubstitute(true)}
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   isSubstitute
-                    ? 'bg-purple-50 dark:bg-purple-950/30 border-purple-400 dark:border-purple-600 text-purple-900 dark:text-purple-200 shadow-xs'
+                    ? 'bg-violet-50 dark:bg-violet-950/30 border-violet-400 dark:border-violet-600 text-violet-900 dark:text-violet-200 shadow-xs'
                     : 'bg-slate-50 dark:bg-[#181d2a] border-slate-200 dark:border-[#282e42] text-slate-600 dark:text-slate-400 hover:bg-slate-100'
                 }`}
               >
                 <div className="font-bold flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <UserCheck className="w-4 h-4 text-violet-600 dark:text-violet-400" />
                   <span>Guru Inval / Pengganti</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
@@ -207,8 +207,8 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
 
           {/* Kolom Target Pengganti jika Guru Inval */}
           {isSubstitute && (
-            <div className="p-3 rounded-xl bg-purple-50/70 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40">
-              <label className="block text-[11px] font-bold text-purple-900 dark:text-purple-300 mb-1">
+            <div className="p-3 rounded-xl bg-violet-50/70 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-900/40">
+              <label className="block text-[11px] font-bold text-violet-900 dark:text-violet-300 mb-1">
                 Menggantikan Guru Siapa di Buku Jurnal? (Opsional)
               </label>
               <div className="flex gap-2">
@@ -216,7 +216,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   <select
                     value={substituteTarget}
                     onChange={(e) => setSubstituteTarget(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
                   >
                     <option value="">-- Pilih Guru Kelas yang Digantikan --</option>
                     {regularClassTeachers.map((t) => (
@@ -231,7 +231,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                     value={substituteTarget}
                     onChange={(e) => setSubstituteTarget(e.target.value)}
                     placeholder="Ketik nama guru yang digantikan..."
-                    className="w-full px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
                   />
                 )}
               </div>
@@ -471,7 +471,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Tambahkan Baris ke Rekap</span>

@@ -116,7 +116,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     ? 'bg-slate-900/95 dark:bg-[#141722]/95 border-rose-500/50 text-slate-100 shadow-rose-950/20'
                     : t.type === 'warning'
                     ? 'bg-slate-900/95 dark:bg-[#141722]/95 border-amber-500/50 text-slate-100 shadow-amber-950/20'
-                    : 'bg-slate-900/95 dark:bg-[#141722]/95 border-indigo-500/40 text-slate-100 shadow-indigo-950/20'
+                    : 'bg-slate-900/95 dark:bg-[#141722]/95 border-sky-500/40 text-slate-100 shadow-sky-950/20'
                 }`}
               >
                 {/* Icon */}
@@ -124,7 +124,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
                   {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400" />}
                   {t.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-400" />}
-                  {t.type === 'info' && <Info className="w-5 h-5 text-indigo-400 dark:text-cyan-400" />}
+                  {t.type === 'info' && <Info className="w-5 h-5 text-sky-400 dark:text-cyan-400" />}
                 </div>
 
                 {/* Content */}

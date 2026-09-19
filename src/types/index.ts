@@ -148,6 +148,8 @@ export interface Subject {
   code: string; // e.g. "ENG", "MAT"
   name: string; // e.g. "Bahasa Inggris"
   isActive: boolean;
+  isArchived?: boolean;
+  archivedAt?: any;
   createdAt: any;
   updatedAt: any;
 }

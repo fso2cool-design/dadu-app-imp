@@ -199,7 +199,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         {/* Modal Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <PenTool className="w-5 h-5" />
             </div>
             <div>
@@ -223,7 +223,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             onClick={() => setActiveTab('draw')}
             className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all ${
               activeTab === 'draw'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -236,7 +236,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             onClick={() => setActiveTab('upload')}
             className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all ${
               activeTab === 'upload'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-emerald-600 text-emerald-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -265,7 +265,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                       onClick={() => setPenColor(c.color)}
                       style={{ backgroundColor: c.color }}
                       className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                        penColor === c.color ? 'scale-110 border-indigo-500 shadow-xs' : 'border-white'
+                        penColor === c.color ? 'scale-110 border-emerald-500 shadow-xs' : 'border-white'
                       }`}
                       title={c.label}
                     />
@@ -282,7 +282,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                       onClick={() => setPenWidth(w)}
                       className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
                         penWidth === w 
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700' 
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700' 
                           : 'bg-white border-slate-200 text-slate-600'
                       }`}
                     >
@@ -337,7 +337,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
               </div>
 
               <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                <Info className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <Info className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                 <span>Tanda tangan disimpan dengan latar belakang transparan beresolusi tinggi.</span>
               </div>
             </div>
@@ -355,11 +355,11 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                   htmlFor="signature-file-upload"
                   className="cursor-pointer flex flex-col items-center justify-center space-y-2"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                     <Upload className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-indigo-600">Klik untuk memilih file gambar</span>
+                    <span className="text-xs font-bold text-emerald-600">Klik untuk memilih file gambar</span>
                     <p className="text-[11px] text-slate-400 mt-0.5">PNG, JPG atau WebP (Disarankan PNG transparan)</p>
                   </div>
                 </label>
@@ -405,7 +405,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             type="button"
             onClick={handleSaveSignature}
             disabled={activeTab === 'draw' ? !hasDrawn : !uploadedImage}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Check className="w-4 h-4" />
             <span>Terapkan Tanda Tangan</span>

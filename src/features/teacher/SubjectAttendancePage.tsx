@@ -1051,8 +1051,8 @@ export const SubjectAttendancePage: React.FC = () => {
               <span className="flex items-center gap-1 font-semibold text-rose-700 dark:text-rose-400">
                 <span className="w-2.5 h-2.5 rounded bg-rose-600 inline-block" /> A = Alpa
               </span>
-              <span className="flex items-center gap-1 font-semibold text-indigo-700 dark:text-indigo-400">
-                <span className="w-2.5 h-2.5 rounded bg-indigo-600 inline-block" /> D = Dispen
+              <span className="flex items-center gap-1 font-semibold text-violet-700 dark:text-violet-400">
+                <span className="w-2.5 h-2.5 rounded bg-violet-600 inline-block" /> D = Dispen
               </span>
             </div>
           </div>
@@ -1094,7 +1094,7 @@ export const SubjectAttendancePage: React.FC = () => {
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-amber-700 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40 w-10">S</th>
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-sky-700 dark:text-sky-400 bg-sky-50/70 dark:bg-sky-950/40 w-10">I</th>
                     <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-rose-700 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-950/40 w-10">A</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-indigo-700 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 w-10">D</th>
+                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-violet-700 dark:text-violet-400 bg-violet-50/70 dark:bg-violet-950/40 w-10">D</th>
                     <th className="py-2.5 px-3 text-center bg-orange-50 dark:bg-cyan-950/60 text-orange-800 dark:text-cyan-300 font-bold w-16" title={`Dihitung dari ${conductedSessions.length} sesi terlaksana`}>%</th>
                   </tr>
                 </thead>
@@ -1151,7 +1151,7 @@ export const SubjectAttendancePage: React.FC = () => {
                               countA++;
                             } else if (r.status === 'DISPENSATION') {
                               statusShort = 'D';
-                              cellClass = 'bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 font-bold';
+                              cellClass = 'bg-violet-100 dark:bg-violet-950/40 text-violet-800 dark:text-violet-300 font-bold';
                               countD++;
                             }
                           }
@@ -1179,7 +1179,7 @@ export const SubjectAttendancePage: React.FC = () => {
                         <td className="py-2 px-2 text-center font-bold text-rose-700 dark:text-rose-400 bg-rose-50/40 dark:bg-rose-950/20 border-r border-slate-200 dark:border-[#232838]">
                           {countA}
                         </td>
-                        <td className="py-2 px-2 text-center font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-violet-700 dark:text-violet-400 bg-violet-50/40 dark:bg-violet-950/20 border-r border-slate-200 dark:border-[#232838]">
                           {countD}
                         </td>
                         <td className="py-2 px-3 text-center font-bold bg-orange-50/70 dark:bg-cyan-950/40 text-orange-900 dark:text-cyan-300">

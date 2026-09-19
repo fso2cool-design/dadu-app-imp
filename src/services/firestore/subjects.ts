@@ -57,6 +57,17 @@ export async function archiveSubject(uid: string, id: string): Promise<void> {
   await updateDoc(docRef, {
     isActive: false,
     isArchived: true,
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function unarchiveSubject(uid: string, id: string): Promise<void> {
+  const docRef = doc(db, 'users', uid, 'subjects', id);
+  await updateDoc(docRef, {
+    isActive: true,
+    isArchived: false,
+    archivedAt: null,
     updatedAt: serverTimestamp(),
   });
 }

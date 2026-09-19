@@ -214,10 +214,10 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
     >
       <div className="space-y-4">
         {/* Header Summary Banner */}
-        <div className="p-3.5 bg-gradient-to-r from-indigo-50 via-slate-50 to-indigo-50/50 border border-indigo-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-slate-50 to-emerald-50/50 border border-emerald-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-xs font-mono">
+              <span className="px-2 py-0.5 rounded-lg bg-emerald-600 text-white font-bold text-xs font-mono">
                 Pertemuan #{meeting.meetingNumber}
               </span>
               <h3 className="font-bold text-sm text-slate-800">
@@ -271,9 +271,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
             <span className="text-[10px] text-rose-700 font-semibold block">Alpa (A)</span>
             <span className="font-bold text-rose-800 text-base">{stats.absent}</span>
           </div>
-          <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-200">
-            <span className="text-[10px] text-indigo-700 font-semibold block">Kehadiran</span>
-            <span className="font-bold text-indigo-800 text-base">{stats.percentage}%</span>
+          <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
+            <span className="text-[10px] text-violet-700 font-semibold block">Kehadiran</span>
+            <span className="font-bold text-violet-800 text-base">{stats.percentage}%</span>
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Cari nama atau nomor absen siswa..."
-            className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -308,7 +308,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
         <div className="max-h-96 overflow-y-auto border border-slate-200 rounded-xl">
           {loading ? (
             <div className="p-8 text-center text-xs text-slate-400">
-              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               Memuat data kehadiran siswa...
             </div>
           ) : rows.length === 0 ? (
@@ -405,8 +405,8 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                             onClick={() => handleStatusChange(row.studentId, 'DISPENSATION')}
                             className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'DISPENSATION'
-                                ? 'bg-purple-600 text-white shadow-2xs'
-                                : 'text-slate-600 hover:bg-white hover:text-purple-700'
+                                ? 'bg-violet-600 text-white shadow-2xs'
+                                : 'text-slate-600 hover:bg-white hover:text-violet-700'
                             }`}
                             title="Dispensasi (Lomba / Tugas Sekolah)"
                           >
@@ -421,7 +421,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                           value={row.note}
                           onChange={e => handleNoteChange(row.studentId, e.target.value)}
                           placeholder={isArchived ? '-' : 'Catatan...'}
-                          className="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+                          className="w-full px-2 py-1 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                         />
                       </td>
                     </tr>
@@ -451,7 +451,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                 type="button"
                 disabled={saving || rows.length === 0}
                 onClick={handleSave}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 {saving ? 'Menyimpan...' : 'Simpan Presensi'}

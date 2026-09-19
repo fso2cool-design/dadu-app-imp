@@ -341,7 +341,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             Selamat datang, {teacherName} <span className="inline-block animate-bounce">👋</span>
           </h1>
           <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-indigo-600 dark:text-red-400" />
+            <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>{formatDateWithDay(todayISO)}</span>
             <span className="text-slate-300 dark:text-neutral-700">•</span>
             <span className="font-semibold text-slate-700 dark:text-zinc-300">
@@ -371,13 +371,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('attendance-subject')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-red-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
           >
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-red-950/60 dark:text-red-400 border border-indigo-100 dark:border-red-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <CheckSquare className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-red-400 block truncate">
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
                 + Presensi Sesi
               </span>
               <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
@@ -446,7 +446,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-red-950/60 border border-indigo-100 dark:border-red-500/40 flex items-center justify-center text-indigo-600 dark:text-red-400">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Clock className="w-4 h-4" />
             </div>
             <div>
@@ -462,7 +462,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('master-teaching')}
-            className="text-xs font-semibold text-indigo-600 dark:text-red-400 hover:underline cursor-pointer flex items-center gap-1"
+            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
           >
             Atur Jadwal <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -491,7 +491,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-neutral-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
                 >
                   {/* Left info: Time, Class, Subject */}
                   <div className="flex items-center gap-3">
@@ -506,7 +506,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-100/70 dark:bg-red-950/60 text-indigo-700 dark:text-red-400 font-bold text-xs">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
                           Kelas {assign.className}
                         </span>
                         <h4 className="font-bold text-xs text-slate-800 dark:text-zinc-100">
@@ -556,7 +556,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       <button
                         type="button"
                         onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                       >
                         Isi Presensi
                       </button>
@@ -564,7 +564,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       <button
                         type="button"
                         onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-red-400 text-xs font-semibold transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-semibold transition-all cursor-pointer"
                       >
                         Lihat Presensi
                       </button>
@@ -631,7 +631,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     {task.severity === 'warning' ? (
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     ) : (
-                      <AlertCircle className="w-3.5 h-3.5 text-indigo-500 dark:text-red-400 shrink-0" />
+                      <AlertCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
                     )}
                     <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate">
                       {task.title}
@@ -653,7 +653,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       onNavigate('homeroom-attendance-daily');
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300/90 dark:border-neutral-800 hover:border-slate-400 dark:bg-neutral-950 dark:hover:bg-red-600 text-slate-800 dark:text-zinc-300 hover:text-indigo-700 dark:hover:text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300/90 dark:border-neutral-800 hover:border-slate-400 dark:bg-neutral-950 dark:hover:bg-emerald-600 text-slate-800 dark:text-zinc-300 hover:text-emerald-700 dark:hover:text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
                 >
                   {task.actionLabel}
                 </button>
@@ -787,7 +787,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               />
             ) : (
               <div className="flex items-center gap-2 pl-2">
-                <BookOpen className="w-4 h-4 text-indigo-600 dark:text-red-400" />
+                <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
                   Pengajaran Saya ({filteredAssignments.length} Kelas)
                 </span>
@@ -803,7 +803,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 onClick={() => setViewMode('LIST')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'LIST'
-                    ? 'bg-white dark:bg-neutral-950 text-indigo-600 dark:text-red-400 shadow-2xs font-bold'
+                    ? 'bg-white dark:bg-neutral-950 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
                     : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
                 title="Tampilan Baris Kompak (Efisien & Rapi)"
@@ -817,7 +817,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 onClick={() => setViewMode('GRID')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'GRID'
-                    ? 'bg-white dark:bg-neutral-950 text-indigo-600 dark:text-red-400 shadow-2xs font-bold'
+                    ? 'bg-white dark:bg-neutral-950 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
                     : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
                 }`}
                 title="Tampilan Kartu Grid"
@@ -830,7 +830,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('teaching')}
-              className="text-xs font-semibold text-indigo-600 dark:text-red-400 hover:underline inline-flex items-center gap-1 cursor-pointer pl-1"
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer pl-1"
             >
               Kelola <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -840,7 +840,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         {/* Empty State */}
         {filteredAssignments.length === 0 ? (
           <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-8 sm:p-10 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-neutral-900 border border-indigo-100 dark:border-neutral-800 flex items-center justify-center text-indigo-600 dark:text-red-400 mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-neutral-900 border border-emerald-100 dark:border-neutral-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
               <Layers className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">Tidak ada data kelas</h3>
@@ -850,7 +850,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('master-teaching')}
-              className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               + Tambah Plotting Pengajaran
             </button>
@@ -865,11 +865,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-indigo-300 dark:hover:border-neutral-700 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 group"
+                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-neutral-700 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 group"
                 >
                   {/* Class & Subject Identity */}
                   <div className="flex items-center gap-3 min-w-[210px]">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex flex-col items-center justify-center shrink-0 group-hover:border-indigo-300 dark:group-hover:border-red-500/40 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex flex-col items-center justify-center shrink-0 group-hover:border-emerald-300 dark:group-hover:border-emerald-500/40 transition-colors">
                       <span className="text-[9px] font-mono font-bold text-slate-500 dark:text-zinc-500">
                         {assign.subjectCode || 'MAPEL'}
                       </span>
@@ -884,7 +884,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                           Kelas {assign.className}
                         </h4>
                         {typeof rawCount === 'number' && rawCount > 0 ? (
-                          <span className="px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-red-950/40 text-[10px] font-semibold text-indigo-600 dark:text-red-400 border border-indigo-100/60 dark:border-red-500/30">
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-100/60 dark:border-emerald-500/30">
                             {rawCount} Siswa
                           </span>
                         ) : null}
@@ -912,7 +912,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         Kehadiran Rata-rata
                       </span>
                       <span className="font-bold text-slate-800 dark:text-zinc-200 inline-flex items-center gap-1.5 mt-0.5 text-xs">
-                        <TrendingUp className="w-3.5 h-3.5 text-indigo-500 dark:text-red-400" />
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         {metrics.avgAttendance > 0 ? `${metrics.avgAttendance}%` : 'Belum Ada'}
                       </span>
                     </div>
@@ -923,7 +923,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                      className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-neutral-900 hover:bg-indigo-600 hover:text-white dark:hover:bg-red-950/80 dark:hover:text-red-300 text-indigo-700 dark:text-red-400 text-xs font-semibold transition-all cursor-pointer border border-indigo-100/80 dark:border-neutral-800"
+                      className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/80 dark:hover:text-emerald-300 text-emerald-700 dark:text-emerald-400 text-xs font-semibold transition-all cursor-pointer border border-emerald-100/80 dark:border-neutral-800"
                       title="Input / Lihat Presensi Kelas Ini"
                     >
                       Presensi
@@ -961,11 +961,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4 shadow-2xs hover:border-indigo-300 dark:hover:border-neutral-700 hover:shadow-xs transition-all flex flex-col justify-between"
+                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4 shadow-2xs hover:border-emerald-300 dark:hover:border-neutral-700 hover:shadow-xs transition-all flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-red-950/60 border border-indigo-100 dark:border-red-500/40 text-indigo-700 dark:text-red-400 font-bold text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
                         Kelas {assign.className}
                       </span>
                       {typeof rawCount === 'number' && rawCount > 0 ? (
@@ -996,7 +996,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                      className="flex-1 py-1.5 px-2 rounded-lg bg-indigo-50 dark:bg-neutral-900 hover:bg-indigo-600 hover:text-white dark:hover:bg-red-950/60 dark:hover:text-red-400 text-indigo-700 dark:text-zinc-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-indigo-100/60 dark:border-neutral-800"
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400 text-emerald-700 dark:text-zinc-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-emerald-100/60 dark:border-neutral-800"
                     >
                       Presensi
                     </button>

@@ -503,7 +503,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                           <span className="text-emerald-600 dark:text-emerald-400">{att!.present} Hadir</span>
                           {att!.sick > 0 && <span className="text-amber-600 dark:text-amber-400">• {att!.sick} S</span>}
                           {att!.permitted > 0 && <span className="text-blue-600 dark:text-blue-400">• {att!.permitted} I</span>}
-                          {att!.dispensation ? <span className="text-indigo-600 dark:text-indigo-400">• {att!.dispensation} D</span> : null}
+                          {att!.dispensation ? <span className="text-violet-600 dark:text-violet-400">• {att!.dispensation} D</span> : null}
                           {att!.absent > 0 && <span className="text-rose-600 dark:text-rose-400">• {att!.absent} A</span>}
                         </div>
                         <div className="text-[10px] text-orange-600 dark:text-cyan-400 font-semibold mt-0.5">

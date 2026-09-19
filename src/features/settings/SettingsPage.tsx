@@ -658,7 +658,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   value={profileData.displayName}
                   onChange={e => setProfileData(p => ({ ...p, displayName: e.target.value }))}
                   placeholder="Contoh: Ust. Ahmad Fauzi, S.Pd.I, M.Pd"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 />
               </div>
 
@@ -737,7 +737,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-xs text-slate-800 flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-indigo-600" />
+                    <PenTool className="w-4 h-4 text-emerald-600" />
                     Tanda Tangan Digital Guru
                   </h4>
                   <p className="text-[11px] text-slate-500">
@@ -748,7 +748,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <button
                   type="button"
                   onClick={() => setIsTeacherSigModalOpen(true)}
-                  className="px-3 py-1.5 rounded-xl bg-white border border-indigo-200 text-indigo-600 text-xs font-semibold hover:bg-indigo-50 flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <PenTool className="w-3.5 h-3.5" />
                   <span>{profileData.signatureUrl ? 'Ubah Tanda Tangan' : 'Buat Tanda Tangan'}</span>
@@ -816,7 +816,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                       <span className="text-[10px] text-slate-400">Tingkat 1 Instansi Kementerian Agama RI</span>
                     </div>
                     {schoolData.kemenagLogoUrl ? (
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 font-medium">Custom</span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 font-medium">Custom</span>
                     ) : (
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 dark:bg-slate-800 dark:text-slate-300 font-medium">Default Resmi</span>
                     )}
@@ -1319,7 +1319,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           <div className="space-y-8">
             <div>
               <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                <Database className="w-4 h-4 text-indigo-600" />
+                <Database className="w-4 h-4 text-emerald-600" />
                 Portabilitas & Backup Database Lengkap
               </h3>
               <p className="text-xs text-slate-500 mt-1">
@@ -1331,7 +1331,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               {/* Card 1: Full Database Export */}
               <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col justify-between space-y-4">
                 <div className="space-y-2">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                     <Download className="w-5 h-5" />
                   </div>
                   <h4 className="font-bold text-sm text-slate-800">Ekspor Seluruh Database (JSON)</h4>
@@ -1344,7 +1344,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   type="button"
                   onClick={handleExportFullBackup}
                   disabled={isExporting}
-                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Download className="w-4 h-4" />
                   <span>{isExporting ? 'Mengekstrak Data...' : 'Unduh File Backup JSON (1-Klik)'}</span>
@@ -1384,34 +1384,34 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
             {/* Selected Backup Preview & Execution Box */}
             {backupFileContent && (
-              <div className="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-4 animate-in fade-in duration-150">
+              <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-4 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h5 className="font-bold text-xs text-indigo-950 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                    <h5 className="font-bold text-xs text-emerald-950 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
                       Pratinjau Isi File Backup Terpilih
                     </h5>
-                    <p className="text-[11px] text-indigo-700">
+                    <p className="text-[11px] text-emerald-700">
                       Waktu Ekspor: {new Date(backupFileContent.exportedAt).toLocaleString('id-ID')} • Versi: {backupFileContent.version}
                     </p>
                   </div>
-                  <Badge variant="green" size="sm">File Siap</Badge>
+                  <Badge variant="success" size="sm">File Siap</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                  <div className="p-2.5 bg-white rounded-xl border border-emerald-100">
                     <span className="text-[10px] text-slate-400 block font-semibold">Tahun Ajaran</span>
                     <span className="font-bold text-slate-800">{backupFileContent.collections.academicYears?.length || 0} entri</span>
                   </div>
-                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                  <div className="p-2.5 bg-white rounded-xl border border-emerald-100">
                     <span className="text-[10px] text-slate-400 block font-semibold">Kelas / Rombel</span>
                     <span className="font-bold text-slate-800">{backupFileContent.collections.classes?.length || 0} entri</span>
                   </div>
-                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                  <div className="p-2.5 bg-white rounded-xl border border-emerald-100">
                     <span className="text-[10px] text-slate-400 block font-semibold">Siswa & Enrollment</span>
                     <span className="font-bold text-slate-800">{backupFileContent.collections.students?.length || 0} siswa</span>
                   </div>
-                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                  <div className="p-2.5 bg-white rounded-xl border border-emerald-100">
                     <span className="text-[10px] text-slate-400 block font-semibold">Pertemuan & Jurnal</span>
                     <span className="font-bold text-slate-800">{backupFileContent.collections.meetings?.length || 0} sesi</span>
                   </div>
@@ -1427,7 +1427,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         value="merge"
                         checked={importMode === 'merge'}
                         onChange={() => setImportMode('merge')}
-                        className="text-indigo-600"
+                        className="text-emerald-600 focus:ring-emerald-500"
                       />
                       <span>Gabung Data (Merge)</span>
                     </label>
@@ -1438,7 +1438,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         value="overwrite"
                         checked={importMode === 'overwrite'}
                         onChange={() => setImportMode('overwrite')}
-                        className="text-indigo-600"
+                        className="text-emerald-600 focus:ring-emerald-500"
                       />
                       <span>Timpa (Overwrite)</span>
                     </label>
@@ -1465,7 +1465,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 </div>
 
                 {importProgressText && (
-                  <p className="text-[11px] text-indigo-800 animate-pulse font-medium">
+                  <p className="text-[11px] text-emerald-800 animate-pulse font-medium">
                     {importProgressText}
                   </p>
                 )}
@@ -1480,7 +1480,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-indigo-600" />
+                  <Activity className="w-4 h-4 text-emerald-600" />
                   Statistik & Status Kesehatan Firestore
                 </h3>
                 <p className="text-[11px] text-slate-400">Pemantauan volumetrik rekaman data aktif pada ruang penyimpanan terisolasi Anda.</p>
@@ -1492,7 +1492,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 disabled={statsLoading}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${statsLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${statsLoading ? 'animate-spin' : ''}`} />
                 <span>Segarkan Status</span>
               </button>
             </div>
@@ -1513,7 +1513,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                   <Activity className="w-5 h-5" />
                 </div>
                 <div>
@@ -1671,7 +1671,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             <div className="space-y-6 pt-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
-                  <Palette className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                     Pilihan Skema Warna Workspace
                   </h4>
@@ -1688,7 +1688,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                     disabled={selectedTheme === activeTheme}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                       selectedTheme !== activeTheme
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/30'
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     }`}
                   >
@@ -1787,8 +1787,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               </div>
 
               {/* Information Note */}
-              <div className="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-slate-900 border border-indigo-100 dark:border-slate-800 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400">
-                <Info className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-slate-900 border border-emerald-100 dark:border-slate-800 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400">
+                <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <p>
                   Pilihan tema akan langsung disimpan ke browser Anda. Klik tombol <strong>Terapkan & Simpan Tema</strong> untuk mengaktifkannya.
                 </p>
@@ -1798,11 +1798,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-cyan-400" />
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       Versi Aplikasi: {APP_CONFIG.versionDisplay}
                     </span>
-                    <span className="text-[10px] bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold border border-indigo-100 dark:border-slate-700">
+                    <span className="text-[10px] bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 dark:border-slate-700">
                       Rilis {APP_CHANGELOGS[0]?.releaseDate || APP_CONFIG.releaseDate}
                     </span>
                   </div>
@@ -1813,7 +1813,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <button
                   type="button"
                   onClick={() => setIsChangeLogModalOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-700 dark:text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-indigo-200/80 dark:border-slate-700"
+                  className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-700 dark:text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-emerald-200/80 dark:border-slate-700"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Lihat Catatan Rilis</span>

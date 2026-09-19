@@ -554,7 +554,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={onOpenChangeLog}
                 title="Lihat Catatan Pembaruan (Release Notes)"
-                className="font-mono text-[10px] text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-cyan-300 transition-colors underline decoration-dotted cursor-pointer"
+                className="font-mono text-[10px] text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors underline decoration-dotted cursor-pointer"
               >
                 {APP_CONFIG.versionDisplay}
               </button>

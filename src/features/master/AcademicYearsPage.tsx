@@ -233,7 +233,7 @@ export const AcademicYearsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-zinc-100 tracking-tight flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+            <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Master Tahun Ajaran
           </h1>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
@@ -282,7 +282,7 @@ export const AcademicYearsPage: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Tahun Ajaran
           </button>
@@ -310,13 +310,13 @@ export const AcademicYearsPage: React.FC = () => {
                   isArchived
                     ? 'bg-slate-50 dark:bg-neutral-900/50 border-dashed border-slate-300 dark:border-neutral-800 opacity-80'
                     : isCurrentActive
-                    ? 'bg-white dark:bg-neutral-950 border-indigo-300 dark:border-red-500/40 ring-2 ring-indigo-500/20 dark:ring-red-500/20 shadow-sm'
+                    ? 'bg-white dark:bg-neutral-950 border-emerald-300 dark:border-emerald-500/40 ring-2 ring-emerald-500/20 dark:ring-emerald-500/20 shadow-sm'
                     : 'bg-white dark:bg-neutral-950 border-slate-200 dark:border-neutral-800 hover:border-slate-300'
                 }`}
               >
                 <div>
                   <div className="flex items-start justify-between mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-neutral-900 text-indigo-600 dark:text-red-400 flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-neutral-900 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
                       TP
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -334,7 +334,7 @@ export const AcademicYearsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleSetActive(year.id, year.label)}
-                          className="text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:hover:text-red-400 cursor-pointer"
+                          className="text-xs font-semibold text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer"
                         >
                           Set Aktif
                         </button>
@@ -363,7 +363,7 @@ export const AcademicYearsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(year)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                           title="Edit Tahun Ajaran"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -447,7 +447,7 @@ export const AcademicYearsPage: React.FC = () => {
               value={label}
               onChange={e => setLabel(e.target.value)}
               placeholder="Contoh: 2026/2027"
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
             />
           </div>
 
@@ -497,7 +497,7 @@ export const AcademicYearsPage: React.FC = () => {
               type="checkbox"
               checked={isActive}
               onChange={e => setIsActive(e.target.checked)}
-              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
             />
             <span>Jadikan tahun ajaran aktif di workspace</span>
           </label>
@@ -513,7 +513,7 @@ export const AcademicYearsPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-red-600 dark:hover:bg-red-500 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
             >
               {loading ? 'Menyimpan...' : editingYear ? 'Simpan Perubahan' : 'Simpan Tahun Ajaran'}
             </button>

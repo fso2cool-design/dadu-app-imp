@@ -188,7 +188,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               Wali Kelas
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -215,7 +215,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
               const val = e.target.value;
               setSelectedClassId(val === 'NONE' ? '' : val);
             }}
-            className="px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+            className="px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
           >
             <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
             {availableClasses.map((c) => (
@@ -229,7 +229,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
 
       {!currentClass ? (
         <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-4 border border-indigo-100 dark:border-indigo-900/50">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
             <UserX className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
@@ -249,7 +249,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
             <button
               type="button"
               onClick={() => onNavigate('master-classes')}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               <Layers className="w-4 h-4" /> Atur Wali di Master Kelas
             </button>
@@ -359,7 +359,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari siswa atau NIS..."
-                    className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                    className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -432,7 +432,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                               <button
                                 type="button"
                                 onClick={() => onNavigate('homeroom-notes', { classId: currentClass?.id, studentId: enr.studentId })}
-                                className="p-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                                 title="Tambah/Lihat Catatan Siswa"
                               >
                                 <StickyNote className="w-4 h-4" />
@@ -503,7 +503,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                   <button
                     type="button"
                     onClick={() => onNavigate('homeroom-notes', { classId: currentClass?.id })}
-                    className="text-[11px] font-semibold text-indigo-600 dark:text-cyan-400 hover:text-indigo-800 dark:hover:text-cyan-300 cursor-pointer"
+                    className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 cursor-pointer"
                   >
                     Lihat Semua
                   </button>

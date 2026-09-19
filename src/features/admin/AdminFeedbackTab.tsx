@@ -179,7 +179,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       {/* Top Stat Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
@@ -228,7 +228,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari judul, guru, email, atau isi..."
-            className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -239,7 +239,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               type="button"
               onClick={() => setStatusFilter('ALL')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'ALL' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'ALL' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
               }`}
             >
               Semua ({feedbacks.length})
@@ -280,7 +280,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
             title="Muat Ulang"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
         </div>
       </div>
@@ -288,7 +288,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       {/* Feedbacks List */}
       {loading ? (
         <div className="p-12 text-center text-slate-400 space-y-3">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-400" />
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
           <p className="text-xs">Memuat laporan feedback...</p>
         </div>
       ) : filteredFeedbacks.length === 0 ? (
@@ -366,7 +366,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                         setSelectedFeedback(item);
                         setReplyText(item.adminReply || '');
                       }}
-                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer"
                     >
                       {item.adminReply ? 'Edit Catatan' : '+ Catatan Admin'}
                     </button>
@@ -398,8 +398,8 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                   </div>
 
                   {item.adminReply && (
-                    <div className="w-full mt-1.5 p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-xs text-indigo-200">
-                      <span className="font-bold text-indigo-300 block mb-0.5">Catatan Administrator:</span>
+                    <div className="w-full mt-1.5 p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-200">
+                      <span className="font-bold text-emerald-300 block mb-0.5">Catatan Administrator:</span>
                       <p className="text-[11px] text-slate-200">{item.adminReply}</p>
                     </div>
                   )}
@@ -415,7 +415,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
             <h4 className="text-sm font-bold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-indigo-400" />
+              <MessageSquare className="w-4 h-4 text-emerald-400" />
               Catatan / Balasan Admin untuk "{selectedFeedback.title}"
             </h4>
             <textarea
@@ -423,7 +423,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Tuliskan catatan perbaikan atau balasan yang sudah dilakukan..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
               <button
@@ -438,7 +438,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                 type="button"
                 disabled={updating}
                 onClick={() => handleUpdateStatus(selectedFeedback, selectedFeedback.status, replyText.trim())}
-                className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 cursor-pointer"
+                className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 cursor-pointer"
               >
                 {updating ? 'Menyimpan...' : 'Simpan Catatan'}
               </button>

@@ -336,7 +336,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
               <button
                 type="button"
                 onClick={() => openCreateModal()}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 + Tambah Catatan
@@ -360,7 +360,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                   const val = e.target.value;
                   setSelectedClassId(val === 'NONE' ? '' : val);
                 }}
-                className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
                 {availableClasses.map(c => (
@@ -379,7 +379,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                   id="notes-student-filter"
                   value={selectedStudentFilter}
                   onChange={(e) => setSelectedStudentFilter(e.target.value)}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 max-w-[180px]"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 max-w-[180px]"
                 >
                   <option value="ALL">Semua Siswa ({enrollments.length})</option>
                   {enrollments.map(e => (
@@ -399,7 +399,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                   id="notes-cat-filter"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="ALL">Semua Kategori</option>
                   <option value="BEHAVIOR">Perilaku & Karakter</option>
@@ -422,7 +422,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari catatan / solusi..."
-                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
               />
             </div>
           )}
@@ -483,7 +483,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
             <button
               type="button"
               onClick={() => openCreateModal()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-2 shadow-xs"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-2 shadow-xs"
             >
               <Plus className="w-4 h-4" />
               Buat Catatan Siswa Pertama
@@ -521,7 +521,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                     <button
                       type="button"
                       onClick={() => openEditModal(note)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                       title="Edit Catatan"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -529,7 +529,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                     <button
                       type="button"
                       onClick={() => handleDelete(note.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       title="Hapus Catatan"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -541,7 +541,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 <div className="pt-3.5 space-y-3 text-xs">
                   {/* Student Title */}
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-xs">
                       {note.rollNumber || '#'}
                     </div>
                     <div>
@@ -604,7 +604,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                   required
                   value={formStudentId}
                   onChange={(e) => setFormStudentId(e.target.value)}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
                 >
                   <option value="" disabled>-- Pilih Siswa Kelas --</option>
                   {enrollments.map(e => (
@@ -622,7 +622,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                   required
                   value={formDate}
                   onChange={(e) => setFormDate(e.target.value)}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
             </div>
@@ -633,7 +633,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 <select
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value as any)}
-                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 font-medium"
+                  className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 font-medium"
                 >
                   <option value="BEHAVIOR">Perilaku / Sikap (Karakter)</option>
                   <option value="ACADEMIC">Akademik / Belajar</option>
@@ -650,7 +650,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                     type="checkbox"
                     checked={formIsImportant}
                     onChange={(e) => setFormIsImportant(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded-sm border-slate-300 focus:ring-indigo-500"
+                    className="w-4 h-4 text-emerald-600 rounded-sm border-slate-300 focus:ring-emerald-500"
                   />
                   <span className="font-semibold text-rose-700">
                     Tandai Urgent (Perlu Perhatian Khusus)
@@ -669,7 +669,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 value={formNote}
                 onChange={(e) => setFormNote(e.target.value)}
                 placeholder="Ceritakan detail kejadian, perkembangan perilaku, atau hasil pembinaan..."
-                className="w-full p-3 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -682,7 +682,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 value={formActionPlan}
                 onChange={(e) => setFormActionPlan(e.target.value)}
                 placeholder="e.g. Diberi bimbingan individual, pendampingan belajar, kesepakatan target..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -695,7 +695,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
                 value={formParentFollowUp}
                 onChange={(e) => setFormParentFollowUp(e.target.value)}
                 placeholder="e.g. Diinfokan ke orang tua via telepon / Surat panggilan ke madrasah..."
-                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -703,14 +703,14 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-xl font-semibold text-slate-600 hover:bg-slate-50"
+                className="px-4 py-2 border border-slate-300 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white rounded-xl font-bold shadow-xs flex items-center gap-2"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 text-white rounded-xl font-bold shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 {submitting ? 'Menyimpan...' : editingNote ? 'Simpan Perubahan' : 'Simpan Catatan Siswa'}
               </button>

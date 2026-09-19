@@ -260,7 +260,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
         </div>
 
         <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>

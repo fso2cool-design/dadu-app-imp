@@ -1349,16 +1349,16 @@ export const GradesPage: React.FC = () => {
                     const colAvg = count > 0 ? Math.round((colSum / count) * 10) / 10 : '-';
 
                     return (
-                      <td key={item.id} className="px-2 py-2 text-center border-r border-slate-200 font-mono font-bold text-xs text-indigo-700">
+                      <td key={item.id} className="px-2 py-2 text-center border-r border-slate-200 font-mono font-bold text-xs text-emerald-700 dark:text-emerald-400">
                         {colAvg}
                       </td>
                     );
                   })}
                   <td className="border-r border-slate-200"></td>
-                  <td className="px-3 py-2 text-center font-mono font-black text-xs text-indigo-900 bg-indigo-100/50 border-r border-slate-200">
+                  <td className="px-3 py-2 text-center font-mono font-black text-xs text-emerald-900 dark:text-emerald-200 bg-emerald-100/50 dark:bg-emerald-950/40 border-r border-slate-200">
                     {classStats.avgScore}
                   </td>
-                  <td colSpan={2} className="bg-indigo-100/50 text-center text-[10px] text-slate-500 font-medium">
+                  <td colSpan={2} className="bg-emerald-100/50 dark:bg-emerald-950/40 text-center text-[10px] text-slate-600 dark:text-slate-400 font-medium">
                     {classStats.passPercentage}% Tuntas
                   </td>
                 </tr>

@@ -236,7 +236,7 @@ export const ClassesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <Layers className="w-5 h-5 text-indigo-600 dark:text-cyan-400" />
+            <Layers className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Master Daftar Kelas & Rombel
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -247,7 +247,7 @@ export const ClassesPage: React.FC = () => {
         <button
           type="button"
           onClick={openCreateModal}
-          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Tambah Kelas Baru
         </button>
@@ -260,7 +260,7 @@ export const ClassesPage: React.FC = () => {
           onClick={() => setStatusFilter('active')}
           className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
             statusFilter === 'active'
-              ? 'bg-indigo-50 dark:bg-cyan-950/50 text-indigo-700 dark:text-cyan-300 font-bold'
+              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
@@ -317,7 +317,7 @@ export const ClassesPage: React.FC = () => {
             <button
               type="button"
               onClick={openCreateModal}
-              className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 dark:bg-cyan-600 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+              className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" /> Tambah Kelas
             </button>
@@ -336,7 +336,7 @@ export const ClassesPage: React.FC = () => {
                 className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
                   cls.isArchived 
                     ? 'bg-slate-50/60 dark:bg-[#10121a] border-dashed border-slate-300 dark:border-slate-800 opacity-80'
-                    : 'bg-white dark:bg-[#141722] border-slate-200/90 dark:border-[#232838] shadow-2xs hover:border-indigo-300 dark:hover:border-cyan-500/50'
+                    : 'bg-white dark:bg-[#141722] border-slate-200/90 dark:border-[#232838] shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-800'
                 }`}
               >
                 <div>
@@ -344,7 +344,7 @@ export const ClassesPage: React.FC = () => {
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
                       cls.isArchived
                         ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                        : 'bg-indigo-50 dark:bg-cyan-950/40 text-indigo-700 dark:text-cyan-400'
+                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
                     }`}>
                       {cls.name}
                     </div>
@@ -356,12 +356,12 @@ export const ClassesPage: React.FC = () => {
                         </span>
                       ) : (
                         <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/50 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" /> Aktif
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
                         </span>
                       )}
 
                       {isUserHomeroom ? (
-                        <Badge variant="purple" size="sm">
+                        <Badge variant="violet" size="sm">
                           <Users className="w-3 h-3 mr-1" />
                           Wali Kelas
                         </Badge>
@@ -391,8 +391,8 @@ export const ClassesPage: React.FC = () => {
                     {checkingUsage && !usage ? (
                       <span className="text-[10px] text-slate-400">Memeriksa status data...</span>
                     ) : isUsed ? (
-                      <div className="inline-flex items-center gap-1 text-[11px] text-indigo-700 dark:text-cyan-400 font-medium bg-indigo-50 dark:bg-cyan-950/40 px-2 py-1 rounded-lg">
-                        <Lock className="w-3 h-3 text-indigo-500 dark:text-cyan-400 shrink-0" />
+                      <div className="inline-flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium bg-slate-100 dark:bg-[#181c2a] px-2 py-1 rounded-lg border border-slate-200 dark:border-[#282e42]">
+                        <Lock className="w-3 h-3 text-slate-500 dark:text-slate-400 shrink-0" />
                         <span>Memiliki riwayat transaksi akademik</span>
                       </div>
                     ) : (
@@ -422,7 +422,7 @@ export const ClassesPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => openEditModal(cls)}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-cyan-950/40 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-400 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                       >
                         <Edit2 className="w-3 h-3" /> 
                         {isUsed ? 'Edit Metadata' : 'Edit Kelas'}
@@ -500,7 +500,7 @@ export const ClassesPage: React.FC = () => {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Contoh: X-A / XI-MIPA-1"
-              className={`w-full px-3 py-2 rounded-xl border text-xs focus:ring-2 focus:ring-indigo-500 ${
+              className={`w-full px-3 py-2 rounded-xl border text-xs focus:ring-2 focus:ring-emerald-500 ${
                 editingClass && isEditingUsed
                   ? 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/70 text-slate-500 cursor-not-allowed'
                   : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white'
@@ -553,7 +553,7 @@ export const ClassesPage: React.FC = () => {
                 type="checkbox"
                 checked={isHomeroom}
                 onChange={e => setIsHomeroom(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
               <div>
                 <span className="font-semibold block">Saya bertindak sebagai Wali Kelas di rombel ini</span>
@@ -577,7 +577,7 @@ export const ClassesPage: React.FC = () => {
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-xs"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-xs"
             >
               {actionLoading ? 'Menyimpan...' : (editingClass ? 'Simpan Perubahan' : 'Tambah Kelas')}
             </button>

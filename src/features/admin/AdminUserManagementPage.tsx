@@ -353,13 +353,13 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       {/* Top Navbar */}
       <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-3.5 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30 shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/30 shrink-0">
             <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">Panel Admin</h1>
-              <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                 SUPER ADMIN
               </span>
             </div>
@@ -377,7 +377,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               title="Buka Mode Guru (Workspace)"
               className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
             >
-              <GraduationCap className="w-4 h-4 text-indigo-400" />
+              <GraduationCap className="w-4 h-4 text-emerald-400" />
               <span className="hidden sm:inline">Buka Mode Guru</span>
               <span className="inline sm:hidden">Mode Guru</span>
             </button>
@@ -403,7 +403,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             onClick={() => setActiveAdminTab('USERS')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeAdminTab === 'USERS'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
@@ -416,7 +416,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             onClick={() => setActiveAdminTab('FEEDBACK')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
               activeAdminTab === 'FEEDBACK'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
@@ -437,7 +437,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             {/* Database Quota Information Banner */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
@@ -491,7 +491,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari nama guru, email, atau NIP..."
-                    className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors"
+                    className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 transition-colors"
                   />
                 </div>
 
@@ -499,7 +499,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="ALL">Semua Status</option>
                     <option value="ACTIVE">Hanya Aktif</option>
@@ -509,7 +509,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-indigo-500 cursor-pointer"
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="ALL">Semua Peran</option>
                     <option value="ADMIN">Hanya Admin</option>
@@ -549,7 +549,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="sm:hidden px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
             <span className="font-semibold text-slate-300">Daftar Akun ({filteredUsers.length})</span>
-            <span className="text-indigo-400 font-medium">Geser ke kanan →</span>
+            <span className="text-emerald-400 font-medium">Geser ke kanan →</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[780px] text-left border-collapse text-xs">
@@ -569,7 +569,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-slate-400">
                       <div className="inline-flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
                         <span>Memuat data pengguna dari Firestore...</span>
                       </div>
                     </td>
@@ -586,7 +586,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             setStatusFilter('ALL');
                             setRoleFilter('ALL');
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-indigo-300 text-xs font-medium border border-slate-700 transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-medium border border-slate-700 transition-colors"
                         >
                           Reset Pencarian & Filter
                         </button>
@@ -604,13 +604,13 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                       <tr key={u.uid} className="hover:bg-slate-800/40 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-indigo-400 shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-emerald-400 shrink-0">
                               {(u.displayName || u.email || 'G').charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <span className="font-bold text-white block">
                                 {u.displayName || 'Nama Belum Diisi'}
-                                {isSelf && <span className="ml-1.5 text-[10px] text-indigo-400 font-semibold">(Akun Anda)</span>}
+                                {isSelf && <span className="ml-1.5 text-[10px] text-emerald-400 font-semibold">(Akun Anda)</span>}
                               </span>
                               <span className="text-[11px] text-slate-400 font-mono">UID: {u.uid.slice(0, 8)}...</span>
                             </div>
@@ -624,8 +624,8 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
                         <td className="py-3.5 px-4">
                           {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold">
-                              <ShieldCheck className="w-3 h-3 text-indigo-400" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+                              <ShieldCheck className="w-3 h-3 text-emerald-400" />
                               <span>Admin</span>
                             </span>
                           ) : (
@@ -650,7 +650,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         <td className="py-3.5 px-4 text-center">
                           {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[10px] font-semibold">
-                              <Shield className="w-3 h-3 text-indigo-400 shrink-0" />
+                              <Shield className="w-3 h-3 text-emerald-400 shrink-0" />
                               <span>Administrator</span>
                             </span>
                           ) : u.lastLoginAt ? (
@@ -690,7 +690,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             <button
                               type="button"
                               onClick={() => setEditingUser(u)}
-                              className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[11px] font-semibold border border-indigo-500/30 transition-colors flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[11px] font-semibold border border-emerald-500/30 transition-colors flex items-center gap-1 cursor-pointer"
                               title="Edit Profil & Hak Akses"
                             >
                               <Edit className="w-3 h-3" />
@@ -759,14 +759,14 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <div className="space-y-4 text-slate-800">
             {loadingStats ? (
               <div className="py-8 text-center text-slate-500">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
                 <span className="text-xs">Menghitung dokumen di Firestore...</span>
               </div>
             ) : userStats ? (
               <div className="space-y-3">
-                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-indigo-950">Total Dokumen Workspace</span>
-                  <span className="text-lg font-black text-indigo-700">{userStats.totalDocuments} Dokumen</span>
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-950">Total Dokumen Workspace</span>
+                  <span className="text-lg font-black text-emerald-700">{userStats.totalDocuments} Dokumen</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
@@ -986,7 +986,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                       <div key={item.uid} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs">
                         <div className="min-w-0">
                           <div className="font-mono text-xs font-bold text-slate-800 truncate">
-                            UID: <span className="text-indigo-600">{item.uid}</span>
+                            UID: <span className="text-emerald-600">{item.uid}</span>
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">

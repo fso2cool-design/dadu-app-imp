@@ -112,12 +112,12 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
           </div>
         )}
 
-        <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl text-indigo-900 leading-relaxed">
+        <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-emerald-900 leading-relaxed">
           <p className="font-semibold mb-1 flex items-center gap-1.5">
-            <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             Cara Praktis Paste Nilai:
           </p>
-          <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-indigo-800">
+          <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-emerald-800">
             <li>Buka file Excel / Google Sheets daftar nilai Anda.</li>
             <li>Salin / Copy (Ctrl+C) 1 kolom nilai siswa yang urutannya sesuai nomor absen.</li>
             <li>Tempelkan / Paste (Ctrl+V) ke kotak teks di bawah ini.</li>
@@ -132,7 +132,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
           <select
             value={selectedItemId}
             onChange={(e) => setSelectedItemId(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-slate-800 text-xs font-medium bg-white"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800 text-xs font-medium bg-white"
           >
             {assessmentItems.map((item) => (
               <option key={item.id} value={item.id}>
@@ -152,7 +152,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             value={pastedText}
             onChange={(e) => setPastedText(e.target.value)}
             placeholder={`Contoh isi paste:\n85\n90\n78\n88\n95`}
-            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-slate-800"
+            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800"
           />
         </div>
 
@@ -179,7 +179,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
                     <span className="text-[10px] text-slate-400 font-mono">Teks: "{item.rawText}"</span>
                     <ArrowRight className="w-3 h-3 text-slate-300" />
                     <span className={`font-mono font-bold px-2 py-0.5 rounded-md ${
-                      item.score !== null ? 'bg-indigo-50 text-indigo-700' : 'bg-rose-50 text-rose-600'
+                      item.score !== null ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
                     }`}>
                       {item.score !== null ? item.score : 'Tidak Valid'}
                     </span>
@@ -203,7 +203,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             type="button"
             onClick={handleApply}
             disabled={parsedPreview.length === 0 || !selectedItemId}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Terapkan Nilai ({parsedPreview.filter(p => p.score !== null).length} Siswa)</span>

@@ -265,7 +265,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
             onClick={() => setMeetingType('CLASS')}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               meetingType === 'CLASS'
-                ? 'bg-white dark:bg-slate-900 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
@@ -313,7 +313,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
               onChange={e => handleAssignmentChange(e.target.value)}
               disabled={!!meetingToEdit}
               required
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
             >
               <option value="">-- Pilih Kelas & Mapel --</option>
               {teachingAssignments
@@ -341,7 +341,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
               disabled={!!meetingToEdit}
               value={meetingNumber}
               onChange={e => setMeetingNumber(Number(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-indigo-700 dark:text-indigo-400 text-center disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 text-center disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -472,7 +472,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 placeholder="Contoh: Bab 2 - Teks Prosedur Kompleks & Struktur Kalimat Imperatif"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -545,7 +545,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             <CalendarCheck2 className="w-3.5 h-3.5" />
             {loading ? 'Menyimpan...' : (meetingToEdit ? 'Simpan Perubahan' : 'Simpan Jurnal Agenda')}

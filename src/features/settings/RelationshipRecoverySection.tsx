@@ -199,7 +199,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           type="button"
           onClick={handleRunAudit}
           disabled={isAuditing}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin' : ''}`} />
           <span>{isAuditing ? 'Menganalisis Relasi...' : 'Jalankan Audit Integritas'}</span>
@@ -324,7 +324,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                       <button
                         type="button"
                         onClick={() => handleOpenClassRelink(issue)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-xs transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs transition-colors cursor-pointer"
                       >
                         <Link2 className="w-3.5 h-3.5" />
                         <span>Re-Link Kelas</span>
@@ -357,7 +357,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           <div className="bg-white dark:bg-[#11141f] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <Link2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Pemulihan Relasi Kelas Penempatan (Re-Link)
               </h4>
               <button
@@ -440,7 +440,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                 type="button"
                 onClick={handleExecuteClassRelink}
                 disabled={isRelinkingClass || !selectedTargetClassId}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
               >
                 {isRelinkingClass ? 'Menyimpan Re-Link...' : 'Validasi & Pulihkan Relasi'}
               </button>

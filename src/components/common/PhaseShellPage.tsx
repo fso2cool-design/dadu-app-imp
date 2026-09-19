@@ -133,18 +133,18 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <Badge variant="purple" size="sm">{item.phase}</Badge>
+          <Badge variant="success" size="sm">{item.phase}</Badge>
           <span className="text-xs text-slate-400">• Konteks: {activeAcademicYear?.label || '2026/2027'} ({activeSemester})</span>
         </div>
         <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <Icon className="w-5 h-5 text-indigo-600" />
+          <Icon className="w-5 h-5 text-emerald-600" />
           {item.title}
         </h1>
         <p className="text-xs text-slate-500 mt-1">{item.subtitle}</p>
       </div>
 
       <div className="bg-white border border-slate-200/90 rounded-2xl p-8 shadow-2xs text-center max-w-xl mx-auto my-8">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
           <Icon className="w-7 h-7" />
         </div>
         <h3 className="font-bold text-base text-slate-800">{item.title}</h3>

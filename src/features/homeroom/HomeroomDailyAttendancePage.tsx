@@ -433,7 +433,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
     { value: 'SICK', label: 'Sakit', short: 'S', color: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-500/40', activeColor: 'bg-amber-500 text-white font-bold' },
     { value: 'PERMITTED', label: 'Izin', short: 'I', color: 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-500/40', activeColor: 'bg-sky-600 text-white font-bold' },
     { value: 'ABSENT', label: 'Alpa', short: 'A', color: 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-500/40', activeColor: 'bg-rose-600 text-white font-bold' },
-    { value: 'DISPENSATION', label: 'Dispen', short: 'D', color: 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-500/40', activeColor: 'bg-indigo-600 text-white font-bold' },
+    { value: 'DISPENSATION', label: 'Dispen', short: 'D', color: 'text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 border-violet-200 dark:border-violet-500/40', activeColor: 'bg-violet-600 text-white font-bold' },
   ];
 
   return (
@@ -629,9 +629,9 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           <p className="text-xl font-bold text-rose-700 dark:text-rose-300 mt-0.5">{summaryStats.absent}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50/30 dark:bg-indigo-950/20 text-center">
-          <p className="text-[10px] font-semibold text-indigo-700 dark:text-indigo-400 uppercase">Dispen (D)</p>
-          <p className="text-xl font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">{summaryStats.dispensation}</p>
+        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-violet-200 dark:border-violet-500/40 bg-violet-50/30 dark:bg-violet-950/20 text-center">
+          <p className="text-[10px] font-semibold text-violet-700 dark:text-violet-400 uppercase">Dispen (D)</p>
+          <p className="text-xl font-bold text-violet-700 dark:text-violet-300 mt-0.5">{summaryStats.dispensation}</p>
         </div>
 
         <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-orange-200 dark:border-cyan-500/40 bg-orange-50/30 dark:bg-cyan-950/20 text-center">
@@ -793,7 +793,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                                 onClick={() => handlePresetNote(enr.studentId, preset)}
                                 className={`px-1.5 py-0.5 rounded text-[9px] cursor-pointer transition-colors ${
                                   state.status === 'DISPENSATION'
-                                    ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60'
+                                    ? 'bg-violet-50 hover:bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 dark:hover:bg-violet-900/60'
                                     : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-600 dark:text-slate-400'
                                 }`}
                               >

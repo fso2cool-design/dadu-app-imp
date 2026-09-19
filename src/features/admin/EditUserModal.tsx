@@ -104,7 +104,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
               <User className="w-5 h-5" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           {/* User Meta Banner */}
           <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-400">
-              <Mail className="w-4 h-4 text-indigo-400" />
+              <Mail className="w-4 h-4 text-emerald-400" />
               <span className="text-slate-300 font-medium">{email}</span>
             </div>
             <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
@@ -157,7 +157,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Contoh: Drs. H. Ahmad Fauzi, M.Pd."
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                   required
                 />
               </div>
@@ -174,7 +174,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={nip}
                   onChange={(e) => setNip(e.target.value)}
                   placeholder="Contoh: 198503122011011002"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -190,7 +190,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={nuptk}
                   onChange={(e) => setNuptk(e.target.value)}
                   placeholder="Contoh: 4539763665200002"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -206,7 +206,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={nik}
                   onChange={(e) => setNik(e.target.value)}
                   placeholder="16 Digit NIK"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors font-mono"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="08123456789"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>
             </div>
@@ -238,7 +238,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                   value={mainSubject}
                   onChange={(e) => setMainSubject(e.target.value)}
                   placeholder="Contoh: Matematika, Fikih, IPA"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                 />
               </div>
             </div>
@@ -251,7 +251,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               <select
                 value={employmentStatus || 'PNS'}
                 onChange={(e) => setEmploymentStatus(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors cursor-pointer"
               >
                 <option value="PNS">PNS (Pegawai Negeri Sipil)</option>
                 <option value="PPPK">PPPK</option>
@@ -270,7 +270,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 disabled={isSuperAdminEmail}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-60 cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors disabled:opacity-60 cursor-pointer"
               >
                 <option value="TEACHER">Guru (Teacher)</option>
                 <option value="ADMIN">Administrator (Super Admin)</option>
@@ -291,7 +291,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 value={accountStatus}
                 onChange={(e) => setAccountStatus(e.target.value as AccountStatus)}
                 disabled={isSuperAdminEmail || isCurrentUser}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-60 cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors disabled:opacity-60 cursor-pointer"
               >
                 <option value="ACTIVE">Aktif (Dapat Mengakses & Input)</option>
                 <option value="SUSPENDED">Ditangguhkan (Blokir Akses Masuk)</option>
@@ -320,7 +320,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             {isSubmitting ? (
               <>

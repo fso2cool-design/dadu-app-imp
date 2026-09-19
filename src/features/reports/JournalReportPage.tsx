@@ -232,12 +232,12 @@ export const JournalReportPage: React.FC = () => {
 
         {/* Statistical Overview */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
-          <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between">
+          <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-indigo-700 block">Pertemuan Terselenggara</span>
-              <span className="text-lg font-black text-indigo-950">{meetings.length} <span className="text-xs font-normal text-indigo-700">Sesi</span></span>
+              <span className="text-[10px] uppercase font-bold text-teal-700 block">Pertemuan Terselenggara</span>
+              <span className="text-lg font-black text-teal-950">{meetings.length} <span className="text-xs font-normal text-teal-700">Sesi</span></span>
             </div>
-            <Calendar className="w-6 h-6 text-indigo-400" />
+            <Calendar className="w-6 h-6 text-teal-500" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
@@ -341,7 +341,7 @@ export const JournalReportPage: React.FC = () => {
                         {summary ? (
                           <div className="space-y-0.5">
                             <div className="font-bold text-slate-900">
-                              <span className="text-emerald-700">H:{summary.present}</span> | <span className="text-amber-700">S:{summary.sick}</span> | <span className="text-blue-700">I:{summary.permitted}</span>{summary.dispensation ? <> | <span className="text-indigo-700">D:{summary.dispensation}</span></> : null} | <span className="text-rose-700">A:{summary.absent}</span>
+                              <span className="text-emerald-700">H:{summary.present}</span> | <span className="text-amber-700">S:{summary.sick}</span> | <span className="text-blue-700">I:{summary.permitted}</span>{summary.dispensation ? <> | <span className="text-violet-700">D:{summary.dispensation}</span></> : null} | <span className="text-rose-700">A:{summary.absent}</span>
                             </div>
                             <div className="text-[9px] text-slate-500">
                               ({summary.presentPercentage}% hadir)
