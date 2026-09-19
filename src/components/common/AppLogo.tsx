@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, MotionConfig } from 'motion/react';
 import logoSvg from '../../assets/logo.svg';
 
 export type AppLogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
@@ -44,11 +44,12 @@ const SIZE_MAP: Record<string, number> = {
  * Single Source of Truth: `logo.svg`
  * 
  * Desain & Interaksi:
- * - Subtle entrance motion (fade + micro-translate + gentle scale)
- * - Micro-interaction hover (scale 1.03 + soft luminous amber/teal ambient glow)
- * - Resting state tenang setelah entrance selesai (tanpa animasi tak berujung)
- * - Dukungan penuh terhadap prefers-reduced-motion
- * - Adaptif untuk Sidebar (expanded/collapsed), Header, Login, Dashboard, dan Mobile
+ * - Smooth entrance motion (opacity 0 -> 1, scale 0.94 -> 1, translateY 6 -> 0)
+ * - Micro-interaction hover (scale 1.04, subtle lift y: -1, soft luminous glow)
+ * - Resting state stabil setelah entrance selesai (tanpa animasi infinite)
+ * - Animasi penuh dan konsisten (bebas dari penonaktifan reduced motion eksternal)
+ * - Menggunakan MotionConfig reducedMotion="never" lokal khusus komponen logo
+ * - Adaptif untuk Sidebar (expanded/collapsed), Header, Login, Loading, dan Mobile
  */
 export const AppLogo: React.FC<AppLogoProps> = ({
   size = 'md',
@@ -63,7 +64,6 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   id = 'dadu-app-logo',
   alt = 'Logo Resmi DADU',
 }) => {
-  const shouldReduceMotion = useReducedMotion();
   const isInteractive = Boolean(onClick);
 
   // Compute numeric dimensions
@@ -81,22 +81,23 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         ? 'full' 
         : 'mark';
 
-  const shouldAnimate = animated && !shouldReduceMotion;
+  const shouldAnimate = animated;
 
-  // Refined entrance configuration (350ms - 500ms, resting at resting state)
+  // Refined entrance configuration (500ms duration, smooth easing, resting at stable state)
   const entranceAnimation = shouldAnimate ? {
-    initial: { opacity: 0, y: 5, scale: 0.96 },
+    initial: { opacity: 0, y: 6, scale: 0.94 },
     animate: { opacity: 1, y: 0, scale: 1 },
     transition: { 
-      duration: 0.45, 
+      duration: 0.5, 
       ease: [0.16, 1, 0.3, 1] 
     },
   } : {};
 
-  // Subtle hover micro-interaction
+  // Subtle hover micro-interaction (scale 1.04, subtle lift y: -1, smooth transition)
   const hoverAnimation = shouldAnimate ? {
     whileHover: { 
-      scale: 1.03,
+      scale: 1.04,
+      y: -1,
       transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] }
     },
     whileTap: isInteractive ? { scale: 0.98 } : undefined,
@@ -124,44 +125,48 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   // If mark-only, return just the icon image container
   if (effectiveVariant === 'mark') {
     return (
-      <motion.div
-        id={id}
-        className={`inline-flex items-center justify-center ${isInteractive ? 'cursor-pointer' : ''} ${className}`}
-        onClick={onClick}
-        {...entranceAnimation}
-      >
-        {imageElement}
-      </motion.div>
+      <MotionConfig reducedMotion="never">
+        <motion.div
+          id={id}
+          className={`inline-flex items-center justify-center ${isInteractive ? 'cursor-pointer' : ''} ${className}`}
+          onClick={onClick}
+          {...entranceAnimation}
+        >
+          {imageElement}
+        </motion.div>
+      </MotionConfig>
     );
   }
 
   // Horizontal or Full with Typography Block
   return (
-    <motion.div
-      id={id}
-      className={`inline-flex items-center gap-2.5 min-w-0 ${isInteractive ? 'cursor-pointer group' : ''} ${className}`}
-      onClick={onClick}
-      {...entranceAnimation}
-    >
-      {imageElement}
+    <MotionConfig reducedMotion="never">
+      <motion.div
+        id={id}
+        className={`inline-flex items-center gap-2.5 min-w-0 ${isInteractive ? 'cursor-pointer group' : ''} ${className}`}
+        onClick={onClick}
+        {...entranceAnimation}
+      >
+        {imageElement}
 
-      <div className={`flex flex-col text-left min-w-0 leading-none select-none transition-opacity duration-250 ${textClassName}`}>
-        <div className="flex items-center gap-1.5">
-          <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight truncate font-sans">
-            DADU
-          </span>
-          <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded-md bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-            Madrasah
-          </span>
+        <div className={`flex flex-col text-left min-w-0 leading-none select-none transition-opacity duration-250 ${textClassName}`}>
+          <div className="flex items-center gap-1.5">
+            <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight truncate font-sans">
+              DADU
+            </span>
+            <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded-md bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+              Madrasah
+            </span>
+          </div>
+          
+          {effectiveVariant === 'full' && subtitle && (
+            <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-tight truncate mt-1">
+              {subtitle}
+            </span>
+          )}
         </div>
-        
-        {effectiveVariant === 'full' && subtitle && (
-          <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-tight truncate mt-1">
-            {subtitle}
-          </span>
-        )}
-      </div>
-    </motion.div>
+      </motion.div>
+    </MotionConfig>
   );
 };
 
