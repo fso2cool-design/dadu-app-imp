@@ -117,6 +117,21 @@ export async function saveSubjectAttendance(
     throw new Error('Tidak dapat mengubah presensi pada Tahun Ajaran yang telah diarsipkan (read-only).');
   }
 
+  // 2. Validate cross-relationship of teaching assignment
+  const taDoc = await getDoc(doc(db, 'users', uid, 'teachingAssignments', teachingAssignmentId));
+  if (taDoc.exists()) {
+    const taData = taDoc.data();
+    if (taData?.isArchived) {
+      throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima presensi baru.');
+    }
+    if (taData?.academicYearId && taData.academicYearId !== academicYearId) {
+      throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.');
+    }
+    if (taData?.classId && taData.classId !== classId) {
+      throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan sesi presensi.');
+    }
+  }
+
   return trackSync((async () => {
     const colRef = collection(db, 'users', uid, 'attendanceRecords');
     const now = serverTimestamp();
@@ -129,8 +144,8 @@ export async function saveSubjectAttendance(
 
     const validStatuses = new Set(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
 
-    // Chunking writes in batches of 400
-    const chunkSize = 400;
+    // Chunking writes in batches of safe threshold 300
+    const chunkSize = 300;
     for (let i = 0; i < items.length; i += chunkSize) {
       const chunk = items.slice(i, i + chunkSize);
       const batch = writeBatch(db);

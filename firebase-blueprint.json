@@ -216,6 +216,27 @@
         "createdAt": { "type": "string" }
       },
       "required": ["id", "name", "type"]
+    },
+    "SharedReport": {
+      "title": "SharedReport",
+      "description": "Public read-only tokenized snapshot of official reports with Zero-Knowledge encryption support",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "reportType": { "type": "string", "enum": ["ATTENDANCE", "JOURNAL", "LEGGER", "STUDENT_REPORT"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "hasPasscode": { "type": "boolean" },
+        "salt": { "type": "string" },
+        "iv": { "type": "string" },
+        "encryptedPayload": { "type": "string" },
+        "isRevoked": { "type": "boolean" },
+        "viewCount": { "type": "number" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "userName", "reportType", "title", "isRevoked", "viewCount"]
     }
   },
   "firestore": {

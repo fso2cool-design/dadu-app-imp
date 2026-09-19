@@ -89,6 +89,25 @@ export async function createAssessmentItem(
     throw new Error('Tidak dapat menambahkan kolom penilaian pada Tahun Ajaran yang telah diarsipkan (read-only).');
   }
 
+  // Validate Teaching Assignment cross-relationship integrity
+  const taDoc = await getDoc(doc(db, 'users', uid, 'teachingAssignments', data.teachingAssignmentId));
+  if (!taDoc.exists()) {
+    throw new Error('Tugas mengajar tidak ditemukan.');
+  }
+  const taData = taDoc.data();
+  if (taData?.isArchived) {
+    throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima kolom penilaian baru.');
+  }
+  if (taData?.academicYearId && taData.academicYearId !== data.academicYearId) {
+    throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran penilaian.');
+  }
+  if (taData?.classId && taData.classId !== data.classId) {
+    throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan kelas penilaian.');
+  }
+  if (taData?.subjectId && taData.subjectId !== data.subjectId) {
+    throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan mata pelajaran penilaian.');
+  }
+
   return trackSync((async () => {
     const colRef = collection(db, 'users', uid, 'assessmentItems');
     const res = await addDoc(colRef, {
@@ -278,30 +297,35 @@ export async function saveScoresBatch(
 
   return trackSync((async () => {
     const scoresColRef = collection(db, 'users', uid, 'scores');
-    const batch = writeBatch(db);
     const now = serverTimestamp();
+    const chunkSize = 300;
 
-    for (const item of scoresData) {
-      // Validate score integrity (0 to 100)
-      let cleanScore = Number(item.score);
-      if (isNaN(cleanScore) || cleanScore < 0) cleanScore = 0;
-      if (cleanScore > 100) cleanScore = 100;
-      cleanScore = Math.round(cleanScore * 10) / 10;
+    for (let i = 0; i < scoresData.length; i += chunkSize) {
+      const chunk = scoresData.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
 
-      const recordId = `${assessmentItemId}_${item.studentId}`;
-      const ref = doc(scoresColRef, recordId);
+      for (const item of chunk) {
+        // Validate score integrity (0 to 100)
+        let cleanScore = Number(item.score);
+        if (isNaN(cleanScore) || cleanScore < 0) cleanScore = 0;
+        if (cleanScore > 100) cleanScore = 100;
+        cleanScore = Math.round(cleanScore * 10) / 10;
 
-      batch.set(ref, {
-        assessmentItemId,
-        studentId: item.studentId,
-        score: cleanScore,
-        note: (item.note || '').trim(),
-        updatedAt: now,
-        createdAt: now,
-      }, { merge: true });
+        const recordId = `${assessmentItemId}_${item.studentId}`;
+        const ref = doc(scoresColRef, recordId);
+
+        batch.set(ref, {
+          assessmentItemId,
+          studentId: item.studentId,
+          score: cleanScore,
+          note: (item.note || '').trim(),
+          updatedAt: now,
+          createdAt: now,
+        }, { merge: true });
+      }
+
+      await batch.commit();
     }
-
-    await batch.commit();
   })(), {
     startMessage: 'Menyimpan nilai siswa ke database...',
     successMessage: 'Nilai siswa berhasil disimpan!'
@@ -366,8 +390,8 @@ export async function saveMatrixScores(
     const scoresColRef = collection(db, 'users', uid, 'scores');
     const now = serverTimestamp();
     
-    // Batch limit in firestore is 500 ops per commit
-    const chunkSize = 450;
+    // Batch limit in firestore is 500 ops per commit (safe threshold: 300)
+    const chunkSize = 300;
     for (let i = 0; i < scoresToSave.length; i += chunkSize) {
       const chunk = scoresToSave.slice(i, i + chunkSize);
       const batch = writeBatch(db);

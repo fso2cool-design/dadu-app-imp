@@ -7,6 +7,8 @@ import {
   collection,
   collectionGroup,
   getDocs,
+  query,
+  where,
   writeBatch,
   serverTimestamp 
 } from 'firebase/firestore';
@@ -167,17 +169,20 @@ export async function getUserStorageStats(targetUid: string): Promise<UserStorag
 
 /**
  * Permanently purge/cascading delete all user data and subcollections in Firestore
- * using the verified WORKSPACE_SUBCOLLECTIONS list to eliminate residual data.
+ * using the verified WORKSPACE_SUBCOLLECTIONS list and root collections (sharedReports, feedbacks)
+ * following the audit standard: preflight -> enumerate -> chunk -> execute -> verify -> finalize.
  */
 export async function purgeEntireUserWorkspace(targetUid: string): Promise<number> {
   let deletedCount = 0;
+  const failureList: string[] = [];
 
+  // 1. Preflight & Enumerate standard workspace subcollections
   for (const subcol of WORKSPACE_SUBCOLLECTIONS) {
     try {
       const snap = await getDocs(collection(db, 'users', targetUid, subcol));
       if (!snap.empty) {
-        // Delete in safe chunks of max 350 to strictly respect Firestore batch limits
-        const chunkSize = 350;
+        // Safe batch chunking (300 ops to respect Firestore limits)
+        const chunkSize = 300;
         for (let i = 0; i < snap.docs.length; i += chunkSize) {
           const chunk = snap.docs.slice(i, i + chunkSize);
           const batch = writeBatch(db);
@@ -188,18 +193,19 @@ export async function purgeEntireUserWorkspace(targetUid: string): Promise<numbe
           await batch.commit();
         }
       }
-    } catch (err) {
-      console.warn(`Error cleaning subcollection ${subcol} for ${targetUid}:`, err);
+    } catch (err: any) {
+      console.error(`Error cleaning subcollection ${subcol} for ${targetUid}:`, err);
+      failureList.push(`subcollection:${subcol} (${err?.message || 'unknown'})`);
     }
   }
 
-  // Also purge any legacy named subcollections just in case
+  // 2. Enumerate & purge legacy named subcollections
   const legacySubcols = ['attendance', 'homeroomAttendance', 'gradeAssessments', 'gradeScores'];
   for (const legacyCol of legacySubcols) {
     try {
       const snap = await getDocs(collection(db, 'users', targetUid, legacyCol));
       if (!snap.empty) {
-        const chunkSize = 350;
+        const chunkSize = 300;
         for (let i = 0; i < snap.docs.length; i += chunkSize) {
           const chunk = snap.docs.slice(i, i + chunkSize);
           const batch = writeBatch(db);
@@ -210,18 +216,68 @@ export async function purgeEntireUserWorkspace(targetUid: string): Promise<numbe
           await batch.commit();
         }
       }
-    } catch (err) {
-      // ignore
+    } catch (err: any) {
+      console.warn(`Error cleaning legacy collection ${legacyCol} for ${targetUid}:`, err);
     }
   }
 
-  // Delete the root user document
+  // 3. Enumerate & purge root collection: sharedReports created by targetUid
+  try {
+    const sharedSnap = await getDocs(query(collection(db, 'sharedReports'), where('userId', '==', targetUid)));
+    if (!sharedSnap.empty) {
+      const chunkSize = 300;
+      for (let i = 0; i < sharedSnap.docs.length; i += chunkSize) {
+        const chunk = sharedSnap.docs.slice(i, i + chunkSize);
+        const batch = writeBatch(db);
+        chunk.forEach((docSnap) => {
+          batch.delete(docSnap.ref);
+          deletedCount++;
+        });
+        await batch.commit();
+      }
+    }
+  } catch (err: any) {
+    console.error(`Error cleaning sharedReports for ${targetUid}:`, err);
+    failureList.push(`root:sharedReports (${err?.message || 'unknown'})`);
+  }
+
+  // 4. Enumerate & purge root collection: feedbacks created by targetUid
+  try {
+    const fbSnap = await getDocs(query(collection(db, 'feedbacks'), where('userId', '==', targetUid)));
+    if (!fbSnap.empty) {
+      const chunkSize = 300;
+      for (let i = 0; i < fbSnap.docs.length; i += chunkSize) {
+        const chunk = fbSnap.docs.slice(i, i + chunkSize);
+        const batch = writeBatch(db);
+        chunk.forEach((docSnap) => {
+          batch.delete(docSnap.ref);
+          deletedCount++;
+        });
+        await batch.commit();
+      }
+    }
+  } catch (err: any) {
+    console.warn(`Error cleaning feedbacks for ${targetUid}:`, err);
+  }
+
+  // 5. Verification Guard: Do NOT delete root user profile if any subcollection/collection failed
+  if (failureList.length > 0) {
+    throw new Error(
+      `Pembersihan akun tidak lengkap (partial purge terdeteksi). Profil pengguna dipertahankan untuk mencegah orphan data. Gagal pada: ${failureList.join(', ')}`
+    );
+  }
+
+  // 6. Finalize: Delete the root user document only upon 100% verified subcollections cleanup
   try {
     const userDocRef = doc(db, 'users', targetUid);
-    await deleteDoc(userDocRef);
-    deletedCount++;
-  } catch (err) {
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists()) {
+      await deleteDoc(userDocRef);
+      deletedCount++;
+    }
+  } catch (err: any) {
     console.error(`Error deleting user doc for ${targetUid}:`, err);
+    throw new Error(`Gagal menghapus dokumen induk pengguna: ${err?.message || 'unknown error'}`);
   }
 
   return deletedCount;

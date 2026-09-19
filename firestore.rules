@@ -287,7 +287,8 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.id == reportId
         && request.resource.data.isRevoked == false
-        && request.resource.data.viewCount == 0;
+        && request.resource.data.viewCount == 0
+        && !('passcode' in request.resource.data);
 
       // Owner or Super Admin can revoke/update, or viewer can increment viewCount & lastViewedAt
       allow update: if (
@@ -297,6 +298,8 @@ service cloud.firestore {
         (resource.data.isRevoked != true
           && (!('expiresAt' in resource.data) || resource.data.expiresAt == null || !(resource.data.expiresAt is timestamp) || request.time < resource.data.expiresAt)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'lastViewedAt'])
+          && request.resource.data.viewCount is number
+          && request.resource.data.viewCount >= resource.data.viewCount
         )
       );
 

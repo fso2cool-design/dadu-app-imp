@@ -125,10 +125,23 @@ export async function saveDailyAttendance(
       }
     }
 
+    // 2. Validate class relationship
+    if (classId) {
+      const classDoc = await getDoc(doc(db, 'users', uid, 'classes', classId));
+      if (classDoc.exists()) {
+        const classData = classDoc.data();
+        if (classData?.isArchived) {
+          throw new Error('Kelas telah diarsipkan (read-only).');
+        }
+        if (classData?.academicYearId && classData.academicYearId !== academicYearId) {
+          throw new Error('Relasi tidak konsisten: Kelas terdaftar pada tahun ajaran yang berbeda.');
+        }
+      }
+    }
+
     const sessionsColRef = collection(db, 'users', uid, 'dailyAttendanceSessions');
     const recordsColRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
 
-    const batch = writeBatch(db);
     const now = serverTimestamp();
 
     let present = 0;
@@ -146,24 +159,35 @@ export async function saveDailyAttendance(
       else if (item.status === 'PERMITTED') permitted++;
       else if (item.status === 'ABSENT') absent++;
       else if (item.status === 'DISPENSATION') dispensation++;
+    }
 
-      const recordId = `${academicYearId}_${classId}_${date}_${item.studentId}`;
-      const recordDocRef = doc(recordsColRef, recordId);
+    // Chunking writes in batches of safe threshold 300
+    const chunkSize = 300;
+    for (let i = 0; i < items.length; i += chunkSize) {
+      const chunk = items.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
 
-      batch.set(recordDocRef, {
-        sessionId,
-        academicYearId,
-        classId,
-        date,
-        studentId: item.studentId,
-        rollNumber: item.rollNumber || 0,
-        studentName: item.studentName || '',
-        gender: item.gender || 'L',
-        status: item.status || 'PRESENT',
-        note: item.note || '',
-        updatedAt: now,
-        createdAt: now,
-      }, { merge: true });
+      for (const item of chunk) {
+        const recordId = `${academicYearId}_${classId}_${date}_${item.studentId}`;
+        const recordDocRef = doc(recordsColRef, recordId);
+
+        batch.set(recordDocRef, {
+          sessionId,
+          academicYearId,
+          classId,
+          date,
+          studentId: item.studentId,
+          rollNumber: item.rollNumber || 0,
+          studentName: item.studentName || '',
+          gender: item.gender || 'L',
+          status: item.status || 'PRESENT',
+          note: item.note || '',
+          updatedAt: now,
+          createdAt: now,
+        }, { merge: true });
+      }
+
+      await batch.commit();
     }
 
     const total = items.length;
@@ -181,7 +205,8 @@ export async function saveDailyAttendance(
 
     // Upsert Daily Attendance Session Document with deterministic ID
     const sessionDocRef = doc(sessionsColRef, sessionId);
-    batch.set(sessionDocRef, {
+    const sessionBatch = writeBatch(db);
+    sessionBatch.set(sessionDocRef, {
       academicYearId,
       classId,
       className,
@@ -192,8 +217,8 @@ export async function saveDailyAttendance(
       updatedAt: now,
       createdAt: now,
     }, { merge: true });
+    await sessionBatch.commit();
 
-    await batch.commit();
     return summary;
   })(), {
     startMessage: 'Menyimpan presensi harian kelas...',

@@ -113,16 +113,30 @@ export async function createMeeting(
   if (!taDoc.exists()) {
     throw new Error('Penugasan mengajar tidak ditemukan.');
   }
-  if (taDoc.data()?.isArchived) {
+  const taData = taDoc.data();
+  if (taData?.isArchived) {
     throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima pertemuan KBM baru.');
+  }
+  if (taData?.academicYearId && taData.academicYearId !== data.academicYearId) {
+    throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran pertemuan.');
+  }
+  if (taData?.classId && taData.classId !== data.classId) {
+    throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan kelas pertemuan.');
+  }
+  if (taData?.subjectId && taData.subjectId !== data.subjectId) {
+    throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan mata pelajaran pertemuan.');
   }
 
   const classDoc = await getDoc(doc(db, 'users', uid, 'classes', data.classId));
   if (!classDoc.exists()) {
     throw new Error('Kelas tidak ditemukan.');
   }
-  if (classDoc.data()?.isArchived) {
+  const classData = classDoc.data();
+  if (classData?.isArchived) {
     throw new Error('Kelas telah diarsipkan.');
+  }
+  if (classData?.academicYearId && classData.academicYearId !== data.academicYearId) {
+    throw new Error('Relasi tidak konsisten: Kelas terdaftar pada tahun ajaran yang berbeda.');
   }
 
   const colRef = collection(db, 'users', uid, 'meetings');
