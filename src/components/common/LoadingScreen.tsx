@@ -1,5 +1,5 @@
 import React from 'react';
-import { Logo } from './Logo';
+import { AppLogo } from './AppLogo';
 import { APP_CONFIG } from '../../constants/app';
 import { useAppTheme } from '../../context/ThemeContext';
 
@@ -42,10 +42,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         {/* Embossed circular logo badge with ambient glow */}
         <div className={`relative p-4 rounded-3xl border shadow-inner flex items-center justify-center transition-colors ${
           isDark 
-            ? 'bg-gradient-to-b from-[#064E3B] to-[#022C22] border-emerald-800/60 shadow-emerald-950/40' 
-            : 'bg-gradient-to-b from-emerald-50 to-teal-50/50 border-emerald-200 shadow-sm'
+            ? 'bg-gradient-to-b from-[#064E3B]/80 to-[#022C22]/90 border-emerald-800/60 shadow-emerald-950/40' 
+            : 'bg-gradient-to-b from-emerald-50/80 to-teal-50/60 border-emerald-200/80 shadow-sm'
         }`}>
-          <Logo size={64} />
+          <AppLogo size={64} variant="mark" animated={true} />
         </div>
 
         <div className="space-y-1">

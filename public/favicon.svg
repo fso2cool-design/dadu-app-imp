@@ -1,106 +1,110 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" width="100%" height="100%">
   <defs>
-    <!-- Background Gradient for Browser Tab: Squircle Crisp Off-White Card -->
-    <linearGradient id="favBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#F1F5F9" />
+    <!-- Favicon Container Background Gradient (Dark Slate Glass for crisp contrast) -->
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181D2A" />
+      <stop offset="100%" stop-color="#0C0E15" />
     </linearGradient>
 
-    <!-- 1. Prisma Facets Gradients (Deep Emerald & Islamic Forest Teal) -->
-    <linearGradient id="favFacetTop" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#047857" />
-      <stop offset="40%" stop-color="#065F46" />
-      <stop offset="100%" stop-color="#064E3B" />
+    <!-- Hexagonal Teal Crystal Facets -->
+    <linearGradient id="favTealTop" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#14B8A6" />
+      <stop offset="100%" stop-color="#0F766E" />
+    </linearGradient>
+    <linearGradient id="favTealLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D9488" />
+      <stop offset="100%" stop-color="#022C22" />
+    </linearGradient>
+    <linearGradient id="favTealRight" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2DD4BF" />
+      <stop offset="100%" stop-color="#042F2E" />
     </linearGradient>
 
-    <linearGradient id="favFacetLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#064E3B" />
-      <stop offset="60%" stop-color="#022C22" />
-      <stop offset="100%" stop-color="#011B15" />
-    </linearGradient>
-
-    <linearGradient id="favFacetRight" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0F766E" />
-      <stop offset="60%" stop-color="#044E46" />
-      <stop offset="100%" stop-color="#012420" />
-    </linearGradient>
-
-    <!-- 2. Inner Crystal Cube Gradients (Digital Gold & Amber) -->
-    <linearGradient id="favCubeTop" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#D97706" stop-opacity="0.9" />
-      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.95" />
-      <stop offset="100%" stop-color="#FDE047" stop-opacity="0.95" />
-    </linearGradient>
-
-    <linearGradient id="favCubeLeft" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#B45309" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#78350F" stop-opacity="0.9" />
-    </linearGradient>
-
-    <linearGradient id="favCubeRight" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D97706" stop-opacity="0.85" />
-      <stop offset="100%" stop-color="#92400E" stop-opacity="0.8" />
-    </linearGradient>
-
-    <!-- 3. Outer Nodes Gradients (Gold & Emerald) -->
-    <radialGradient id="favNodeTop" cx="35%" cy="35%" r="65%">
+    <!-- Gold Frame and Power Core -->
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FEF08A" />
       <stop offset="50%" stop-color="#F59E0B" />
       <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+
+    <radialGradient id="favAmberSphere" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="30%" stop-color="#FEF08A" />
+      <stop offset="70%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#92400E" />
     </radialGradient>
 
-    <radialGradient id="favNodeMid" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#FBBF24" />
-      <stop offset="55%" stop-color="#D97706" />
-      <stop offset="100%" stop-color="#78350F" />
+    <radialGradient id="favTealSphere" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="30%" stop-color="#5EEAD4" />
+      <stop offset="70%" stop-color="#14B8A6" />
+      <stop offset="100%" stop-color="#042F2E" />
     </radialGradient>
 
-    <radialGradient id="favNodeBottom" cx="35%" cy="35%" r="65%">
-      <stop offset="0%" stop-color="#34D399" />
-      <stop offset="60%" stop-color="#059669" />
-      <stop offset="100%" stop-color="#064E3B" />
+    <radialGradient id="favCoreGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#F59E0B" stop-opacity="0" />
     </radialGradient>
   </defs>
 
-  <!-- Clean squircle border badge for sharp contrast across any browser tab theme -->
-  <rect width="120" height="120" rx="26" fill="url(#favBgGrad)" />
-  <rect width="118" height="118" x="1" y="1" rx="25" stroke="#CBD5E1" stroke-width="1.5" />
+  <!-- Clean squircle badge with subtle border -->
+  <rect width="128" height="128" rx="28" fill="url(#favBg)" />
+  <rect width="126" height="126" x="1" y="1" rx="27" stroke="#2DD4BF" stroke-opacity="0.25" stroke-width="1.5" />
 
-  <!-- 1. Prisma Solid Luar (Emerald & Teal) -->
-  <polygon points="60,18 96,38 60,60 24,38" fill="url(#favFacetTop)" />
-  <polygon points="24,38 60,60 60,100 24,80" fill="url(#favFacetLeft)" />
-  <polygon points="60,60 96,38 96,80 60,100" fill="url(#favFacetRight)" />
+  <!-- Hexagonal Crystal Body -->
+  <!-- Center at (64, 64), R=40 -->
+  <!-- Vertices: Top (64,24), TR (98.6,44), BR (98.6,84), Bot (64,104), BL (29.4,84), TL (29.4,44) -->
+  <polygon points="64,24 99,44 64,64 29,44" fill="url(#favTealTop)" />
+  <polygon points="29,44 64,64 64,104 29,84" fill="url(#favTealLeft)" />
+  <polygon points="64,64 99,44 99,84 64,104" fill="url(#favTealRight)" />
 
-  <!-- 2. Inti Kubus Kristal Dalam (Gold) -->
-  <polygon points="60,48 73,55.5 60,63 47,55.5" fill="url(#favCubeTop)" stroke="#FDE047" stroke-width="0.85" />
-  <polygon points="47,55.5 60,63 60,78 47,70.5" fill="url(#favCubeLeft)" stroke="#F59E0B" stroke-width="0.85" />
-  <polygon points="60,63 73,55.5 73,70.5 60,78" fill="url(#favCubeRight)" stroke="#FBBF24" stroke-width="0.85" />
-
-  <!-- 3. Jaringan Garis Data Putih -->
-  <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="60" y1="60" x2="60" y2="18" stroke-width="2.4" />
-    <line x1="60" y1="60" x2="24" y2="80" stroke-width="2.4" />
-    <line x1="60" y1="60" x2="96" y2="80" stroke-width="2.4" />
-    <path d="M 60 18 L 96 38 L 96 80 L 60 100 L 24 80 L 24 38 Z" stroke-width="2.4" />
-    <line x1="60" y1="33" x2="24" y2="38" stroke-width="2" />
-    <line x1="60" y1="33" x2="96" y2="38" stroke-width="2" />
-    <line x1="36" y1="74" x2="24" y2="38" stroke-width="2" />
-    <line x1="36" y1="74" x2="60" y2="100" stroke-width="2" />
-    <line x1="84" y1="74" x2="96" y2="38" stroke-width="2" />
-    <line x1="84" y1="74" x2="60" y2="100" stroke-width="2" />
+  <!-- Data Traces -->
+  <g stroke="#FFFFFF" stroke-opacity="0.75" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="64" y1="36" x2="48" y2="44" />
+    <line x1="48" y1="44" x2="38" y2="44" />
+    <line x1="64" y1="36" x2="80" y2="44" />
+    <line x1="80" y1="44" x2="90" y2="44" />
+    <line x1="40" y1="60" x2="52" y2="67" />
+    <line x1="52" y1="67" x2="52" y2="80" />
+    <line x1="88" y1="60" x2="76" y2="67" />
+    <line x1="76" y1="67" x2="76" y2="80" />
   </g>
 
-  <!-- 4. Simpul Luar -->
-  <circle cx="60" cy="18" r="5.5" fill="url(#favNodeTop)" stroke="#FFFFFF" stroke-width="1.2" />
-  <circle cx="96" cy="38" r="5.5" fill="url(#favNodeTop)" stroke="#FFFFFF" stroke-width="1.2" />
-  <circle cx="96" cy="80" r="5.5" fill="url(#favNodeMid)" stroke="#FFFFFF" stroke-width="1.2" />
-  <circle cx="60" cy="100" r="6" fill="url(#favNodeBottom)" stroke="#FFFFFF" stroke-width="1.2" />
-  <circle cx="24" cy="80" r="5.5" fill="url(#favNodeBottom)" stroke="#FFFFFF" stroke-width="1.2" />
-  <circle cx="24" cy="38" r="5.5" fill="url(#favNodeMid)" stroke="#FFFFFF" stroke-width="1.2" />
+  <!-- Glass Struts -->
+  <g stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="1.8" stroke-linecap="round">
+    <line x1="64" y1="24" x2="99" y2="44" />
+    <line x1="99" y1="44" x2="99" y2="84" />
+    <line x1="99" y1="84" x2="64" y2="104" />
+    <line x1="64" y1="104" x2="29" y2="84" />
+    <line x1="29" y1="84" x2="29" y2="44" />
+    <line x1="29" y1="44" x2="64" y2="24" />
+  </g>
 
-  <!-- 5. Simpul Data Putih-Emas -->
-  <circle cx="60" cy="33" r="4.5" fill="#FFFFFF" stroke="#FEF08A" stroke-width="1" />
-  <circle cx="36" cy="74" r="4.5" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1" />
-  <circle cx="84" cy="74" r="4.5" fill="#FFFFFF" stroke="#A7F3D0" stroke-width="1" />
-  <circle cx="60" cy="60" r="6" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.5" />
+  <!-- Central Glowing Amber Power Cube -->
+  <circle cx="64" cy="64" r="20" fill="url(#favCoreGlow)" />
+  <!-- Wireframe cube -->
+  <polygon points="64,50 78,58 64,66 50,58" fill="none" stroke="url(#favGold)" stroke-width="2.4" stroke-linejoin="round" />
+  <line x1="50" y1="58" x2="50" y2="74" stroke="url(#favGold)" stroke-width="2.4" stroke-linecap="round" />
+  <line x1="78" y1="58" x2="78" y2="74" stroke="url(#favGold)" stroke-width="2.4" stroke-linecap="round" />
+  <line x1="64" y1="66" x2="64" y2="82" stroke="url(#favGold)" stroke-width="2.4" stroke-linecap="round" />
+  <line x1="50" y1="74" x2="64" y2="82" stroke="url(#favGold)" stroke-width="2.4" stroke-linecap="round" />
+  <line x1="78" y1="74" x2="64" y2="82" stroke="url(#favGold)" stroke-width="2.4" stroke-linecap="round" />
+
+  <!-- Inner hot core -->
+  <polygon points="64,56 72,61 64,66 56,61" fill="#FEF08A" />
+  <polygon points="56,61 64,66 64,74 56,69" fill="#F59E0B" />
+  <polygon points="64,66 72,61 72,69 64,74" fill="#D97706" />
+
+  <!-- Apex Nodes -->
+  <!-- Top (Amber) -->
+  <circle cx="64" cy="24" r="6.5" fill="url(#favAmberSphere)" stroke="#FFFFFF" stroke-width="0.8" />
+  <!-- Bottom (Amber) -->
+  <circle cx="64" cy="104" r="6.5" fill="url(#favAmberSphere)" stroke="#FFFFFF" stroke-width="0.8" />
+  <!-- TL & TR (Gold) -->
+  <circle cx="29" cy="44" r="5.5" fill="url(#favAmberSphere)" stroke="#FFFFFF" stroke-width="0.8" />
+  <circle cx="99" cy="44" r="5.5" fill="url(#favAmberSphere)" stroke="#FFFFFF" stroke-width="0.8" />
+  <!-- BL & BR (Teal) -->
+  <circle cx="29" cy="84" r="5.5" fill="url(#favTealSphere)" stroke="#FFFFFF" stroke-width="0.8" />
+  <circle cx="99" cy="84" r="5.5" fill="url(#favTealSphere)" stroke="#FFFFFF" stroke-width="0.8" />
 </svg>

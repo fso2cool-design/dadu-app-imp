@@ -18,7 +18,7 @@ import {
   AlertCircle,
   GraduationCap
 } from 'lucide-react';
-import { Logo } from '../../components/common/Logo';
+import { AppLogo } from '../../components/common/AppLogo';
 import { APP_CONFIG } from '../../constants/app';
 
 export type LevelPresetKey = 'MA_SMA' | 'MTS_SMP' | 'MI_SD' | 'SMK_MAK' | 'CUSTOM';
@@ -268,7 +268,7 @@ export const OnboardingWizard: React.FC = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-[#064E3B] to-[#022C22] border border-emerald-500/30 shadow-lg shadow-emerald-950/30 flex items-center justify-center p-2">
-              <Logo size={36} />
+              <AppLogo size={36} variant="mark" animated={true} />
             </div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />

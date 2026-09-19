@@ -19,7 +19,7 @@ import {
   CalendarCheck
 } from 'lucide-react';
 import { WorkflowDemoModal } from './WorkflowDemoModal';
-import { Logo } from '../../components/common/Logo';
+import { AppLogo } from '../../components/common/AppLogo';
 import { KemenagLogo } from '../../components/common/KemenagLogo';
 import { KemenagBerdampakLogo } from '../../components/common/KemenagBerdampakLogo';
 import { APP_CONFIG } from '../../constants/app';
@@ -128,8 +128,8 @@ export const LoginPage: React.FC = () => {
           
           {/* Brand Header Inside Card */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="flex items-center justify-center mb-3">
-              <Logo size={44} animated={false} />
+            <div className="flex items-center justify-center mb-3.5 p-3 rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/80 dark:from-[#181d2a] dark:to-[#121622] border border-slate-200/80 dark:border-slate-800/80 shadow-xs group">
+              <AppLogo size={48} variant="mark" animated={true} />
             </div>
 
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">

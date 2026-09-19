@@ -18,7 +18,7 @@ import {
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
-import { Logo } from '../common/Logo';
+import { AppLogo } from '../common/AppLogo';
 
 interface HeaderProps {
   currentRoute: string;
@@ -196,9 +196,9 @@ export const Header: React.FC<HeaderProps> = ({
           className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
           aria-label="Buka Menu"
         >
-          <Logo size={28} />
+          <AppLogo size={28} variant="mark" />
           <span className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight hidden xs:inline">
-            Dadu
+            DADU
           </span>
         </button>
       </div>

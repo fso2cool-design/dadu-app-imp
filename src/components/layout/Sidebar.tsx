@@ -25,7 +25,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useAppTheme } from '../../context/ThemeContext';
-import { Logo } from '../common/Logo';
+import { AppLogo } from '../common/AppLogo';
 import { APP_CONFIG } from '../../constants/app';
 
 interface SubMenuItem {
@@ -307,23 +307,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {hoveredTopToggle ? (
                 <PanelLeftOpen className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
               ) : (
-                <Logo size="sm" />
+                <AppLogo size="sm" variant="mark" />
               )}
             </button>
           </div>
         ) : (
           /* EXPANDED MODE: Logo + Brand Title + Close Toggle on the Right */
           <>
-            <div className="flex items-center gap-3 overflow-hidden">
-              <Logo size="md" />
-              <div className="overflow-hidden">
-                <h1 className="font-extrabold text-slate-900 dark:text-white text-base tracking-tight leading-none truncate flex items-center gap-1.5">
-                  <span>Dadu</span>
-                </h1>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-tight truncate mt-1">
-                  Digitalisasi Data Guru
-                </p>
-              </div>
+            <div className="flex items-center overflow-hidden">
+              <AppLogo size="md" variant="full" />
             </div>
 
             <div className="flex items-center gap-1">

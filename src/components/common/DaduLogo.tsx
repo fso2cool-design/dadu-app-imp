@@ -1,27 +1,35 @@
 import React from 'react';
-import { Logo } from './Logo';
+import { AppLogo, AppLogoProps, AppLogoSize } from './AppLogo';
 
-interface DaduLogoProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number | string;
-  className?: string;
+export interface DaduLogoProps extends Omit<AppLogoProps, 'size'> {
+  size?: AppLogoSize | string;
   withGlow?: boolean;
-  animated?: boolean;
 }
 
 /**
- * DaduLogo (Backward compatibility wrapper around new isometric digital network Logo)
+ * DaduLogo - Backward compatibility wrapper around AppLogo
  */
 export const DaduLogo: React.FC<DaduLogoProps> = ({ 
   size = 'md', 
   className = '',
   withGlow = true,
-  animated = true
+  animated = true,
+  ...props
 }) => {
+  const normalizedSize: AppLogoSize = typeof size === 'number'
+    ? size
+    : (['xs', 'sm', 'md', 'lg', 'xl'].includes(size)
+      ? (size as AppLogoSize)
+      : (parseInt(String(size), 10) || 36));
+
   return (
-    <Logo 
-      size={size} 
+    <AppLogo 
+      size={normalizedSize} 
       animated={animated}
-      className={`${className} ${withGlow ? 'filter drop-shadow-[0_0_12px_rgba(217,70,239,0.45)]' : ''}`}
+      className={`${className} ${withGlow ? 'filter drop-shadow-[0_0_12px_rgba(20,184,166,0.35)]' : ''}`}
+      {...props}
     />
   );
 };
+
+export default DaduLogo;
