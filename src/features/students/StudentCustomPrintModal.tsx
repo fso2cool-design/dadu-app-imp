@@ -87,7 +87,7 @@ const BASE_COLUMNS: BaseColumnDef[] = [
   { key: 'notes', label: 'Keterangan', category: 'format', width: '80px' },
 ];
 
-const DEFAULT_ORDER: string[] = [
+export const DEFAULT_ORDER: string[] = [
   'no',
   'className',
   'fullName',
@@ -105,6 +105,90 @@ const DEFAULT_ORDER: string[] = [
   'signature',
   'notes',
 ];
+
+export type PresetKey = 'standar' | 'emis' | 'absen' | 'wali';
+
+export const PRESET_LABELS: Record<PresetKey, string> = {
+  standar: 'Standar Rombel',
+  emis: 'EMIS & Kependudukan (NIK/KK)',
+  absen: 'Format Presensi & Tanda Tangan',
+  wali: 'Buku Kontak Orang Tua',
+};
+
+export const PRESET_COLUMNS: Record<PresetKey, (hasSelectedClass: boolean) => Record<string, boolean>> = {
+  standar: (hasSelectedClass) => ({
+    no: true,
+    className: !hasSelectedClass,
+    fullName: true,
+    gender: true,
+    nis: true,
+    nisn: true,
+    nikSiswa: false,
+    nikIbu: false,
+    nkk: false,
+    birthInfo: true,
+    address: false,
+    parentName: true,
+    parentPhone: true,
+    phone: false,
+    signature: false,
+    notes: false,
+  }),
+  emis: (hasSelectedClass) => ({
+    no: true,
+    className: !hasSelectedClass,
+    fullName: true,
+    gender: true,
+    nis: true,
+    nisn: true,
+    nikSiswa: true,
+    nikIbu: true,
+    nkk: true,
+    birthInfo: true,
+    address: true,
+    parentName: true,
+    parentPhone: false,
+    phone: false,
+    signature: false,
+    notes: false,
+  }),
+  absen: (hasSelectedClass) => ({
+    no: true,
+    className: !hasSelectedClass,
+    fullName: true,
+    gender: true,
+    nis: false,
+    nisn: true,
+    nikSiswa: false,
+    nikIbu: false,
+    nkk: false,
+    birthInfo: false,
+    address: false,
+    parentName: false,
+    parentPhone: false,
+    phone: false,
+    signature: true,
+    notes: true,
+  }),
+  wali: (hasSelectedClass) => ({
+    no: true,
+    className: !hasSelectedClass,
+    fullName: true,
+    gender: false,
+    nis: false,
+    nisn: false,
+    nikSiswa: false,
+    nikIbu: false,
+    nkk: false,
+    birthInfo: false,
+    address: true,
+    parentName: true,
+    parentPhone: true,
+    phone: true,
+    signature: false,
+    notes: false,
+  }),
+};
 
 export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = ({
   isOpen,
@@ -127,25 +211,14 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape');
   const [teacherSignerTitle, setTeacherSignerTitle] = useState(selectedClass ? 'Wali Kelas' : 'Guru Pembina / Wali Data');
 
-  // Pilihan Kolom Aktif (Checked)
-  const [selectedColumnIds, setSelectedColumnIds] = useState<Record<string, boolean>>({
-    no: true,
-    className: !selectedClass,
-    fullName: true,
-    gender: true,
-    nis: true,
-    nisn: true,
-    nikSiswa: true,
-    nikIbu: false,
-    nkk: false,
-    birthInfo: true,
-    address: false,
-    parentName: true,
-    parentPhone: true,
-    phone: false,
-    signature: false,
-    notes: false,
-  });
+  // Pilihan Kolom Aktif (Checked) - Diinisialisasi dari preset standar, tetapi sepenuhnya bebas diedit
+  const [selectedColumnIds, setSelectedColumnIds] = useState<Record<string, boolean>>(() =>
+    PRESET_COLUMNS.standar(Boolean(selectedClass))
+  );
+
+  // Status template yang terakhir kali diterapkan sebagai dasar (preset)
+  const [appliedPreset, setAppliedPreset] = useState<PresetKey | null>('standar');
+  const [printError, setPrintError] = useState<string | null>(null);
 
   // Urutan Kolom (Dapat diubah-ubah posisi indexnya)
   const [columnOrder, setColumnOrder] = useState<string[]>(DEFAULT_ORDER);
@@ -163,16 +236,8 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
   useEffect(() => {
     if (selectedClass) {
       setDocTitle(`DAFTAR SISWA KELAS ${selectedClass.name.toUpperCase()}`);
-      setSelectedColumnIds(prev => ({
-        ...prev,
-        className: false,
-      }));
     } else {
       setDocTitle('DAFTAR DATA POKOK SISWA');
-      setSelectedColumnIds(prev => ({
-        ...prev,
-        className: true,
-      }));
     }
   }, [selectedClass]);
 
@@ -186,6 +251,24 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
         console.error('Error fetching school settings for print:', err);
       });
   }, [user, isOpen]);
+
+  // Cek apakah pilihan kolom saat ini masih identik 100% dengan preset yang dipilih
+  const isMatchingPreset = useMemo(() => {
+    if (!appliedPreset) return false;
+    const expected = PRESET_COLUMNS[appliedPreset](Boolean(selectedClass));
+    for (const col of BASE_COLUMNS) {
+      if (!!expected[col.key] !== !!selectedColumnIds[col.key]) {
+        return false;
+      }
+    }
+    // Jika ada kolom kustom yang dicentang, maka status menjadi kustom
+    for (const custom of customColumns) {
+      if (selectedColumnIds[custom.id]) {
+        return false;
+      }
+    }
+    return true;
+  }, [appliedPreset, selectedClass, selectedColumnIds, customColumns]);
 
   // Daftar kolom terpilih yang sudah diurutkan sesuai urutan pengguna
   const activeColumns = useMemo(() => {
@@ -227,17 +310,9 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
       }[];
   }, [columnOrder, selectedColumnIds, customColumns]);
 
-  // Otomatis rekomendasi orientasi berdasarkan jumlah kolom
-  useEffect(() => {
-    if (activeColumns.length > 7) {
-      setOrientation('landscape');
-    } else {
-      setOrientation('portrait');
-    }
-  }, [activeColumns.length]);
-
-  // Toggle Centang Kolom (Manual bebas tanpa paksaan)
+  // Toggle Centang Kolom (Bebas tanpa ikatan ke template)
   const toggleColumn = (id: string) => {
+    setPrintError(null);
     setSelectedColumnIds(prev => ({
       ...prev,
       [id]: !prev[id],
@@ -289,6 +364,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     setCustomColumns(prev => [...prev, newCol]);
     setSelectedColumnIds(prev => ({ ...prev, [newId]: true }));
     setColumnOrder(prev => [...prev, newId]);
+    setPrintError(null);
 
     setNewColTitle('');
     setNewColText('');
@@ -306,13 +382,15 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     setColumnOrder(prev => prev.filter(colId => colId !== id));
   };
 
-  // Preset Template Cepat (Hanya mengisi pilihan awal, pengguna tetap bebas mencentang manual)
-  const applyPreset = (preset: 'standar' | 'emis' | 'absen' | 'wali' | 'all' | 'none') => {
+  // Preset Template Cepat (Hanya mengisi pilihan awal/shortcut, pengguna tetap bebas mengubah checkbox satu per satu)
+  const applyPreset = (preset: PresetKey | 'all' | 'none') => {
+    setPrintError(null);
     if (preset === 'all') {
       const allTrue: Record<string, boolean> = {};
       BASE_COLUMNS.forEach(c => { allTrue[c.key] = true; });
       customColumns.forEach(c => { allTrue[c.id] = true; });
       setSelectedColumnIds(allTrue);
+      setAppliedPreset(null);
       return;
     }
 
@@ -321,58 +399,31 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
       BASE_COLUMNS.forEach(c => { allFalse[c.key] = false; });
       customColumns.forEach(c => { allFalse[c.id] = false; });
       setSelectedColumnIds(allFalse);
+      setAppliedPreset(null);
       return;
     }
 
-    const state: Record<string, boolean> = {};
-    BASE_COLUMNS.forEach(c => { state[c.key] = false; });
-    customColumns.forEach(c => { state[c.id] = false; });
-
-    if (preset === 'standar') {
-      state.no = true;
-      state.className = !selectedClass;
-      state.fullName = true;
-      state.gender = true;
-      state.nis = true;
-      state.nisn = true;
-      state.birthInfo = true;
-      state.parentName = true;
-      state.parentPhone = true;
-    } else if (preset === 'emis') {
-      state.no = true;
-      state.className = !selectedClass;
-      state.fullName = true;
-      state.gender = true;
-      state.nis = true;
-      state.nisn = true;
-      state.nikSiswa = true;
-      state.nikIbu = true;
-      state.nkk = true;
-      state.birthInfo = true;
-      state.address = true;
-      state.parentName = true;
-    } else if (preset === 'absen') {
-      state.no = true;
-      state.className = !selectedClass;
-      state.fullName = true;
-      state.gender = true;
-      state.nisn = true;
-      state.signature = true;
-      state.notes = true;
-    } else if (preset === 'wali') {
-      state.no = true;
-      state.className = !selectedClass;
-      state.fullName = true;
-      state.address = true;
-      state.parentName = true;
-      state.parentPhone = true;
-      state.phone = true;
-    }
-
-    setSelectedColumnIds(state);
+    const presetCols = PRESET_COLUMNS[preset](Boolean(selectedClass));
+    setSelectedColumnIds(prev => {
+      const next: Record<string, boolean> = {};
+      BASE_COLUMNS.forEach(c => {
+        next[c.key] = !!presetCols[c.key];
+      });
+      // Pertahankan status kolom kustom/manual yang sudah dibuat pengguna
+      customColumns.forEach(c => {
+        next[c.id] = prev[c.id] !== undefined ? prev[c.id] : false;
+      });
+      return next;
+    });
+    setAppliedPreset(preset);
   };
 
   const handlePrint = () => {
+    if (activeColumns.length === 0) {
+      setPrintError('Pilih minimal satu kolom yang ingin ditampilkan untuk dicetak.');
+      return;
+    }
+    setPrintError(null);
     window.print();
   };
 
@@ -433,66 +484,89 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
 
           {/* Quick Action Presets & Select All */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600 dark:text-slate-400 font-semibold flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Template Cepat (Centang Manual Bebas):
-              </span>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Template Cepat (Preset Awal):
+                </span>
+                {appliedPreset && isMatchingPreset && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    Preset Aktif: {PRESET_LABELS[appliedPreset]}
+                  </span>
+                )}
+                {appliedPreset && !isMatchingPreset && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                    Kustom (Basis: {PRESET_LABELS[appliedPreset]})
+                  </span>
+                )}
+                {!appliedPreset && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    Kustom / Bebas
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => applyPreset('all')}
-                  className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer transition"
                 >
                   Centang Semua
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset('none')}
-                  className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer transition"
                 >
                   Kosongkan Semua
                 </button>
               </div>
             </div>
 
+            {/* Template Buttons */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => applyPreset('standar')}
-                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium cursor-pointer"
-              >
-                Standar Rombel
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset('emis')}
-                className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 text-indigo-800 dark:text-cyan-300 font-medium cursor-pointer"
-              >
-                EMIS & Kependudukan (NIK/KK)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset('absen')}
-                className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 font-medium cursor-pointer"
-              >
-                Format Presensi & Tanda Tangan
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset('wali')}
-                className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 text-amber-800 dark:text-amber-300 font-medium cursor-pointer"
-              >
-                Buku Kontak Orang Tua
-              </button>
+              {(['standar', 'emis', 'absen', 'wali'] as PresetKey[]).map(key => {
+                const isSelected = appliedPreset === key;
+                const isExact = isSelected && isMatchingPreset;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => applyPreset(key)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition flex items-center gap-1.5 ${
+                      isExact
+                        ? 'bg-indigo-600 text-white shadow-xs border border-indigo-600'
+                        : isSelected
+                        ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-cyan-300 border border-indigo-300 dark:border-indigo-700'
+                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    <span>{PRESET_LABELS[key]}</span>
+                    {isExact && (
+                      <span className="text-[9px] bg-white/20 px-1.5 py-0.2 rounded-full font-bold">
+                        Preset
+                      </span>
+                    )}
+                    {isSelected && !isExact && (
+                      <span className="text-[9px] bg-amber-200/80 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 px-1.5 py-0.2 rounded-full font-bold">
+                        Kustom
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              💡 Template berfungsi sebagai preset cepat. Setelah template dipilih, Anda bebas mencentang atau menghapus centang setiap kolom secara mandiri.
+            </p>
           </div>
 
           {/* Column Toggles Grid */}
           <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Centang Kolom Yang Ingin Ditampilkan:
+                Centang Kolom Yang Ingin Ditampilkan ({activeColumns.length} dipilih):
               </span>
               <button
                 type="button"
@@ -509,28 +583,23 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
               {BASE_COLUMNS.map(col => {
                 const isChecked = !!selectedColumnIds[col.key];
                 return (
-                  <label
+                  <button
+                    type="button"
                     key={col.key}
                     onClick={() => toggleColumn(col.key)}
-                    className={`flex items-center gap-2 p-2 rounded-xl border cursor-pointer select-none transition ${
+                    className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer select-none transition ${
                       isChecked
                         ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 text-indigo-950 dark:text-cyan-200 font-medium'
                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-750'
                     }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => {}}
-                      className="hidden"
-                    />
                     {isChecked ? (
                       <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-cyan-400 shrink-0" />
                     ) : (
                       <Square className="w-4 h-4 text-slate-400 shrink-0" />
                     )}
-                    <span className="truncate">{col.label}</span>
-                  </label>
+                    <span className="truncate text-xs">{col.label}</span>
+                  </button>
                 );
               })}
             </div>
@@ -553,8 +622,9 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                             : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                         }`}
                       >
-                        <div 
-                          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer select-none"
+                        <button 
+                          type="button"
+                          className="flex items-center gap-2 flex-1 min-w-0 text-left cursor-pointer select-none"
                           onClick={() => toggleColumn(col.id)}
                         >
                           {isChecked ? (
@@ -563,16 +633,16 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                             <Square className="w-4 h-4 text-slate-400 shrink-0" />
                           )}
                           <div className="truncate">
-                            <span className="truncate block font-semibold">{col.label}</span>
+                            <span className="truncate block font-semibold text-xs">{col.label}</span>
                             <span className="text-[10px] text-slate-400 block">
                               {col.contentType === 'dots' ? 'Garis Titik-titik' : col.contentType === 'text' ? `Teks: "${col.customText || '-'}"` : 'Kolom Kosong'}
                             </span>
                           </div>
-                        </div>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteCustomColumn(col.id)}
-                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer shrink-0"
                           title="Hapus Kolom Kustom"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -772,6 +842,20 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
               </label>
             </div>
           </div>
+
+          {/* Warning Banner if No Column Selected */}
+          {printError && (
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between">
+              <span className="font-semibold">⚠️ {printError}</span>
+              <button
+                type="button"
+                onClick={() => setPrintError(null)}
+                className="text-rose-500 hover:text-rose-700 font-bold ml-2 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Action Print Button */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
