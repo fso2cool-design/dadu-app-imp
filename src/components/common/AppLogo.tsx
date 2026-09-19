@@ -117,7 +117,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         loading="eager"
         decoding="async"
         draggable={false}
-        className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(13,148,136,0.18)] transition-all duration-300 group-hover:drop-shadow-[0_4px_16px_rgba(245,158,11,0.28)]"
+        className="w-full h-full object-contain filter drop-shadow-[0_2px_10px_rgba(109,194,59,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_18px_rgba(245,158,11,0.35)]"
       />
     </motion.div>
   );
@@ -150,14 +150,9 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         {imageElement}
 
         <div className={`flex flex-col text-left min-w-0 leading-none select-none transition-opacity duration-250 ${textClassName}`}>
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight truncate font-sans">
-              DADU
-            </span>
-            <span className="inline-block px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded-md bg-emerald-500/10 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-              Madrasah
-            </span>
-          </div>
+          <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight truncate font-sans">
+            DADU
+          </span>
           
           {effectiveVariant === 'full' && subtitle && (
             <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-tight truncate mt-1">

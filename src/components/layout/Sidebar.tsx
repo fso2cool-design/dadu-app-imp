@@ -535,32 +535,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Workspace Footer Status with Dadu version and developer signature */}
+      {/* Workspace Footer: Clean Dadu Workspace label */}
       {!compact && (
         <div className="p-3 border-t border-slate-200 dark:border-[#232838]">
-          <div className="px-2 pt-0.5 text-[11px] text-slate-500 dark:text-slate-500 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-medium">
-              <span className="font-bold text-slate-700 dark:text-slate-200">{APP_CONFIG.name}</span>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
-              <button
-                type="button"
-                onClick={onOpenChangeLog}
-                title="Lihat Catatan Pembaruan (Release Notes)"
-                className="font-mono text-[10px] text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition-colors underline decoration-dotted cursor-pointer"
-              >
-                {APP_CONFIG.versionDisplay}
-              </button>
-              <span 
-                title={`Pengembang: ${APP_CONFIG.developerName}`} 
-                className="px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-800 border border-orange-200 dark:bg-cyan-950/80 dark:text-cyan-300 dark:border-cyan-500/50 text-[9px] font-mono font-bold tracking-wider uppercase shadow-2xs"
-              >
-                {APP_CONFIG.developer}
-              </span>
-            </div>
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Ready
-            </span>
+          <div className="px-2 pt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 select-none">
+            {APP_CONFIG.name}
           </div>
         </div>
       )}
