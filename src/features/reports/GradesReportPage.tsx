@@ -217,7 +217,6 @@ export const GradesReportPage: React.FC = () => {
     // Table Columns
     const headerRow: any[] = [
       'No',
-      'No Absen',
       'NIS',
       'NISN',
       'Nama Siswa',
@@ -238,7 +237,6 @@ export const GradesReportPage: React.FC = () => {
     filteredRows.forEach((r, idx) => {
       const rowData: any[] = [
         idx + 1,
-        r.rollNumber || '-',
         r.nis || '-',
         r.nisn || '-',
         r.name,
@@ -408,7 +406,6 @@ export const GradesReportPage: React.FC = () => {
               <thead>
                 <tr className="bg-slate-100 text-slate-950 font-bold border-b-2 border-slate-900 text-center">
                   <th className="border border-slate-900 px-2 py-2 w-10" rowSpan={2}>No</th>
-                  <th className="border border-slate-900 px-2 py-2 w-12" rowSpan={2}>Absen</th>
                   <th className="border border-slate-900 px-2 py-2 w-20" rowSpan={2}>NIS / NISN</th>
                   <th className="border border-slate-900 px-3 py-2 text-left" rowSpan={2}>Nama Siswa</th>
                   <th className="border border-slate-900 px-2 py-2 w-10" rowSpan={2}>L/P</th>
@@ -448,7 +445,6 @@ export const GradesReportPage: React.FC = () => {
                       }`}
                     >
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{idx + 1}</td>
-                      <td className="border border-slate-900 px-2 py-1.5 text-center font-mono font-bold">{r.rollNumber || '-'}</td>
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[11px]">
                         <div>{r.nis}</div>
                         {r.nisn && r.nisn !== '-' && <div className="text-[10px] text-slate-500">{r.nisn}</div>}
@@ -502,7 +498,7 @@ export const GradesReportPage: React.FC = () => {
               {/* Summary Row */}
               <tfoot>
                 <tr className="bg-slate-100 font-bold border-t-2 border-slate-900 text-center">
-                  <td colSpan={5} className="border border-slate-900 px-3 py-2 text-right">
+                  <td colSpan={4} className="border border-slate-900 px-3 py-2 text-right">
                     RERATA KELAS
                   </td>
                   
