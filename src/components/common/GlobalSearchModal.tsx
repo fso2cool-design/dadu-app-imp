@@ -223,7 +223,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                           {item.category}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{item.subtitle}</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.subtitle}</p>
                     </div>
                   </div>
 

@@ -598,17 +598,17 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100 gap-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
-                <span className="text-xs font-semibold text-indigo-900">{fileName}</span>
-                <span className="text-[11px] bg-white text-indigo-700 px-2 py-0.5 rounded-full font-bold border border-indigo-200">
+                <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">{fileName}</span>
+                <span className="text-[11px] bg-white dark:bg-[#141722] text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-bold border border-indigo-200 dark:border-indigo-800">
                   {parsedRows.length} Baris Siswa
                 </span>
                 {enrolledSummary.classes.map(([cName, cnt]) => (
-                  <span key={cName} className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-medium">
+                  <span key={cName} className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-md font-medium border border-emerald-200 dark:border-emerald-800/60">
                     {cName}: {cnt}
                   </span>
                 ))}
                 {enrolledSummary.unassignedCount > 0 && (
-                  <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">
+                  <span className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-md font-medium border border-amber-200 dark:border-amber-800/60">
                     Tanpa Rombel: {enrolledSummary.unassignedCount}
                   </span>
                 )}

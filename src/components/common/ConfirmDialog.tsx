@@ -56,7 +56,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     warning: {
       icon: AlertTriangle,
       iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60',
-      btnClass: 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm shadow-amber-600/20 focus:ring-amber-500',
+      btnClass: 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow-sm shadow-amber-500/20 focus:ring-amber-500',
       defaultConfirmLabel: 'Ya, Lanjutkan',
     },
     primary: {

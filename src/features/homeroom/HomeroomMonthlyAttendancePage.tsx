@@ -556,19 +556,19 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
                         if (rec) {
                           if (rec.status === 'PRESENT') {
                             content = '•';
-                            cellBg = 'bg-emerald-50 text-emerald-700 font-bold text-base';
+                            cellBg = 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold text-base';
                           } else if (rec.status === 'SICK') {
                             content = 'S';
-                            cellBg = 'bg-amber-100 text-amber-800 font-bold';
+                            cellBg = 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 font-bold';
                           } else if (rec.status === 'PERMITTED') {
                             content = 'I';
-                            cellBg = 'bg-blue-100 text-blue-800 font-bold';
+                            cellBg = 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300 font-bold';
                           } else if (rec.status === 'ABSENT') {
                             content = 'A';
-                            cellBg = 'bg-rose-100 text-rose-800 font-bold';
+                            cellBg = 'bg-rose-100 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 font-bold';
                           } else if (rec.status === 'DISPENSATION') {
                             content = 'D';
-                            cellBg = 'bg-purple-100 text-purple-800 font-bold';
+                            cellBg = 'bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 font-bold';
                           }
                         } else if (holidayCheck.isHoliday) {
                           content = '-';

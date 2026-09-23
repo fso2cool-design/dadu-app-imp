@@ -955,7 +955,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   onClick={() => handleStatusChange(row.studentId, 'SICK')}
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'SICK'
-                                      ? 'bg-amber-500 text-white shadow-xs'
+                                      ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
                                       : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-amber-600 dark:hover:text-amber-400'
                                   }`}
                                   title="Sakit (S)"

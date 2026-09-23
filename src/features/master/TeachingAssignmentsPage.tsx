@@ -601,7 +601,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 type="button"
                 disabled={archiving}
                 onClick={() => handleArchive(deleteBlockedModal.assignment)}
-                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
               >
                 <Archive className="w-4 h-4" />
                 {archiving ? 'Mengarsipkan...' : 'Arsipkan Penugasan Ini'}

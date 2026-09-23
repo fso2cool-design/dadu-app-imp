@@ -257,7 +257,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               type="button"
               onClick={() => setStatusFilter('IN_PROGRESS')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'IN_PROGRESS' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'IN_PROGRESS' ? 'bg-amber-500 text-slate-950 font-bold shadow-xs' : 'text-slate-400 hover:text-white'
               }`}
             >
               Diproses

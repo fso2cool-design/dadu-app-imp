@@ -127,8 +127,8 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowRank(!showRank)}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showRank 
-                  ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 text-amber-800 dark:text-amber-300' 
-                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
+                  ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300' 
+                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showKop 
                   ? 'bg-orange-50 dark:bg-cyan-950/50 border-orange-200 dark:border-cyan-500/40 text-orange-700 dark:text-cyan-300' 
-                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
+                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />

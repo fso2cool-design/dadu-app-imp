@@ -430,7 +430,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
   const statusOptions: { value: AttendanceStatus; label: string; short: string; color: string; activeColor: string }[] = [
     { value: 'PRESENT', label: 'Hadir', short: 'H', color: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-500/40', activeColor: 'bg-emerald-600 text-white font-bold' },
-    { value: 'SICK', label: 'Sakit', short: 'S', color: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-500/40', activeColor: 'bg-amber-500 text-white font-bold' },
+    { value: 'SICK', label: 'Sakit', short: 'S', color: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-500/40', activeColor: 'bg-amber-500 text-slate-950 font-bold' },
     { value: 'PERMITTED', label: 'Izin', short: 'I', color: 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-500/40', activeColor: 'bg-sky-600 text-white font-bold' },
     { value: 'ABSENT', label: 'Alpa', short: 'A', color: 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-500/40', activeColor: 'bg-rose-600 text-white font-bold' },
     { value: 'DISPENSATION', label: 'Dispen', short: 'D', color: 'text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 border-violet-200 dark:border-violet-500/40', activeColor: 'bg-violet-600 text-white font-bold' },

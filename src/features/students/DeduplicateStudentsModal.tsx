@@ -193,7 +193,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
                           <Users className="w-3.5 h-3.5 text-slate-500" />
                           {group.masterStudent.fullName}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold text-[10px]">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 font-semibold text-[10px]">
                           {group.totalRecords} Dokumen Ganda ({group.matchType}: {group.matchValue || '-'})
                         </span>
                       </div>

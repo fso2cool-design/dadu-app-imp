@@ -246,8 +246,8 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
             </div>
 
             {/* Double Border Rule (Garis Ganda Dokumen Dinas Resmi) */}
-            <div className="border-b-2 border-slate-950"></div>
-            <div className="border-b border-slate-950 mt-0.5"></div>
+            <div className="border-b-2 border-slate-950 dark:border-slate-300 print:!border-slate-950"></div>
+            <div className="border-b border-slate-950 dark:border-slate-400 print:!border-slate-950 mt-0.5"></div>
           </div>
         )}
 

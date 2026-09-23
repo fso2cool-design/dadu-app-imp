@@ -242,7 +242,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                 Set Semua Hadir (H)
               </button>
             ) : (
-              <span className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+              <span className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold">
                 🔒 Mode Arsip Historis (Read-Only)
               </span>
             )}
@@ -251,29 +251,29 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
 
         {/* Counter Summary Bar */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
-          <div className="p-2 rounded-xl bg-white border border-slate-200">
-            <span className="text-[10px] text-slate-500 block">Total Siswa</span>
-            <span className="font-bold text-slate-800 text-base">{stats.total}</span>
+          <div className="p-2 rounded-xl bg-white dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838]">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Total Siswa</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100 text-base">{stats.total}</span>
           </div>
-          <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200">
-            <span className="text-[10px] text-emerald-700 font-semibold block">Hadir (H)</span>
-            <span className="font-bold text-emerald-800 text-base">{stats.present}</span>
+          <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold block">Hadir (H)</span>
+            <span className="font-bold text-emerald-800 dark:text-emerald-300 text-base">{stats.present}</span>
           </div>
-          <div className="p-2 rounded-xl bg-amber-50 border border-amber-200">
-            <span className="text-[10px] text-amber-700 font-semibold block">Sakit (S)</span>
-            <span className="font-bold text-amber-800 text-base">{stats.sick}</span>
+          <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold block">Sakit (S)</span>
+            <span className="font-bold text-amber-800 dark:text-amber-300 text-base">{stats.sick}</span>
           </div>
-          <div className="p-2 rounded-xl bg-blue-50 border border-blue-200">
-            <span className="text-[10px] text-blue-700 font-semibold block">Izin (I)</span>
-            <span className="font-bold text-blue-800 text-base">{stats.permitted}</span>
+          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60">
+            <span className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold block">Izin (I)</span>
+            <span className="font-bold text-blue-800 dark:text-blue-300 text-base">{stats.permitted}</span>
           </div>
-          <div className="p-2 rounded-xl bg-rose-50 border border-rose-200">
-            <span className="text-[10px] text-rose-700 font-semibold block">Alpa (A)</span>
-            <span className="font-bold text-rose-800 text-base">{stats.absent}</span>
+          <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60">
+            <span className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold block">Alpa (A)</span>
+            <span className="font-bold text-rose-800 dark:text-rose-300 text-base">{stats.absent}</span>
           </div>
-          <div className="p-2 rounded-xl bg-violet-50 border border-violet-200">
-            <span className="text-[10px] text-violet-700 font-semibold block">Kehadiran</span>
-            <span className="font-bold text-violet-800 text-base">{stats.percentage}%</span>
+          <div className="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800/60">
+            <span className="text-[10px] text-violet-700 dark:text-violet-400 font-semibold block">Kehadiran</span>
+            <span className="font-bold text-violet-800 dark:text-violet-300 text-base">{stats.percentage}%</span>
           </div>
         </div>
 
@@ -366,8 +366,8 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                             onClick={() => handleStatusChange(row.studentId, 'SICK')}
                             className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'SICK'
-                                ? 'bg-amber-500 text-white shadow-2xs'
-                                : 'text-slate-600 hover:bg-white hover:text-amber-700'
+                                ? 'bg-amber-500 text-slate-950 font-black shadow-2xs'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-amber-700 dark:hover:text-amber-300'
                             }`}
                             title="Sakit"
                           >
