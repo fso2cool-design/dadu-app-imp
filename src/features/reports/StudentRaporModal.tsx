@@ -71,7 +71,7 @@ ${showRank && data.rank ? `🏆 *PERINGKAT KELAS*: Ke-${data.rank} dari ${data.t
 - Persentase Kehadiran: *${data.attendanceStats.attendanceRate}%*
 
 📝 *CATATAN WALI KELAS*:
-${data.notes.length > 0 ? data.notes.slice(0, 2).map(n => `- ${n.content}`).join('\n') : '- Ananda menunjukkan perkembangan dan kepribadian yang baik selama proses pembelajaran.'}
+${data.notes.length > 0 ? data.notes.slice(0, 2).map(n => `- ${n.note || n.content || ''}`).join('\n') : '- Ananda menunjukkan perkembangan dan kepribadian yang baik selama proses pembelajaran.'}
 
 Demikian laporan ini kami sampaikan. Terima kasih atas bimbingan dan kerja sama Bapak/Ibu di rumah.
 

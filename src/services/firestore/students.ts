@@ -481,7 +481,6 @@ export async function updateStudent(
   if (cleanData.nikSiswa !== undefined) cleanData.nikSiswa = cleanData.nikSiswa.trim();
   if (cleanData.nikIbu !== undefined) cleanData.nikIbu = cleanData.nikIbu.trim();
   if (cleanData.nkk !== undefined) cleanData.nkk = cleanData.nkk.trim();
-  if (cleanData.customAttributes !== undefined) cleanData.customAttributes = cleanData.customAttributes;
 
   // Sinkronisasi index searchTokens jika fullName atau parentName berubah atau belum ada searchTokens
   const effectiveFullName = cleanData.fullName !== undefined ? cleanData.fullName : currentData.fullName;

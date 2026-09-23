@@ -2,13 +2,17 @@ import React, { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface ModalProps {
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
+
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
+  icon?: ReactNode;
   children: ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  size?: ModalSize | string;
+  maxWidth?: ModalSize | 'max-w-sm' | 'max-w-md' | 'max-w-lg' | 'max-w-xl' | 'max-w-2xl' | 'max-w-3xl' | 'max-w-4xl' | 'max-w-5xl' | string;
   closeOnBackdropClick?: boolean;
 }
 
@@ -17,7 +21,9 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   subtitle,
+  icon,
   children,
+  size,
   maxWidth = 'lg',
   closeOnBackdropClick = false,
 }) => {
@@ -32,7 +38,8 @@ export const Modal: React.FC<ModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const maxWidthClass = {
+  const rawSize = (size || maxWidth || 'lg').replace(/^max-w-/, '');
+  const maxWidthClass = ({
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
@@ -40,7 +47,9 @@ export const Modal: React.FC<ModalProps> = ({
     '2xl': 'max-w-2xl',
     '3xl': 'max-w-3xl',
     '4xl': 'max-w-4xl',
-  }[maxWidth];
+    '5xl': 'max-w-5xl',
+    full: 'max-w-full',
+  } as Record<string, string>)[rawSize] || 'max-w-lg';
 
   return (
     <AnimatePresence>
@@ -66,15 +75,18 @@ export const Modal: React.FC<ModalProps> = ({
               className={`relative w-full ${maxWidthClass} transform overflow-hidden rounded-2xl bg-white dark:bg-[#141722] p-5 sm:p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-[#232838] my-8`}
             >
               <div className="flex items-start justify-between border-b border-slate-100 dark:border-[#232838] pb-3.5 mb-4">
-                <div className="pr-4 min-w-0">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                    {title}
-                  </h3>
-                  {subtitle && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
-                      {subtitle}
-                    </p>
-                  )}
+                <div className="pr-4 min-w-0 flex items-start gap-3">
+                  {icon && <div className="shrink-0 mt-0.5">{icon}</div>}
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                      {title}
+                    </h3>
+                    {subtitle && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button
                   type="button"

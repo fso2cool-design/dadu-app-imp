@@ -1,50 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { LoginPage } from './features/auth/LoginPage';
-import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import { AppLayout } from './components/layout/AppLayout';
-import { DashboardPage } from './features/dashboard/DashboardPage';
-import { AdminUserManagementPage } from './features/admin/AdminUserManagementPage';
-import { MasterDataPage } from './features/master/MasterDataPage';
-import { TeacherHubPage } from './features/teacher/TeacherHubPage';
-import { HomeroomHubPage } from './features/homeroom/HomeroomHubPage';
-import { ReportsHubPage } from './features/reports/ReportsHubPage';
-import { SettingsPage } from './features/settings/SettingsPage';
-import { PhaseShellPage } from './components/common/PhaseShellPage';
 import { LoadingScreen } from './components/common/LoadingScreen';
-import { FeedbackModal } from './components/common/FeedbackModal';
+import { NotFoundPage } from './components/common/NotFoundPage';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { getUnreadFeedbackCount } from './services/firestore/feedbacks';
-import { PublicReportViewerPage } from './features/public/PublicReportViewerPage';
+import { resolvePathToRouteKey, resolveRoutePath } from './routes/paths';
+
+// Lazy-loaded page components for route-level code splitting
+const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage').then(m => ({ default: m.DashboardPage })));
+const TeacherHubPage = lazy(() => import('./features/teacher/TeacherHubPage').then(m => ({ default: m.TeacherHubPage })));
+const HomeroomHubPage = lazy(() => import('./features/homeroom/HomeroomHubPage').then(m => ({ default: m.HomeroomHubPage })));
+const ReportsHubPage = lazy(() => import('./features/reports/ReportsHubPage').then(m => ({ default: m.ReportsHubPage })));
+const MasterDataPage = lazy(() => import('./features/master/MasterDataPage').then(m => ({ default: m.MasterDataPage })));
+const AdminUserManagementPage = lazy(() => import('./features/admin/AdminUserManagementPage').then(m => ({ default: m.AdminUserManagementPage })));
+const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const OnboardingWizard = lazy(() => import('./features/onboarding/OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
+const PublicReportViewerPage = lazy(() => import('./features/public/PublicReportViewerPage').then(m => ({ default: m.PublicReportViewerPage })));
+const FeedbackModal = lazy(() => import('./components/common/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 
 function MainApp() {
   const { user, profile, loading: authLoading } = useAuth();
   const { loading: workspaceLoading } = useWorkspace();
-  const [currentRoute, setCurrentRoute] = useState<string>('dashboard');
-  const [routeState, setRouteState] = useState<any>(null);
-  const [isAdminView, setIsAdminView] = useState<boolean | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [adminBadgeCount, setAdminBadgeCount] = useState<number>(0);
 
   // Check for public share token in URL query params: ?share=<token> or /share/<token>
-  const [publicShareToken, setPublicShareToken] = useState<string | null>(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shareParam = urlParams.get('share');
-      if (shareParam) return shareParam;
-      
-      const pathParts = window.location.pathname.split('/');
-      const shareIdx = pathParts.indexOf('share');
-      if (shareIdx !== -1 && pathParts[shareIdx + 1]) {
-        return pathParts[shareIdx + 1];
-      }
-    } catch {
-      // Ignore
+  const publicShareToken = useMemo(() => {
+    const queryToken = searchParams.get('share');
+    if (queryToken) return queryToken;
+
+    const pathParts = location.pathname.split('/');
+    const shareIdx = pathParts.indexOf('share');
+    if (shareIdx !== -1 && pathParts[shareIdx + 1]) {
+      return pathParts[shareIdx + 1];
     }
     return null;
-  });
+  }, [location.pathname, searchParams]);
+
+  // Derive active route key from current URL path
+  const currentRoute = useMemo(() => {
+    return resolvePathToRouteKey(location.pathname);
+  }, [location.pathname]);
 
   const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com' || profile?.email === 'fso2cool@gmail.com';
 
@@ -57,30 +63,26 @@ function MainApp() {
     }
   }, [isAdmin]);
 
-  // Reset current route to dashboard when user logs out or session changes
+  // If user is logged in and visits /login, redirect cleanly to /dashboard
   useEffect(() => {
-    if (!user) {
-      setCurrentRoute('dashboard');
-      setRouteState(null);
-      setIsAdminView(null);
+    if (user && location.pathname === '/login') {
+      navigate('/dashboard', { replace: true });
     }
-  }, [user]);
+  }, [user, location.pathname, navigate]);
 
-  // Default directly to Teacher Workspace after login (Admin panel accessible via profile dropdown)
-  useEffect(() => {
-    if (profile && isAdminView === null) {
-      setIsAdminView(false);
-    }
-  }, [profile, isAdminView]);
-
+  // Backward-compatible navigation handler: converts route keys or URL paths to navigate()
   const handleNavigate = (route: string, state?: any) => {
-    setRouteState(state || null);
-    setCurrentRoute(route);
+    const targetPath = resolveRoutePath(route);
+    navigate(targetPath, { state });
   };
 
   // If public share token is present in the URL, directly render read-only public viewer
   if (publicShareToken) {
-    return <PublicReportViewerPage token={publicShareToken} />;
+    return (
+      <Suspense fallback={<LoadingScreen message="Memuat dokumen publik..." />}>
+        <PublicReportViewerPage token={publicShareToken} />
+      </Suspense>
+    );
   }
 
   if (authLoading) {
@@ -114,73 +116,50 @@ function MainApp() {
     );
   }
 
-  // If Admin is viewing the Admin Panel
-  if (isAdmin && isAdminView) {
+  // If Admin is viewing the Admin Panel route
+  if (isAdmin && location.pathname === '/admin') {
     return (
-      <AdminUserManagementPage 
-        onSwitchToTeacherApp={() => setIsAdminView(false)} 
-      />
+      <Suspense fallback={<LoadingScreen message="Menyiapkan panel admin..." />}>
+        <AdminUserManagementPage 
+          onSwitchToTeacherApp={() => handleNavigate('dashboard')} 
+        />
+      </Suspense>
     );
   }
 
   // Logged in but not onboarded yet -> Show 6-Step Onboarding Wizard
   if (!profile?.isOnboarded) {
-    return <OnboardingWizard />;
+    return (
+      <Suspense fallback={<LoadingScreen message="Menyiapkan wisaya orientasi..." />}>
+        <OnboardingWizard />
+      </Suspense>
+    );
   }
 
-  // Render current active page
+  // Render current active page based on URL route
   const renderPage = () => {
-    switch (currentRoute) {
-      case 'dashboard':
-        return <DashboardPage onNavigate={handleNavigate} />;
-      case 'teacher':
-      case 'teaching':
-      case 'teaching-classes':
-      case 'teaching-schedule':
-      case 'schedule':
-      case 'meetings':
-      case 'attendance-subject':
-      case 'grades':
-        return <TeacherHubPage initialTab={currentRoute} routeState={routeState} onNavigate={handleNavigate} />;
-      case 'homeroom':
-      case 'homeroom-dashboard':
-      case 'homeroom-attendance-daily':
-      case 'homeroom-attendance-monthly':
-      case 'homeroom-daily-attendance':
-      case 'homeroom-monthly-attendance':
-      case 'homeroom-teacher-attendance':
-      case 'homeroom-attendance-teacher':
-      case 'homeroom-students':
-      case 'homeroom-notes':
-      case 'homeroom-class-schedule':
-      case 'homeroom-schedule':
-        return <HomeroomHubPage initialTab={currentRoute} routeState={routeState} onNavigate={handleNavigate} />;
-      case 'reports':
-      case 'reports-center':
-      case 'reports-attendance':
-      case 'reports-grades':
-      case 'reports-legger':
-      case 'reports-journal':
-        return <ReportsHubPage initialTab={currentRoute} onNavigate={handleNavigate} />;
-      case 'master':
-      case 'master-academic-years':
-      case 'master-classes':
-      case 'master-students':
-      case 'master-subjects':
-      case 'master-teaching':
-        return <MasterDataPage initialTab={currentRoute} onNavigate={handleNavigate} />;
-      case 'settings':
-      case 'settings-profile':
-      case 'settings-school':
-      case 'settings-document':
-      case 'settings-backup':
-      case 'settings-stats':
-      case 'settings-preferences':
-      case 'settings-maintenance':
-        return <SettingsPage initialTab={currentRoute} />;
-      default:
-        return <PhaseShellPage route={currentRoute} onNavigate={handleNavigate} />;
+    const path = location.pathname.replace(/\/+$/, '') || '/';
+
+    if (path === '/' || path === '/dashboard') {
+      return <DashboardPage onNavigate={handleNavigate} />;
     }
+    if (path.startsWith('/teacher')) {
+      return <TeacherHubPage initialTab={currentRoute} routeState={location.state} onNavigate={handleNavigate} />;
+    }
+    if (path.startsWith('/homeroom')) {
+      return <HomeroomHubPage initialTab={currentRoute} routeState={location.state} onNavigate={handleNavigate} />;
+    }
+    if (path.startsWith('/reports')) {
+      return <ReportsHubPage initialTab={currentRoute} onNavigate={handleNavigate} />;
+    }
+    if (path.startsWith('/master')) {
+      return <MasterDataPage initialTab={currentRoute} onNavigate={handleNavigate} />;
+    }
+    if (path.startsWith('/settings')) {
+      return <SettingsPage initialTab={currentRoute} />;
+    }
+
+    return <NotFoundPage onNavigate={handleNavigate} />;
   };
 
   return (
@@ -190,17 +169,23 @@ function MainApp() {
         onNavigate={handleNavigate}
         isAdmin={isAdmin}
         adminBadgeCount={adminBadgeCount}
-        onOpenAdminPanel={isAdmin ? () => setIsAdminView(true) : undefined}
+        onOpenAdminPanel={isAdmin ? () => handleNavigate('admin') : undefined}
         onOpenFeedbackModal={() => setShowFeedbackModal(true)}
       >
-        {renderPage()}
+        <ErrorBoundary fallbackTitle="Terjadi Kendala pada Halaman Ini">
+          <Suspense fallback={<LoadingScreen message="Memuat halaman..." fullScreen={false} />}>
+            {renderPage()}
+          </Suspense>
+        </ErrorBoundary>
       </AppLayout>
 
       {showFeedbackModal && (
-        <FeedbackModal
-          isOpen={showFeedbackModal}
-          onClose={() => setShowFeedbackModal(false)}
-        />
+        <Suspense fallback={null}>
+          <FeedbackModal
+            isOpen={showFeedbackModal}
+            onClose={() => setShowFeedbackModal(false)}
+          />
+        </Suspense>
       )}
     </>
   );
@@ -208,14 +193,18 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <WorkspaceProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <MainApp />
-          </ToastProvider>
-        </ThemeProvider>
-      </WorkspaceProvider>
-    </AuthProvider>
+    <ErrorBoundary isRoot fallbackTitle="Terjadi Kendala Aplikasi">
+      <BrowserRouter>
+        <AuthProvider>
+          <WorkspaceProvider>
+            <ThemeProvider>
+              <ToastProvider>
+                <MainApp />
+              </ToastProvider>
+            </ThemeProvider>
+          </WorkspaceProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

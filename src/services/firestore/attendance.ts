@@ -83,9 +83,14 @@ export function normalizeAttendanceRecord(
 }
 
 /**
- * Independent Subject Attendance Save Handler.
- * Saves attendance without requiring an existing meeting/journal.
- * If meetingId is provided, also updates meeting attendance summary.
+ * Menyimpan data presensi mata pelajaran secara mandiri (idempotent).
+ * Mampu menyimpan absensi tanpa ketergantungan wajib pada jurnal pertemuan.
+ * Bila meetingId disertakan, ringkasan kehadiran pertemuan terkait akan diperbarui otomatis.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param payload - Payload presensi ({ academicYearId, semester, classId, teachingAssignmentId, date, items, meetingId, meetingNumber }).
+ * @returns Ringkasan kalkulasi kehadiran (hadir, sakit, izin, alfa, persentase kehadiran).
+ * @throws Error bila payload tidak lengkap atau tahun ajaran telah diarsipkan.
  */
 export async function saveSubjectAttendance(
   uid: string,
@@ -224,8 +229,14 @@ export async function saveSubjectAttendance(
 }
 
 /**
- * Backward compatibility wrapper for saveMeetingAttendance.
- * Reads meeting metadata and persists using the independent attendance schema.
+ * Wrapper kompatibilitas mundur untuk menyimpan presensi yang terikat pada jurnal pertemuan.
+ * Mengambil metadata pertemuan dan mendelegasikannya ke schema penyimpanan presensi independen.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param meetingId - ID dokumen pertemuan terkait.
+ * @param items - Daftar presensi kehadiran santri/siswa.
+ * @returns Ringkasan statistik absensi siswa.
+ * @throws Error bila pertemuan tidak ditemukan atau data siswa tidak lengkap.
  */
 export async function saveMeetingAttendance(
   uid: string,

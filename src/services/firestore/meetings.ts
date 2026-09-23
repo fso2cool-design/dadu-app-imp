@@ -18,6 +18,9 @@ import { Meeting, SemesterType, AttendanceSummary } from '../../types';
 import { getTodayISO } from '../../utils/date';
 import { trackSync } from '../../utils/syncEvents';
 
+/**
+ * Filter options for querying meetings.
+ */
 export interface MeetingFilterOptions {
   academicYearId?: string;
   semester?: SemesterType;
@@ -25,6 +28,14 @@ export interface MeetingFilterOptions {
   classId?: string;
 }
 
+/**
+ * Mengambil daftar jurnal pertemuan mengajar guru berdasar filter akademik.
+ * Memanfaatkan composite index bila tersedia, dengan fallback ke sort in-memory.
+ *
+ * @param uid - ID Pengguna (guru) pemilik data.
+ * @param options - Opsi penyaringan (teachingAssignmentId, semester, academicYearId, classId).
+ * @returns Array objek Meeting yang telah diurutkan berdasarkan meetingNumber asc.
+ */
 export async function getMeetings(
   uid: string, 
   options?: MeetingFilterOptions
@@ -83,6 +94,13 @@ export async function getMeetings(
   }
 }
 
+/**
+ * Mengambil satu dokumen jurnal pertemuan berdasarkan ID uniknya.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param meetingId - ID dokumen pertemuan yang dicari.
+ * @returns Objek Meeting jika ditemukan, atau null jika tidak ada.
+ */
 export async function getMeetingById(uid: string, meetingId: string): Promise<Meeting | null> {
   const docRef = doc(db, 'users', uid, 'meetings', meetingId);
   const snap = await getDoc(docRef);
@@ -90,6 +108,15 @@ export async function getMeetingById(uid: string, meetingId: string): Promise<Me
   return { id: snap.id, ...(snap.data() as any) } as Meeting;
 }
 
+/**
+ * Membuat entri jurnal pertemuan baru secara atomik dengan kunci deterministik.
+ * Melakukan validasi relasi akademik, integritas status tahun ajaran, dan mencegah tabrakan konkurensi.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param data - Payload data pertemuan baru tanpa field id dan timestamps.
+ * @returns Objek Meeting yang berhasil disimpan ke Firestore.
+ * @throws Error jika relasi akademik tidak lengkap atau tahun ajaran diarsipkan.
+ */
 export async function createMeeting(
   uid: string, 
   data: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>
@@ -196,6 +223,15 @@ export async function createMeeting(
   return { id: meetingDocRef.id, ...meetingData } as Meeting;
 }
 
+/**
+ * Memperbarui atribut jurnal pertemuan yang dapat diedit (topic, objectives, activities, dll).
+ * Mengamankan field struktural (academicYearId, semester, classId, subjectId, meetingNumber) agar tetap immutable.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param id - ID dokumen pertemuan yang akan diperbarui.
+ * @param data - Atribut pertemuan yang akan diubah.
+ * @throws Error jika dokumen tidak ditemukan atau tahun ajaran telah diarsipkan.
+ */
 export async function updateMeeting(
   uid: string, 
   id: string, 
@@ -248,6 +284,13 @@ export interface CanDeleteMeetingResult {
   attendanceCount: number;
 }
 
+/**
+ * Memeriksa apakah pertemuan aman untuk dihapus dan menghitung jumlah record absensi terkait.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param id - ID dokumen pertemuan.
+ * @returns Status kelayakan hapus beserta jumlah absensi yang terhubung.
+ */
 export async function canDeleteMeeting(
   uid: string, 
   id: string
@@ -285,6 +328,15 @@ export async function canDeleteMeeting(
   };
 }
 
+/**
+ * Menghapus dokumen pertemuan dari jurnal mengajar.
+ * Secara cerdas memutus tautan (unlink) pada record absensi siswa tanpa menghapusnya,
+ * sehingga riwayat kehadiran siswa tetap utuh.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param id - ID dokumen pertemuan yang akan dihapus.
+ * @throws Error jika tahun ajaran berstatus arsip/historis.
+ */
 export async function deleteMeeting(uid: string, id: string): Promise<void> {
   const docRef = doc(db, 'users', uid, 'meetings', id);
   const snap = await getDoc(docRef);
@@ -330,6 +382,13 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
   });
 }
 
+/**
+ * Memperbarui rekapitulasi kehadiran (summary HADIR, SAKIT, IZIN, ALFA) pada dokumen pertemuan.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param meetingId - ID dokumen pertemuan.
+ * @param summary - Ringkasan statistik kehadiran siswa.
+ */
 export async function updateMeetingAttendanceSummary(
   uid: string,
   meetingId: string,

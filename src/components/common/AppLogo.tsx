@@ -89,7 +89,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     animate: { opacity: 1, y: 0, scale: 1 },
     transition: { 
       duration: 0.5, 
-      ease: [0.16, 1, 0.3, 1] 
+      ease: [0.16, 1, 0.3, 1] as const
     },
   } : {};
 
@@ -98,7 +98,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     whileHover: { 
       scale: 1.04,
       y: -1,
-      transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] }
+      transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as const }
     },
     whileTap: isInteractive ? { scale: 0.98 } : undefined,
   } : {};

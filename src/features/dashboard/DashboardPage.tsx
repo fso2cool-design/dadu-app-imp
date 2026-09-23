@@ -24,6 +24,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Badge } from '../../components/common/Badge';
+import { Skeleton, SkeletonCardGrid } from '../../components/common/Skeleton';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { getMeetings } from '../../services/firestore/meetings';
 import { getEnrollmentsByAcademicYear } from '../../services/firestore/enrollments';
@@ -468,7 +469,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </button>
         </div>
 
-        {todayScheduleItems.length === 0 ? (
+        {loadingStats ? (
+          <div className="space-y-2.5">
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+          </div>
+        ) : todayScheduleItems.length === 0 ? (
           <div className="p-5 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200/70 dark:border-neutral-800 flex items-start sm:items-center gap-3.5">
             <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-100 dark:border-teal-800/50 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-5 h-5" />
@@ -528,7 +534,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         <span className="text-emerald-300">•</span>
                         <span>S: {summary.sick}</span>
                         <span className="text-emerald-300">•</span>
-                        <span>I: {summary.permit}</span>
+                        <span>I: {summary.permitted ?? summary.permit ?? 0}</span>
                         <span className="text-emerald-300">•</span>
                         <span>A: {summary.absent}</span>
                       </div>
@@ -607,7 +613,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </span>
         </div>
 
-        {pendingTasks.length === 0 ? (
+        {loadingStats ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+          </div>
+        ) : pendingTasks.length === 0 ? (
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800/40 flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <div>
@@ -723,7 +734,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       Hadir
                     </span>
                     <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
-                      {homeroomDailySession.totalPresent || 0}
+                      {homeroomDailySession.summary?.present ?? homeroomDailySession.totalPresent ?? 0}
                     </span>
                   </div>
 
@@ -732,7 +743,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       Sakit
                     </span>
                     <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
-                      {homeroomDailySession.totalSick || 0}
+                      {homeroomDailySession.summary?.sick ?? homeroomDailySession.totalSick ?? 0}
                     </span>
                   </div>
 
@@ -741,7 +752,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       Izin
                     </span>
                     <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
-                      {homeroomDailySession.totalPermit || 0}
+                      {homeroomDailySession.summary?.permitted ?? homeroomDailySession.totalPermit ?? 0}
                     </span>
                   </div>
 
@@ -750,7 +761,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       Alfa
                     </span>
                     <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
-                      {homeroomDailySession.totalAbsent || 0}
+                      {homeroomDailySession.summary?.absent ?? homeroomDailySession.totalAbsent ?? 0}
                     </span>
                   </div>
                 </>
@@ -837,8 +848,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Empty State */}
-        {filteredAssignments.length === 0 ? (
+        {/* Loading & Empty State */}
+        {loadingStats ? (
+          <SkeletonCardGrid count={3} />
+        ) : filteredAssignments.length === 0 ? (
           <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-8 sm:p-10 text-center">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-neutral-900 border border-emerald-100 dark:border-neutral-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
               <Layers className="w-6 h-6" />

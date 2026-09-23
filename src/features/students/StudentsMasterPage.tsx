@@ -30,6 +30,7 @@ import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { 
   Users, 
   Plus, 
@@ -848,9 +849,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       {/* Main Table Content */}
       <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl shadow-2xs overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
-            <div className="w-8 h-8 border-2 border-indigo-600 dark:border-indigo-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            Memuat data siswa dari Firestore...
+          <div className="p-4">
+            <SkeletonTable rows={8} columns={6} />
           </div>
         ) : (viewMode === 'class' ? filteredEnrollments.length === 0 : filteredAllStudents.length === 0) ? (
           <div className="p-12 text-center">

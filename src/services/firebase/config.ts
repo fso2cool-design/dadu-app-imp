@@ -4,7 +4,8 @@ import {
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager,
-  getFirestore
+  getFirestore,
+  Firestore
 } from 'firebase/firestore';
 import firebaseConfigJson from '../../../firebase-applet-config.json';
 
@@ -12,7 +13,7 @@ const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfigJson.apiKey,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfigJson.authDomain,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfigJson.projectId,
-  storageBucket: firebaseConfigJson.storageBucket,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfigJson.storageBucket,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfigJson.messagingSenderId,
   appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfigJson.appId,
 };
@@ -25,20 +26,22 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 // Initialize Auth
 export const auth = getAuth(app);
 
-// Initialize Firestore with offline persistence and resilient long-polling
-let firestoreInstance;
+const forceLongPolling = import.meta.env.VITE_FIRESTORE_FORCE_LONG_POLLING === 'true';
+
+// Initialize Firestore with offline persistence and high-speed WebChannel streaming
+let firestoreInstance: Firestore;
 try {
   firestoreInstance = initializeFirestore(app, {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),
     }),
-    experimentalForceLongPolling: true,
+    ...(forceLongPolling ? { experimentalForceLongPolling: true } : {}),
   }, databaseId);
 } catch (e) {
   try {
-    // If persistent cache failed (e.g. storage access restriction in iframe), try memory cache with force long polling
+    // If persistent cache failed (e.g. storage access restriction in iframe), try memory cache
     firestoreInstance = initializeFirestore(app, {
-      experimentalForceLongPolling: true,
+      ...(forceLongPolling ? { experimentalForceLongPolling: true } : {}),
     }, databaseId);
   } catch {
     // If already initialized, get instance

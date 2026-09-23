@@ -24,7 +24,7 @@ import {
 } from '../../services/firestore/backup';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useToast } from '../../context/ToastContext';
-import { SchoolSettings, DocumentSettings, UserPreferences } from '../../types';
+import { SchoolSettings, DocumentSettings, UserPreferences, SemesterType } from '../../types';
 import { SignaturePadModal } from '../../components/common/SignaturePadModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
@@ -590,9 +590,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     try {
       setIsPreviewLoading(true);
       setErrorMsg(null);
+      const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
       const preview = await previewSemesterReset(user.uid, {
         academicYearId: resetAcademicYearId,
-        semester: resetSemester,
+        semester: targetSemester,
         scope: resetScope,
       });
       setResetPreview(preview);
@@ -635,9 +636,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setErrorMsg(null);
       setSuccessMsg(null);
 
+      const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
       const summary = await resetSemesterData(user.uid, {
         academicYearId: resetAcademicYearId,
-        semester: resetSemester,
+        semester: targetSemester,
         scope: resetScope,
       });
 

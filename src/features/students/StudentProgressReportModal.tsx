@@ -123,8 +123,8 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
       else if (rec.status === 'PERMITTED' || (rec.status as any) === 'I') izinCount++;
       else if (rec.status === 'ABSENT' || (rec.status as any) === 'A') alpaCount++;
       else if (rec.status === 'DISPENSATION' || (rec.status as any) === 'D') dispCount++;
-    } else if (rec.records && Array.isArray(rec.records)) {
-      const item = rec.records.find((r: any) => r.studentId === enrollment.studentId);
+    } else if ((rec as any).records && Array.isArray((rec as any).records)) {
+      const item = (rec as any).records.find((r: any) => r.studentId === enrollment.studentId);
       if (item) {
         if (item.status === 'H' || item.status === 'PRESENT') hadirCount++;
         else if (item.status === 'S' || item.status === 'SICK') sakitCount++;

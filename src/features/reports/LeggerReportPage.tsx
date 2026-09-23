@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services/firestore/assessments';
 import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
 import { getSubjects } from '../../services/firestore/subjects';
@@ -696,8 +697,8 @@ export const LeggerReportPage: React.FC = () => {
         paperSize="F4"
       >
         {loading ? (
-          <div className="py-16 text-center text-slate-400 text-xs">
-            Menghimpun dan mengkalkulasi legger nilai...
+          <div className="py-4">
+            <SkeletonTable rows={10} columns={8} />
           </div>
         ) : filteredRows.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
@@ -973,7 +974,8 @@ export const LeggerReportPage: React.FC = () => {
               totalScore: r.totalScore,
               averageScore: r.averageScore,
               rank: r.rank
-            }))
+            })),
+            classAverage: classStats.overallAvg,
           }
         }}
       />

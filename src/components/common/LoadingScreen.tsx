@@ -1,29 +1,27 @@
 import React from 'react';
 import { AppLogo } from './AppLogo';
 import { APP_CONFIG } from '../../constants/app';
-import { useAppTheme } from '../../context/ThemeContext';
+import { useOptionalAppTheme } from '../../context/ThemeContext';
 
 interface LoadingScreenProps {
   message?: string;
   subtitle?: string;
+  fullScreen?: boolean;
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
   message = 'Menyiapkan ruang kerja Anda...',
-  subtitle = `${APP_CONFIG.tagline} • ${APP_CONFIG.description}`
+  subtitle = `${APP_CONFIG.tagline} • ${APP_CONFIG.description}`,
+  fullScreen = true
 }) => {
-  let isDark = false;
-  try {
-    const themeContext = useAppTheme();
-    isDark = themeContext.isDark;
-  } catch {
-    // Fallback if rendered outside ThemeProvider
-    isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-  }
+  const themeContext = useOptionalAppTheme();
+  const isDark = themeContext 
+    ? themeContext.isDark 
+    : (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center px-4 select-none transition-colors duration-300 relative ${
-      isDark ? 'bg-[#0E1017] text-slate-100' : 'bg-slate-50 text-slate-800'
+    <div className={`${fullScreen ? 'min-h-screen' : 'py-16 min-h-[400px]'} flex flex-col items-center justify-center px-4 select-none transition-colors duration-300 relative ${
+      isDark ? (fullScreen ? 'bg-[#0E1017] text-slate-100' : 'bg-transparent text-slate-100') : (fullScreen ? 'bg-slate-50 text-slate-800' : 'bg-transparent text-slate-800')
     }`}>
       {/* Background ambient radial glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center" aria-hidden="true">

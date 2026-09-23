@@ -1,14 +1,73 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { visualizer } from 'rollup-plugin-visualizer';
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(), 
+      tailwindcss(),
+      visualizer({
+        filename: 'dist/stats.html',
+        gzipSize: true,
+        brotliSize: true,
+        open: false,
+      }),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+      },
+    },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const normalizedId = id.replace(/\\/g, '/');
+            if (normalizedId.includes('/node_modules/')) {
+              if (
+                normalizedId.includes('/@firebase/firestore/') || 
+                normalizedId.includes('/firebase/firestore/')
+              ) {
+                return 'vendor-firebase-firestore';
+              }
+              if (
+                normalizedId.includes('/@firebase/auth/') || 
+                normalizedId.includes('/firebase/auth/')
+              ) {
+                return 'vendor-firebase-auth';
+              }
+              if (normalizedId.includes('/firebase/') || normalizedId.includes('/@firebase/')) {
+                return 'vendor-firebase-core';
+              }
+              if (normalizedId.includes('/xlsx/')) {
+                return 'vendor-xlsx';
+              }
+              if (normalizedId.includes('/motion/') || normalizedId.includes('/framer-motion/')) {
+                return 'vendor-motion';
+              }
+              if (normalizedId.includes('/lucide-react/')) {
+                return 'vendor-lucide';
+              }
+              if (
+                normalizedId.includes('/react-router/') || 
+                normalizedId.includes('/react-router-dom/')
+              ) {
+                return 'vendor-router';
+              }
+              if (
+                normalizedId.includes('/react/') || 
+                normalizedId.includes('/react-dom/') || 
+                normalizedId.includes('/scheduler/')
+              ) {
+                return 'vendor-react';
+              }
+            }
+          },
+        },
       },
     },
     server: {

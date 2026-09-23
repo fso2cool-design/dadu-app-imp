@@ -6,7 +6,7 @@ export type StudentStatus = 'ACTIVE' | 'INACTIVE' | 'GRADUATED' | 'TRANSFERRED';
 export type MeetingStatus = 'DRAFT' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'SUBSTITUTE';
 export type AttendanceStatus = 'PRESENT' | 'SICK' | 'PERMITTED' | 'ABSENT' | 'DISPENSATION';
 export type AssessmentCategory = 'ASSIGNMENT' | 'QUIZ' | 'PRACTICE' | 'PROJECT' | 'MIDTERM' | 'FINAL' | 'OTHER';
-export type StudentNoteCategory = 'ACADEMIC' | 'ATTENDANCE' | 'ACHIEVEMENT' | 'BEHAVIOR' | 'ADMINISTRATIVE' | 'OTHER';
+export type StudentNoteCategory = 'ACADEMIC' | 'ATTENDANCE' | 'ACHIEVEMENT' | 'BEHAVIOR' | 'ADMINISTRATIVE' | 'DISCIPLINE' | 'OTHER';
 export type CalculationMethod = 'SIMPLE_AVERAGE' | 'WEIGHTED_AVERAGE';
 
 export interface UserProfile {
@@ -52,6 +52,7 @@ export interface ClassItem {
   gradeLevel: string; // e.g. "10", "11", "12", "7", "8", "9"
   major?: string; // e.g. "MIPA", "IPS", "Umum"
   classTeacherId?: string; // homeroom teacher uid
+  classTeacherName?: string;
   isActive: boolean;
   isArchived?: boolean;
   archivedAt?: any;
@@ -182,9 +183,11 @@ export interface AttendanceSummary {
   present: number;
   sick: number;
   permitted: number;
+  permit?: number;
   absent: number;
   dispensation: number;
   total: number;
+  totalRecords?: number;
   presentPercentage: number;
 }
 
@@ -254,6 +257,10 @@ export interface DailyAttendanceSession {
   inputMethod?: 'DIRECT' | 'MANUAL_BOOK';
   notes?: string;
   summary?: AttendanceSummary;
+  totalPresent?: number;
+  totalSick?: number;
+  totalPermit?: number;
+  totalAbsent?: number;
   createdAt: any;
   updatedAt: any;
 }
@@ -313,6 +320,7 @@ export interface StudentNote {
   date: string; // YYYY-MM-DD
   category: StudentNoteCategory;
   note: string;
+  content?: string;
   actionPlan?: string;
   parentFollowUp?: string;
   isImportant: boolean;
@@ -347,6 +355,7 @@ export interface SchoolSettings {
   teacherName?: string;
   teacherNip?: string;
   teacherRole?: string;
+  defaultKkm?: number;
   createdAt?: any;
   updatedAt?: any;
 }
@@ -528,6 +537,7 @@ export interface ClassSchedule {
 export type SharedReportType = 'ATTENDANCE' | 'JOURNAL' | 'LEGGER';
 
 export interface SharedReportPayload {
+  reportType?: SharedReportType;
   // Snapshot/Metadata
   title: string;
   subtitle?: string;

@@ -6,7 +6,8 @@ export type ConfirmVariant = 'danger' | 'warning' | 'primary' | 'info';
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  onCancel?: () => void;
   onConfirm: () => void | Promise<void>;
   title: string;
   message: React.ReactNode;
@@ -20,6 +21,7 @@ export interface ConfirmDialogProps {
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   onClose,
+  onCancel,
   onConfirm,
   title,
   message,
@@ -29,16 +31,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isLoading = false,
   maxWidth = 'md',
 }) => {
+  const handleClose = () => {
+    if (onCancel) onCancel();
+    else if (onClose) onClose();
+  };
   // Listen for Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen && !isLoading) {
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isLoading, onClose]);
+  }, [isOpen, isLoading, onCancel, onClose]);
 
   const config = {
     danger: {
@@ -130,7 +136,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#232838] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isLoading}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] border border-slate-200 dark:border-[#232838] transition-colors cursor-pointer disabled:opacity-50"
                 >

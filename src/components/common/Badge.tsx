@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 
 interface BadgeProps {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'purple';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'violet' | 'blue' | 'neutral';
   children: ReactNode;
   size?: 'sm' | 'md';
 }
@@ -19,6 +19,9 @@ export const Badge: React.FC<BadgeProps> = ({
     danger: 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/50',
     info: 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/40',
     purple: 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/40',
+    violet: 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-500/40',
+    blue: 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-500/40',
+    neutral: 'bg-slate-100 dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#232838]',
   }[variant];
 
   const sizeStyles = {

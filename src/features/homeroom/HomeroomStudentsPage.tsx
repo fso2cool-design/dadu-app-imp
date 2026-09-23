@@ -10,6 +10,7 @@ import { StudentProgressReportModal } from '../students/StudentProgressReportMod
 import { StudentExamCardModal } from '../students/StudentExamCardModal';
 import { StudentCustomPrintModal, StudentPrintItem } from '../students/StudentCustomPrintModal';
 import { GenderBadge, GenderIcon } from '../../components/common/GenderIcon';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import { 
   Users, 
   Search, 
@@ -186,6 +187,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
     return enrollments.map(enr => ({
       student: enr.student || {
         id: enr.studentId,
+        nis: '',
+        nisn: '',
         fullName: '',
         gender: 'L',
         status: 'ACTIVE',
@@ -448,9 +451,12 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
           </div>
 
           {/* Student List Table */}
-          <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+          {loading ? (
+            <SkeletonTable rows={8} columns={7} />
+          ) : (
+            <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-semibold border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="py-3 px-3.5 w-12 text-center font-semibold">No</th>
@@ -565,6 +571,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               </table>
             </div>
           </div>
+        )}
         </>
       )}
 

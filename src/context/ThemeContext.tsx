@@ -127,6 +127,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
+export const useOptionalAppTheme = (): ThemeContextType | null => {
+  return useContext(ThemeContext) || null;
+};
+
 export const useAppTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
   if (!context) {

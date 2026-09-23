@@ -4,16 +4,19 @@ import { getSchoolSettings, getDocumentSettings } from '../../services/firestore
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
-import { Printer, Download, Building2, Sliders, CheckCircle, FileSpreadsheet } from 'lucide-react';
+import { Printer, Download, Building2, Sliders, CheckCircle, FileSpreadsheet, X } from 'lucide-react';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 
 interface PrintDocumentLayoutProps {
   title: string;
+  subtitle?: string;
+  documentSubtitle?: string;
   documentNumber?: string;
   metaItems?: Array<{ label: string; value: string | React.ReactNode }>;
   children: React.ReactNode;
   onExportExcel?: () => void;
   excelExportDisabled?: boolean;
+  onClose?: () => void;
   signatureType?: 'TEACHER_AND_HEADMASTER' | 'HOMEROOM_AND_HEADMASTER' | 'HEADMASTER_ONLY' | 'TEACHER_ONLY';
   customTeacherName?: string;
   customTeacherNip?: string;
@@ -24,11 +27,14 @@ interface PrintDocumentLayoutProps {
 
 export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   title,
+  subtitle,
+  documentSubtitle,
   documentNumber,
   metaItems = [],
   children,
   onExportExcel,
   excelExportDisabled = false,
+  onClose,
   signatureType = 'TEACHER_AND_HEADMASTER',
   customTeacherName,
   customTeacherNip,
@@ -169,6 +175,18 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
             <Printer className="w-3.5 h-3.5" />
             <span>Cetak Dokumen</span>
           </button>
+
+          {/* Close Button if modal mode */}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              title="Tutup"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -238,6 +256,11 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
           <h1 className="text-base sm:text-lg font-black tracking-tight uppercase text-slate-900 underline decoration-2 underline-offset-4">
             {title}
           </h1>
+          {(subtitle || documentSubtitle) && (
+            <p className="text-xs font-semibold text-slate-600 mt-1 uppercase tracking-wider">
+              {subtitle || documentSubtitle}
+            </p>
+          )}
           {documentNumber && (
             <p className="text-[11px] text-slate-500 font-mono mt-1">
               Nomor: {documentNumber}

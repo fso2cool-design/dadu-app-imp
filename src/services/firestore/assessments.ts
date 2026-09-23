@@ -17,6 +17,9 @@ import { db } from '../firebase/config';
 import { AssessmentItem, Score, SemesterType, AssessmentCategory } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
 
+/**
+ * Opsi penyaringan untuk query butir penilaian (AssessmentItem).
+ */
 export interface AssessmentFilterOptions {
   academicYearId?: string;
   semester?: SemesterType;
@@ -25,6 +28,13 @@ export interface AssessmentFilterOptions {
   subjectId?: string;
 }
 
+/**
+ * Mengambil daftar butir penilaian (kolom nilai) berdasar filter akademik.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param options - Parameter filter (teachingAssignmentId, classId, subjectId, dll).
+ * @returns Array butir penilaian yang terurut berdasarkan tanggal atau nama.
+ */
 export async function getAssessmentItems(
   uid: string, 
   options?: AssessmentFilterOptions
@@ -64,6 +74,13 @@ export async function getAssessmentItems(
   return items;
 }
 
+/**
+ * Mengambil satu butir penilaian berdasarkan ID dokumen.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param itemId - ID butir penilaian.
+ * @returns Objek AssessmentItem atau null bila tidak ditemukan.
+ */
 export async function getAssessmentItemById(
   uid: string, 
   itemId: string
@@ -74,6 +91,14 @@ export async function getAssessmentItemById(
   return { id: snap.id, ...(snap.data() as any) } as AssessmentItem;
 }
 
+/**
+ * Membuat butir penilaian (kolom penilaian) baru dengan validasi integritas relasi tugas mengajar.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param data - Payload data penilaian baru tanpa id dan timestamp.
+ * @returns ID dokumen baru yang berhasil dibuat.
+ * @throws Error bila relasi akademik tidak lengkap atau tahun ajaran diarsipkan.
+ */
 export async function createAssessmentItem(
   uid: string, 
   data: Omit<AssessmentItem, 'id' | 'createdAt' | 'updatedAt'>
@@ -125,6 +150,14 @@ export async function createAssessmentItem(
   });
 }
 
+/**
+ * Memperbarui pengaturan dan konfigurasi butir penilaian (bobot, skor maksimum, nama).
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param itemId - ID butir penilaian yang diperbarui.
+ * @param data - Atribut yang akan diubah.
+ * @throws Error bila butir penilaian tidak ditemukan atau tahun ajaran telah diarsipkan.
+ */
 export async function updateAssessmentItem(
   uid: string, 
   itemId: string, 
@@ -215,6 +248,13 @@ export async function canDeleteAssessmentItem(
   };
 }
 
+/**
+ * Menghapus butir penilaian setelah lolos verifikasi keamanan guard (tidak memiliki nilai siswa aktif).
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param itemId - ID butir penilaian yang akan dihapus.
+ * @throws Error bila guard canDeleteAssessmentItem menolak penghapusan.
+ */
 export async function deleteAssessmentItem(
   uid: string, 
   itemId: string
@@ -235,7 +275,12 @@ export async function deleteAssessmentItem(
 }
 
 /**
- * Get all scores for a list of assessment item IDs
+ * Mengambil daftar nilai siswa untuk kumpulan ID butir penilaian.
+ * Secara otomatis membagi query menjadi beberapa batch maksimal 30 ID (batasan Firestore in-query).
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param assessmentItemIds - Kumpulan ID butir penilaian.
+ * @returns Array Score dari seluruh butir penilaian yang diminta.
  */
 export async function getScoresByAssessmentItemIds(
   uid: string, 
@@ -264,7 +309,13 @@ export async function getScoresByAssessmentItemIds(
 }
 
 /**
- * Save / Update a batch of scores for students in an assessment
+ * Menyimpan atau memperbarui sekumpulan nilai siswa secara batch (maksimal 300 nilai per batch write).
+ * Melakukan validasi rentang skor (0 s/d 100) dan pengamanan tahun ajaran arsip.
+ *
+ * @param uid - ID Pengguna (guru).
+ * @param assessmentItemId - ID butir penilaian target.
+ * @param scoresData - Array data nilai siswa ({ studentId, score, note }).
+ * @throws Error bila tahun ajaran target telah diarsipkan atau data tidak valid.
  */
 export async function saveScoresBatch(
   uid: string,
