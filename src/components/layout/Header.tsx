@@ -89,8 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
     reloadWorkspaceData,
     triggerSyncFeedback
   } = useWorkspace();
-  const { activeTheme } = useAppTheme();
-  const isDark = activeTheme === 'dark-crimson';
+  const { activeTheme, isDark } = useAppTheme();
 
   const [localTime, setLocalTime] = useState<string>('');
   const [localTimeZone, setLocalTimeZone] = useState<string>('');
@@ -225,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
         }}
         className={`w-full p-2 rounded-xl text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
           isSelected
-            ? 'bg-emerald-600 text-white font-bold shadow-xs'
+            ? 'bg-accent-primary text-accent-primary-text font-bold shadow-xs'
             : 'hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300'
         }`}
       >
@@ -350,7 +349,7 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setActiveAcademicYear(year)}
                           className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeAcademicYear?.id === year.id
-                              ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-500 font-bold shadow-xs'
+                              ? 'bg-accent-primary text-accent-primary-text border-accent-primary font-bold shadow-xs'
                               : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#232838]'
                           }`}
                         >
@@ -370,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setActiveSemester(sem)}
                           className={`flex-1 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeSemester === sem
-                              ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-500 font-bold shadow-xs'
+                              ? 'bg-accent-primary text-accent-primary-text border-accent-primary font-bold shadow-xs'
                               : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#232838]'
                           }`}
                         >

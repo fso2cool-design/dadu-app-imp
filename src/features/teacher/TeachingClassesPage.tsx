@@ -200,7 +200,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
               setIsMeetingModalOpen(true);
             }}
             disabled={teachingAssignments.length === 0}
-            className="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+            className="px-4 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 active:scale-95"
           >
             <Plus className="w-4 h-4" />
             Catat Pertemuan Baru
@@ -290,7 +290,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
           </p>
           <button
             onClick={() => onNavigate('master-teaching')}
-            className="px-4 py-2 rounded-xl bg-orange-500 dark:bg-cyan-500 text-white dark:text-slate-950 text-xs font-bold hover:bg-orange-600 dark:hover:bg-cyan-400 transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl btn-primary text-xs font-bold transition-all cursor-pointer"
           >
             Atur Plotting Pengajaran
           </button>
@@ -436,10 +436,10 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
                       setSelectedAssignment(assignment);
                       onNavigate('grades');
                     }}
-                    className="px-2 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                    className="px-2 py-2.5 rounded-xl bg-accent-primary-soft hover:opacity-90 text-accent-text border border-accent-primary-border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     title="Buka Buku Nilai"
                   >
-                    <Award className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <Award className="w-3.5 h-3.5 text-accent-primary" />
                     Nilai
                   </button>
                 </div>

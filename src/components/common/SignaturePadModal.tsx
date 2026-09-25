@@ -405,7 +405,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             type="button"
             onClick={handleSaveSignature}
             disabled={activeTab === 'draw' ? !hasDrawn : !uploadedImage}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Check className="w-4 h-4" />
             <span>Terapkan Tanda Tangan</span>

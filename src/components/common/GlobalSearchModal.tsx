@@ -44,8 +44,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   onNavigate,
 }) => {
   const { classes, teachingAssignments, setSelectedAssignment } = useWorkspace();
-  const { activeTheme } = useAppTheme();
-  const isDark = activeTheme === 'dark-crimson';
+  const { activeTheme, isDark } = useAppTheme();
 
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);

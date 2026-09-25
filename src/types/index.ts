@@ -26,11 +26,19 @@ export interface UserProfile {
   defaultAcademicYearId?: string;
   defaultSemester: SemesterType;
   isOnboarded?: boolean;
-  themePreference?: 'light' | 'dark-crimson';
+  themePreference?: ThemeKey;
   lastLoginAt?: any;
   createdAt: any;
   updatedAt: any;
 }
+
+export type ThemeKey = 
+  | 'light' 
+  | 'dark-crimson' 
+  | 'obsidian-tactile' 
+  | 'swiss-manuscript' 
+  | 'solarized-comfort' 
+  | 'chalkboard-school';
 
 export interface AcademicYear {
   id: string;

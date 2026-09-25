@@ -292,7 +292,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                className="btn-primary px-4 py-1.5 rounded-lg text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {loading ? 'Menyimpan...' : (editingFieldId ? 'Simpan Perubahan' : 'Tambahkan Kolom')}
               </button>
@@ -310,7 +310,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
               <button
                 type="button"
                 onClick={handleStartAdd}
-                className="px-3 py-1.5 rounded-lg bg-orange-500 dark:bg-cyan-500 hover:bg-orange-600 dark:hover:bg-cyan-600 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="btn-primary px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Tambah Kolom</span>

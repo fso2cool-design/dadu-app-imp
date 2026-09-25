@@ -73,7 +73,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Tuliskan catatan khusus untuk nilai ini..."
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800 text-xs"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-accent-primary text-slate-800 text-xs"
           />
         </div>
 
@@ -105,7 +105,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
           </button>
           <button
             type="submit"
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Simpan Catatan</span>

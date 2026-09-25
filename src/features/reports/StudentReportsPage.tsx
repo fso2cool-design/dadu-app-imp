@@ -435,7 +435,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               <button
                 type="button"
                 onClick={handlePrint}
-                className="flex-1 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                className="flex-1 btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
               >
                 <Printer className="w-4 h-4" />
                 <span>{selectedStudentId === 'ALL' ? `Cetak Rombel (${enrollments.length})` : 'Cetak Rapor'}</span>
@@ -476,7 +476,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowKop(!showKop)}
               className={`px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showKop 
-                  ? 'bg-orange-50 dark:bg-cyan-950/40 border-orange-300 dark:border-cyan-500/50 text-orange-800 dark:text-cyan-300' 
+                  ? 'bg-accent-primary-soft border-accent-primary-border text-accent-text' 
                   : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
               }`}
             >
@@ -489,7 +489,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowSignatures(!showSignatures)}
               className={`px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showSignatures 
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-600/50 text-emerald-800 dark:text-emerald-300' 
+                  ? 'bg-accent-primary-soft border-accent-primary-border text-accent-text' 
                   : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
               }`}
             >

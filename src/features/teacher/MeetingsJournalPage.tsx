@@ -243,7 +243,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-6 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="p-2.5 rounded-xl bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30">
+            <span className="p-2.5 rounded-xl bg-accent-primary-soft text-accent-text border border-accent-primary-border">
               <CalendarCheck2 className="w-5 h-5" />
             </span>
             <div>
@@ -274,7 +274,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               setIsFormModalOpen(true);
             }}
             title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Catat Pertemuan Baru'}
-            className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Catat Pertemuan Baru
@@ -427,7 +427,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               setMeetingToEdit(null);
               setIsFormModalOpen(true);
             }}
-            className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-semibold transition-all cursor-pointer"
+            className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold transition-all cursor-pointer"
           >
             Catat Pertemuan Pertama
           </button>
@@ -441,12 +441,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             return (
               <div
                 key={meeting.id}
-                className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs hover:border-orange-300 dark:hover:border-cyan-500/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs hover:border-accent-primary-border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
               >
                 {/* Left: Meeting Info */}
                 <div className="space-y-1.5 max-w-2xl">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-lg bg-orange-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-mono font-bold text-xs">
+                    <span className="btn-primary px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
                       Pertemuan #{meeting.meetingNumber}
                     </span>
                     {meeting.meetingType === 'MADRASAH_ACTIVITY' && (

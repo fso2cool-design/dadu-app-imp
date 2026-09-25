@@ -94,7 +94,7 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
           <button
             type="button"
             onClick={handleDismiss}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <span>Mengerti & Lanjutkan</span>
             <ArrowRight className="w-3.5 h-3.5" />

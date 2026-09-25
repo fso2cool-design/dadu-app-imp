@@ -250,7 +250,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   onClick={() => setTeacherMode('SELECT')}
                   className={`px-2 py-0.5 rounded cursor-pointer ${
                     teacherMode === 'SELECT'
-                      ? 'bg-orange-100 text-orange-800 dark:bg-cyan-500/20 dark:text-cyan-300 font-bold'
+                      ? 'bg-accent-primary-soft text-accent-text font-bold'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -262,7 +262,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   onClick={() => setTeacherMode('CUSTOM')}
                   className={`px-2 py-0.5 rounded cursor-pointer ${
                     teacherMode === 'CUSTOM'
-                      ? 'bg-orange-100 text-orange-800 dark:bg-cyan-500/20 dark:text-cyan-300 font-bold'
+                      ? 'bg-accent-primary-soft text-accent-text font-bold'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -306,7 +306,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   onClick={() => setSubjectMode('SELECT')}
                   className={`px-2 py-0.5 rounded cursor-pointer ${
                     subjectMode === 'SELECT'
-                      ? 'bg-orange-100 text-orange-800 dark:bg-cyan-500/20 dark:text-cyan-300 font-bold'
+                      ? 'bg-accent-primary-soft text-accent-text font-bold'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -318,7 +318,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   onClick={() => setSubjectMode('CUSTOM')}
                   className={`px-2 py-0.5 rounded cursor-pointer ${
                     subjectMode === 'CUSTOM'
-                      ? 'bg-orange-100 text-orange-800 dark:bg-cyan-500/20 dark:text-cyan-300 font-bold'
+                      ? 'bg-accent-primary-soft text-accent-text font-bold'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -471,7 +471,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="btn-primary px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Tambahkan Baris ke Rekap</span>

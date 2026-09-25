@@ -242,9 +242,9 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
         )}
 
         {assignment && (
-          <div className="p-2.5 bg-orange-50/70 dark:bg-cyan-950/40 border border-orange-100 dark:border-cyan-800/40 rounded-xl text-orange-900 dark:text-cyan-200 flex items-center justify-between">
+          <div className="p-2.5 bg-accent-primary-soft border border-accent-primary-border rounded-xl text-accent-text flex items-center justify-between">
             <span className="font-semibold">{assignment.subjectName}</span>
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-white dark:bg-[#141722] font-medium text-orange-700 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-700/50">
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-white dark:bg-[#141722] font-medium text-accent-text border border-accent-primary-border">
               Kelas {assignment.className}
             </span>
           </div>
@@ -377,7 +377,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               onChange={(e) => setIsIncludedInFinalScore(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500 dark:peer-checked:bg-cyan-500"></div>
+            <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-primary"></div>
           </label>
         </div>
 
@@ -393,7 +393,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Contoh: TP 1.1 Menganalisis struktur teks eksplanasi dan kaidah kebahasaan"
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-accent-primary text-slate-800 dark:text-slate-200 text-xs bg-white dark:bg-[#0c0e15] disabled:opacity-60"
           />
         </div>
 
@@ -409,7 +409,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
           <button
             type="submit"
             disabled={loading || isArchivedYear}
-            className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span>Menyimpan...</span>

@@ -247,7 +247,7 @@ export const ClassesPage: React.FC = () => {
         <button
           type="button"
           onClick={openCreateModal}
-          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+          className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Tambah Kelas Baru
         </button>
@@ -317,7 +317,7 @@ export const ClassesPage: React.FC = () => {
             <button
               type="button"
               onClick={openCreateModal}
-              className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+              className="mt-4 px-4 py-2 rounded-xl btn-primary text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
               <Plus className="w-4 h-4" /> Tambah Kelas
             </button>
@@ -577,7 +577,7 @@ export const ClassesPage: React.FC = () => {
             <button
               type="submit"
               disabled={actionLoading}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-xs"
+              className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-xs"
             >
               {actionLoading ? 'Menyimpan...' : (editingClass ? 'Simpan Perubahan' : 'Tambah Kelas')}
             </button>
@@ -667,7 +667,7 @@ export const ClassesPage: React.FC = () => {
                 type="button"
                 disabled={actionLoading}
                 onClick={handleConfirmUnarchive}
-                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl btn-primary text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs flex items-center gap-1.5"
               >
                 <ArchiveRestore className="w-3.5 h-3.5" />
                 {actionLoading ? 'Mengaktifkan...' : 'Aktifkan Kelas'}

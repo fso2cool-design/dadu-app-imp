@@ -457,7 +457,7 @@ export const AttendanceReportPage: React.FC = () => {
             type="button"
             onClick={() => setIsShareModalOpen(true)}
             disabled={activeSummaries.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+            className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>Bagikan Tautan Publik</span>

@@ -324,7 +324,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+                  className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   {loading ? 'Membuat Tautan...' : 'Buat Tautan Publik'}
@@ -360,7 +360,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleCopyLink()}
-                    className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
+                    className="btn-primary px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Tersalin' : 'Salin'}</span>
@@ -377,7 +377,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                 {createdReport.passcode && (
                   <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                     <span>Kode Sandi (PIN):</span>
-                    <span className="font-mono font-bold text-orange-600 dark:text-cyan-400">{createdReport.passcode}</span>
+                    <span className="font-mono font-bold text-accent-text">{createdReport.passcode}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">

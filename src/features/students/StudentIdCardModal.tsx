@@ -223,7 +223,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 onClick={() => setActiveTab('VIRTUAL')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'VIRTUAL'
-                    ? 'bg-emerald-600 text-white shadow-xs'
+                    ? 'btn-primary shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -236,7 +236,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 onClick={() => setActiveTab('PRINT_SHEET')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'PRINT_SHEET'
-                    ? 'bg-emerald-600 text-white shadow-xs'
+                    ? 'btn-primary shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -250,7 +250,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
               <button
                 type="button"
                 onClick={() => setTargetMode(targetMode === 'SINGLE' ? 'ALL' : 'SINGLE')}
-                className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#121622] border border-emerald-200 dark:border-emerald-800/80 text-emerald-800 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 transition-all cursor-pointer shadow-2xs"
+                className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-2xs"
               >
                 {targetMode === 'SINGLE'
                   ? `Siswa Terpilih: ${currentStudent?.fullName?.split(' ')[0] || '1 Siswa'}`
@@ -260,7 +260,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                className="btn-primary px-4 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Cetak Kartu ({targetStudents.length})</span>

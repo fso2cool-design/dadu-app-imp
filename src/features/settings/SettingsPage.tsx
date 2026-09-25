@@ -58,7 +58,8 @@ import {
   Palette,
   Sun,
   Moon,
-  Info
+  Info,
+  ChevronDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
@@ -80,6 +81,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   const { activeTheme, applyAndSaveTheme } = useAppTheme();
   const { success: toastSuccess, error: toastError } = useToast();
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>(activeTheme);
+  const currentPreviewOption = THEME_OPTIONS.find(t => t.id === selectedTheme) || THEME_OPTIONS[0];
+  const isSelectedDark = currentPreviewOption.category === 'dark';
 
   useEffect(() => {
     setSelectedTheme(activeTheme);
@@ -878,7 +881,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
+                className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Profil Guru'}
@@ -1252,7 +1255,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
+                className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Identitas Madrasah'}
@@ -1403,7 +1406,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
+                className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Format Dokumen'}
@@ -1719,7 +1722,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
+                  className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? 'Menyimpan...' : 'Simpan Preferensi Workspace'}
@@ -1766,12 +1769,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             </div>
 
             {/* Visual Theme Selector Section */}
-            <div className="space-y-6 pt-2">
+            <div className="space-y-4 pt-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    Pilihan Skema Warna Workspace
+                    Pilihan Skema Tema Workspace
                   </h4>
                 </div>
 
@@ -1784,111 +1787,199 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                       setTimeout(() => setSuccessMsg(null), 3500);
                     }}
                     disabled={selectedTheme === activeTheme}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
+                    style={selectedTheme !== activeTheme ? {
+                      backgroundColor: currentPreviewOption.accentHex,
+                      color: currentPreviewOption.buttonText,
+                    } : undefined}
+                    className={`tactile-press flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
                       selectedTheme !== activeTheme
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
+                        ? 'shadow-sm active:scale-95'
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     }`}
                   >
                     <Save className="w-4 h-4" />
-                    <span>Terapkan & Simpan Tema</span>
+                    <span>{selectedTheme === activeTheme ? 'Tema Aktif' : 'Terapkan & Simpan Tema'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* 2-Theme Grid Selector (Citrus Lime Fresh vs Tron Cyber Grid) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {THEME_OPTIONS.map((t) => {
-                  const isSelected = selectedTheme === t.id;
-                  const isCurrentlyActive = activeTheme === t.id;
-                  const isDarkTheme = t.category === 'dark';
-
-                  return (
-                    <div
-                      key={t.id}
-                      onClick={() => setSelectedTheme(t.id)}
-                      className={`p-5 rounded-3xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${
-                        isDarkTheme ? 'bg-[#141722] text-white' : 'bg-white text-slate-900'
-                      } ${
-                        isSelected
-                          ? isDarkTheme 
-                            ? 'border-cyan-400 shadow-xl shadow-cyan-500/20 ring-2 ring-cyan-500/30' 
-                            : 'border-orange-500 shadow-xl shadow-orange-500/15 ring-2 ring-orange-500/30'
-                          : isDarkTheme
-                            ? 'border-[#232838] hover:border-cyan-500/40'
-                            : 'border-slate-200 hover:border-orange-300'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2.5">
-                            {isDarkTheme ? (
-                              <Moon className="w-5 h-5 text-cyan-400" />
-                            ) : (
-                              <Sun className="w-5 h-5 text-orange-500" />
-                            )}
-                            <span className="font-bold text-sm tracking-tight flex items-center gap-2">
-                              {t.name}
-                            </span>
-                          </div>
-                          {isSelected && (
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-white ${
-                              isDarkTheme ? 'bg-cyan-500 shadow-[0_0_10px_rgba(0,229,255,0.7)] text-slate-950' : 'bg-orange-500'
-                            }`}>
-                              <Check className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                        </div>
-
-                        <p className={`text-xs leading-relaxed mb-4 ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
-                          {t.description}
-                        </p>
-
-                        {/* Interactive UI Mockup Preview */}
-                        <div className={`p-3.5 rounded-2xl border ${
-                          isDarkTheme ? 'bg-[#0c0e15] border-[#232838]' : 'bg-slate-50 border-slate-200'
-                        } space-y-2`}>
-                          <div className="flex items-center justify-between">
-                            <div className={`w-16 h-2 rounded ${isDarkTheme ? 'bg-slate-700' : 'bg-slate-300'}`} />
-                            <div className={`w-8 h-2 rounded ${t.previewAccent}`} />
-                          </div>
-                          <div className={`p-2.5 rounded-xl border ${
-                            isDarkTheme 
-                              ? 'bg-[#141722] border-cyan-500/40 shadow-[0_0_10px_rgba(0,229,255,0.2)]' 
-                              : 'bg-white border-slate-200 shadow-xs'
-                          } flex items-center justify-between`}>
-                            <div className={`w-20 h-2 rounded ${isDarkTheme ? 'bg-slate-800' : 'bg-slate-200'}`} />
-                            <div className={`w-3 h-3 rounded-full ${isDarkTheme ? 'bg-cyan-400 shadow-[0_0_8px_rgba(0,229,255,0.8)]' : 'bg-orange-500'}`} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-[#232838] flex items-center justify-between">
-                        <span className={`text-[11px] font-semibold ${
-                          isCurrentlyActive 
-                            ? isDarkTheme ? 'text-cyan-400' : 'text-orange-600'
-                            : 'text-slate-400'
-                        }`}>
-                          {isCurrentlyActive ? '● Sedang Aktif' : 'Klik untuk memilih'}
-                        </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          isDarkTheme 
-                            ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/40' 
-                            : 'bg-orange-50 text-orange-700 border border-orange-200'
-                        }`}>
-                          {isDarkTheme ? 'TRON CYBER OBSIDIAN' : 'CITRUS LIME FRESH'}
-                        </span>
+              {/* Compact 2-Column Responsive Selector: Dropdown (Left) + Live Mini Preview (Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+                {/* Left Column: Dropdown Controls & Philosophy */}
+                <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                      Pilih Karakter Tema
+                    </label>
+                    
+                    <div className="relative">
+                      <select
+                        value={selectedTheme}
+                        onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
+                        className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
+                      >
+                        {THEME_OPTIONS.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name} ({t.category === 'dark' ? 'Mode Gelap' : 'Mode Terang'})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <ChevronDown className="w-4 h-4" />
                       </div>
                     </div>
-                  );
-                })}
+
+                    {/* Theme Philosophy & Guidance Badge */}
+                    <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+                          {currentPreviewOption.category === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang'}
+                        </span>
+                        {selectedTheme === activeTheme && (
+                          <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Sedang Digunakan
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
+                        {currentPreviewOption.tagline}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                        {currentPreviewOption.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Micro Palette Swatches */}
+                  <div className="pt-2 flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800/80">
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      Palet Utama:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {currentPreviewOption.swatches.map((color, idx) => (
+                        <span
+                          key={idx}
+                          style={{ backgroundColor: color }}
+                          className="w-5 h-5 rounded-full border border-black/10 dark:border-white/10 shadow-2xs inline-block"
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: Interactive Live Mini Preview Widget */}
+                <div className="lg:col-span-6 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5" style={{ color: currentPreviewOption.accentHex }} />
+                      Pratinjau Komponen Miniatur
+                    </span>
+                    <span className="text-[10px] text-slate-400">Interaktif & Real-time</span>
+                  </div>
+
+                  {/* Mini Mockup Container with exact preview colors */}
+                  <div 
+                    style={{ backgroundColor: currentPreviewOption.appBg }}
+                    className="flex-1 p-4 rounded-2xl border border-slate-300/80 dark:border-slate-700 transition-colors duration-200 flex flex-col justify-between space-y-3 shadow-inner"
+                  >
+                    {/* Mini Header */}
+                    <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          style={{ 
+                            backgroundColor: currentPreviewOption.accentHex,
+                            color: currentPreviewOption.buttonText
+                          }}
+                          className="w-5 h-5 rounded-lg flex items-center justify-center text-[9px] font-bold shadow-2xs"
+                        >
+                          D
+                        </div>
+                        <span 
+                          style={{ color: isSelectedDark ? '#f1f5f9' : '#0f172a' }}
+                          className="text-xs font-bold"
+                        >
+                          DADU Madrasah
+                        </span>
+                      </div>
+                      <span 
+                        style={{ backgroundColor: currentPreviewOption.accentHex }}
+                        className="w-2 h-2 rounded-full animate-pulse"
+                      />
+                    </div>
+
+                    {/* Mini Grade Card */}
+                    <div 
+                      style={{ backgroundColor: currentPreviewOption.cardBg }}
+                      className="p-3 rounded-xl border border-black/10 dark:border-white/10 shadow-xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span 
+                          style={{ color: isSelectedDark ? '#cbd5e1' : '#475569' }}
+                          className="text-[11px] font-semibold"
+                        >
+                          Penilaian Harian (PH-1)
+                        </span>
+                        <span 
+                          style={{ 
+                            backgroundColor: isSelectedDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(4, 120, 87, 0.1)',
+                            color: isSelectedDark ? '#6ee7b7' : '#047857'
+                          }}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        >
+                          TUNTAS
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div>
+                          <span 
+                            style={{ color: isSelectedDark ? '#94a3b8' : '#64748b' }}
+                            className="text-[10px] block"
+                          >
+                            Nilai Rata-rata
+                          </span>
+                          <span 
+                            style={{ color: isSelectedDark ? '#f8fafc' : '#0f172a' }}
+                            className="text-base font-black tracking-tight"
+                          >
+                            95.0
+                          </span>
+                        </div>
+
+                        {/* Mini Tactile Button with exact theme button text and bg */}
+                        <button
+                          type="button"
+                          style={{ 
+                            backgroundColor: currentPreviewOption.accentHex,
+                            color: currentPreviewOption.buttonText
+                          }}
+                          className="tactile-press px-3 py-1.5 rounded-lg text-[11px] font-bold shadow-2xs"
+                        >
+                          Lihat Rapor
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mini Micro Text / Status Pill */}
+                    <div className="flex items-center justify-between text-[10px] pt-1">
+                      <span style={{ color: isSelectedDark ? '#94a3b8' : '#64748b' }}>
+                        Ergonomi Kontras: <strong style={{ color: currentPreviewOption.accentHex }}>WCAG {isSelectedDark && selectedTheme !== 'solarized-comfort' ? 'AAA' : 'AA'}</strong>
+                      </span>
+                      <span style={{ color: isSelectedDark ? '#cbd5e1' : '#475569' }}>
+                        {currentPreviewOption.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Information Note */}
               <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-slate-900 border border-emerald-100 dark:border-slate-800 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400">
                 <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <p>
-                  Pilihan tema akan langsung disimpan ke browser Anda. Klik tombol <strong>Terapkan & Simpan Tema</strong> untuk mengaktifkannya.
+                  Seluruh skema tema dirancang khusus dengan standar <strong>Anti-AI Slop</strong> dan rasio kontras tinggi, memastikan tampilan nyaman untuk mata guru saat bekerja di siang hari maupun lembur malam. Preferensi tersinkronisasi otomatis ke akun Firestore Anda.
                 </p>
               </div>
 

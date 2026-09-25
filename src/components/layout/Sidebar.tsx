@@ -76,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenFeedbackModal,
   onOpenChangeLog,
 }) => {
-  const { activeTheme } = useAppTheme();
+  const { activeTheme, isDark } = useAppTheme();
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
 
   // Expanded accordion groups state (Single open accordion model)
@@ -107,8 +107,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     setHoveredTopToggle(false);
   }, [isCompact]);
-
-  const isDark = activeTheme === 'dark-crimson';
 
   const menuGroups: MenuGroup[] = [
     {
@@ -356,12 +354,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
                           isDirectParentActive
-                            ? isDark 
-                              ? 'text-emerald-300 font-bold' 
-                              : 'text-emerald-900 font-bold'
+                            ? 'text-accent-text font-bold'
                             : isGroupActive
                               ? 'bg-slate-200/80 dark:bg-[#141722] text-slate-900 dark:text-white font-bold shadow-2xs'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-emerald-300 hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-accent-text hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
                         }`}
                       >
                       {/* Fluid Sliding Active Capsule for top-level item */}
@@ -369,16 +365,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <motion.div
                           layoutId="sidebar-active-parent-capsule"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          className={`pointer-events-none absolute inset-0 rounded-xl ${
-                            isDark
-                              ? 'bg-emerald-950/70 border border-emerald-500/40 shadow-[0_0_16px_rgba(16,185,129,0.18)]'
-                              : 'bg-emerald-50 border border-emerald-200/90 shadow-2xs'
-                          }`}
+                          className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
                         >
                           <span
-                            className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full ${
-                              isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-emerald-600'
-                            }`}
+                            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-accent-primary"
                           />
                         </motion.div>
                       )}
@@ -386,9 +376,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
                         <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                           isDirectParentActive 
-                            ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
+                            ? 'text-accent-primary' 
                             : isGroupActive 
-                            ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
+                            ? 'text-accent-primary' 
                             : 'text-slate-500 dark:text-slate-400'
                         }`} />
                         {!compact && (
@@ -447,10 +437,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             onClick={(e) => handleSubItemClick(sub.id, e)}
                             className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
                               isSubActive
-                                ? isDark 
-                                  ? 'text-emerald-300 font-semibold' 
-                                  : 'text-emerald-900 font-bold'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-emerald-200 hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
+                                ? 'text-accent-text font-bold'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-accent-text hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
                             }`}
                           >
                             {/* Fluid Sliding Active Capsule for sub-menu item */}
@@ -458,16 +446,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               <motion.div
                                 layoutId="sidebar-active-subitem-capsule"
                                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                                className={`pointer-events-none absolute inset-0 rounded-lg ${
-                                  isDark
-                                    ? 'bg-emerald-950/60 border border-emerald-500/35 shadow-[0_0_12px_rgba(16,185,129,0.14)]'
-                                    : 'bg-emerald-50/90 border border-emerald-200/90 shadow-2xs'
-                                }`}
+                                className="pointer-events-none absolute inset-0 rounded-lg bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
                               >
                                 <span
-                                  className={`absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full ${
-                                    isDark ? 'bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.7)]' : 'bg-emerald-600'
-                                  }`}
+                                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-accent-primary"
                                 />
                               </motion.div>
                             )}
@@ -475,7 +457,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
                               <SubIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
                                 isSubActive 
-                                  ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
+                                  ? 'text-accent-primary' 
                                   : 'text-slate-500 dark:text-slate-500'
                               }`} />
                               <span className="truncate flex-1">{sub.label}</span>

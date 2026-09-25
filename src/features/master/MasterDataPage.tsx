@@ -76,7 +76,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
       {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
         <div className="flex items-center gap-3">
-          <span className="p-2.5 rounded-xl bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30">
+          <span className="p-2.5 rounded-xl bg-accent-primary-soft text-accent-text border border-accent-primary-border">
             <Database className="w-5 h-5" />
           </span>
           <div>
@@ -110,11 +110,11 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
                 onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 shadow-sm'
+                    ? 'btn-primary shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-[#1b1f2e]'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white dark:text-slate-950' : 'text-slate-400 dark:text-slate-500'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-accent-primary-text' : 'text-slate-400 dark:text-slate-500'}`} />
                 <span>{tab.label}</span>
               </button>
             );

@@ -61,8 +61,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     },
     primary: {
       icon: HelpCircle,
-      iconBg: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60',
-      btnClass: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 focus:ring-emerald-500',
+      iconBg: 'bg-accent-primary-soft text-accent-text border border-accent-primary-border',
+      btnClass: 'btn-primary shadow-sm',
       defaultConfirmLabel: 'Konfirmasi',
     },
     info: {

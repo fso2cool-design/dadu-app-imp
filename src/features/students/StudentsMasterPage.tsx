@@ -563,7 +563,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               setSelectedEnrollment(null);
               setFormModalOpen(true);
             }}
-            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="btn-primary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Siswa
           </button>
@@ -871,7 +871,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
               <button
                 type="button"
                 onClick={() => setImportModalOpen(true)}
-                className="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-accent-primary-soft text-accent-text text-xs font-semibold hover:opacity-90 transition-colors cursor-pointer"
               >
                 Import via Excel
               </button>
@@ -882,7 +882,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                   setSelectedEnrollment(null);
                   setFormModalOpen(true);
                 }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
               >
                 + Tambah Manual
               </button>

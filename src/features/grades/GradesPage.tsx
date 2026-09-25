@@ -820,7 +820,7 @@ export const GradesPage: React.FC = () => {
               setIsItemModalOpen(true);
             }}
             disabled={!activeAssignment || isArchivedYear}
-            className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             <span>Tambah Kolom Nilai</span>
@@ -835,7 +835,7 @@ export const GradesPage: React.FC = () => {
               isArchivedYear
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                 : isDirty 
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs' 
+                ? 'btn-primary shadow-xs' 
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-60'
             }`}
           >
@@ -1237,7 +1237,7 @@ export const GradesPage: React.FC = () => {
                             setEditingItem(null);
                             setIsItemModalOpen(true);
                           }}
-                          className="w-7 h-7 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center justify-center mx-auto transition-colors cursor-pointer"
+                          className="w-7 h-7 rounded-lg border border-dashed border-accent-primary-border text-accent-text hover:bg-accent-primary-soft flex items-center justify-center mx-auto transition-colors cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                         </button>

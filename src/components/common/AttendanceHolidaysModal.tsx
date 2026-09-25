@@ -170,7 +170,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
               onClick={() => setSchoolDaysOption(6)}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
                 schoolDaysOption === 6
-                  ? 'border-orange-500 dark:border-cyan-400 bg-white dark:bg-[#141722] shadow-sm'
+                  ? 'border-accent-primary bg-white dark:bg-[#141722] shadow-sm'
                   : 'border-slate-200 dark:border-[#232838] bg-white/60 dark:bg-[#141722]/50 hover:border-slate-300'
               }`}
             >
@@ -180,7 +180,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     6 Hari (Senin – Sabtu)
                   </span>
                   {schoolDaysOption === 6 && (
-                    <span className="w-5 h-5 rounded-full bg-orange-500 dark:bg-cyan-500 text-white dark:text-slate-950 flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-accent-primary text-accent-primary-text flex items-center justify-center">
                       <Check className="w-3.5 h-3.5" />
                     </span>
                   )}
@@ -201,7 +201,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
               onClick={() => setSchoolDaysOption(5)}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
                 schoolDaysOption === 5
-                  ? 'border-orange-500 dark:border-cyan-400 bg-white dark:bg-[#141722] shadow-sm'
+                  ? 'border-accent-primary bg-white dark:bg-[#141722] shadow-sm'
                   : 'border-slate-200 dark:border-[#232838] bg-white/60 dark:bg-[#141722]/50 hover:border-slate-300'
               }`}
             >
@@ -211,7 +211,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     5 Hari (Senin – Jumat)
                   </span>
                   {schoolDaysOption === 5 && (
-                    <span className="w-5 h-5 rounded-full bg-orange-500 dark:bg-cyan-500 text-white dark:text-slate-950 flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-accent-primary text-accent-primary-text flex items-center justify-center">
                       <Check className="w-3.5 h-3.5" />
                     </span>
                   )}
@@ -233,7 +233,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
         <div className="space-y-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <CalendarRange className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+              <CalendarRange className="w-4 h-4 text-accent-text" />
               Daftar Hari Libur Kustom Madrasah & Nasional
             </span>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -299,7 +299,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="Contoh: Hari Santri Nasional, Libur Awal Ramadhan 1448 H..."
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-accent-primary"
               />
             </div>
 
@@ -426,7 +426,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 disabled:opacity-50 text-white dark:text-slate-950 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-colors cursor-pointer"
+            className="btn-primary px-5 py-2.5 disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-colors cursor-pointer"
           >
             <Save className="w-4 h-4" />
             {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}

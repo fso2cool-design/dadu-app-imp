@@ -201,9 +201,9 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
         {/* Quick Actions for Student Card & Progress Report if enrolled */}
         {enrollment && (
-          <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl flex flex-wrap items-center justify-between gap-2">
+          <div className="p-3 bg-accent-primary-soft border border-accent-primary-border rounded-xl flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="text-[11px] font-bold text-emerald-950 dark:text-emerald-200 block">Administrasi & Identitas Siswa</span>
+              <span className="text-[11px] font-bold text-accent-text block">Administrasi & Identitas Siswa</span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">Lihat kartu pelajar digital atau kirim laporan perkembangan ke wali murid.</span>
             </div>
             <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     onClose();
                     onPrintExamCard(enrollment);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-accent-primary-border text-accent-text hover:bg-accent-primary-soft text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Kartu Pelajar</span>
@@ -227,7 +227,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     onClose();
                     onOpenProgressReport(enrollment);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="btn-primary px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>Rapor Sisipan</span>

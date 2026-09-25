@@ -86,7 +86,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={handleGoHome}
-            className="w-full sm:w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all duration-200 cursor-pointer"
+            className="w-full sm:w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold btn-primary shadow-md cursor-pointer"
           >
             <Home className="w-4 h-4" />
             Dashboard

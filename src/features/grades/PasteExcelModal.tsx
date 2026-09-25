@@ -203,7 +203,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             type="button"
             onClick={handleApply}
             disabled={parsedPreview.length === 0 || !selectedItemId}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+            className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Terapkan Nilai ({parsedPreview.filter(p => p.score !== null).length} Siswa)</span>

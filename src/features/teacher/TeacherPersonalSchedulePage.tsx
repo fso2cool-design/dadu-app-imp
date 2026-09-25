@@ -227,7 +227,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
             type="button"
             onClick={handleExportExcel}
             disabled={scheduledSlots.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 rounded-xl btn-primary text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             <span>Ekspor Excel</span>
@@ -238,7 +238,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-orange-500/10 dark:bg-cyan-500/10 border border-orange-500/20 dark:border-cyan-500/20 flex items-center justify-center text-orange-500 dark:text-cyan-400 shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-accent-primary-soft border border-accent-primary-border flex items-center justify-center text-accent-text shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
@@ -279,7 +279,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
           onClick={() => setSelectedDayFilter('ALL')}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             selectedDayFilter === 'ALL'
-              ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 shadow-xs'
+              ? 'btn-primary shadow-xs'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]'
           }`}
         >
@@ -296,7 +296,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
               onClick={() => setSelectedDayFilter(day.key)}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 shadow-xs font-bold'
+                  ? 'btn-primary shadow-xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]'
               }`}
             >
@@ -325,7 +325,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
             <button
               type="button"
               onClick={() => onNavigate('master-teaching')}
-              className="px-4 py-2 rounded-xl bg-orange-500 dark:bg-cyan-500 text-white dark:text-slate-950 text-xs font-bold hover:opacity-90 transition-all cursor-pointer"
+              className="btn-primary px-4 py-2 rounded-xl text-xs font-bold hover:opacity-90 transition-all cursor-pointer"
             >
               Atur Jadwal di Master Plotting
             </button>
@@ -364,10 +364,10 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
                     daySlots.map(slot => (
                       <div 
                         key={slot.id}
-                        className="p-3 rounded-xl bg-slate-50/70 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] hover:border-orange-500/40 dark:hover:border-cyan-500/40 transition-all"
+                        className="p-3 rounded-xl bg-slate-50/70 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] hover:border-accent-primary-border transition-all"
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-cyan-400 font-mono bg-orange-500/10 dark:bg-cyan-500/10 px-2 py-0.5 rounded-md">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-text font-mono bg-accent-primary-soft px-2 py-0.5 rounded-md">
                             <Clock className="w-3 h-3" />
                             {slot.timeSlot}
                           </span>

@@ -19,8 +19,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onNavigate,
   onOpenMobileMenu,
 }) => {
-  const { activeTheme } = useAppTheme();
-  const isDark = activeTheme === 'dark-crimson';
+  const { activeTheme, isDark } = useAppTheme();
 
   const navItems = [
     { id: 'more', label: 'Menu', icon: Menu, isMore: true },
@@ -61,14 +60,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               onClick={() => onNavigate(item.id)}
               className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 min-w-[52px] ${
                 isActive
-                  ? isDark
-                    ? 'text-cyan-400 font-bold'
-                    : 'text-orange-600 font-bold'
+                  ? 'text-accent-primary font-bold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               <div className="relative">
                 <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-accent-primary" />
+                )}
               </div>
               <span className="text-[10px] font-medium mt-0.5">
                 {item.label}

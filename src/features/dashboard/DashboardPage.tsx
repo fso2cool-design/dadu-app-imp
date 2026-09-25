@@ -453,7 +453,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'attendance-subject')}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                    className="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <CheckSquare className="w-4 h-4" />
                     <span>Presensi Kelas Sekarang</span>
@@ -462,7 +462,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'meetings')}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                    className="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <CalendarCheck2 className="w-4 h-4" />
                     <span>Tulis Jurnal Mengajar</span>
@@ -706,7 +706,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       <button
                         type="button"
                         onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                        className="btn-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
                       >
                         Isi Presensi
                       </button>
@@ -997,7 +997,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <SkeletonCardGrid count={3} />
         ) : filteredAssignments.length === 0 ? (
           <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-8 sm:p-10 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-neutral-900 border border-emerald-100 dark:border-neutral-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-accent-primary-soft border border-accent-primary-border flex items-center justify-center text-accent-text mx-auto mb-3">
               <Layers className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">Tidak ada data kelas</h3>
@@ -1007,7 +1007,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('master-teaching')}
-              className="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="btn-primary mt-4 px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               + Tambah Plotting Pengajaran
             </button>

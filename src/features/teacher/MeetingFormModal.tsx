@@ -545,7 +545,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             <CalendarCheck2 className="w-3.5 h-3.5" />
             {loading ? 'Menyimpan...' : (meetingToEdit ? 'Simpan Perubahan' : 'Simpan Jurnal Agenda')}

@@ -141,7 +141,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 ({user?.email})
               </span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 font-bold border border-orange-200 dark:border-orange-800">
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent-primary-soft text-accent-text font-bold border border-accent-primary-border">
               Terverifikasi
             </span>
           </div>
@@ -162,7 +162,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     onClick={() => setType(cat.type)}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
                       isSelected
-                        ? `${cat.color} ring-2 ring-orange-500/50 font-medium shadow-xs`
+                        ? `${cat.color} ring-2 ring-accent-primary font-medium shadow-xs`
                         : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
                     }`}
                   >
@@ -190,7 +190,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Contoh: Tombol simpan nilai tidak merespon di kelas X-A"
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-primary"
             />
           </div>
 
@@ -205,7 +205,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Jelaskan kendala atau usulan Anda dengan jelas..."
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 resize-none leading-relaxed"
+              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none leading-relaxed"
             />
           </div>
 
@@ -222,7 +222,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <button
               type="submit"
               disabled={submitting || !title.trim() || !description.trim()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-500 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-orange-600/30 transition-all cursor-pointer"
+              className="btn-primary flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all cursor-pointer"
             >
               {submitting ? (
                 <span>Mengirim...</span>

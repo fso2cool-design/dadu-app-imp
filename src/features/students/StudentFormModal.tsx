@@ -234,7 +234,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
             onClick={() => setActiveTab('IDENTITY')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeTab === 'IDENTITY'
-                ? 'bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30'
+                ? 'bg-accent-primary-soft text-accent-text border border-accent-primary-border'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
@@ -247,7 +247,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
             onClick={() => setActiveTab('ENROLLMENT')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeTab === 'ENROLLMENT'
-                ? 'bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30'
+                ? 'bg-accent-primary-soft text-accent-text border border-accent-primary-border'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
@@ -260,7 +260,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
             onClick={() => setActiveTab('CONTACT')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeTab === 'CONTACT'
-                ? 'bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30'
+                ? 'bg-accent-primary-soft text-accent-text border border-accent-primary-border'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
@@ -273,7 +273,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
             onClick={() => setActiveTab('CUSTOM')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeTab === 'CUSTOM'
-                ? 'bg-orange-500/10 dark:bg-cyan-500/10 text-orange-600 dark:text-cyan-400 border border-orange-500/20 dark:border-cyan-500/30'
+                ? 'bg-accent-primary-soft text-accent-text border border-accent-primary-border'
                 : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
@@ -669,7 +669,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             {loading ? 'Menyimpan...' : (studentToEdit ? 'Simpan Perubahan' : 'Tambah Siswa')}
           </button>

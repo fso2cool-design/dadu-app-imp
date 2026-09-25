@@ -537,7 +537,7 @@ export const LeggerReportPage: React.FC = () => {
             type="button"
             onClick={() => setIsShareModalOpen(true)}
             disabled={calculatedRows.length === 0}
-            className="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
             <span>Bagikan Tautan Publik</span>
@@ -547,7 +547,7 @@ export const LeggerReportPage: React.FC = () => {
             type="button"
             onClick={() => setIsBatchModalOpen(true)}
             disabled={calculatedRows.length === 0}
-            className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" />
             <span>Cetak Rapor Rombel (Batch)</span>

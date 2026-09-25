@@ -282,7 +282,7 @@ export const AcademicYearsPage: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
+            className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Tambah Tahun Ajaran
           </button>
@@ -513,7 +513,7 @@ export const AcademicYearsPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
+              className="px-4 py-2 rounded-xl btn-primary text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
             >
               {loading ? 'Menyimpan...' : editingYear ? 'Simpan Perubahan' : 'Simpan Tahun Ajaran'}
             </button>

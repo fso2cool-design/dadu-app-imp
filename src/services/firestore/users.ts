@@ -13,7 +13,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { UserProfile } from '../../types';
+import { UserProfile, ThemeKey } from '../../types';
 import { WORKSPACE_SUBCOLLECTIONS } from '../../constants/firestoreCollections';
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -72,7 +72,7 @@ export async function recordUserLastLogin(uid: string): Promise<void> {
   }
 }
 
-export async function updateUserThemePreference(uid: string, theme: 'light' | 'dark-crimson'): Promise<void> {
+export async function updateUserThemePreference(uid: string, theme: ThemeKey): Promise<void> {
   const docRef = doc(db, 'users', uid);
   try {
     await updateDoc(docRef, {

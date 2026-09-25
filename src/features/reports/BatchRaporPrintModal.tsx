@@ -94,7 +94,7 @@ export const BatchRaporPrintModal: React.FC<BatchRaporPrintModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
+              className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Cetak Semua ({studentsRaporData.length} Lembar)</span>

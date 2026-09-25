@@ -744,7 +744,7 @@ export const SubjectAttendancePage: React.FC = () => {
               onClick={handleSaveAttendance}
               disabled={savingAttendance || studentRows.length === 0 || isArchivedYear}
               title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2 rounded-xl btn-primary font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               {savingAttendance ? 'Menyimpan...' : (isArchivedYear ? 'Terkunci (Arsip)' : 'Simpan Presensi')}
@@ -755,7 +755,7 @@ export const SubjectAttendancePage: React.FC = () => {
             <button
               onClick={handleExportMatrixExcel}
               disabled={allEnrollments.length === 0 || matrixColumns.length === 0}
-              className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-3.5 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
               Unduh Rekap Matriks (.xlsx)
@@ -774,7 +774,7 @@ export const SubjectAttendancePage: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {currentMeeting ? (
                     <>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-orange-600 dark:bg-cyan-500 text-white dark:text-slate-950 font-mono font-bold text-xs">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs">
                         Pertemuan #{currentMeeting.meetingNumber}
                       </span>
                       <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">
@@ -783,7 +783,7 @@ export const SubjectAttendancePage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white font-mono font-bold text-xs flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs flex items-center gap-1">
                         <BookOpen className="w-3 h-3" />
                         Presensi Mandiri
                       </span>

@@ -170,7 +170,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+            className="btn-primary px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Cetak Dokumen</span>
