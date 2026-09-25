@@ -703,7 +703,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <Icon className={`w-4 h-4 ${isActive ? 'text-orange-500 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`} />
               <span>{tab.label}</span>
               {isDirty && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Ada perubahan belum disimpan" />
+                <span className="w-2 h-2 rounded-full bg-amber-500" title="Ada perubahan belum disimpan" />
               )}
               {tab.badge && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 font-bold">
@@ -1563,7 +1563,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 </div>
 
                 {importProgressText && (
-                  <p className="text-[11px] text-emerald-800 animate-pulse font-medium">
+                  <p className="text-[11px] text-emerald-800 font-medium">
                     {importProgressText}
                   </p>
                 )}

@@ -688,7 +688,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
           <div className="flex items-center gap-2.5 self-end sm:self-auto">
             {hasUnsavedChanges && (
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 animate-pulse">
+              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
                 • Perubahan belum disimpan
               </span>
             )}

@@ -210,9 +210,9 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
         `}} />
 
         {/* Action Header Bar in Modal (no-print) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50/90 to-emerald-50/70 border border-indigo-100 shadow-2xs no-print">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50/90 to-teal-50/70 border border-emerald-100 shadow-2xs no-print">
           <div>
-            <span className="text-xs font-bold text-indigo-950 block">Rapor Sisipan / Laporan Perkembangan Siswa</span>
+            <span className="text-xs font-bold text-emerald-950 block">Rapor Sisipan / Laporan Perkembangan Siswa</span>
             <p className="text-[11px] text-slate-600">Dapat dicetak langsung atau dikirimkan ke orang tua/wali melalui WhatsApp.</p>
           </div>
 

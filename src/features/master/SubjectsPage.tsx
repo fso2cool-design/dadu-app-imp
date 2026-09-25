@@ -467,7 +467,7 @@ export const SubjectsPage: React.FC = () => {
       <Modal
         isOpen={Boolean(deleteBlockedModal)}
         onClose={() => setDeleteBlockedModal(null)}
-        title="Pencegahan Penghapusan Data (Governance Guard)"
+        title="Proteksi Penghapusan Data Master"
         maxWidth="md"
       >
         <div className="space-y-4">

@@ -6,6 +6,7 @@ import { getSchoolSettings, getDocumentSettings, saveDocumentSettings } from '..
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { 
   Printer, 
+  CreditCard,
   FileText, 
   BarChart3, 
   Table, 
@@ -155,13 +156,13 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       route: 'homeroom-students',
     },
     {
-      id: 'student-exam-card',
-      title: 'Kartu Peserta Ujian / Asesmen Sumatif',
-      category: 'Pelaksanaan Ujian',
-      desc: 'Cetak kartu peserta ASTS, ASAS, atau Asesmen Madrasah lengkap dengan pas foto, NIS/NISN, nomor ruang ujian, dan tanda tangan digital kepala madrasah.',
-      icon: Printer,
-      badge: 'Baru',
-      badgeColor: 'indigo',
+      id: 'student-id-card',
+      title: 'Kartu Pelajar Siswa (Virtual & Cetak)',
+      category: 'Identitas Siswa',
+      desc: 'Kartu identitas resmi siswa madrasah dengan avatar karakter, QR Code kode akses mandiri, info tanggal lahir, dan format cetak fisik siap potong A4.',
+      icon: CreditCard,
+      badge: 'Digital',
+      badgeColor: 'emerald',
       route: 'homeroom-students',
     },
     {

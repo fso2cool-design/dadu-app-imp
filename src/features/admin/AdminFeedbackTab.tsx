@@ -137,7 +137,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
     switch (status) {
       case 'NEW':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-600 text-white animate-pulse shadow-sm shadow-rose-600/50">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-600 text-white shadow-sm shadow-rose-600/30">
             <span className="w-1.5 h-1.5 rounded-full bg-white" />
             Laporan Baru
           </span>

@@ -833,6 +833,58 @@ export const SubjectAttendancePage: React.FC = () => {
               </div>
             )}
 
+            {/* Presence Pulse Bar (Spektrum Visual Kehadiran Kelas) */}
+            {stats.total > 0 && (
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Spektrum Kehadiran Kelas
+                  </span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 font-mono text-[11px]">
+                    {stats.present}/{stats.total} Hadir ({stats.percentage}%)
+                  </span>
+                </div>
+                <div className="h-2 w-full bg-slate-100 dark:bg-[#0c0e15] rounded-full overflow-hidden flex border border-slate-200/70 dark:border-[#232838] gap-0.5">
+                  {stats.present > 0 && (
+                    <div 
+                      style={{ width: `${(stats.present / stats.total) * 100}%` }} 
+                      className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300" 
+                      title={`Hadir: ${stats.present} siswa`}
+                    />
+                  )}
+                  {stats.sick > 0 && (
+                    <div 
+                      style={{ width: `${(stats.sick / stats.total) * 100}%` }} 
+                      className="h-full bg-amber-500 dark:bg-amber-400 transition-all duration-300" 
+                      title={`Sakit: ${stats.sick} siswa`}
+                    />
+                  )}
+                  {stats.permitted > 0 && (
+                    <div 
+                      style={{ width: `${(stats.permitted / stats.total) * 100}%` }} 
+                      className="h-full bg-sky-500 dark:bg-sky-400 transition-all duration-300" 
+                      title={`Izin: ${stats.permitted} siswa`}
+                    />
+                  )}
+                  {stats.absent > 0 && (
+                    <div 
+                      style={{ width: `${(stats.absent / stats.total) * 100}%` }} 
+                      className="h-full bg-rose-500 dark:bg-rose-400 transition-all duration-300" 
+                      title={`Alpa: ${stats.absent} siswa`}
+                    />
+                  )}
+                  {stats.dispensation > 0 && (
+                    <div 
+                      style={{ width: `${(stats.dispensation / stats.total) * 100}%` }} 
+                      className="h-full bg-purple-500 dark:bg-purple-400 transition-all duration-300" 
+                      title={`Dispensasi: ${stats.dispensation} siswa`}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Counter Grid */}
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
               <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-100 dark:border-[#232838]">
@@ -916,12 +968,34 @@ export const SubjectAttendancePage: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-[#232838] text-slate-600 dark:text-slate-300">
                       {filteredRows.map((row) => {
+                        const rowHighlightClass = 
+                          row.status === 'SICK'
+                            ? 'bg-amber-50/50 hover:bg-amber-100/60 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
+                            : row.status === 'PERMITTED'
+                            ? 'bg-sky-50/50 hover:bg-sky-100/60 dark:bg-sky-950/20 dark:hover:bg-sky-950/30'
+                            : row.status === 'ABSENT'
+                            ? 'bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-950/30'
+                            : row.status === 'DISPENSATION'
+                            ? 'bg-purple-50/50 hover:bg-purple-100/60 dark:bg-purple-950/20 dark:hover:bg-purple-950/30'
+                            : 'hover:bg-slate-50/70 dark:hover:bg-[#1b1f2e]';
+
+                        const stickyCellClass =
+                          row.status === 'SICK'
+                            ? 'bg-amber-50/90 dark:bg-[#19150e] group-hover:bg-amber-100/80 dark:group-hover:bg-[#201a11]'
+                            : row.status === 'PERMITTED'
+                            ? 'bg-sky-50/90 dark:bg-[#0f1724] group-hover:bg-sky-100/80 dark:group-hover:bg-[#141f30]'
+                            : row.status === 'ABSENT'
+                            ? 'bg-rose-50/90 dark:bg-[#1c1114] group-hover:bg-rose-100/80 dark:group-hover:bg-[#241519]'
+                            : row.status === 'DISPENSATION'
+                            ? 'bg-purple-50/90 dark:bg-[#181120] group-hover:bg-purple-100/80 dark:group-hover:bg-[#20162a]'
+                            : 'bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e]';
+
                         return (
-                          <tr key={row.studentId} className="hover:bg-slate-50/70 dark:hover:bg-[#1b1f2e] transition-colors group">
-                            <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-3 px-4 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[#232838]">
+                          <tr key={row.studentId} className={`transition-colors group ${rowHighlightClass}`}>
+                            <td className={`sticky left-0 z-10 py-3 px-4 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[#232838] ${stickyCellClass}`}>
                               {row.rollNumber}
                             </td>
-                            <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-3 px-4 border-r border-slate-200 dark:border-[#232838]">
+                            <td className={`sticky left-12 z-10 py-3 px-4 border-r border-slate-200 dark:border-[#232838] ${stickyCellClass}`}>
                               <span className="font-bold text-slate-800 dark:text-slate-100 block">{row.studentName}</span>
                             </td>
                             <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-[#232838]">

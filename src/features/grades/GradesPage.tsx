@@ -15,6 +15,7 @@ import { ScoreNoteModal } from './ScoreNoteModal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { SkeletonTable } from '../../components/common/Skeleton';
+import { Tooltip } from '../../components/common/Tooltip';
 import { 
   AssessmentItem, 
   Score, 
@@ -719,6 +720,53 @@ export const GradesPage: React.FC = () => {
       .reduce((sum, i) => sum + (Number(i.weight) || 0), 0);
   }, [assessmentItems]);
 
+  // Completion metrics for each assessment item (how many active students have a score)
+  const itemCompletionMap = useMemo(() => {
+    const map = new Map<string, { filled: number; total: number; percentage: number; isComplete: boolean }>();
+    const totalActive = activeEnrollments.length;
+
+    assessmentItems.forEach(item => {
+      if (totalActive === 0) {
+        map.set(item.id, { filled: 0, total: 0, percentage: 0, isComplete: false });
+        return;
+      }
+      let filled = 0;
+      activeEnrollments.forEach(enr => {
+        const val = scoresMap[`${enr.studentId}_${item.id}`];
+        if (val !== undefined && val !== '' && val !== null) {
+          filled++;
+        }
+      });
+      const percentage = Math.round((filled / totalActive) * 100);
+      map.set(item.id, {
+        filled,
+        total: totalActive,
+        percentage,
+        isComplete: filled === totalActive,
+      });
+    });
+
+    return map;
+  }, [assessmentItems, activeEnrollments, scoresMap]);
+
+  // Overall class scores completeness (all items * active students)
+  const overallCompleteness = useMemo(() => {
+    const totalCells = activeEnrollments.length * assessmentItems.length;
+    if (totalCells === 0) return { filled: 0, total: 0, percentage: 0, isAllComplete: false };
+    let totalFilled = 0;
+    assessmentItems.forEach(item => {
+      const stats = itemCompletionMap.get(item.id);
+      if (stats) totalFilled += stats.filled;
+    });
+    const percentage = Math.round((totalFilled / totalCells) * 100);
+    return {
+      filled: totalFilled,
+      total: totalCells,
+      percentage,
+      isAllComplete: totalFilled === totalCells && totalCells > 0,
+    };
+  }, [activeEnrollments.length, assessmentItems, itemCompletionMap]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -787,7 +835,7 @@ export const GradesPage: React.FC = () => {
               isArchivedYear
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                 : isDirty 
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white animate-pulse' 
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs' 
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-60'
             }`}
           >
@@ -906,23 +954,31 @@ export const GradesPage: React.FC = () => {
 
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Total Assessments */}
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex items-center justify-between transition-colors">
-          <div>
-            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 block">Kolom Asesmen</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{assessmentItems.length}</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tagihan Nilai</span>
-            </div>
-            <div className="flex items-center gap-1 mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-              <span>Total Bobot:</span>
-              <strong className={totalActiveWeight === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
-                {totalActiveWeight}%
-              </strong>
-            </div>
+        {/* Total Assessments & Progress */}
+        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Kelengkapan Nilai</span>
+            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
+              {overallCompleteness.filled}/{overallCompleteness.total} Sel
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-orange-50 dark:bg-cyan-950/60 text-orange-600 dark:text-cyan-400 border border-orange-200 dark:border-cyan-500/40 flex items-center justify-center">
-            <FileCheck className="w-5 h-5" />
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-black text-slate-800 dark:text-slate-100 font-mono">
+              {overallCompleteness.percentage}%
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {assessmentItems.length} Kolom Tagihan
+            </span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-100 dark:bg-[#0c0e15] rounded-full overflow-hidden mt-2 border border-slate-200/50 dark:border-[#232838]">
+            <div
+              style={{ width: `${overallCompleteness.percentage}%` }}
+              className={`h-full transition-all duration-300 ${
+                overallCompleteness.isAllComplete
+                  ? 'bg-emerald-500'
+                  : 'bg-emerald-600 dark:bg-emerald-500'
+              }`}
+            />
           </div>
         </div>
 
@@ -964,7 +1020,7 @@ export const GradesPage: React.FC = () => {
               </div>
               {classStats.incompleteCount > 0 && (
                 <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
                   <span>{classStats.incompleteCount} siswa tagihan belum lengkap</span>
                 </div>
               )}
@@ -1099,79 +1155,106 @@ export const GradesPage: React.FC = () => {
                   </th>
 
                   {/* Dynamic Assessment Columns */}
-                  {assessmentItems.map((item) => (
-                    <th
-                      key={item.id}
-                      className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[#232838] group/col relative"
-                    >
-                      <div className="flex flex-col items-center justify-center">
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/40 uppercase tracking-tight mb-0.5">
-                          {item.category}
-                        </span>
-                        <span className="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 text-xs" title={item.name}>
-                          {item.name}
-                        </span>
-                        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                          <span>Bobot: <strong>{item.weight}%</strong></span>
-                          <span>•</span>
-                          <span>Max: {item.maxScore}</span>
+                  {assessmentItems.map((item) => {
+                    const comp = itemCompletionMap.get(item.id) || { filled: 0, total: 0, percentage: 0, isComplete: false };
+
+                    return (
+                      <th
+                        key={item.id}
+                        className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[#232838] group/col relative"
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/40 uppercase tracking-tight mb-0.5">
+                            {item.category}
+                          </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 text-xs" title={item.name}>
+                            {item.name}
+                          </span>
+                          <div className="flex items-center gap-1 mt-0.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            <span>Bobot: <strong>{item.weight}%</strong></span>
+                            <span>•</span>
+                            <span>Max: {item.maxScore}</span>
+                          </div>
+
+                          {/* Column Completion Micro-Bar (Linear style) */}
+                          <div className="w-full mt-1.5 space-y-0.5">
+                            <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 dark:text-slate-500 px-0.5">
+                              <span>{comp.filled}/{comp.total}</span>
+                              <span className={comp.isComplete ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
+                                {comp.isComplete ? '✓ Lengkap' : `${comp.percentage}%`}
+                              </span>
+                            </div>
+                            <div className="w-full h-1 bg-slate-200/70 dark:bg-[#1c2030] rounded-full overflow-hidden">
+                              <div
+                                style={{ width: `${comp.percentage}%` }}
+                                className={`h-full transition-all duration-300 ${
+                                  comp.isComplete
+                                    ? 'bg-emerald-500'
+                                    : 'bg-emerald-600/70 dark:bg-emerald-500/70'
+                                }`}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
 
                       {/* Header quick actions on hover */}
                       {!isArchivedYear && (
                         <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[#141722]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[#232838]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingItem(item);
-                              setIsItemModalOpen(true);
-                            }}
-                            className="p-1 text-slate-400 hover:text-orange-600 dark:hover:text-cyan-400 rounded"
-                            title="Edit Kolom"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteItem(item.id, item.name)}
-                            className="p-1 text-slate-400 hover:text-rose-600 rounded"
-                            title="Hapus Kolom"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <Tooltip content="Edit Kolom" position="top">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingItem(item);
+                                setIsItemModalOpen(true);
+                              }}
+                              className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded cursor-pointer"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="Hapus Kolom" position="top">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteItem(item.id, item.name)}
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </Tooltip>
                         </div>
                       )}
                     </th>
-                  ))}
+                    );
+                  })}
 
                   {/* Empty Add Column Button Header */}
                   <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[#232838]">
                     {!isArchivedYear && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingItem(null);
-                          setIsItemModalOpen(true);
-                        }}
-                        className="w-7 h-7 rounded-lg border border-dashed border-orange-300 dark:border-cyan-500/50 text-orange-600 dark:text-cyan-400 hover:bg-orange-50 dark:hover:bg-cyan-950/40 flex items-center justify-center mx-auto transition-colors cursor-pointer"
-                        title="Tambah Kolom Penilaian Baru"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
+                      <Tooltip content="Tambah Kolom Penilaian Baru" position="top">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingItem(null);
+                            setIsItemModalOpen(true);
+                          }}
+                          className="w-7 h-7 rounded-lg border border-dashed border-emerald-300 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center justify-center mx-auto transition-colors cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </Tooltip>
                     )}
                   </th>
 
                   {/* Final Score Calculated Header */}
-                  <th className="px-4 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-orange-50/60 dark:bg-cyan-950/40 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="px-4 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[#232838]">
                     Nilai Akhir
                   </th>
                   {/* Predicate Header */}
-                  <th className="px-3 py-3 min-w-[80px] text-center font-bold text-slate-800 dark:text-slate-100 bg-orange-50/60 dark:bg-cyan-950/40 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="px-3 py-3 min-w-[80px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[#232838]">
                     Predikat
                   </th>
                   {/* Status Ketuntasan Header */}
-                  <th className="px-3 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-orange-50/60 dark:bg-cyan-950/40">
+                  <th className="px-3 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30">
                     Status
                   </th>
                 </tr>
@@ -1237,37 +1320,38 @@ export const GradesPage: React.FC = () => {
                                 onChange={(e) => handleScoreChange(enr.studentId, item.id, e.target.value)}
                                 className={`w-16 h-8 text-center py-1 font-mono font-bold text-xs rounded-lg border transition-all focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-70 disabled:cursor-not-allowed ${
                                   isScoreLow
-                                    ? 'bg-rose-100 dark:bg-rose-950/60 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
+                                    ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
                                     : numVal !== null
-                                    ? 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-800 dark:text-slate-100'
-                                    : 'bg-slate-50/50 dark:bg-[#0c0e15]/40 border-slate-100 dark:border-[#232838] text-slate-400 dark:text-slate-600'
+                                    ? 'bg-white dark:bg-[#0c0e15] border-slate-300 dark:border-[#2e344a] text-slate-900 dark:text-slate-100 font-bold shadow-2xs'
+                                    : 'bg-slate-50/60 dark:bg-[#0c0e15]/40 border-dashed border-slate-300/80 dark:border-[#232838] text-slate-400 dark:text-slate-600 hover:border-slate-400'
                                 }`}
                               />
 
                               {/* Note icon button */}
-                              <button
-                                type="button"
-                                disabled={isArchivedYear}
-                                onClick={() => {
-                                  setNoteTarget({
-                                    studentId: enr.studentId,
-                                    assessmentItemId: item.id,
-                                    studentName: enr.student?.fullName || 'Siswa',
-                                    assessmentName: item.name,
-                                    currentScore: rawVal ?? '',
-                                    currentNote: note || '',
-                                  });
-                                  setIsNoteModalOpen(true);
-                                }}
-                                className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
-                                  note 
-                                    ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
-                                    : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
-                                }`}
-                                title={note ? `Catatan: ${note}` : 'Tambah Catatan / Remedial'}
-                              >
-                                <StickyNote className="w-3 h-3" />
-                              </button>
+                              <Tooltip content={note ? `Catatan: ${note}` : 'Tambah Catatan / Remedial'} position="top">
+                                <button
+                                  type="button"
+                                  disabled={isArchivedYear}
+                                  onClick={() => {
+                                    setNoteTarget({
+                                      studentId: enr.studentId,
+                                      assessmentItemId: item.id,
+                                      studentName: enr.student?.fullName || 'Siswa',
+                                      assessmentName: item.name,
+                                      currentScore: rawVal ?? '',
+                                      currentNote: note || '',
+                                    });
+                                    setIsNoteModalOpen(true);
+                                  }}
+                                  className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
+                                    note 
+                                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
+                                      : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
+                                  }`}
+                                >
+                                  <StickyNote className="w-3 h-3" />
+                                </button>
+                              </Tooltip>
                             </div>
                           </td>
                         );

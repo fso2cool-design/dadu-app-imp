@@ -25,10 +25,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     }`}>
       {/* Background ambient radial glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center" aria-hidden="true">
-        <div className={`w-96 h-96 rounded-full blur-3xl opacity-50 ${
+        <div className={`w-96 h-96 rounded-full blur-3xl opacity-40 ${
           isDark 
-            ? 'bg-gradient-to-tr from-orange-500/10 via-amber-500/10 to-cyan-500/10' 
-            : 'bg-gradient-to-tr from-orange-500/15 via-emerald-500/10 to-amber-500/15'
+            ? 'bg-gradient-to-tr from-emerald-500/10 via-teal-500/10 to-slate-500/10' 
+            : 'bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-slate-200/20'
         }`} />
       </div>
 
@@ -55,8 +55,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
             </h3>
             <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
               isDark 
-                ? 'bg-orange-950/80 text-orange-400 border-orange-700/60' 
-                : 'bg-orange-50 text-orange-600 border-orange-200'
+                ? 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60' 
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
             }`}>
               {APP_CONFIG.versionDisplay}
             </span>
@@ -76,8 +76,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
             <div 
               className={`absolute top-0 bottom-0 left-0 rounded-full w-1/2 ${
                 isDark 
-                  ? 'bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-400' 
-                  : 'bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500'
+                  ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300' 
+                  : 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400'
               }`} 
               style={{
                 animation: 'loadingSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite'
@@ -85,10 +85,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
             />
           </div>
           <p className={`text-xs font-medium flex items-center justify-center gap-2 ${
-            isDark ? 'text-orange-400/90' : 'text-orange-600'
+            isDark ? 'text-emerald-400/90' : 'text-emerald-700'
           }`}>
             <span className={`w-2 h-2 rounded-full animate-ping ${
-              isDark ? 'bg-orange-400' : 'bg-orange-500'
+              isDark ? 'bg-emerald-400' : 'bg-emerald-600'
             }`} />
             {message}
           </p>

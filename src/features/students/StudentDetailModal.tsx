@@ -51,10 +51,10 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     >
       <div className="space-y-5">
         {/* Header Hero Card */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-slate-50 dark:from-indigo-950/40 dark:to-slate-900/60 border border-indigo-100 dark:border-indigo-900/50 flex items-start justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/80 to-slate-50 dark:from-emerald-950/40 dark:to-slate-900/60 border border-emerald-100 dark:border-emerald-900/50 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white shadow-xs ${
-              student.gender === 'L' ? 'bg-indigo-600' : 'bg-pink-600'
+              student.gender === 'L' ? 'bg-emerald-600' : 'bg-pink-600'
             }`}>
               {student.fullName.substring(0, 2).toUpperCase()}
             </div>
@@ -199,12 +199,12 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           </div>
         )}
 
-        {/* Quick Actions for Exam Card & Progress Report if enrolled */}
+        {/* Quick Actions for Student Card & Progress Report if enrolled */}
         {enrollment && (
-          <div className="p-3 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl flex flex-wrap items-center justify-between gap-2">
+          <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="text-[11px] font-bold text-indigo-950 dark:text-indigo-200 block">Administrasi & Pelaporan Siswa</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">Cetak kartu ujian resmi atau kirim laporan berkala ke wali murid.</span>
+              <span className="text-[11px] font-bold text-emerald-950 dark:text-emerald-200 block">Administrasi & Identitas Siswa</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">Lihat kartu pelajar digital atau kirim laporan perkembangan ke wali murid.</span>
             </div>
             <div className="flex items-center gap-2">
               {onPrintExamCard && (
@@ -214,10 +214,10 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     onClose();
                     onPrintExamCard(enrollment);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
-                  <span>Kartu Ujian</span>
+                  <span>Kartu Pelajar</span>
                 </button>
               )}
               {onOpenProgressReport && (

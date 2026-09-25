@@ -19,6 +19,8 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
 import { AppLogo } from '../common/AppLogo';
+import { Tooltip } from '../common/Tooltip';
+import { INDONESIAN_DAYS } from '../../utils/date';
 
 interface HeaderProps {
   currentRoute: string;
@@ -176,15 +178,90 @@ export const Header: React.FC<HeaderProps> = ({
   // Sort teaching assignments naturally by grade level and section
   const sortedAssignments = useMemo(() => {
     return [...teachingAssignments].sort((a, b) => {
-      const orderA = parseClassOrder(a.className);
-      const orderB = parseClassOrder(b.className);
+      const orderA = parseClassOrder(a.className || '');
+      const orderB = parseClassOrder(b.className || '');
 
       if (orderA.grade !== orderB.grade) {
         return orderA.grade - orderB.grade;
       }
-      return orderA.letter.localeCompare(orderB.letter, undefined, { numeric: true });
+      return (orderA.letter || '').localeCompare(orderB.letter || '', undefined, { numeric: true });
     });
   }, [teachingAssignments]);
+
+  const todayDayName = useMemo(() => {
+    return INDONESIAN_DAYS[new Date().getDay()] || '';
+  }, []);
+
+  const { todayAssignments, otherAssignments } = useMemo(() => {
+    const today: typeof sortedAssignments = [];
+    const other: typeof sortedAssignments = [];
+    const target = todayDayName.toLowerCase();
+
+    sortedAssignments.forEach((assign) => {
+      const matchDayOfWeek = assign.dayOfWeek?.trim().toLowerCase() === target;
+      const matchSchedules = Array.isArray(assign.schedules) && assign.schedules.some((s) => s.day?.trim().toLowerCase() === target);
+      if (todayDayName && (matchDayOfWeek || matchSchedules)) {
+        today.push(assign);
+      } else {
+        other.push(assign);
+      }
+    });
+
+    return { todayAssignments: today, otherAssignments: other };
+  }, [sortedAssignments, todayDayName]);
+
+  const renderAssignmentItem = (assign: (typeof sortedAssignments)[number], isTodayMatch = false) => {
+    const isSelected = selectedAssignment?.id === assign.id;
+    return (
+      <button
+        key={assign.id}
+        type="button"
+        onClick={() => {
+          setSelectedAssignment(assign);
+          if (assign.classId) {
+            selectClassWithAutoAssignment(assign.classId);
+          }
+          setShowClassDropdown(false);
+        }}
+        className={`w-full p-2 rounded-xl text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+          isSelected
+            ? 'bg-emerald-600 text-white font-bold shadow-xs'
+            : 'hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300'
+        }`}
+      >
+        <div className="flex items-center gap-2.5 truncate">
+          <span
+            className={`font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${
+              isSelected
+                ? 'bg-white/20 text-white'
+                : 'bg-slate-100 dark:bg-[#0c0e15] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#232838]'
+            }`}
+          >
+            {assign.className}
+          </span>
+          <span
+            className={`truncate ${isSelected ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}
+          >
+            {assign.subjectName}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {isTodayMatch && assign.timeSlot && (
+            <span
+              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                isSelected
+                  ? 'bg-white/20 text-white'
+                  : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
+              }`}
+            >
+              {assign.timeSlot}
+            </span>
+          )}
+          {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+        </div>
+      </button>
+    );
+  };
 
   return (
     <header className="h-14 lg:h-16 bg-white/95 dark:bg-[#0c0e15]/90 backdrop-blur-md border-b border-slate-200/90 dark:border-[#232838] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
@@ -215,7 +292,7 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] border border-slate-200/90 dark:border-[#232838] text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-xs group"
           >
-            <div className="w-6 h-6 rounded-lg bg-orange-50 dark:bg-cyan-950/70 border border-orange-200/60 dark:border-cyan-500/40 text-orange-600 dark:text-cyan-400 flex items-center justify-center font-black text-[11px] shrink-0">
+            <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/70 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black text-[11px] shrink-0">
               {selectedAssignment ? selectedAssignment.className.split('-')[0] : 'K'}
             </div>
 
@@ -225,7 +302,7 @@ export const Header: React.FC<HeaderProps> = ({
                   Kelas {selectedAssignment.className}
                 </span>
                 <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">•</span>
-                <span className="text-orange-600 dark:text-cyan-400 font-medium max-w-[90px] xs:max-w-[130px] sm:max-w-[180px] md:max-w-[220px] truncate hidden sm:inline">
+                <span className="text-emerald-700 dark:text-emerald-400 font-medium max-w-[90px] xs:max-w-[130px] sm:max-w-[180px] md:max-w-[220px] truncate hidden sm:inline">
                   {selectedAssignment.subjectName}
                 </span>
               </div>
@@ -239,7 +316,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Class Switcher Dropdown Modal */}
           {showClassDropdown && (
             <div 
-              className="absolute left-0 mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#141722] p-3 shadow-2xl border border-slate-200 dark:border-[#232838] z-50 animate-in fade-in slide-in-from-top-2"
+              className="absolute left-0 mt-2 w-72 sm:w-84 rounded-2xl bg-white dark:bg-[#141722] p-3 shadow-2xl border border-slate-200 dark:border-[#232838] z-50 animate-in fade-in slide-in-from-top-2"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#232838] pb-2.5 mb-2.5">
@@ -254,7 +331,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-                  className="text-[10px] font-semibold text-orange-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                  className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
                 >
                   {showAdvancedSettings ? 'Tutup TA' : 'Ubah TA/Sem'}
                 </button>
@@ -271,9 +348,9 @@ export const Header: React.FC<HeaderProps> = ({
                           key={year.id}
                           type="button"
                           onClick={() => setActiveAcademicYear(year)}
-                          className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors ${
+                          className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeAcademicYear?.id === year.id
-                              ? 'bg-orange-500 text-white border-orange-500 dark:bg-cyan-500 dark:text-slate-950 dark:border-cyan-500 font-bold'
+                              ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-500 font-bold shadow-xs'
                               : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#232838]'
                           }`}
                         >
@@ -291,9 +368,9 @@ export const Header: React.FC<HeaderProps> = ({
                           key={sem}
                           type="button"
                           onClick={() => setActiveSemester(sem)}
-                          className={`flex-1 py-1 rounded text-[11px] font-medium border transition-colors ${
+                          className={`flex-1 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeSemester === sem
-                              ? 'bg-orange-500 text-white border-orange-500 dark:bg-cyan-500 dark:text-slate-950 dark:border-cyan-500 font-bold'
+                              ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-500 font-bold shadow-xs'
                               : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[#232838]'
                           }`}
                         >
@@ -305,46 +382,47 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
 
-              {/* List of Teaching Assignments (Sorted Naturally) */}
+              {/* List of Teaching Assignments (Grouped by Today if available, else Natural Sorted) */}
               <div className="max-h-64 overflow-y-auto space-y-1 pr-0.5">
                 {sortedAssignments.length === 0 ? (
                   <div className="text-center py-6 text-xs text-slate-400 dark:text-slate-500">
                     Belum ada rombel terdaftar
                   </div>
-                ) : (
-                  sortedAssignments.map(assign => {
-                    const isSelected = selectedAssignment?.id === assign.id;
-                    return (
-                      <button
-                        key={assign.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedAssignment(assign);
-                          if (assign.classId) {
-                            selectClassWithAutoAssignment(assign.classId);
-                          }
-                          setShowClassDropdown(false);
-                        }}
-                        className={`w-full p-2 rounded-xl text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-orange-500 text-white dark:bg-cyan-500 dark:text-slate-950 font-bold shadow-xs'
-                            : 'hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 truncate">
-                          <span className={`font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${
-                            isSelected ? 'bg-white/20 text-white dark:bg-black/20 dark:text-slate-950' : 'bg-slate-100 dark:bg-[#0c0e15] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#232838]'
-                          }`}>
-                            {assign.className}
+                ) : todayAssignments.length > 0 ? (
+                  <>
+                    <div className="px-2 pt-1 pb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                        Jadwal Hari Ini ({todayDayName})
+                      </span>
+                      <span className="text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                        {todayAssignments.length} Kelas
+                      </span>
+                    </div>
+                    <div className="space-y-1 mb-2">
+                      {todayAssignments.map(assign => renderAssignmentItem(assign, true))}
+                    </div>
+
+                    {otherAssignments.length > 0 && (
+                      <>
+                        <div className="px-2 pt-2.5 pb-1 border-t border-slate-100 dark:border-[#232838] flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Kelas Lainnya
                           </span>
-                          <span className={`truncate ${isSelected ? 'text-white dark:text-slate-950' : 'text-slate-600 dark:text-slate-400'}`}>
-                            {assign.subjectName}
+                          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                            {otherAssignments.length} Kelas
                           </span>
                         </div>
-                        {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
-                      </button>
-                    );
-                  })
+                        <div className="space-y-1">
+                          {otherAssignments.map(assign => renderAssignmentItem(assign, false))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-1">
+                    {sortedAssignments.map(assign => renderAssignmentItem(assign, false))}
+                  </div>
                 )}
               </div>
             </div>
@@ -353,7 +431,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* 2. Live Local Clock Widget */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] text-slate-700 dark:text-slate-300 text-xs font-mono font-bold shadow-2xs shrink-0">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
           <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
           <span>{localTime || '--:--:--'}</span>
           {localTimeZone && (
@@ -363,71 +441,77 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </div>
 
-        {/* 3. Sync Status Indicator (Interactive & Animated) */}
-        <div className="relative group shrink-0">
-          <button
-            type="button"
-            onClick={handleManualSync}
-            disabled={syncStatus === 'syncing'}
-            className={`p-2 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-2xs relative ${
-              syncStatus === 'syncing'
-                ? 'bg-orange-50 dark:bg-cyan-950/60 border-orange-300 dark:border-cyan-500/60 text-orange-600 dark:text-cyan-400 ring-2 ring-orange-400/20 dark:ring-cyan-500/20'
-                : syncStatus === 'saved'
-                ? 'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-300 dark:border-emerald-400 text-emerald-600 dark:text-emerald-300 ring-2 ring-emerald-400/30 scale-105'
-                : syncStatus === 'offline'
-                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400'
-                : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
-            }`}
-            aria-label={syncMessage}
-            title={syncMessage}
+        {/* 3. Sync Status Indicator (Interactive & Animated with Universal Tooltip) */}
+        <div className="shrink-0">
+          <Tooltip
+            position="bottom"
+            content={
+              <span className="flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  syncStatus === 'syncing' ? 'bg-emerald-400 animate-ping' :
+                  syncStatus === 'saved' ? 'bg-emerald-400' :
+                  syncStatus === 'offline' ? 'bg-amber-400' : 'bg-emerald-400'
+                }`} />
+                <span>{syncMessage}</span>
+              </span>
+            }
           >
-            {syncStatus === 'syncing' && (
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-orange-600 dark:text-cyan-400" />
-            )}
-            {syncStatus === 'saved' && (
-              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300 animate-in zoom-in duration-200" />
-            )}
-            {syncStatus === 'synced' && (
-              <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 transition-transform group-hover:scale-110" />
-            )}
-            {syncStatus === 'offline' && (
-              <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-pulse" />
-            )}
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={syncStatus === 'syncing'}
+              className={`p-2 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-2xs relative ${
+                syncStatus === 'syncing'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-500/60 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-400/20'
+                  : syncStatus === 'saved'
+                  ? 'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-300 dark:border-emerald-400 text-emerald-600 dark:text-emerald-300 ring-2 ring-emerald-400/30 scale-105'
+                  : syncStatus === 'offline'
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400'
+                  : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200/80 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
+              }`}
+              aria-label={syncMessage}
+            >
+              {syncStatus === 'syncing' && (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+              )}
+              {syncStatus === 'saved' && (
+                <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300 animate-in zoom-in duration-200" />
+              )}
+              {syncStatus === 'synced' && (
+                <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 transition-transform hover:scale-110" />
+              )}
+              {syncStatus === 'offline' && (
+                <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              )}
 
-            {/* Live activity dot for saving */}
-            {syncStatus === 'syncing' && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-orange-500 dark:bg-cyan-400 animate-ping" />
-            )}
-          </button>
-
-          {/* Floating Tooltip */}
-          <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-[#141722] text-white text-[10px] font-medium rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 border border-slate-800 dark:border-[#232838] flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${
-              syncStatus === 'syncing' ? 'bg-orange-400 animate-ping' :
-              syncStatus === 'saved' ? 'bg-emerald-400' :
-              syncStatus === 'offline' ? 'bg-amber-400' : 'bg-emerald-400'
-            }`} />
-            <span>{syncMessage}</span>
-          </div>
+              {/* Live activity dot for saving */}
+              {syncStatus === 'syncing' && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              )}
+            </button>
+          </Tooltip>
         </div>
 
         {/* 4. Fullscreen Button (Immediately next to Cloud Indicator) */}
-        <div className="relative group hidden sm:flex shrink-0">
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] border border-slate-200/90 dark:border-[#232838] text-slate-600 dark:text-slate-300 transition-all cursor-pointer shadow-2xs"
-            aria-label={isFullscreen ? 'Keluar Layar Penuh (Esc)' : 'Mode Layar Penuh'}
+        <div className="hidden sm:flex shrink-0">
+          <Tooltip
+            position="bottom"
+            content={isFullscreen ? 'Keluar Layar Penuh' : 'Mode Layar Penuh'}
+            shortcut="Esc"
           >
-            {isFullscreen ? (
-              <Minimize2 className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
-            ) : (
-              <Maximize2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            )}
-          </button>
-          <div className="absolute top-full mt-1.5 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-slate-900 dark:bg-[#141722] text-white text-[10px] font-medium rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 border border-slate-800 dark:border-[#232838]">
-            {isFullscreen ? 'Keluar Layar Penuh' : 'Mode Layar Penuh'}
-          </div>
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] border border-slate-200/90 dark:border-[#232838] text-slate-600 dark:text-slate-300 transition-all cursor-pointer shadow-2xs"
+              aria-label={isFullscreen ? 'Keluar Layar Penuh (Esc)' : 'Mode Layar Penuh'}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <Maximize2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              )}
+            </button>
+          </Tooltip>
         </div>
       </div>
 
@@ -442,7 +526,7 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 text-xs transition-colors cursor-pointer"
           >
-            <div className="relative w-8 h-8 rounded-full bg-orange-100 dark:bg-cyan-950/80 border border-orange-200 dark:border-cyan-500/50 text-orange-700 dark:text-cyan-300 font-bold flex items-center justify-center text-xs">
+            <div className="relative w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-xs">
               {profile?.displayName?.charAt(0) || 'G'}
               {isAdmin && adminBadgeCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
@@ -472,7 +556,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="p-3 border-b border-slate-100 dark:border-[#232838] mb-1">
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{profile?.displayName}</p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{profile?.email}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/50">
+                <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-500/50">
                   {isAdmin ? 'ADMINISTRATOR' : 'GURU'}
                 </span>
                 {profile?.nip && (
@@ -487,18 +571,18 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     onOpenAdminPanel();
                   }}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-orange-800 dark:text-cyan-300 bg-orange-500/10 dark:bg-cyan-500/10 hover:bg-orange-500/20 dark:hover:bg-cyan-500/20 border border-orange-500/20 dark:border-cyan-500/30 transition-all text-left cursor-pointer my-1 shadow-2xs"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 dark:bg-emerald-500/10 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/20 border border-emerald-500/20 dark:border-emerald-500/30 transition-all text-left cursor-pointer my-1 shadow-2xs"
                 >
                   <div className="flex items-center gap-2.5">
-                    <ShieldCheck className="w-4 h-4 text-orange-600 dark:text-cyan-400 shrink-0" />
+                    <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>Panel Administrator</span>
                   </div>
                   {adminBadgeCount > 0 ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse shrink-0 shadow-xs shadow-rose-600/50">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white shrink-0 shadow-xs shadow-rose-600/50">
                       {adminBadgeCount} Baru
                     </span>
                   ) : (
-                    <span className="text-[10px] font-semibold text-orange-700/70 dark:text-cyan-400/70">
+                    <span className="text-[10px] font-semibold text-emerald-700/70 dark:text-emerald-400/70">
                       Kelola
                     </span>
                   )}

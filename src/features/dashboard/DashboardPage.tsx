@@ -333,113 +333,257 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   const teacherName = profile?.displayName || user?.email?.split('@')[0] || 'Guru';
 
+  // Greeting time based on client local hour
+  const greetingTime = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour >= 4 && hour < 11) return 'Selamat Pagi';
+    if (hour >= 11 && hour < 15) return 'Selamat Siang';
+    if (hour >= 15 && hour < 18) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }, []);
+
+  // Today's schedule progress metrics & next focal session
+  const todayProgress = useMemo(() => {
+    const total = todayScheduleItems.length;
+    if (total === 0) return null;
+    const attendanceDone = todayScheduleItems.filter(i => i.hasAttendance).length;
+    const journalDone = todayScheduleItems.filter(i => i.hasJournal).length;
+    const isAllDone = attendanceDone === total && journalDone === total;
+    const nextPendingItem = todayScheduleItems.find(i => !i.hasAttendance || !i.hasJournal);
+
+    return {
+      total,
+      attendanceDone,
+      journalDone,
+      isAllDone,
+      nextPendingItem,
+    };
+  }, [todayScheduleItems]);
+
+  const isHomeroomPending = Boolean(homeroomClass && !homeroomDailySession);
+
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
-      {/* 1. Header Greeting & Academic Context */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
-            Selamat datang, {teacherName} <span className="inline-block animate-bounce">👋</span>
-          </h1>
-          <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>{formatDateWithDay(todayISO)}</span>
-            <span className="text-slate-300 dark:text-neutral-700">•</span>
-            <span className="font-semibold text-slate-700 dark:text-zinc-300">
-              Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'}
-            </span>
-          </p>
-        </div>
+      {/* 1. 🚀 TEACHING COCKPIT HERO (Lini Waktu & Fokus Mengajar Guru) */}
+      <div className="rounded-3xl border border-slate-200/90 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs">
+        <div className="p-5 sm:p-7 space-y-6">
+          {/* Header Row: Greeting & Context Status */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Ruang Kerja Pendidik</span>
+                <span className="text-slate-300 dark:text-neutral-700">•</span>
+                <span>{formatDateWithDay(todayISO)}</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
+                {greetingTime}, {teacherName}
+              </h1>
+              <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1">
+                Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'} • {teachingAssignments.length} Kelas Diampu
+              </p>
+            </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-neutral-900 border border-orange-200/80 dark:border-neutral-800 text-xs font-bold text-orange-700 dark:text-zinc-300 shadow-2xs">
-            {teachingAssignments.length} Kelas Diampu
-          </span>
-        </div>
-      </div>
+            {/* Quick Status Pill */}
+            {todayProgress ? (
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <div
+                  className={`px-3.5 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-2 shadow-2xs ${
+                    todayProgress.isAllDone
+                      ? 'bg-emerald-50 border-emerald-200/90 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-300'
+                      : 'bg-slate-50 border-slate-200/90 text-slate-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-zinc-300'
+                  }`}
+                >
+                  {todayProgress.isAllDone ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>Semua Sesi Hari Ini Tuntas</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-4 h-4 text-amber-500" />
+                      <span>
+                        {todayProgress.attendanceDone}/{todayProgress.total} Presensi Terisi
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="px-3.5 py-2 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200/80 dark:border-teal-800/60 text-xs font-bold text-teal-800 dark:text-teal-300 shadow-2xs flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                  Bebas Jam Tatap Muka
+                </span>
+              </div>
+            )}
+          </div>
 
-      {/* 2. ⚡ AKSI CEPAT (Main Action Buttons) */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            Aksi Cepat
-          </h2>
-          <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-500">Pintasan administrasi guru</span>
-        </div>
+          {/* Cockpit Centerpiece: Focus Banner */}
+          {todayProgress && todayProgress.nextPendingItem ? (
+            /* Sesi yang memerlukan perhatian guru */
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-slate-50/80 dark:from-emerald-950/30 dark:via-neutral-900/60 dark:to-neutral-900/40 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider">
+                    Fokus Mengajar Jam Ini
+                  </span>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                    {todayProgress.nextPendingItem.assignment.timeSlot || 'Hari Ini'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-100">
+                    Kelas {todayProgress.nextPendingItem.assignment.className}
+                  </h3>
+                  <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-zinc-400">
+                    • {todayProgress.nextPendingItem.assignment.subjectName}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                  {!todayProgress.nextPendingItem.hasAttendance
+                    ? 'Presensi tatap muka siswa belum dicatat untuk sesi ini.'
+                    : 'Presensi tuntas. Jurnal materi kegiatan mengajar belum ditulis.'}
+                </p>
+              </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button
-            type="button"
-            onClick={() => onNavigate('attendance-subject')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <CheckSquare className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
-                + Presensi Sesi
-              </span>
-              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
-                Kehadiran tatap muka
-              </span>
-            </div>
-          </button>
+              {/* Action Buttons for Next Focus */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                {!todayProgress.nextPendingItem.hasAttendance ? (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'attendance-subject')}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    <span>Presensi Kelas Sekarang</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'meetings')}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <CalendarCheck2 className="w-4 h-4" />
+                    <span>Tulis Jurnal Mengajar</span>
+                  </button>
+                )}
 
-          <button
-            type="button"
-            onClick={() => onNavigate('meetings')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <CalendarCheck2 className="w-5 h-5" />
+                <button
+                  type="button"
+                  onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'meetings')}
+                  className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-neutral-700 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  Detail Sesi
+                </button>
+              </div>
             </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
-                + Jurnal Mengajar
-              </span>
-              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
-                Materi & kegiatan
-              </span>
+          ) : todayProgress && todayProgress.isAllDone ? (
+            /* Semua sesi tuntas */
+            <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 flex items-center gap-3.5 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-emerald-900 dark:text-emerald-300">
+                  Kerja Bagus! Seluruh Sesi Hari Ini Telah Tuntas
+                </h4>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
+                  Presensi dan jurnal mengajar untuk {todayProgress.total} sesi kelas hari ini sudah tercatat rapi.
+                </p>
+              </div>
             </div>
-          </button>
+          ) : null}
 
-          <button
-            type="button"
-            onClick={() => onNavigate('grades')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-amber-300 dark:hover:border-amber-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Award className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
-                + Input Nilai
-              </span>
-              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
-                Formatif & sumatif
+          {/* Integrated Quick Action Bar */}
+          <div className="pt-2 border-t border-slate-100 dark:border-neutral-800/80">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                Pintasan Administrasi
               </span>
             </div>
-          </button>
 
-          <button
-            type="button"
-            onClick={() => onNavigate('homeroom-attendance-daily')}
-            className="p-3.5 rounded-2xl bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-sky-300 dark:hover:border-sky-500/50 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
-          >
-            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400 border border-sky-100 dark:border-sky-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <CalendarDays className="w-5 h-5" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button
+                type="button"
+                onClick={() => onNavigate('attendance-subject')}
+                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <CheckSquare className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
+                    + Presensi Sesi
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                    Kehadiran tatap muka
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('meetings')}
+                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <CalendarCheck2 className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
+                    + Jurnal Mengajar
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                    Materi & kegiatan
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('grades')}
+                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-amber-300 dark:hover:border-amber-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
+                    + Input Nilai
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                    Formatif & sumatif
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('homeroom-attendance-daily')}
+                className="relative p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-sky-300 dark:hover:border-sky-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+              >
+                {isHomeroomPending && (
+                  <span className="absolute top-2 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                  </span>
+                )}
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/60 dark:text-sky-400 border border-sky-100 dark:border-sky-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <CalendarDays className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 block truncate">
+                    Presensi Harian
+                  </span>
+                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                    Buku absensi harian
+                  </span>
+                </div>
+              </button>
             </div>
-            <div className="min-w-0">
-              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 block truncate">
-                Presensi Harian
-              </span>
-              <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
-                Buku absensi harian
-              </span>
-            </div>
-          </button>
+          </div>
         </div>
       </div>
 

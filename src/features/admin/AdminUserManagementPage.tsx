@@ -423,7 +423,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             <MessageSquare className="w-4 h-4" />
             <span>Pusat Masukan & Laporan</span>
             {unreadFeedbackCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
                 {unreadFeedbackCount}
               </span>
             )}
@@ -897,14 +897,14 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               setSweepResult(null);
             }
           }}
-          title="🧹 Pembersih Residu Database (Auto-Scan & Sapu Yatim)"
+          title="🧹 Pembersihan Data Residu (Data Tanpa Relasi)"
           size="lg"
         >
           <div className="space-y-4 text-slate-800">
             <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1.5">
               <div className="flex items-center gap-2 text-amber-800 font-bold">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                <span>Pembersihan Residu Yatim Otomatis (Orphan Subcollections)</span>
+                <span>Pembersihan Residu Data Akun yang Telah Dihapus</span>
               </div>
               <p className="text-amber-900 leading-relaxed">
                 Di Firestore, akun yang dihapus dari Firebase Auth Console sering kali masih meninggalkan data di 14 sub-koleksi (seperti nilai, absensi, atau siswa). Fitur ini dapat mendeteksi seluruh residu tersebut secara otomatis tanpa Anda perlu membuka console.

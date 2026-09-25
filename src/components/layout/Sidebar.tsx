@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { 
   LayoutDashboard, 
   BookOpen,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useAppTheme } from '../../context/ThemeContext';
 import { AppLogo } from '../common/AppLogo';
+import { Tooltip } from '../common/Tooltip';
 import { APP_CONFIG } from '../../constants/app';
 
 interface SubMenuItem {
@@ -76,7 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { activeTheme } = useAppTheme();
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
-  const [activeTooltip, setActiveTooltip] = useState<{ label: string; top: number } | null>(null);
 
   // Expanded accordion groups state (Single open accordion model)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -108,21 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [isCompact]);
 
   const isDark = activeTheme === 'dark-crimson';
-
-  // Dynamic accent style for active menu item based on theme
-  const getActiveStyle = () => {
-    if (isDark) {
-      return 'bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-400/70 shadow-[0_0_14px_rgba(0,229,255,0.35)]';
-    }
-    return 'bg-orange-500 text-white font-bold shadow-sm shadow-orange-500/25';
-  };
-
-  const getSubActiveStyle = () => {
-    if (isDark) {
-      return 'bg-cyan-950/70 text-cyan-300 font-semibold border border-cyan-500/40 shadow-[0_0_10px_rgba(0,229,255,0.2)]';
-    }
-    return 'bg-white text-orange-700 font-bold border border-orange-200/90 shadow-xs';
-  };
 
   const menuGroups: MenuGroup[] = [
     {
@@ -241,9 +227,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     });
   };
 
-  const activeStyle = getActiveStyle();
-  const subActiveStyle = getSubActiveStyle();
-
   const isSubItemActive = (subId: string) => {
     if (currentRoute === subId) return true;
     if (subId === 'meetings' && (currentRoute === 'meetings' || currentRoute === 'teacher-journal')) return true;
@@ -281,35 +264,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
           /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
           <div 
             className="w-full flex items-center justify-center cursor-pointer"
-            onMouseEnter={(e) => {
-              setHoveredTopToggle(true);
-              const rect = e.currentTarget.getBoundingClientRect();
-              setActiveTooltip({
-                label: 'Buka sidebar',
-                top: rect.top + rect.height / 2,
-              });
-            }}
-            onMouseLeave={() => {
-              setHoveredTopToggle(false);
-              setActiveTooltip(null);
-            }}
+            onMouseEnter={() => setHoveredTopToggle(true)}
+            onMouseLeave={() => setHoveredTopToggle(false)}
             onClick={() => {
               setHoveredTopToggle(false);
-              setActiveTooltip(null);
               onToggleCompact?.();
             }}
           >
-            <button
-              type="button"
-              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white hover:bg-slate-100 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] dark:hover:border-cyan-500/50 text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs border border-slate-200 dark:border-[#232838]"
-              aria-label="Buka sidebar"
-            >
-              {hoveredTopToggle ? (
-                <PanelLeftOpen className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
-              ) : (
-                <AppLogo size="sm" variant="mark" />
-              )}
-            </button>
+            <Tooltip content={hoveredTopToggle ? 'Buka sidebar' : 'DADU Workspace'} position="right">
+              <button
+                type="button"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white hover:bg-slate-100 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] dark:hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs border border-slate-200 dark:border-[#232838]"
+                aria-label="Buka sidebar"
+              >
+                {hoveredTopToggle ? (
+                  <PanelLeftOpen className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
+                ) : (
+                  <AppLogo size="sm" variant="mark" />
+                )}
+              </button>
+            </Tooltip>
           </div>
         ) : (
           /* EXPANDED MODE: Logo + Brand Title + Close Toggle on the Right */
@@ -324,7 +298,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   type="button"
                   onClick={() => {
                     setHoveredTopToggle(false);
-                    setActiveTooltip(null);
                     onToggleCompact();
                   }}
                   className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
@@ -351,7 +324,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Nav Items List with invisible smooth scrolling */}
       <div 
         className="flex-1 overflow-y-auto px-2 py-3 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-        onScroll={() => setActiveTooltip(null)}
       >
         {menuGroups.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
@@ -373,66 +345,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               return (
                 <div key={item.id} className="space-y-0.5">
-                  <div 
-                    className="relative"
-                    onMouseEnter={(e) => {
-                      if (compact) {
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setActiveTooltip({
-                          label: item.label,
-                          top: rect.top + rect.height / 2,
-                        });
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (compact) {
-                        setActiveTooltip(null);
-                      }
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTooltip(null);
-                        handleItemClick(item.id, hasSub);
-                      }}
-                      className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                        compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
-                      } ${
-                        isDirectParentActive
-                          ? isDark 
-                            ? 'bg-cyan-950/80 text-cyan-300 font-bold active-nav-glow-dark' 
-                            : 'bg-orange-500 text-white font-bold active-nav-glow-light shadow-sm shadow-orange-500/25'
-                          : isGroupActive
-                            ? 'bg-slate-200/80 dark:bg-[#141722] text-slate-900 dark:text-white font-bold shadow-2xs'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-cyan-300 hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
-                      }`}
-                    >
-                      {/* Animated Border Light Trail for standalone active parent item */}
+                  <div className="relative">
+                    <Tooltip content={item.label} position="right" disabled={!compact}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleItemClick(item.id, hasSub);
+                        }}
+                        className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                          compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
+                        } ${
+                          isDirectParentActive
+                            ? isDark 
+                              ? 'text-emerald-300 font-bold' 
+                              : 'text-emerald-900 font-bold'
+                            : isGroupActive
+                              ? 'bg-slate-200/80 dark:bg-[#141722] text-slate-900 dark:text-white font-bold shadow-2xs'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-emerald-300 hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
+                        }`}
+                      >
+                      {/* Fluid Sliding Active Capsule for top-level item */}
                       {isDirectParentActive && (
-                        <>
-                          <div
-                            className="pointer-events-none absolute -inset-[150%] animate-border-beam opacity-90"
-                            style={{
-                              background: isDark
-                                ? 'conic-gradient(from 0deg, transparent 0 310deg, #00e5ff 340deg, transparent 360deg)'
-                                : 'conic-gradient(from 0deg, transparent 0 310deg, #ffffff 340deg, transparent 360deg)',
-                            }}
-                          />
-                          <div
-                            className={`pointer-events-none absolute inset-[1.5px] rounded-[10px] ${
-                              isDark ? 'bg-[#0c121e]/95' : 'bg-orange-500'
+                        <motion.div
+                          layoutId="sidebar-active-parent-capsule"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                          className={`pointer-events-none absolute inset-0 rounded-xl ${
+                            isDark
+                              ? 'bg-emerald-950/70 border border-emerald-500/40 shadow-[0_0_16px_rgba(16,185,129,0.18)]'
+                              : 'bg-emerald-50 border border-emerald-200/90 shadow-2xs'
+                          }`}
+                        >
+                          <span
+                            className={`absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full ${
+                              isDark ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-emerald-600'
                             }`}
                           />
-                        </>
+                        </motion.div>
                       )}
 
                       <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
-                        <Icon className={`w-4 h-4 shrink-0 ${
+                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                           isDirectParentActive 
-                            ? isDark ? 'text-cyan-300' : 'text-white' 
+                            ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
                             : isGroupActive 
-                            ? isDark ? 'text-cyan-400' : 'text-orange-600' 
+                            ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
                             : 'text-slate-500 dark:text-slate-400'
                         }`} />
                         {!compact && (
@@ -440,7 +396,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <span className="truncate">{item.label}</span>
                             <div className="flex items-center gap-1.5 shrink-0">
                               {item.badgeCount && item.badgeCount > 0 ? (
-                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white animate-pulse">
+                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
                                   {item.badgeCount}
                                 </span>
                               ) : null}
@@ -471,10 +427,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
 
                       {compact && item.badgeCount && item.badgeCount > 0 ? (
-                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-50 dark:border-slate-900 animate-pulse z-20" />
+                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-50 dark:border-slate-900 z-20" />
                       ) : null}
                     </button>
-                  </div>
+                  </Tooltip>
+                </div>
 
                   {/* Render Accordion Sub-items when expanded */}
                   {isExpanded && item.subItems && (
@@ -491,34 +448,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
                               isSubActive
                                 ? isDark 
-                                  ? 'bg-cyan-950/80 text-cyan-300 font-semibold active-nav-glow-dark' 
-                                  : 'bg-white text-orange-700 font-bold border border-orange-200/90 shadow-xs active-nav-glow-light'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-cyan-200 hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
+                                  ? 'text-emerald-300 font-semibold' 
+                                  : 'text-emerald-900 font-bold'
+                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-emerald-200 hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
                             }`}
                           >
-                            {/* Glowing Animated Border Beam around Active Sub-menu item */}
+                            {/* Fluid Sliding Active Capsule for sub-menu item */}
                             {isSubActive && (
-                              <>
-                                <div
-                                  className="pointer-events-none absolute -inset-[180%] animate-border-beam opacity-95"
-                                  style={{
-                                    background: isDark
-                                      ? 'conic-gradient(from 0deg, transparent 0 300deg, #00e5ff 335deg, #a5f3fc 350deg, transparent 360deg)'
-                                      : 'conic-gradient(from 0deg, transparent 0 300deg, #f97316 335deg, #fdba74 350deg, transparent 360deg)',
-                                  }}
-                                />
-                                <div
-                                  className={`pointer-events-none absolute inset-[1.5px] rounded-[7px] ${
-                                    isDark ? 'bg-[#0f1422]/95' : 'bg-orange-50/95'
+                              <motion.div
+                                layoutId="sidebar-active-subitem-capsule"
+                                transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                                className={`pointer-events-none absolute inset-0 rounded-lg ${
+                                  isDark
+                                    ? 'bg-emerald-950/60 border border-emerald-500/35 shadow-[0_0_12px_rgba(16,185,129,0.14)]'
+                                    : 'bg-emerald-50/90 border border-emerald-200/90 shadow-2xs'
+                                }`}
+                              >
+                                <span
+                                  className={`absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full ${
+                                    isDark ? 'bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.7)]' : 'bg-emerald-600'
                                   }`}
                                 />
-                              </>
+                              </motion.div>
                             )}
 
                             <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
-                              <SubIcon className={`w-3.5 h-3.5 shrink-0 ${
+                              <SubIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
                                 isSubActive 
-                                  ? isDark ? 'text-cyan-400' : 'text-orange-600' 
+                                  ? isDark ? 'text-emerald-400' : 'text-emerald-600' 
                                   : 'text-slate-500 dark:text-slate-500'
                               }`} />
                               <span className="truncate flex-1">{sub.label}</span>
@@ -554,18 +511,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}>
         {renderContent(isCompact)}
       </aside>
-
-      {/* Global Fixed Floating Tooltip for Compact Mode (Zero Clipping Guarantee) */}
-      {isCompact && activeTooltip && (
-        <div 
-          className="fixed left-[78px] -translate-y-1/2 px-2.5 py-1.5 bg-slate-900/95 dark:bg-[#141722]/95 backdrop-blur-md text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-xl z-50 border border-slate-700/80 dark:border-cyan-500/50 pointer-events-none animate-in fade-in zoom-in-95 duration-150"
-          style={{ 
-            top: `${activeTooltip.top}px`
-          }}
-        >
-          {activeTooltip.label}
-        </div>
-      )}
 
       {/* Mobile Drawer (always full width) */}
       {isMobileOpen && (

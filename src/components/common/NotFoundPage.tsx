@@ -36,8 +36,8 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center" aria-hidden="true">
         <div className={`w-96 h-96 rounded-full blur-3xl opacity-30 ${
           isDark 
-            ? 'bg-gradient-to-tr from-rose-500/10 via-amber-500/10 to-cyan-500/10' 
-            : 'bg-gradient-to-tr from-orange-500/15 via-rose-500/10 to-amber-500/15'
+            ? 'bg-gradient-to-tr from-emerald-500/10 via-teal-500/10 to-slate-500/10' 
+            : 'bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-slate-200/20'
         }`} />
       </div>
 
@@ -86,7 +86,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={handleGoHome}
-            className="w-full sm:w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/25 transition-all duration-200"
+            className="w-full sm:w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all duration-200 cursor-pointer"
           >
             <Home className="w-4 h-4" />
             Dashboard
