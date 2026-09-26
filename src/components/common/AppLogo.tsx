@@ -44,19 +44,19 @@ const LOGO_ANIMATION_STYLES = `
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-2px) scale(1.012);
+    transform: translateY(-3px) scale(1.020);
   }
 }
 
 @keyframes daduShineSweep {
-  0%, 70% {
+  0%, 50% {
     transform: translateX(-150%) rotate(25deg);
     opacity: 0;
   }
-  73% {
+  55% {
     opacity: 1;
   }
-  87% {
+  85% {
     opacity: 1;
   }
   90%, 100% {
@@ -72,7 +72,7 @@ const LOGO_ANIMATION_STYLES = `
 }
 
 .dadu-shine-sweep {
-  animation: daduShineSweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: daduShineSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   will-change: transform, opacity;
 }
 
@@ -92,8 +92,8 @@ const LOGO_ANIMATION_STYLES = `
  * 
  * Desain & Sistem Animasi:
  * - Smooth entrance motion (opacity 0 -> 1, scale 0.94 -> 1, translateY 6 -> 0)
- * - Subtle breathing & float (scale 1.000 -> 1.012, translateY 0px -> -2px, 4s cycle)
- * - Periodic soft shine sweep (6s cycle, mask-clipped to cube facets, active for >=32px)
+ * - Subtle breathing & float (scale 1.000 -> 1.020, translateY 0px -> -3px, 4s cycle)
+ * - Periodic soft shine sweep (4s cycle, mask-clipped to cube facets, active for >=32px)
  * - Micro-interaction hover (scale 1.04, subtle lift y: -1, soft radiant glow)
  * - Reduced-motion accessibility (CSS media query disables continuous animations)
  * - Adaptif untuk Sidebar (expanded/collapsed), Header, Login, Loading, dan Mobile
@@ -174,6 +174,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
             style={{
               maskImage: `url("${logoSvg}")`,
               WebkitMaskImage: `url("${logoSvg}")`,
+              maskMode: 'alpha',
               maskSize: 'contain',
               WebkitMaskSize: 'contain',
               maskRepeat: 'no-repeat',
