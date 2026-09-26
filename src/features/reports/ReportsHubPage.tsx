@@ -51,7 +51,7 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
   return (
     <div className="space-y-5">
       {/* Top Tab Bar Navigation */}
-      <div className="bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
+      <div className="no-print bg-white dark:bg-[#141722] p-1.5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors overflow-x-auto [scrollbar-width:none]">
         <div className="flex items-center gap-1 min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon;
