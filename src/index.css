@@ -239,6 +239,104 @@ body {
   color: var(--text-muted) !important;
 }
 
+/* ==========================================================================
+   Document / Paper Isolation Boundary
+   Forces official document previews to remain white-background / dark-text
+   regardless of the active application theme. Works by locally resetting
+   the CSS custom properties that the global !important overrides above
+   resolve against, so the same rules produce light-document values inside
+   these containers.
+   ========================================================================== */
+.printable-document,
+.print-sheet,
+#printable-progress-report {
+  --app-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --interactive-border: #f1f5f9;
+}
+
+/* Explicit surface & text locks within document boundary */
+.printable-document,
+.printable-document *,
+.print-sheet,
+.print-sheet *,
+#printable-progress-report,
+#printable-progress-report * {
+  color-scheme: light;
+}
+
+.printable-document .bg-white,
+.print-sheet .bg-white,
+#printable-progress-report .bg-white {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.printable-document .bg-slate-50,
+.print-sheet .bg-slate-50,
+#printable-progress-report .bg-slate-50 {
+  background-color: #f8fafc !important;
+}
+
+.printable-document .bg-slate-100,
+.print-sheet .bg-slate-100,
+#printable-progress-report .bg-slate-100 {
+  background-color: #f1f5f9 !important;
+}
+
+.printable-document .text-slate-900,
+.print-sheet .text-slate-900,
+#printable-progress-report .text-slate-900 {
+  color: #0f172a !important;
+}
+
+.printable-document .text-slate-800,
+.print-sheet .text-slate-800,
+#printable-progress-report .text-slate-800 {
+  color: #1e293b !important;
+}
+
+.printable-document .text-slate-700,
+.print-sheet .text-slate-700,
+#printable-progress-report .text-slate-700 {
+  color: #334155 !important;
+}
+
+.printable-document .text-slate-600,
+.print-sheet .text-slate-600,
+#printable-progress-report .text-slate-600 {
+  color: #475569 !important;
+}
+
+.printable-document .text-slate-500,
+.print-sheet .text-slate-500,
+#printable-progress-report .text-slate-500 {
+  color: #64748b !important;
+}
+
+.printable-document .text-slate-400,
+.print-sheet .text-slate-400,
+#printable-progress-report .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.printable-document .border-slate-200,
+.printable-document .border-slate-200\/80,
+.printable-document .border-slate-200\/90,
+.printable-document .border-slate-100,
+.print-sheet .border-slate-200,
+.print-sheet .border-slate-200\/80,
+.print-sheet .border-slate-200\/90,
+.print-sheet .border-slate-100,
+.print-sheet .border-slate-300,
+#printable-progress-report .border-slate-200,
+#printable-progress-report .border-slate-300 {
+  border-color: #e2e8f0 !important;
+}
+
 /* Tactile Hardware Press Physics & Digital Depth */
 .tactile-press {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -269,28 +367,37 @@ body {
 @media print {
   @page {
     size: auto;
-    margin: 12mm 10mm;
+  }
+
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
   }
 
   body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
     font-size: 10pt;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  nav, sidebar, header, aside, .no-print, button:not(.printable-btn), [role="dialog"] > div:first-child:not(.printable-document) {
-    display: none !important;
+  /* Neutralize AppLayout dark shell & screen-only padding */
+  .dark [class*="bg-[#0c0e15]"],
+  .dark [class*="bg-[#0C0E15]"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    min-height: auto !important;
   }
 
-  .printable-document {
-    box-shadow: none !important;
-    border: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
+  main {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  nav, sidebar, header, aside, .no-print {
+    display: none !important;
   }
 
   table {
