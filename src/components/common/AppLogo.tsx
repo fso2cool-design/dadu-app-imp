@@ -117,7 +117,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
         loading="eager"
         decoding="async"
         draggable={false}
-        className="w-full h-full object-contain filter drop-shadow-[0_2px_10px_rgba(109,194,59,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_18px_rgba(245,158,11,0.35)]"
+        className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_16px_rgba(139,209,220,0.40)]"
       />
     </motion.div>
   );
