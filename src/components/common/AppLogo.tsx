@@ -38,17 +38,64 @@ const SIZE_MAP: Record<string, number> = {
   xl: 64,
 };
 
+const LOGO_ANIMATION_STYLES = `
+@keyframes daduCubeFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.012);
+  }
+}
+
+@keyframes daduShineSweep {
+  0%, 70% {
+    transform: translateX(-150%) rotate(25deg);
+    opacity: 0;
+  }
+  73% {
+    opacity: 1;
+  }
+  87% {
+    opacity: 1;
+  }
+  90%, 100% {
+    transform: translateX(150%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+.dadu-cube-animated {
+  animation: daduCubeFloat 4s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.dadu-shine-sweep {
+  animation: daduShineSweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dadu-cube-animated,
+  .dadu-shine-sweep {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+`;
+
 /**
  * AppLogo - Komponen Resmi Logo DADU (Digitalisasi Data Guru)
  * 
- * Single Source of Truth: `logo.svg`
+ * Single Source of Truth: `logo.svg` (FloatingCube brand mark)
  * 
- * Desain & Interaksi:
+ * Desain & Sistem Animasi:
  * - Smooth entrance motion (opacity 0 -> 1, scale 0.94 -> 1, translateY 6 -> 0)
- * - Micro-interaction hover (scale 1.04, subtle lift y: -1, soft luminous glow)
- * - Resting state stabil setelah entrance selesai (tanpa animasi infinite)
- * - Animasi penuh dan konsisten (bebas dari penonaktifan reduced motion eksternal)
- * - Menggunakan MotionConfig reducedMotion="never" lokal khusus komponen logo
+ * - Subtle breathing & float (scale 1.000 -> 1.012, translateY 0px -> -2px, 4s cycle)
+ * - Periodic soft shine sweep (6s cycle, mask-clipped to cube facets, active for >=32px)
+ * - Micro-interaction hover (scale 1.04, subtle lift y: -1, soft radiant glow)
+ * - Reduced-motion accessibility (CSS media query disables continuous animations)
  * - Adaptif untuk Sidebar (expanded/collapsed), Header, Login, Loading, dan Mobile
  */
 export const AppLogo: React.FC<AppLogoProps> = ({
@@ -109,23 +156,49 @@ export const AppLogo: React.FC<AppLogoProps> = ({
       style={{ width: pixelSize, height: pixelSize }}
       {...hoverAnimation}
     >
-      <img
-        src={logoSvg}
-        alt={alt}
-        width={pixelSize}
-        height={pixelSize}
-        loading="eager"
-        decoding="async"
-        draggable={false}
-        className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_16px_rgba(139,209,220,0.40)]"
-      />
+      <div className={`relative w-full h-full flex items-center justify-center ${shouldAnimate ? 'dadu-cube-animated' : ''}`}>
+        <img
+          src={logoSvg}
+          alt={alt}
+          width={pixelSize}
+          height={pixelSize}
+          loading="eager"
+          decoding="async"
+          draggable={false}
+          className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_16px_rgba(139,209,220,0.40)] pointer-events-none"
+        />
+
+        {shouldAnimate && pixelSize >= 32 && (
+          <div
+            className="absolute inset-0 pointer-events-none overflow-hidden select-none"
+            style={{
+              maskImage: `url("${logoSvg}")`,
+              WebkitMaskImage: `url("${logoSvg}")`,
+              maskSize: 'contain',
+              WebkitMaskSize: 'contain',
+              maskRepeat: 'no-repeat',
+              WebkitMaskRepeat: 'no-repeat',
+              maskPosition: 'center',
+              WebkitMaskPosition: 'center',
+            }}
+            aria-hidden="true"
+          >
+            <div
+              className="dadu-shine-sweep absolute inset-[-50%] w-[200%] h-[200%] pointer-events-none"
+              style={{
+                background: 'linear-gradient(115deg, transparent 0%, transparent 42%, rgba(255, 255, 255, 0.18) 50%, transparent 58%, transparent 100%)',
+              }}
+            />
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 
   // If mark-only, return just the icon image container
   if (effectiveVariant === 'mark') {
     return (
-      <MotionConfig reducedMotion="never">
+      <MotionConfig reducedMotion="user">
         <motion.div
           id={id}
           className={`inline-flex items-center justify-center ${isInteractive ? 'cursor-pointer' : ''} ${className}`}
@@ -133,6 +206,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
           {...entranceAnimation}
         >
           {imageElement}
+          <style>{LOGO_ANIMATION_STYLES}</style>
         </motion.div>
       </MotionConfig>
     );
@@ -140,7 +214,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
 
   // Horizontal or Full with Typography Block
   return (
-    <MotionConfig reducedMotion="never">
+    <MotionConfig reducedMotion="user">
       <motion.div
         id={id}
         className={`inline-flex items-center gap-2.5 min-w-0 ${isInteractive ? 'cursor-pointer group' : ''} ${className}`}
@@ -160,6 +234,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
             </span>
           )}
         </div>
+        <style>{LOGO_ANIMATION_STYLES}</style>
       </motion.div>
     </MotionConfig>
   );
