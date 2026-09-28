@@ -198,7 +198,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         localStorage.setItem(`app_theme_${user.uid}`, theme);
       } catch {}
       // Persist to user Firestore profile so it stays synced across devices/sessions
-      (container.repos.user.updateTheme as any)(user.uid, theme);
+      container.repos.user.updateTheme(user.uid, theme);
     }
   };
 

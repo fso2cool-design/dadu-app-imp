@@ -57,7 +57,7 @@ function MainApp() {
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {
     if (isAdmin) {
-      (container.repos.feedback.getUnreadCount as any)()
+      container.repos.feedback.getUnreadCount()
         .then(count => setAdminBadgeCount(count))
         .catch(err => console.warn('Unread feedback count check failed:', err));
     }

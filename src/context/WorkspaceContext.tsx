@@ -276,7 +276,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const checkIsHoliday = useCallback(
     (dateStr: string): { isHoliday: boolean; reason?: string } =>
-      checkIsHolidayDomain(dateStr, attendanceSettings as any),
+      checkIsHolidayDomain(dateStr, attendanceSettings),
     [attendanceSettings],
   );
 
