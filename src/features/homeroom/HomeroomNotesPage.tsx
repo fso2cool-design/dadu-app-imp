@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, StudentNote, StudentNoteCategory } from '../../types';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
 import { 
   getStudentNotesByClass, 
   createStudentNote, 
@@ -112,8 +113,8 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
       setLoading(true);
       try {
         const [enrs, noteList] = await Promise.all([
-          getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          getStudentNotesByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          (container.repos.studentNote as any).getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 
         if (isMounted) {

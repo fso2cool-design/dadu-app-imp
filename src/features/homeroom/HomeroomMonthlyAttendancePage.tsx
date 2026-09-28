@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord } from '../../types';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
 import { getMonthlyDailyAttendanceRecords } from '../../services/firestore/homeroomAttendance';
 import { getSchoolSettings } from '../../services/firestore/settings';
 import { 
@@ -128,7 +129,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
       try {
         let enrs = cachedEnrs;
         if (!enrs) {
-          const rawEnrs = await getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
+          const rawEnrs = await container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
           enrs = rawEnrs.filter(e => e.status === 'ACTIVE');
           homeroomMonthlyRosterCache.set(rosterKey, enrs);
         }

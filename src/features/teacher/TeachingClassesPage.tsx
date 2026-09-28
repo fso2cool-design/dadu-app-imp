@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getMeetings } from '../../services/firestore/meetings';
-import { getEnrollmentsByAcademicYear } from '../../services/firestore/enrollments';
+
+import { container } from '../../application/ports/container';
 import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { TeachingAssignment, Meeting } from '../../types';
@@ -72,8 +72,8 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
       
       // Batch fetch all meetings and all enrollments for active academic year in parallel (2 queries instead of 2 * N)
       const [allMeetings, allEnrollments] = await Promise.all([
-        getMeetings(user.uid, { academicYearId: activeAcademicYear.id, semester: activeSemester }),
-        getEnrollmentsByAcademicYear(user.uid, activeAcademicYear.id)
+        container.repos.meeting.getAll(user.uid, { academicYearId: activeAcademicYear.id, semester: activeSemester }),
+        container.repos.enrollment.getByAcademicYear(user.uid, activeAcademicYear.id)
       ]);
 
       // Index active student count by classId

@@ -1,0 +1,1 @@
+export interface BackupRepository { exportAll(uid: string): Promise<any>; importAll(uid: string, data: any): Promise<void>; }

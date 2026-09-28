@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
@@ -77,12 +78,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       setLoadingStats(true);
       try {
         const [meetingData, enrollmentData, assessmentData] = await Promise.all([
-          getMeetings(user.uid, {
+          container.repos.meeting.getAll(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
           getEnrollmentsByAcademicYear(user.uid, activeAcademicYear.id),
-          getAssessmentItems(user.uid, {
+          container.repos.assessment.getItems(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
@@ -91,7 +92,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         let scoreData: Score[] = [];
         if (assessmentData.length > 0) {
           const itemIds = assessmentData.map(a => a.id);
-          scoreData = await getScoresByAssessmentItemIds(user.uid, itemIds);
+          scoreData = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
         }
 
         let dailySession: DailyAttendanceSession | null = null;

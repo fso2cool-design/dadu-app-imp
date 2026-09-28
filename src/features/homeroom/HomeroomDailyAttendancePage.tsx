@@ -4,7 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, AttendanceStatus, GenderType } from '../../types';
 import { getTodayISO, formatDateWithDay } from '../../utils/date';
 import { ATTENDANCE_STATUS_LIST, ATTENDANCE_STATUS_META } from '../../constants/attendance';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+import { container } from '../../application/ports/container';
 import { 
   getDailyAttendanceRecords, 
   getDailyAttendanceSession,
@@ -148,7 +148,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       try {
         let enrs = cachedEnrs;
         if (!enrs) {
-          const rawEnrs = await getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
+          const rawEnrs = await container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
           enrs = rawEnrs.filter(e => e.status === 'ACTIVE');
           dailyEnrollmentsCache.set(enrollCacheKey, enrs);
         }

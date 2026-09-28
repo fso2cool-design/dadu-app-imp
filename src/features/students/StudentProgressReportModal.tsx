@@ -3,9 +3,9 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, Student, DailyAttendanceRecord, StudentNote, SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
-import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
-import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { getStudentNotesByStudent } from '../../services/firestore/studentNotes';
+
+
+import { container } from '../../application/ports/container';
 import { Modal } from '../../components/common/Modal';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { 
@@ -64,8 +64,8 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
       setLoadingData(true);
       try {
         const [sch, docS] = await Promise.all([
-          getSchoolSettings(user.uid),
-          getDocumentSettings(user.uid),
+          container.repos.settings.get(user.uid),
+          container.repos.settings.get(user.uid),
         ]);
         if (sch) setSchoolSettings(sch);
         if (docS) setDocSettings(docS);
@@ -74,14 +74,14 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
         const promises: Promise<any>[] = [];
         if (!initialAttendanceRecords && enrollment.classId) {
           promises.push(
-            getAllDailyAttendanceRecordsForClass(user.uid, enrollment.classId, enrollment.academicYearId)
+            (container.repos.homeroomAttendance as any).getAllForClass(user.uid, enrollment.classId, enrollment.academicYearId)
               .then(records => setAttendanceRecords(records))
               .catch(err => console.error('Error fetching attendance:', err))
           );
         }
         if (!initialStudentNotes && enrollment.studentId) {
           promises.push(
-            getStudentNotesByStudent(user.uid, enrollment.studentId)
+            (container.repos.studentNote as any).getByStudent(user.uid, enrollment.studentId)
               .then(notes => setStudentNotes(notes))
               .catch(err => console.error('Error fetching notes:', err))
           );

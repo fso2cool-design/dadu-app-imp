@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { updateUserProfile } from '../../services/firestore/users';
+import { container } from '../../application/ports/container';
 import { 
   getSchoolSettings, 
   saveSchoolSettings, 
@@ -363,7 +363,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       triggerSyncFeedback('syncing', `Menyimpan pengaturan ${getTabLabel(activeTab)}...`);
 
       if (activeTab === 'profile') {
-        await updateUserProfile(user.uid, profileData);
+        await container.repos.user.updateProfile(user.uid, profileData);
         await refreshProfile();
         initialProfileRef.current = JSON.parse(JSON.stringify(profileData));
       } else if (activeTab === 'school') {

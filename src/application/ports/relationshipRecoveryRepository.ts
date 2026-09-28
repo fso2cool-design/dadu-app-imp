@@ -1,0 +1,1 @@
+export interface RelationshipRecoveryRepository { scan(uid: string): Promise<any>; recover(uid: string, data: any): Promise<void>; }

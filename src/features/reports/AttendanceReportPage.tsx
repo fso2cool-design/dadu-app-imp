@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { getMeetings } from '../../services/firestore/meetings';
 import { getAttendanceRecordsByAssignment, getAttendanceRecordsByMeetingIds } from '../../services/firestore/attendance';
-import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
+
 import { getSchoolSettings } from '../../services/firestore/settings';
 import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
 import { getTodayISO } from '../../utils/date';
@@ -68,7 +69,7 @@ export const AttendanceReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
+    container.repos.settings.get(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
   
   // Subject Attendance State
@@ -107,14 +108,14 @@ export const AttendanceReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch meetings for this assignment
-        const mets = await getMeetings(user.uid, { 
+        const mets = await container.repos.meeting.getAll(user.uid, { 
           teachingAssignmentId: selectedAssignment.id,
           academicYearId: activeAcademicYear.id,
           semester: activeSemester
         });
 
         // 2. Fetch class enrollments
-        const enrs = await getEnrollmentsByClass(
+        const enrs = await container.repos.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           selectedAssignment.classId
@@ -171,7 +172,7 @@ export const AttendanceReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch class enrollments
-        const enrs = await getEnrollmentsByClass(
+        const enrs = await container.repos.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           selectedClassId
@@ -179,7 +180,7 @@ export const AttendanceReportPage: React.FC = () => {
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 2. Fetch all daily records for this class within the active academic year
-        const recs = await getAllDailyAttendanceRecordsForClass(user.uid, selectedClassId, activeAcademicYear.id);
+        const recs = await (container.repos.homeroomAttendance as any).getAllForClass(user.uid, selectedClassId, activeAcademicYear.id);
 
         homeroomReportCache.set(cacheKey, {
           enrollments: enrs,

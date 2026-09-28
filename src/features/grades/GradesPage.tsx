@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
@@ -8,7 +9,7 @@ import {
   deleteAssessmentItem,
   canDeleteAssessmentItem
 } from '../../services/firestore/assessments';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
 import { AssessmentItemModal } from './AssessmentItemModal';
 import { PasteExcelModal } from './PasteExcelModal';
 import { ScoreNoteModal } from './ScoreNoteModal';
@@ -158,13 +159,13 @@ export const GradesPage: React.FC = () => {
       setIsDirty(false);
 
       // 1. Fetch assessment columns for this assignment
-      const items = await getAssessmentItems(user.uid, {
+      const items = await container.repos.assessment.getItems(user.uid, {
         teachingAssignmentId: activeAssignment.id,
       });
       setAssessmentItems(items);
 
       // 2. Fetch class enrollments
-      const enrs = await getEnrollmentsByClass(
+      const enrs = await container.repos.enrollment.getByClass(
         user.uid,
         activeAssignment.academicYearId,
         activeAssignment.classId
@@ -176,7 +177,7 @@ export const GradesPage: React.FC = () => {
       // 3. Fetch scores for all assessment items
       const itemIds = items.map(i => i.id);
       if (itemIds.length > 0) {
-        const scores = await getScoresByAssessmentItemIds(user.uid, itemIds);
+        const scores = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
         const newScoresMap: Record<string, number | string> = {};
         const newNotesMap: Record<string, string> = {};
 

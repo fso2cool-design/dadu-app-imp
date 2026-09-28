@@ -2,7 +2,8 @@ import React, { useState, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { atomicImportStudentsWithEnrollment, ImportStudentItem, getStudents } from '../../services/firestore/students';
+import { container } from '../../application/ports/container';
+import type { ImportStudentItem } from '../../application/students/importStudents.usecase';
 import { Modal } from '../../components/common/Modal';
 import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle, RefreshCw, Sparkles, ShieldCheck } from 'lucide-react';
 import { GenderType, ClassItem, Student, StudentCustomFieldDefinition } from '../../types';
@@ -140,7 +141,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         let existingNameMap = new Map<string, string>();
         if (user) {
           try {
-            const currentStudents = await getStudents(user.uid);
+            const currentStudents = await container.repos.student.getAll(user.uid);
             currentStudents.forEach(s => {
               if (!s.isArchived) {
                 if (s.nisn && s.nisn.trim()) {
@@ -442,20 +443,16 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         className: r.targetClassName || undefined,
       }));
 
-      const res = await atomicImportStudentsWithEnrollment(user.uid, studentsToImport, {
-        academicYearId: activeAcademicYear.id,
-        academicYearLabel: activeAcademicYear.label,
-        overwriteExisting: overwriteExisting,
-      });
+      const res = await container.useCases.importStudents({ uid: user.uid, items: studentsToImport as any, enrollmentConfig: { academicYearId: activeAcademicYear.id, academicYearLabel: activeAcademicYear.label } as any, shouldOverwrite: overwriteExisting });
 
       const feedbackMsg = res.updatedCount > 0
         ? (overwriteExisting
             ? `${res.createdCount} siswa baru, ${res.updatedCount} siswa berhasil ditimpa/diperbarui (${res.enrolledCount} di rombel)!`
             : `${res.createdCount} siswa baru diimpor (${res.updatedCount} siswa lama dilewati)`)
-        : `${res.count} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`;
+        : `${(res.createdCount+res.updatedCount)} siswa berhasil diimpor (${res.enrolledCount} masuk rombel)!`;
 
       triggerSyncFeedback('saved', feedbackMsg);
-      setSuccessInfo({ total: res.count, enrolled: res.enrolledCount, created: res.createdCount, updated: res.updatedCount });
+      setSuccessInfo({ total: (res.createdCount+res.updatedCount), enrolled: res.enrolledCount, created: res.createdCount, updated: res.updatedCount });
       setTimeout(() => {
         onSuccess();
         onClose();

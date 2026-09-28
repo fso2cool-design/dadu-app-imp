@@ -19,6 +19,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Student, StudentPaginationOptions, PaginatedStudentsResult } from '../../types';
+import { buildStudentSearchTokens } from '../../domain/students/studentSearchTokens';
 
 export async function getStudents(uid: string, status?: string): Promise<Student[]> {
   const colRef = collection(db, 'users', uid, 'students');
@@ -94,43 +95,7 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
   return { id: snap.id, ...(snap.data() as any) } as Student;
 }
 
-/**
- * Helper terpusat untuk membangkitkan word-prefix search tokens dari fullName dan parentName.
- * Spesifikasi token:
- * - Minimum prefix length = 2
- * - Maximum prefix length = 20
- * - Full token tetap dimasukkan jika panjangnya <= 20
- * - Kata lebih panjang dari 20 karakter menghasilkan prefix sampai 20 karakter
- * - Normalisasi: lowercase, trim, collapse multiple whitespace
- * - Tidak menghasilkan prefix 1 karakter ("a") dan tidak membuat arbitrary substring/n-gram
- */
-export function buildStudentSearchTokens(fullName?: string, parentName?: string): string[] {
-  const tokenSet = new Set<string>();
-
-  const processText = (text?: string) => {
-    if (!text) return;
-    const normalized = text
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ');
-    if (!normalized) return;
-
-    // Pecah per kata
-    const words = normalized.split(' ').filter(Boolean);
-    for (const word of words) {
-      // Hasilkan prefix bertahap dengan min length 2 dan max length 20
-      const maxLen = Math.min(word.length, 20);
-      for (let i = 2; i <= maxLen; i++) {
-        tokenSet.add(word.substring(0, i));
-      }
-    }
-  };
-
-  processText(fullName);
-  processText(parentName);
-
-  return Array.from(tokenSet);
-}
+export { buildStudentSearchTokens } from '../../domain/students/studentSearchTokens';
 
 export interface StudentSearchFilterOptions {
   status?: string;

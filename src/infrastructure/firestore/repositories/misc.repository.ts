@@ -1,0 +1,13 @@
+import * as B from '../../../services/firestore/backup';
+import * as D from '../../../services/firestore/diagnostics';
+import * as Dup from '../../../services/firestore/deduplication';
+import * as R from '../../../services/firestore/relationshipRecovery';
+import * as Sch from '../../../services/firestore/classSchedule';
+import * as On from '../../../services/firestore/onboarding';
+export const backupRepository = { exportAll: (uid:string) => (B as any).exportBackup?.(uid) ?? (B as any).createBackup?.(uid), importAll: (uid:string, data:any) => (B as any).importBackup?.(uid,data) ?? (B as any).restoreBackup?.(uid,data) };
+export const diagnosticsRepository = { run: (uid:string) => (D as any).runDiagnostics?.(uid) ?? (D as any).getDiagnostics?.(uid) };
+export const deduplicationRepository = { findDuplicates: (uid:string) => (Dup as any).findDuplicateStudents?.(uid) ?? [], merge: (uid:string, ids:string[]) => (Dup as any).mergeDuplicateStudents?.(uid,ids) };
+export const relationshipRecoveryRepository = { scan: (uid:string) => (R as any).scanRelationships?.(uid), recover: (uid:string, data:any) => (R as any).recoverRelationships?.(uid,data) };
+export const classScheduleRepository = { getAll: (uid:string,cid:string) => (Sch as any).getClassSchedules?.(uid,cid) ?? [], save: (uid:string,data:any) => (Sch as any).saveClassSchedule?.(uid,data) };
+export const onboardingRepository = { getStatus: (uid:string) => (On as any).getOnboardingStatus?.(uid), complete: (uid:string) => (On as any).completeOnboarding?.(uid) };
+export const miscRepositories = { backupRepository, diagnosticsRepository, deduplicationRepository, relationshipRecoveryRepository, classScheduleRepository, onboardingRepository };

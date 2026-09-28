@@ -1,0 +1,1 @@
+export interface ClassScheduleRepository { getAll(uid: string, classId: string): Promise<any[]>; save(uid: string, data: any): Promise<void>; }

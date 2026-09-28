@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
-import { getMeetings } from '../../services/firestore/meetings';
+import { container } from '../../application/ports/container';
 import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
 import { getSchoolSettings } from '../../services/firestore/settings';
@@ -43,7 +43,7 @@ export const JournalReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
+    container.repos.settings.get(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
 
   // Initialize selected assignment
@@ -68,7 +68,7 @@ export const JournalReportPage: React.FC = () => {
     const fetchJournalData = async () => {
       if (!cached) setLoading(true);
       try {
-        const mets = await getMeetings(user.uid, { 
+        const mets = await container.repos.meeting.getAll(user.uid, { 
           teachingAssignmentId: selectedAssignment.id,
           academicYearId: activeAcademicYear.id,
           semester: activeSemester

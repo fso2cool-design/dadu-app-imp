@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getMeetings } from '../../services/firestore/meetings';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
+import { container } from '../../application/ports/container';
 import { 
   getAttendanceRecordsByMeeting, 
   getAttendanceRecordsByMeetingIds,
@@ -10,7 +10,7 @@ import {
   getAttendanceRecordsByDate,
   saveSubjectAttendance, 
   SaveAttendanceItem 
-} from '../../services/firestore/attendance';
+} from '../../services/firestore/attendance'; // TODO port attendance repo
 import { MeetingFormModal } from './MeetingFormModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
@@ -134,7 +134,7 @@ export const SubjectAttendancePage: React.FC = () => {
     const fetchMeetings = async () => {
       try {
         if (!cached) setLoadingMeetings(true);
-        const data = await getMeetings(user.uid, {
+        const data = await container.repos.meeting.getAll(user.uid, {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester,
           teachingAssignmentId: selectedAssignmentId,
@@ -190,7 +190,7 @@ export const SubjectAttendancePage: React.FC = () => {
         const enrollKey = `${user.uid}_${activeAcademicYear.id}_${currentAssignment.classId}`;
         let enrollments = classEnrollmentsCache.get(enrollKey);
         if (!enrollments) {
-          enrollments = await getEnrollmentsByClass(
+          enrollments = await container.repos.enrollment.getByClass(
             user.uid,
             activeAcademicYear.id,
             currentAssignment.classId
@@ -260,7 +260,7 @@ export const SubjectAttendancePage: React.FC = () => {
     const loadMatrixData = async () => {
       try {
         setLoadingMatrix(true);
-        const enrollments = await getEnrollmentsByClass(
+        const enrollments = await container.repos.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           currentAssignment.classId

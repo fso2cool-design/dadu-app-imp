@@ -1,0 +1,1 @@
+export interface DiagnosticsRepository { run(uid: string): Promise<any>; }

@@ -3,8 +3,8 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
-import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services/firestore/assessments';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+import { container } from '../../application/ports/container';
+
 import { TeachingAssignment, AssessmentItem, Score, Enrollment } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
 import * as XLSX from 'xlsx';
@@ -83,12 +83,12 @@ export const GradesReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch assessment columns
-        const items = await getAssessmentItems(user.uid, {
+        const items = await container.repos.assessment.getItems(user.uid, {
           teachingAssignmentId: selectedAssignment.id,
         });
 
         // 2. Fetch class enrollments
-        const enrs = await getEnrollmentsByClass(
+        const enrs = await container.repos.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           selectedAssignment.classId
@@ -99,7 +99,7 @@ export const GradesReportPage: React.FC = () => {
         let scs: Score[] = [];
         if (items.length > 0) {
           const itemIds = items.map(it => it.id);
-          scs = await getScoresByAssessmentItemIds(user.uid, itemIds);
+          scs = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
         }
 
         gradesReportCache.set(cacheKey, {

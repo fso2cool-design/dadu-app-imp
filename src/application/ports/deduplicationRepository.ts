@@ -1,0 +1,1 @@
+export interface DeduplicationRepository { findDuplicates(uid: string): Promise<any[]>; merge(uid: string, ids: string[]): Promise<void>; }

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+import { container } from '../../application/ports/container';
 import { 
   getAttendanceRecordsByMeeting, 
   saveMeetingAttendance, 
   SaveAttendanceItem 
-} from '../../services/firestore/attendance';
+} from '../../services/firestore/attendance'; // TODO port attendance repo
 import { Modal } from '../../components/common/Modal';
 import { Meeting, AttendanceStatus, AttendanceRecord } from '../../types';
 import { 
@@ -65,7 +65,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
         setErrorMsg(null);
 
         // Fetch enrolled students of this class
-        const enrollments = await getEnrollmentsByClass(
+        const enrollments = await container.repos.enrollment.getByClass(
           user.uid, 
           meeting.academicYearId || activeAcademicYear.id, 
           meeting.classId

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
@@ -129,14 +130,14 @@ export const ClassesPage: React.FC = () => {
       if (editingClass) {
         if (isEditingUsed) {
           // Locked edit: only allow updating classTeacherId
-          await updateClass(user.uid, editingClass.id, {
+          await container.repos.class.update(user.uid, editingClass.id, {
             classTeacherId: isHomeroom ? user.uid : '',
           });
           triggerSyncFeedback('saved', 'Metadata wali kelas berhasil diperbarui!');
           toastSuccess(`Metadata kelas "${editingClass.name}" berhasil diperbarui.`);
         } else {
           // Unused class: normal full edit
-          await updateClass(user.uid, editingClass.id, {
+          await container.repos.class.update(user.uid, editingClass.id, {
             name: name.trim(),
             gradeLevel: gradeLevel.trim(),
             major: major.trim(),
@@ -147,7 +148,7 @@ export const ClassesPage: React.FC = () => {
         }
       } else {
         // Create new class
-        await createClass(user.uid, {
+        await container.repos.class.create(user.uid, {
           academicYearId: activeAcademicYear?.id || '',
           name: name.trim(),
           gradeLevel: gradeLevel.trim(),
@@ -216,7 +217,7 @@ export const ClassesPage: React.FC = () => {
     try {
       setActionLoading(true);
       triggerSyncFeedback('syncing', `Menghapus kelas ${deleteModalCls.name}...`);
-      await deleteClass(user.uid, deleteModalCls.id);
+      await container.repos.class.delete(user.uid, deleteModalCls.id);
       triggerSyncFeedback('saved', `Kelas ${deleteModalCls.name} berhasil dihapus permanen.`);
       toastSuccess(`Kelas ${deleteModalCls.name} berhasil dihapus permanen.`);
       await reloadWorkspaceData();

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { 
@@ -82,7 +83,7 @@ export const SubjectsPage: React.FC = () => {
       setLoading(true);
       if (editingSubject) {
         triggerSyncFeedback('syncing', 'Memperbarui data mata pelajaran...');
-        await updateSubject(user.uid, editingSubject.id, {
+        await container.repos.subject.update(user.uid, editingSubject.id, {
           code: trimmedCode,
           name: trimmedName,
         });
@@ -91,7 +92,7 @@ export const SubjectsPage: React.FC = () => {
         toastSuccess(`Mata pelajaran "${trimmedName}" berhasil diperbarui.`);
       } else {
         triggerSyncFeedback('syncing', 'Menyimpan mata pelajaran ke cloud...');
-        await createSubject(user.uid, {
+        await container.repos.subject.create(user.uid, {
           code: trimmedCode,
           name: trimmedName,
           isActive: true,
@@ -139,7 +140,7 @@ export const SubjectsPage: React.FC = () => {
     try {
       setDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus mata pelajaran...');
-      await deleteSubject(user.uid, subjectToDelete.id);
+      await container.repos.subject.delete(user.uid, subjectToDelete.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Mata pelajaran berhasil dihapus');
       toastSuccess(`Mata pelajaran "${subjectToDelete.name}" telah dihapus.`);

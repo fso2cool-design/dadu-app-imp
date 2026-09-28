@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, StudentNote, ClassItem } from '../../types';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
+
 import { getDailyAttendanceRecords, getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { getStudentNotesByClass } from '../../services/firestore/studentNotes';
+
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { 
   Users, 
@@ -88,10 +89,10 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       setLoading(true);
       try {
         const [enrs, todayRecs, allRecs, notes] = await Promise.all([
-          getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
           getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr),
-          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
-          getStudentNotesByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          (container.repos.homeroomAttendance as any).getAllForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
+          (container.repos.studentNote as any).getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 
         if (isMounted) {

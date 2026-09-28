@@ -1,0 +1,1 @@
+export interface OnboardingRepository { getStatus(uid: string): Promise<any>; complete(uid: string): Promise<void>; }

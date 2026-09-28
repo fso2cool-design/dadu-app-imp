@@ -6,6 +6,7 @@ import { getClasses } from '../services/firestore/classes';
 import { getSubjects } from '../services/firestore/subjects';
 import { getTeachingAssignments } from '../services/firestore/teachingAssignments';
 import { getUserPreferences, saveUserPreferences, getAttendanceSettings, saveAttendanceSettings, DEFAULT_ATTENDANCE_SETTINGS } from '../services/firestore/settings';
+import { checkIsHoliday as checkIsHolidayDomain } from '../domain/attendance/holiday';
 
 interface WorkspaceContextType {
   academicYears: AcademicYear[];
@@ -276,41 +277,11 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   };
 
-  const checkIsHoliday = useCallback((dateStr: string): { isHoliday: boolean; reason?: string } => {
-    if (!dateStr) return { isHoliday: false };
-    const parts = dateStr.split('-');
-    if (parts.length !== 3) return { isHoliday: false };
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    const d = parseInt(parts[2], 10);
-    if (isNaN(y) || isNaN(m) || isNaN(d)) return { isHoliday: false };
-
-    // Day of week: 0 = Minggu, 6 = Sabtu
-    const dt = new Date(y, m - 1, d);
-    const dayOfWeek = dt.getDay();
-
-    if (dayOfWeek === 0) {
-      return { isHoliday: true, reason: 'Hari Minggu (Libur Akhir Pekan)' };
-    }
-
-    if (dayOfWeek === 6 && attendanceSettings.schoolDaysOption === 5) {
-      return { isHoliday: true, reason: 'Hari Sabtu (Libur Akhir Pekan - Sekolah 5 Hari)' };
-    }
-
-    // Check custom holiday dates (handles single date or range startDate <= dateStr <= endDate)
-    if (Array.isArray(attendanceSettings.holidays)) {
-      const match = attendanceSettings.holidays.find(h => {
-        const start = h.startDate;
-        const end = h.endDate || h.startDate;
-        return dateStr >= start && dateStr <= end;
-      });
-      if (match) {
-        return { isHoliday: true, reason: match.description || 'Hari Libur Madrasah' };
-      }
-    }
-
-    return { isHoliday: false };
-  }, [attendanceSettings]);
+  const checkIsHoliday = useCallback(
+    (dateStr: string): { isHoliday: boolean; reason?: string } =>
+      checkIsHolidayDomain(dateStr, attendanceSettings as any),
+    [attendanceSettings],
+  );
 
   return (
     <WorkspaceContext.Provider

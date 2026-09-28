@@ -1,0 +1,23 @@
+import { useCallback, useEffect, useState } from 'react';
+import { container } from '../application/ports/container';
+import type { Enrollment } from '../types';
+
+export function useEnrollments(uid: string | undefined, academicYearId?: string, classId?: string) {
+  const [data, setData] = useState<Enrollment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetch = useCallback(async () => {
+    if (!uid || !academicYearId || !classId) { setData([]); return; }
+    setLoading(true); setError(null);
+    try {
+      const list = await container.repos.enrollment.getByClass(uid, academicYearId, classId);
+      setData(list);
+    } catch (e: any) { setError(e?.message || 'Gagal memuat enrollment'); }
+    finally { setLoading(false); }
+  }, [uid, academicYearId, classId]);
+
+  useEffect(() => { fetch(); }, [fetch]);
+
+  return { data, loading, error, reload: fetch };
+}

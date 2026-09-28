@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { transferStudentEnrollment } from '../../services/firestore/enrollments';
+import { container } from '../../application/ports/container';
 import { Modal } from '../../components/common/Modal';
 import { Enrollment } from '../../types';
 import { ArrowRightLeft, AlertCircle } from 'lucide-react';
@@ -54,7 +54,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
       setErrorMessage(null);
       triggerSyncFeedback('syncing', 'Memproses mutasi kelas siswa...');
       const targetCls = classes.find(c => c.id === targetClassId);
-      await transferStudentEnrollment(
+      await container.repos.enrollment.transfer(
         user.uid, 
         enrollment.id, 
         targetClassId, 
