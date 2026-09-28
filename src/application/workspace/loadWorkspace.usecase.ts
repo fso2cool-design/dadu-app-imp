@@ -3,7 +3,8 @@ import type { ClassRepository } from '../ports/classRepository';
 import type { SubjectRepository } from '../ports/subjectRepository';
 import type { TeachingAssignmentRepository } from '../ports/teachingAssignmentRepository';
 import type { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../../types';
-import { DEFAULT_ATTENDANCE_SETTINGS } from '../../services/firestore/settings';
+
+const DEFAULT_ATTENDANCE_SETTINGS: AttendanceSettings = { schoolDaysOption: 6, holidays: [] };
 
 export interface LoadWorkspaceDeps {
   academicYearRepo: AcademicYearRepository;

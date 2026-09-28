@@ -17,7 +17,6 @@ import { sharedReportRepository } from '../../infrastructure/firestore/repositor
 import { studentCustomFieldRepository } from '../../infrastructure/firestore/repositories/studentCustomField.repository';
 import { feedbackRepository } from '../../infrastructure/firestore/repositories/feedback.repository';
 import { backupRepository, diagnosticsRepository, deduplicationRepository, relationshipRecoveryRepository, classScheduleRepository, onboardingRepository } from '../../infrastructure/firestore/repositories/misc.repository';
-import { getUserPreferences, getAttendanceSettings } from '../../services/firestore/settings';
 import { loadWorkspaceUseCase } from '../workspace/loadWorkspace.usecase';
 import { checkHolidayUseCase } from '../attendance/checkHoliday.usecase';
 import { searchStudentsUseCase } from '../students/searchStudents.usecase';
@@ -55,8 +54,8 @@ export const container = {
       classRepo: classRepository,
       subjectRepo: subjectRepository,
       teachingAssignmentRepo: teachingAssignmentRepository,
-      getUserPreferences,
-      getAttendanceSettings,
+      getUserPreferences: settingsRepository.getUserPreferences,
+      getAttendanceSettings: settingsRepository.getAttendanceSettings,
     }),
     checkHoliday: checkHolidayUseCase,
     searchStudents: (uid: string, query: string) => searchStudentsUseCase({ uid, query }, { studentRepo: studentRepository }),
