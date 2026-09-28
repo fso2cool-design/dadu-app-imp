@@ -122,8 +122,8 @@ export const LeggerReportPage: React.FC = () => {
       ]);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
-      if (sch) setSchoolSettings(sch);
-      if (docS) setDocSettings(docS);
+      if (sch) setSchoolSettings(sch as any);
+      if (docS) setDocSettings(docS as any);
 
       // 2. Fetch class enrollments
       const enrs = await container.repos.enrollment.getByClass(

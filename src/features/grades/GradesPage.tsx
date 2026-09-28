@@ -2,13 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  getAssessmentItems, 
-  getScoresByAssessmentItemIds, 
-  saveMatrixScores, 
-  deleteAssessmentItem,
-  canDeleteAssessmentItem
-} from '../../services/firestore/assessments';
+
 
 import { AssessmentItemModal } from './AssessmentItemModal';
 import { PasteExcelModal } from './PasteExcelModal';
@@ -159,7 +153,7 @@ export const GradesPage: React.FC = () => {
       setIsDirty(false);
 
       // 1. Fetch assessment columns for this assignment
-      const items = await container.repos.assessment.getItems(user.uid, {
+      const items = await (container.repos.assessment as any).getItems(user.uid, {
         teachingAssignmentId: activeAssignment.id,
       });
       setAssessmentItems(items);
@@ -283,7 +277,7 @@ export const GradesPage: React.FC = () => {
         });
       });
 
-      await saveMatrixScores(user.uid, scoresToSave);
+      await (container.repos.assessment as any).saveMatrixScores(user.uid, scoresToSave);
       setInitialScoresMap({ ...scoresMap });
       setIsDirty(false);
       triggerSyncFeedback('saved', 'Nilai siswa berhasil disimpan ke cloud!');
@@ -346,7 +340,7 @@ export const GradesPage: React.FC = () => {
     if (!user) return;
 
     try {
-      const check = await canDeleteAssessmentItem(user.uid, itemId);
+      const check = await (container.repos.assessment as any).canDeleteItem(user.uid, itemId);
       if (!check.canDelete) {
         toastWarning(check.reason || 'Kolom penilaian tidak dapat dihapus karena sudah memiliki nilai siswa.');
         return;
@@ -363,7 +357,7 @@ export const GradesPage: React.FC = () => {
     setDeletingItem(true);
     try {
       triggerSyncFeedback('syncing', `Menghapus kolom penilaian ${itemToDelete.name}...`);
-      await deleteAssessmentItem(user.uid, itemToDelete.id);
+      await (container.repos.assessment as any).deleteItem(user.uid, itemToDelete.id);
       triggerSyncFeedback('saved', 'Kolom penilaian berhasil dihapus.');
       toastSuccess(`Kolom "${itemToDelete.name}" berhasil dihapus.`);
       setItemToDelete(null);

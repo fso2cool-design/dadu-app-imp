@@ -9,7 +9,7 @@ import {
   updateProfile as updateFirebaseProfile
 } from 'firebase/auth';
 import { auth } from '../../services/firebase/config';
-import { getUserProfile, createUserProfile, recordUserLastLogin } from '../../services/firestore/users';
+import { container } from '../../application/ports/container';
 import { UserProfile } from '../../types';
 
 interface AuthContextType {
@@ -32,10 +32,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchProfile = async (firebaseUser: User) => {
     try {
-      let p = await getUserProfile(firebaseUser.uid);
+      let p = await container.repos.user.getProfile(firebaseUser.uid);
       if (!p) {
         // Create initial default profile if not yet created
-        p = await createUserProfile(firebaseUser.uid, {
+        p = await container.repos.user.createProfile(firebaseUser.uid, {
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Guru',
           email: firebaseUser.email || '',
           role: 'TEACHER',
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Record last login once per browser session/device
         try {
           if (sessionStorage.getItem('login_session_recorded') !== currentUser.uid) {
-            recordUserLastLogin(currentUser.uid);
+            container.repos.user.recordLastLogin(currentUser.uid);
             sessionStorage.setItem('login_session_recorded', currentUser.uid);
           }
         } catch {}
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, pass: string) => {
     const res = await signInWithEmailAndPassword(auth, email, pass);
-    await recordUserLastLogin(res.user.uid);
+    await container.repos.user.recordLastLogin(res.user.uid);
     try {
       sessionStorage.setItem('login_session_recorded', res.user.uid);
     } catch {}
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (name) {
       await updateFirebaseProfile(res.user, { displayName: name });
     }
-    const initialProfile = await createUserProfile(res.user.uid, {
+    const initialProfile = await container.repos.user.createProfile(res.user.uid, {
       displayName: name || email.split('@')[0],
       email: res.user.email || '',
       role: 'TEACHER',
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       defaultSemester: 'GANJIL',
       isOnboarded: false,
     });
-    await recordUserLastLogin(res.user.uid);
+    await container.repos.user.recordLastLogin(res.user.uid);
     try {
       sessionStorage.setItem('login_session_recorded', res.user.uid);
     } catch {}

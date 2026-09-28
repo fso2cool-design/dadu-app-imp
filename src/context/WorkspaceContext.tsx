@@ -1,11 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../types';
-import { getAcademicYears } from '../services/firestore/academicYears';
-import { getClasses } from '../services/firestore/classes';
-import { getSubjects } from '../services/firestore/subjects';
-import { getTeachingAssignments } from '../services/firestore/teachingAssignments';
-import { getUserPreferences, saveUserPreferences, getAttendanceSettings, saveAttendanceSettings, DEFAULT_ATTENDANCE_SETTINGS } from '../services/firestore/settings';
+import { container } from '../application/ports/container';
+import { DEFAULT_ATTENDANCE_SETTINGS } from '../infrastructure/firestore/repositories/settings.repository';
 import { checkIsHoliday as checkIsHolidayDomain } from '../domain/attendance/holiday';
 
 interface WorkspaceContextType {
@@ -169,12 +166,12 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       setSyncStatus('syncing');
       
       const [yearsList, classesList, subjectsList, assignmentsList, prefs, attSettings] = await Promise.all([
-        getAcademicYears(user.uid),
-        getClasses(user.uid),
-        getSubjects(user.uid),
-        getTeachingAssignments(user.uid),
-        getUserPreferences(user.uid),
-        getAttendanceSettings(user.uid),
+        container.repos.academicYear.getAll(user.uid),
+        container.repos.class.getAll(user.uid),
+        container.repos.subject.getAll(user.uid),
+        container.repos.teachingAssignment.getAll(user.uid),
+        container.repos.settings.getUserPreferences(user.uid),
+        container.repos.settings.getAttendanceSettings(user.uid),
       ]);
 
       setAcademicYears(yearsList);
@@ -240,7 +237,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const selectClassWithAutoAssignment = useCallback((classId: string) => {
     setSelectedClassId(classId);
     if (user) {
-      saveUserPreferences(user.uid, { defaultClassId: classId });
+      container.repos.settings.saveUserPreferences(user.uid, { defaultClassId: classId });
     }
 
     if (teachingAssignments.length > 0) {
@@ -259,21 +256,21 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const setActiveAcademicYear = async (year: AcademicYear) => {
     setActiveAcademicYearState(year);
     if (user) {
-      await saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
+      await container.repos.settings.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
     }
   };
 
   const setActiveSemester = async (sem: SemesterType) => {
     setActiveSemesterState(sem);
     if (user) {
-      await saveUserPreferences(user.uid, { defaultSemester: sem });
+      await container.repos.settings.saveUserPreferences(user.uid, { defaultSemester: sem });
     }
   };
 
   const updateAttendanceSettings = async (newSettings: AttendanceSettings) => {
     setAttendanceSettings(newSettings);
     if (user) {
-      await saveAttendanceSettings(user.uid, newSettings);
+      await container.repos.settings.saveAttendanceSettings(user.uid, newSettings);
     }
   };
 

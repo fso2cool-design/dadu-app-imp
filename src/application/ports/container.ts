@@ -13,6 +13,10 @@ import { userRepository } from '../../infrastructure/firestore/repositories/user
 import { settingsRepository } from '../../infrastructure/firestore/repositories/settings.repository';
 import { homeroomAttendanceRepository } from '../../infrastructure/firestore/repositories/homeroomAttendance.repository';
 import { studentNoteRepository } from '../../infrastructure/firestore/repositories/studentNote.repository';
+import { sharedReportRepository } from '../../infrastructure/firestore/repositories/sharedReport.repository';
+import { studentCustomFieldRepository } from '../../infrastructure/firestore/repositories/studentCustomField.repository';
+import { feedbackRepository } from '../../infrastructure/firestore/repositories/feedback.repository';
+import { backupRepository, diagnosticsRepository, deduplicationRepository, relationshipRecoveryRepository, classScheduleRepository, onboardingRepository } from '../../infrastructure/firestore/repositories/misc.repository';
 import { getUserPreferences, getAttendanceSettings } from '../../services/firestore/settings';
 import { loadWorkspaceUseCase } from '../workspace/loadWorkspace.usecase';
 import { checkHolidayUseCase } from '../attendance/checkHoliday.usecase';
@@ -35,6 +39,15 @@ export const container = {
     settings: settingsRepository,
     homeroomAttendance: homeroomAttendanceRepository,
     studentNote: studentNoteRepository,
+    sharedReport: sharedReportRepository,
+    studentCustomField: studentCustomFieldRepository,
+    feedback: feedbackRepository,
+    backup: backupRepository,
+    diagnostics: diagnosticsRepository,
+    deduplication: deduplicationRepository,
+    relationshipRecovery: relationshipRecoveryRepository,
+    classSchedule: classScheduleRepository,
+    onboarding: onboardingRepository,
   },
   useCases: {
     loadWorkspace: (uid: string, profileSemester?: any) => loadWorkspaceUseCase({ uid, profileDefaultSemester: profileSemester }, {

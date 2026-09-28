@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, SchoolSettings } from '../../types';
-import { getSchoolSettings } from '../../services/firestore/settings';
+import { container } from '../../application/ports/container';
 import { formatOfficialSignatureName } from '../../utils/formatOfficialName';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { Modal } from '../../components/common/Modal';
@@ -141,8 +141,8 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
     if (!user || !isOpen) return;
     const loadSchool = async () => {
       try {
-        const sch = await getSchoolSettings(user.uid);
-        if (sch) setSchoolSettings(sch);
+        const sch = await container.repos.settings.getSchoolSettings(user.uid);
+        if (sch) setSchoolSettings(sch as SchoolSettings);
       } catch (err) {
         console.error('Error loading school settings:', err);
       }

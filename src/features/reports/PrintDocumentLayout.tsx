@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
+import { container } from '../../application/ports/container';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
@@ -56,8 +56,8 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
     const fetchSettings = async () => {
       try {
         const [school, doc] = await Promise.all([
-          getSchoolSettings(user.uid),
-          getDocumentSettings(user.uid),
+          container.repos.settings.getSchoolSettings(user.uid),
+          container.repos.settings.getDocumentSettings(user.uid),
         ]);
         setSchoolSettings(school);
         setDocumentSettings(doc);

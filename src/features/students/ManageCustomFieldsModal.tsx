@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentCustomFieldDefinition } from '../../types';
-import { 
-  createStudentCustomField, 
-  updateStudentCustomField, 
-  deleteStudentCustomField 
-} from '../../services/firestore/studentCustomFields';
+import { container } from '../../application/ports/container';
+const { create: createStudentCustomField, update: updateStudentCustomField, delete: deleteStudentCustomField } = container.repos.studentCustomField as any;
 import { useAuth } from '../auth/AuthContext';
 import { 
   Sliders, 

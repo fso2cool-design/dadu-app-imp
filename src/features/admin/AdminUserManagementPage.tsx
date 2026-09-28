@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { 
-  getAllUsers, 
-  setAccountStatus, 
-  adminUpdateUserProfile,
-  purgeEntireUserWorkspace, 
-  purgeOrphanedResiduals,
-  scanOrphanResiduals,
-  OrphanResidualItem,
-  getUserStorageStats,
-  UserStorageStats 
-} from '../../services/firestore/users';
-import { getUnreadFeedbackCount } from '../../services/firestore/feedbacks';
+import { container } from '../../application/ports/container';
+import type { OrphanResidualItem, UserStorageStats } from '../../services/firestore/users';
+const _user = (container.repos as any).user;
+const getAllUsers = _user.getAllUsers.bind(_user);
+const setAccountStatus = _user.setAccountStatus.bind(_user);
+const adminUpdateUserProfile = _user.adminUpdateProfile.bind(_user);
+const purgeEntireUserWorkspace = _user.purgeWorkspace.bind(_user);
+const purgeOrphanedResiduals = _user.purgeOrphans.bind(_user);
+const scanOrphanResiduals = _user.scanOrphans.bind(_user);
+const getUserStorageStats = _user.getStorageStats.bind(_user);
+const getUnreadFeedbackCount = (container.repos as any).feedback.getUnreadCount.bind((container.repos as any).feedback);
 import { AdminFeedbackTab } from './AdminFeedbackTab';
 import { EditUserModal } from './EditUserModal';
 import { UserProfile } from '../../types';

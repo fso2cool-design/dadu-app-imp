@@ -27,10 +27,10 @@ import {
 import { Badge } from '../../components/common/Badge';
 import { Skeleton, SkeletonCardGrid } from '../../components/common/Skeleton';
 import { TabNavigation } from '../../components/common/TabNavigation';
-import { getMeetings } from '../../services/firestore/meetings';
-import { getEnrollmentsByAcademicYear } from '../../services/firestore/enrollments';
-import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services/firestore/assessments';
-import { getDailyAttendanceSession } from '../../services/firestore/homeroomAttendance';
+
+
+
+
 import { Meeting, Enrollment, TeachingAssignment, AssessmentItem, Score, DailyAttendanceSession } from '../../types';
 import { getTodayISO, formatDateWithDay, INDONESIAN_DAYS } from '../../utils/date';
 
@@ -82,7 +82,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
-          getEnrollmentsByAcademicYear(user.uid, activeAcademicYear.id),
+          (container.repos.enrollment as any).getByAcademicYear(user.uid, activeAcademicYear.id),
           container.repos.assessment.getItems(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
@@ -97,7 +97,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
         let dailySession: DailyAttendanceSession | null = null;
         if (homeroomClass) {
-          dailySession = await getDailyAttendanceSession(user.uid, activeAcademicYear.id, homeroomClass.id, todayISO);
+          dailySession = await (container.repos.homeroomAttendance as any).getSession(user.uid, activeAcademicYear.id, homeroomClass.id, todayISO);
         }
 
         if (isMounted) {

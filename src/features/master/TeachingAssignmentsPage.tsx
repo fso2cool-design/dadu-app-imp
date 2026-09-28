@@ -1,21 +1,14 @@
 import React, { useState } from 'react';
+import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  createTeachingAssignment, 
-  updateTeachingAssignment, 
-  deleteTeachingAssignment,
-  archiveTeachingAssignment,
-  unarchiveTeachingAssignment,
-  canDeleteTeachingAssignment,
-  checkTeachingAssignmentUsage,
-  TeachingAssignmentUsageSummary
-} from '../../services/firestore/teachingAssignments';
 import { Briefcase, Plus, Edit2, Trash2, Calendar, Clock, MapPin, Layers, Archive, ArchiveRestore, Lock, AlertCircle } from 'lucide-react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
+import type { TeachingAssignmentUsageSummary } from '../../services/firestore/teachingAssignments';
 import { TeachingAssignment } from '../../types';
+const taRepo = container.repos.teachingAssignment as any;
 
 const DAYS_OF_WEEK = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
@@ -75,7 +68,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
 
     if (user) {
       try {
-        const usage = await checkTeachingAssignmentUsage(user.uid, assign.id);
+        const usage = await taRepo.checkUsage(user.uid, assign.id);
         setAssignmentUsage(usage);
       } catch (err) {
         console.error('Error checking teaching assignment usage:', err);
@@ -86,7 +79,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
   const handleRequestDelete = async (assign: TeachingAssignment) => {
     if (!user) return;
     try {
-      const check = await canDeleteTeachingAssignment(user.uid, assign.id);
+      const check = await taRepo.canDelete(user.uid, assign.id);
       if (!check.canDelete) {
         setDeleteBlockedModal({
           assignment: assign,
@@ -105,7 +98,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
     try {
       setArchiving(true);
       triggerSyncFeedback('syncing', 'Mengarsipkan penugasan mengajar...');
-      await archiveTeachingAssignment(user.uid, assign.id);
+      await taRepo.archive(user.uid, assign.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Penugasan berhasil diarsipkan.');
       toastSuccess(`Penugasan mengajar "${assign.subjectName} - Kelas ${assign.className}" telah diarsipkan.`);
@@ -122,7 +115,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
     try {
       setArchiving(true);
       triggerSyncFeedback('syncing', 'Mengaktifkan kembali penugasan...');
-      await unarchiveTeachingAssignment(user.uid, assign.id, activeAcademicYear?.id);
+      await taRepo.archive(user.uid, assign.id, activeAcademicYear?.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Penugasan aktif kembali.');
       toastSuccess(`Penugasan mengajar "${assign.subjectName} - Kelas ${assign.className}" berhasil diaktifkan kembali.`);
@@ -147,7 +140,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
       triggerSyncFeedback('syncing', 'Menyimpan jadwal mengajar ke cloud...');
 
       if (editingAssignment) {
-        await updateTeachingAssignment(user.uid, editingAssignment.id, {
+        await taRepo.update(user.uid, editingAssignment.id, {
           classId: targetClass.id,
           subjectId: targetSubject.id,
           className: targetClass.name,
@@ -160,7 +153,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
         triggerSyncFeedback('saved', 'Jadwal mengajar berhasil diperbarui!');
         toastSuccess(`Jadwal mengajar "${targetSubject.name} - Kelas ${targetClass.name}" berhasil diperbarui.`);
       } else {
-        await createTeachingAssignment(user.uid, {
+        await taRepo.create(user.uid, {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester,
           classId: targetClass.id,
@@ -194,7 +187,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
     try {
       setDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus tugas mengajar...');
-      await deleteTeachingAssignment(user.uid, assignmentToDelete.id);
+      await taRepo.delete(user.uid, assignmentToDelete.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Tugas mengajar berhasil dihapus.');
       toastSuccess(`Tugas mengajar "${assignmentToDelete.subjectName} - Kelas ${assignmentToDelete.className}" berhasil dihapus.`);

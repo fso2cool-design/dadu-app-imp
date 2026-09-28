@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
-import { updateUserThemePreference } from '../services/firestore/users';
+import { container } from '../application/ports/container';
 import { ThemeKey } from '../types';
 
 export { type ThemeKey };
@@ -198,7 +198,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         localStorage.setItem(`app_theme_${user.uid}`, theme);
       } catch {}
       // Persist to user Firestore profile so it stays synced across devices/sessions
-      updateUserThemePreference(user.uid, theme);
+      (container.repos.user.updateTheme as any)(user.uid, theme);
     }
   };
 

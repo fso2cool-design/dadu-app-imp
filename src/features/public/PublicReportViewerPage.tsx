@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  getSharedReportByToken, 
-  incrementReportViewCount,
-  decryptSharedReport,
-} from '../../services/firestore/sharedReports';
+import { container } from '../../application/ports/container';
+const { getByToken: getSharedReportByToken, incrementView: incrementReportViewCount, decrypt: decryptSharedReport } = container.repos.sharedReport;
 import { SharedReport } from '../../types';
 import { 
   Share2, 

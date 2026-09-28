@@ -12,11 +12,8 @@ export function useHomeroomStudents(uid: string | undefined, activeAcademicYearI
     setLoading(true);
     try {
       const [enrs, atts] = await Promise.all([
-        container.repos.enrollment.getByClass(uid, activeAcademicYearId, classId).then(list => list.filter(e => e.status === 'ACTIVE')) as Promise<Enrollment[]>,
-        // homeroomAttendance repo not fully ported; fallback to direct service via any
-        (container.repos as any).homeroomAttendance?.getAllForClass
-          ? (container.repos as any).homeroomAttendance.getAllForClass(uid, classId, activeAcademicYearId)
-          : import('../services/firestore/homeroomAttendance').then(m => m.getAllDailyAttendanceRecordsForClass(uid, classId, activeAcademicYearId)),
+        container.repos.enrollment.getByClass(uid, activeAcademicYearId, classId).then(list => list.filter(e => e.status === 'ACTIVE')),
+        container.repos.homeroomAttendance.getAllForClass(uid, classId, activeAcademicYearId),
       ]);
       setEnrollments(enrs);
       setAttendanceRecords(atts as DailyAttendanceRecord[]);
@@ -52,19 +49,15 @@ export function useStudentNotes(uid: string | undefined, studentId: string | und
     if (!uid || !studentId) { setNotes([]); return; }
     setLoading(true);
     try {
-      const list = await (container.repos as any).studentNote?.getByStudent
-        ? (container.repos as any).studentNote.getByStudent(uid, studentId)
-        : import('../services/firestore/studentNotes').then(m => m.getStudentNotesByStudent(uid, studentId)) as Promise<StudentNote[]>;
-      setNotes(list as StudentNote[]);
+      const list = await container.repos.studentNote.getByStudent(uid, studentId);
+      setNotes(list as unknown as StudentNote[]);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, [uid, studentId]);
   useEffect(() => { load(); }, [load]);
-  const create = useCallback(async (data: Parameters<typeof import('../services/firestore/studentNotes')['createStudentNote']>[1]) => {
+  const create = useCallback(async (data: any) => {
     if (!uid) throw new Error('no uid');
-    const created: StudentNote = (container.repos as any).studentNote?.create
-      ? await (container.repos as any).studentNote.create(uid, data)
-      : await import('../services/firestore/studentNotes').then(m => m.createStudentNote(uid, data));
+    const created: StudentNote = await container.repos.studentNote.create(uid, data as any);
     setNotes(prev => [created, ...prev]);
     return created;
   }, [uid]);

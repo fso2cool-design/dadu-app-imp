@@ -68,7 +68,7 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
           container.repos.settings.get(user.uid),
         ]);
         if (sch) setSchoolSettings(sch);
-        if (docS) setDocSettings(docS);
+        if (docS) setDocSettings(docS as any);
 
         // If attendance or notes were not passed in props, load them directly from Firestore
         const promises: Promise<any>[] = [];

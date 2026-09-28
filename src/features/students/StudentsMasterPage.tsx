@@ -2,21 +2,11 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  getStudentsPaginated, 
-  searchStudentsByExactIdentifier,
-  searchStudentsByNameToken,
-  deleteStudent, 
-  canDeleteStudent 
-} from '../../services/firestore/students';
-import { 
-  getEnrollmentsByClass, 
-  deleteEnrollment, 
-  batchReorderRollNumbers,
-  canDeleteEnrollment 
-} from '../../services/firestore/enrollments';
+import { container } from '../../application/ports/container';
+
+
 import { Student, Enrollment, GenderType, StudentStatus, StudentCustomFieldDefinition } from '../../types';
-import { getStudentCustomFields } from '../../services/firestore/studentCustomFields';
+
 import { ImportStudentsModal } from './ImportStudentsModal';
 import { StudentFormModal } from './StudentFormModal';
 import { StudentDetailModal } from './StudentDetailModal';
@@ -154,7 +144,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     try {
       setLoadingPagination(true);
       const cursor = cursorToUse !== undefined ? cursorToUse : (pageCursors[targetPage] ?? null);
-      const result = await getStudentsPaginated(user.uid, {
+      const result = await container.repos.student.getPaginated(user.uid, {
         pageSize: PAGE_SIZE,
         cursorDoc: cursor,
         status: statusFilter,
@@ -216,8 +206,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           // Filter status dan gender diaplikasikan langsung pada query constraint Firestore
           const isNumeric = /^[0-9]+$/.test(trimmed);
           const [idResults, nameResults] = await Promise.all([
-            isNumeric ? searchStudentsByExactIdentifier(user.uid, trimmed, filterOptions) : Promise.resolve([]),
-            searchStudentsByNameToken(user.uid, trimmed, filterOptions),
+            isNumeric ? container.repos.student.searchByExactIdentifier(user.uid, trimmed, filterOptions) : Promise.resolve([]),
+            container.repos.student.searchByNameToken(user.uid, trimmed, filterOptions),
           ]);
 
           // Gabungkan hasil dan deduplikasi berdasarkan student ID
@@ -251,7 +241,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     if (!user) return;
     try {
       if (customFields.length === 0 || forceRefreshStudents) {
-        const fetchedFields = await getStudentCustomFields(user.uid).catch(() => [] as StudentCustomFieldDefinition[]);
+        const fetchedFields = await container.repos.studentCustomField.getAll(user.uid).catch(() => [] as StudentCustomFieldDefinition[]);
         setCustomFields(fetchedFields);
       }
 
@@ -263,7 +253,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
       if (currentClassId && activeAcademicYear) {
         setLoading(true);
-        const classEnrolls = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId, { status: 'ALL' });
+        const classEnrolls = await container.repos.enrollment.getByClass(user.uid, activeAcademicYear.id, currentClassId, { status: 'ALL' });
         setEnrollments(classEnrolls);
       } else {
         setEnrollments([]);
@@ -406,7 +396,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       });
 
       const sortedIds = sorted.map(s => s.id);
-      await batchReorderRollNumbers(user.uid, sortedIds);
+      await container.repos.enrollment.batchReorderRollNumbers(user.uid, sortedIds);
       await fetchData();
       triggerSyncFeedback('saved', 'Nomor absen berhasil diurutkan!');
       toastSuccess('Nomor absen berhasil diurutkan A-Z secara otomatis!');
@@ -482,7 +472,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     if (!user) return;
     try {
       if (enrollmentId) {
-        const check = await canDeleteEnrollment(user.uid, enrollmentId);
+        const check = await container.repos.enrollment.canDelete(user.uid, enrollmentId);
         if (!check.canDelete) {
           setDeleteBlockedModal({
             name: name || 'Siswa ini',
@@ -492,7 +482,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           return;
         }
       } else {
-        const check = await canDeleteStudent(user.uid, studentId);
+        const check = await container.repos.student.canDelete(user.uid, studentId);
         if (!check.canDelete) {
           setDeleteBlockedModal({
             name: name || 'Siswa ini',
@@ -520,11 +510,11 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
     try {
       triggerSyncFeedback('syncing', `Menghapus data ${studentToDelete.name}...`);
       if (studentToDelete.enrollmentId) {
-        await deleteEnrollment(user.uid, studentToDelete.enrollmentId);
+        await container.repos.enrollment.delete(user.uid, studentToDelete.enrollmentId);
         triggerSyncFeedback('saved', 'Penempatan kelas dihapus.');
         toastSuccess(`Penempatan kelas untuk "${studentToDelete.name}" berhasil dihapus.`);
       } else {
-        await deleteStudent(user.uid, studentToDelete.studentId);
+        await container.repos.student.delete(user.uid, studentToDelete.studentId);
         triggerSyncFeedback('saved', 'Data siswa dihapus permanen.');
         toastSuccess(`Data siswa "${studentToDelete.name}" berhasil dihapus permanen.`);
       }
@@ -1337,7 +1327,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         customFields={customFields}
         onFieldsChanged={async () => {
           if (user) {
-            const fields = await getStudentCustomFields(user.uid);
+            const fields = await container.repos.studentCustomField.getAll(user.uid);
             setCustomFields(fields);
           }
         }}

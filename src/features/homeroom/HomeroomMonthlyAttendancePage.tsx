@@ -4,8 +4,6 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord } from '../../types';
 
-import { getMonthlyDailyAttendanceRecords } from '../../services/firestore/homeroomAttendance';
-import { getSchoolSettings } from '../../services/firestore/settings';
 import { 
   CalendarRange, 
   Calendar,
@@ -134,7 +132,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
           homeroomMonthlyRosterCache.set(rosterKey, enrs);
         }
 
-        const recs = await getMonthlyDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, yearMonthPrefix);
+        const recs = await container.repos.homeroomAttendance.getMonthly(user!.uid, activeAcademicYear!.id, currentClass!.id, yearMonthPrefix);
         homeroomMonthlyRecordsCache.set(recordsKey, recs);
 
         if (isMounted) {
@@ -246,7 +244,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
     let schoolInfo: any = null;
     if (user) {
       try {
-        schoolInfo = await getSchoolSettings(user.uid);
+        schoolInfo = await container.repos.settings.getSchoolSettings(user.uid);
       } catch (e) {}
     }
 

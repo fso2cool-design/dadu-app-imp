@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Student, Enrollment, ClassItem, SchoolSettings } from '../../types';
-import { getSchoolSettings } from '../../services/firestore/settings';
+import { container } from '../../application/ports/container';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
 import { 
@@ -243,7 +243,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
 
   useEffect(() => {
     if (!user || !isOpen) return;
-    getSchoolSettings(user.uid)
+    container.repos.settings.getSchoolSettings(user.uid)
       .then(sch => {
         if (sch) setSchoolSettings(sch);
       })

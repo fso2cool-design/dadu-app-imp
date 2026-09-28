@@ -3,14 +3,8 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 import { container } from '../../application/ports/container';
-import { 
-  getAttendanceRecordsByMeeting, 
-  getAttendanceRecordsByMeetingIds,
-  getAttendanceRecordsByAssignment,
-  getAttendanceRecordsByDate,
-  saveSubjectAttendance, 
-  SaveAttendanceItem 
-} from '../../services/firestore/attendance'; // TODO port attendance repo
+import type { SaveAttendanceItem } from '../../services/firestore/attendance';
+const { getByMeeting: getAttendanceRecordsByMeeting, getByMeetingIds: getAttendanceRecordsByMeetingIds, getByAssignment: getAttendanceRecordsByAssignment, getByDate: getAttendanceRecordsByDate, saveSubjectAttendance } = container.repos.attendance;
 import { MeetingFormModal } from './MeetingFormModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';

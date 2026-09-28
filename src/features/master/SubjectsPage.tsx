@@ -2,14 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  createSubject, 
-  updateSubject, 
-  archiveSubject, 
-  unarchiveSubject, 
-  canDeleteSubject, 
-  deleteSubject 
-} from '../../services/firestore/subjects';
+const { create: createSubject, update: updateSubject, archive: archiveSubject, unarchive: unarchiveSubject, canDelete: canDeleteSubject, delete: deleteSubject } = container.repos.subject as any;
 import { 
   BookOpen, 
   Plus, 

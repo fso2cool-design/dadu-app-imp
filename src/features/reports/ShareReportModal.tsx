@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { 
-  createSharedReport, 
-  getUserSharedReports, 
-  revokeSharedReport, 
-  deleteSharedReport 
-} from '../../services/firestore/sharedReports';
+import { container } from '../../application/ports/container';
+const { create: createSharedReport, getUserReports: getUserSharedReports, revoke: revokeSharedReport, delete: deleteSharedReport } = container.repos.sharedReport;
 import { SharedReport, SharedReportType, SharedReportPayload } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';

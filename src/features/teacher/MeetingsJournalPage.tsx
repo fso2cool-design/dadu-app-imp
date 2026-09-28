@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { getMeetings, deleteMeeting } from '../../services/firestore/meetings';
+import { container } from '../../application/ports/container';
+const { getAll: getMeetings, delete: deleteMeeting } = container.repos.meeting;
 import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';

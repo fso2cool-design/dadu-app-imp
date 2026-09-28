@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { submitOnboarding, OnboardingData } from '../../services/firestore/onboarding';
+import type { OnboardingData } from '../../services/firestore/onboarding';
+import { container } from '../../application/ports/container';
 import { 
   User, 
   Building2, 
@@ -95,7 +96,7 @@ export const OnboardingWizard: React.FC = () => {
         throw new Error('Minimal harus ada 1 mata pelajaran yang didaftarkan.');
       }
 
-      await submitOnboarding(user.uid, user.email || '', formData);
+      await container.repos.onboarding.submitOnboarding(user.uid, user.email || '', formData);
       await refreshProfile();
       await reloadWorkspaceData();
     } catch (err: any) {

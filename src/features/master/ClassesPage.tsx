@@ -2,15 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  createClass, 
-  updateClass, 
-  deleteClass, 
-  archiveClass, 
-  unarchiveClass, 
-  checkClassUsage, 
-  ClassUsageSummary 
-} from '../../services/firestore/classes';
+import type { ClassUsageSummary } from '../../services/firestore/classes';
 import { ClassItem } from '../../types';
 import { 
   Layers, 
@@ -29,6 +21,7 @@ import {
 import { Modal } from '../../components/common/Modal';
 import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../context/ToastContext';
+const classesRepo = container.repos.class as any;
 
 export const ClassesPage: React.FC = () => {
   const { user } = useAuth();
@@ -65,7 +58,7 @@ export const ClassesPage: React.FC = () => {
       try {
         const results = await Promise.all(
           classes.map(async (cls) => {
-            const summary = await checkClassUsage(user.uid, cls.id);
+            const summary = await (classesRepo.checkUsage as any)(user.uid, cls.id);
             return { id: cls.id, summary };
           })
         );
@@ -177,7 +170,7 @@ export const ClassesPage: React.FC = () => {
     try {
       setActionLoading(true);
       triggerSyncFeedback('syncing', `Mengarsipkan kelas ${archiveModalCls.name}...`);
-      await archiveClass(user.uid, archiveModalCls.id);
+      await (classesRepo.archive as any)(user.uid, archiveModalCls.id);
       triggerSyncFeedback('saved', `Kelas ${archiveModalCls.name} berhasil diarsipkan.`);
       toastSuccess(`Kelas ${archiveModalCls.name} berhasil diarsipkan. Seluruh data historis tetap aman.`);
       await reloadWorkspaceData();
@@ -197,7 +190,7 @@ export const ClassesPage: React.FC = () => {
     try {
       setActionLoading(true);
       triggerSyncFeedback('syncing', `Mengaktifkan kembali kelas ${unarchiveModalCls.name}...`);
-      await unarchiveClass(user.uid, unarchiveModalCls.id, activeAcademicYear?.id);
+      await (classesRepo.unarchive as any)(user.uid, unarchiveModalCls.id, activeAcademicYear?.id);
       triggerSyncFeedback('saved', `Kelas ${unarchiveModalCls.name} kembali aktif.`);
       toastSuccess(`Kelas ${unarchiveModalCls.name} berhasil diaktifkan kembali.`);
       await reloadWorkspaceData();

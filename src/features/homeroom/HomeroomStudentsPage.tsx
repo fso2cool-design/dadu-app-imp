@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { container } from '../../application/ports/container';
 import { Enrollment, StudentNote, DailyAttendanceRecord } from '../../types';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
-import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { getStudentNotesByStudent, createStudentNote } from '../../services/firestore/studentNotes';
 import { Modal } from '../../components/common/Modal';
 import { StudentProgressReportModal } from '../students/StudentProgressReportModal';
 import { StudentExamCardModal } from '../students/StudentExamCardModal';
@@ -111,8 +109,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       setLoading(true);
       try {
         const [enrs, atts] = await Promise.all([
-          getEnrollmentsByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          getAllDailyAttendanceRecordsForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
+          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          container.repos.homeroomAttendance.getAllForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
         ]);
 
         if (isMounted) {
@@ -141,7 +139,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
     async function loadNotes() {
       setLoadingNotes(true);
       try {
-        const notes = await getStudentNotesByStudent(user!.uid, selectedEnrollment!.studentId);
+        const notes = await container.repos.studentNote.getByStudent(user!.uid, selectedEnrollment!.studentId);
         if (isMounted) setStudentNotesList(notes);
       } catch (err) {
         console.error('Error loading student notes:', err);
@@ -225,7 +223,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
 
     setSavingNote(true);
     try {
-      const newNote = await createStudentNote(user.uid, {
+      const newNote = await container.repos.studentNote.create(user.uid, {
         studentId: selectedEnrollment.studentId,
         studentName: selectedEnrollment.student?.fullName || '',
         rollNumber: selectedEnrollment.rollNumber,

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { container } from '../../application/ports/container';
 import { Badge } from '../../components/common/Badge';
-import { getSchoolSettings, getDocumentSettings, saveDocumentSettings } from '../../services/firestore/settings';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { 
   Printer, 
@@ -50,8 +50,8 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
     const fetchSettings = async () => {
       try {
         const [school, doc] = await Promise.all([
-          getSchoolSettings(user.uid),
-          getDocumentSettings(user.uid),
+          container.repos.settings.getSchoolSettings(user.uid),
+          container.repos.settings.getDocumentSettings(user.uid),
         ]);
         setSchoolSettings(school);
         if (doc) {
@@ -74,7 +74,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
     if (!user) return;
     setSavingSettings(true);
     try {
-      await saveDocumentSettings(user.uid, docSettings);
+      await container.repos.settings.saveDocumentSettings(user.uid, docSettings);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {

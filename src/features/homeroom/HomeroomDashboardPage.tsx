@@ -4,8 +4,6 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, StudentNote, ClassItem } from '../../types';
 
-import { getDailyAttendanceRecords, getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { 
   Users, 
@@ -90,7 +88,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       try {
         const [enrs, todayRecs, allRecs, notes] = await Promise.all([
           container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr),
+          ((container.repos.homeroomAttendance as any).getByDate(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr)),
           (container.repos.homeroomAttendance as any).getAllForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
           (container.repos.studentNote as any).getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);

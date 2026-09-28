@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { createMeeting, updateMeeting, getMeetings } from '../../services/firestore/meetings';
+import { container } from '../../application/ports/container';
+const { create: createMeeting, update: updateMeeting, getAll: getMeetings } = container.repos.meeting;
 import { Modal } from '../../components/common/Modal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
 import { CalendarCheck2, Clock, BookOpen, FileText, Sparkles, CheckCircle2, AlertCircle, Landmark } from 'lucide-react';

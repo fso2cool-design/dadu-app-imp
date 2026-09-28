@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  createStudent, 
-  updateStudent, 
-  checkStudentUsage, 
-  StudentUsageSummary 
-} from '../../services/firestore/students';
-import { createEnrollment, updateEnrollment, transferStudentEnrollment } from '../../services/firestore/enrollments';
+import type { StudentUsageSummary } from '../../services/firestore/students';
+import { container } from '../../application/ports/container';
+const { create: createStudent, update: updateStudent, checkUsage: checkStudentUsage } = container.repos.student as any;
+const { create: createEnrollment, update: updateEnrollment, transfer: transferStudentEnrollment } = container.repos.enrollment as any;
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment, StudentCustomFieldDefinition } from '../../types';
 import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck, Sliders } from 'lucide-react';

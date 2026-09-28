@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { useAuth } from '../../features/auth/AuthContext';
-import { createFeedback } from '../../services/firestore/feedbacks';
+import { container } from '../../application/ports/container';
 import { FeedbackType } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import { 
@@ -40,7 +40,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
     setSubmitting(true);
     try {
-      await createFeedback({
+      await container.repos.feedback.create({
         userId: user.uid,
         userName: profile?.displayName || user.email || 'Guru',
         userEmail: user.email || '',

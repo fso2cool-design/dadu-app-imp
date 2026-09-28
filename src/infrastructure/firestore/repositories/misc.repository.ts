@@ -4,10 +4,40 @@ import * as Dup from '../../../services/firestore/deduplication';
 import * as R from '../../../services/firestore/relationshipRecovery';
 import * as Sch from '../../../services/firestore/classSchedule';
 import * as On from '../../../services/firestore/onboarding';
-export const backupRepository = { exportAll: (uid:string) => (B as any).exportBackup?.(uid) ?? (B as any).createBackup?.(uid), importAll: (uid:string, data:any) => (B as any).importBackup?.(uid,data) ?? (B as any).restoreBackup?.(uid,data) };
-export const diagnosticsRepository = { run: (uid:string) => (D as any).runDiagnostics?.(uid) ?? (D as any).getDiagnostics?.(uid) };
-export const deduplicationRepository = { findDuplicates: (uid:string) => (Dup as any).findDuplicateStudents?.(uid) ?? [], merge: (uid:string, ids:string[]) => (Dup as any).mergeDuplicateStudents?.(uid,ids) };
-export const relationshipRecoveryRepository = { scan: (uid:string) => (R as any).scanRelationships?.(uid), recover: (uid:string, data:any) => (R as any).recoverRelationships?.(uid,data) };
-export const classScheduleRepository = { getAll: (uid:string,cid:string) => (Sch as any).getClassSchedules?.(uid,cid) ?? [], save: (uid:string,data:any) => (Sch as any).saveClassSchedule?.(uid,data) };
-export const onboardingRepository = { getStatus: (uid:string) => (On as any).getOnboardingStatus?.(uid), complete: (uid:string) => (On as any).completeOnboarding?.(uid) };
+
+export const backupRepository = {
+  exportFullDatabase: B.exportFullDatabase,
+  importFullDatabase: B.importFullDatabase,
+  getDatabaseStatistics: B.getDatabaseStatistics,
+  resetSemesterData: B.resetSemesterData,
+  previewSemesterReset: B.previewSemesterReset,
+};
+export const diagnosticsRepository = { runIntegrityAudit: D.runIntegrityAudit };
+export const deduplicationRepository = {
+  scanDuplicateStudents: Dup.scanDuplicateStudents,
+  executeZeroResidueDeduplication: Dup.executeZeroResidueDeduplication,
+};
+export const relationshipRecoveryRepository = {
+  findStudentCandidatesByNisn: R.findStudentCandidatesByNisn,
+  relinkEnrollmentClass: R.relinkEnrollmentClass,
+  relinkStudentRelationship: R.relinkStudentRelationship,
+};
+export const classScheduleRepository = {
+  getScheduleDocId: Sch.getScheduleDocId,
+  getClassSchedule: Sch.getClassSchedule,
+  saveClassSchedule: Sch.saveClassSchedule,
+  deleteClassSchedule: Sch.deleteClassSchedule,
+};
+export const onboardingRepository = {
+  submitOnboarding: On.submitOnboarding,
+};
+
+// re-export for direct imports
+export const scanDuplicateStudents = Dup.scanDuplicateStudents;
+export const executeZeroResidueDeduplication = Dup.executeZeroResidueDeduplication;
+export type DeduplicationScanResult = Dup.DeduplicationScanResult;
+export type DeduplicationExecutionResult = Dup.DeduplicationExecutionResult;
+export type DiagnosticResult = D.DiagnosticResult;
+export type IntegrityIssue = D.IntegrityIssue;
+
 export const miscRepositories = { backupRepository, diagnosticsRepository, deduplicationRepository, relationshipRecoveryRepository, classScheduleRepository, onboardingRepository };

@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { container } from '../../application/ports/container';
 import { 
   ClassSchedule, 
   ClassScheduleItem, 
   ClassScheduleDay, 
   SemesterType 
 } from '../../types';
-import { 
-  getClassSchedule, 
-  saveClassSchedule, 
-  deleteClassSchedule 
-} from '../../services/firestore/classSchedule';
 import { PrintDocumentLayout } from '../reports/PrintDocumentLayout';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
@@ -167,7 +163,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
     const loadSchedule = async () => {
       setLoading(true);
       try {
-        const data = await getClassSchedule(
+        const data = await container.repos.classSchedule.getClassSchedule(
           user.uid,
           currentClass.id,
           activeAcademicYear.id,
@@ -389,7 +385,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         currentItems.push(newItem);
       }
 
-      const updated = await saveClassSchedule(user.uid, {
+      const updated = await container.repos.classSchedule.saveClassSchedule(user.uid, {
         classId: currentClass.id,
         className: currentClass.name,
         academicYearId: activeAcademicYear.id,
@@ -415,7 +411,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
 
     try {
       const updatedItems = customSchedule.items.filter(i => i.id !== itemId);
-      const updated = await saveClassSchedule(user.uid, {
+      const updated = await container.repos.classSchedule.saveClassSchedule(user.uid, {
         ...customSchedule,
         items: updatedItems,
       });

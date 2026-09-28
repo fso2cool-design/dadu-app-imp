@@ -4,13 +4,8 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, AttendanceStatus, GenderType } from '../../types';
 import { getTodayISO, formatDateWithDay } from '../../utils/date';
 import { ATTENDANCE_STATUS_LIST, ATTENDANCE_STATUS_META } from '../../constants/attendance';
+import type { SaveDailyAttendanceItem } from '../../services/firestore/homeroomAttendance';
 import { container } from '../../application/ports/container';
-import { 
-  getDailyAttendanceRecords, 
-  getDailyAttendanceSession,
-  saveDailyAttendance,
-  SaveDailyAttendanceItem 
-} from '../../services/firestore/homeroomAttendance';
 import { 
   CalendarDays, 
   Calendar,
@@ -154,8 +149,8 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         }
 
         const [records, session] = await Promise.all([
-          getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
-          getDailyAttendanceSession(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
+          container.repos.homeroomAttendance.getByDate(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
+          container.repos.homeroomAttendance.getSession(user!.uid, activeAcademicYear!.id, currentClass!.id, date),
         ]);
 
         if (isMounted) {
@@ -353,7 +348,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         note: attendanceState[e.studentId]?.note || '',
       }));
 
-      await saveDailyAttendance(
+      await container.repos.homeroomAttendance.saveDailyAttendance(
         user.uid,
         activeAcademicYear.id,
         currentClass.id,

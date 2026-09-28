@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { container } from '../../application/ports/container';
 import { 
   Enrollment, 
   Subject, 
@@ -11,13 +12,6 @@ import {
   SchoolSettings, 
   DocumentSettings 
 } from '../../types';
-import { getEnrollmentsByClass } from '../../services/firestore/enrollments';
-import { getSubjects } from '../../services/firestore/subjects';
-import { getAssessmentItems, getScoresByAssessmentItemIds } from '../../services/firestore/assessments';
-import { getAllDailyAttendanceRecordsForClass } from '../../services/firestore/homeroomAttendance';
-import { getStudentNotesByClass } from '../../services/firestore/studentNotes';
-import { getSchoolSettings, getDocumentSettings } from '../../services/firestore/settings';
-import { getUserProfile } from '../../services/firestore/users';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
 import { 
@@ -88,8 +82,8 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
     const loadSettings = async () => {
       try {
         const [sch, docS] = await Promise.all([
-          getSchoolSettings(user.uid),
-          getDocumentSettings(user.uid),
+          container.repos.settings.getSchoolSettings(user.uid),
+          container.repos.settings.getDocumentSettings(user.uid),
         ]);
         if (sch) setSchoolSettings(sch);
         if (docS) setDocSettings(docS);
@@ -106,17 +100,17 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
     setLoading(true);
     try {
       // 1. Subjects
-      const subs = await getSubjects(user.uid);
+      const subs = await container.repos.subject.getAll(user.uid);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
 
       // 2. Enrollments
-      const enrs = await getEnrollmentsByClass(user.uid, activeAcademicYear.id, currentClassId);
+      const enrs = await container.repos.enrollment.getByClass(user.uid, activeAcademicYear.id, currentClassId);
       enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
       setEnrollments(enrs);
 
       // 3. Assessment Items
-      const items = await getAssessmentItems(user.uid, {
+      const items = await container.repos.assessment.getItems(user.uid, {
         academicYearId: activeAcademicYear.id,
         classId: currentClassId,
         semester: activeSemester,
@@ -125,18 +119,18 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
 
       // 4. Scores
       if (items.length > 0) {
-        const scs = await getScoresByAssessmentItemIds(user.uid, items.map(it => it.id));
+        const scs = await container.repos.assessment.getScoresByItemIds(user.uid, items.map(it => it.id));
         setScores(scs);
       } else {
         setScores([]);
       }
 
       // 5. Daily Attendance
-      const attRecs = await getAllDailyAttendanceRecordsForClass(user.uid, currentClassId, activeAcademicYear.id);
+      const attRecs = await container.repos.homeroomAttendance.getAllForClass(user.uid, currentClassId, activeAcademicYear.id);
       setAttendanceRecords(attRecs);
 
       // 6. Student Notes
-      const notes = await getStudentNotesByClass(user.uid, activeAcademicYear.id, currentClassId);
+      const notes = await (container.repos.studentNote as any).getByClass(user.uid, activeAcademicYear.id, currentClassId);
       setStudentNotes(notes);
 
       // 7. Homeroom Teacher
@@ -148,7 +142,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
             nip: profile.nip || '-',
           });
         } else {
-          const tProfile = await getUserProfile(currentClassObj.classTeacherId);
+          const tProfile = await container.repos.user.getProfile(currentClassObj.classTeacherId);
           if (tProfile) {
             setHomeroomTeacher({
               name: tProfile.displayName || 'Wali Kelas',

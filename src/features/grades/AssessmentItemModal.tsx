@@ -3,7 +3,8 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Modal } from '../../components/common/Modal';
 import { AssessmentItem, AssessmentCategory, TeachingAssignment } from '../../types';
-import { createAssessmentItem, updateAssessmentItem } from '../../services/firestore/assessments';
+import { container } from '../../application/ports/container';
+const { createItem: createAssessmentItem, updateItem: updateAssessmentItem } = container.repos.assessment;
 import { getTodayISO } from '../../utils/date';
 import { Award, Calendar, Percent, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 

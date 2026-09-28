@@ -18,7 +18,8 @@ import {
   executeZeroResidueDeduplication, 
   DeduplicationScanResult,
   DeduplicationExecutionResult 
-} from '../../services/firestore/deduplication';
+} from '../../infrastructure/firestore/repositories/misc.repository';
+import { container } from '../../application/ports/container';
 
 interface DeduplicateStudentsModalProps {
   isOpen: boolean;

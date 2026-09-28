@@ -9,7 +9,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { NotFoundPage } from './components/common/NotFoundPage';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { getUnreadFeedbackCount } from './services/firestore/feedbacks';
+import { container } from './application/ports/container';
 import { resolvePathToRouteKey, resolveRoutePath } from './routes/paths';
 
 // Lazy-loaded page components for route-level code splitting
@@ -57,7 +57,7 @@ function MainApp() {
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {
     if (isAdmin) {
-      getUnreadFeedbackCount()
+      (container.repos.feedback.getUnreadCount as any)()
         .then(count => setAdminBadgeCount(count))
         .catch(err => console.warn('Unread feedback count check failed:', err));
     }

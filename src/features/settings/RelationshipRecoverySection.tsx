@@ -1,26 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  ShieldAlert, 
-  ShieldCheck, 
-  AlertTriangle, 
-  CheckCircle2, 
-  RefreshCw, 
-  Link2, 
-  Search, 
-  Lock, 
-  X, 
-  UserCheck, 
-  AlertCircle,
-  HelpCircle
-} from 'lucide-react';
-import { runIntegrityAudit, DiagnosticResult, IntegrityIssue } from '../../services/firestore/diagnostics';
-import { 
-  relinkEnrollmentClass, 
-  relinkStudentRelationship, 
-  findStudentCandidatesByNisn 
-} from '../../services/firestore/relationshipRecovery';
+import { ShieldCheck, RefreshCw, CheckCircle2, Link2, UserCheck, X, AlertCircle, Search } from 'lucide-react';
+import { container } from '../../application/ports/container';
+import type { DiagnosticResult, IntegrityIssue } from '../../services/firestore/diagnostics';
 import { ClassItem, AcademicYear, Student } from '../../types';
-
+const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn } = container.repos.relationshipRecovery as any;
 interface RelationshipRecoverySectionProps {
   uid: string;
   classes: ClassItem[];
@@ -63,7 +46,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
     try {
       setIsAuditing(true);
       setOperationSuccessMsg(null);
-      const result = await runIntegrityAudit(uid);
+      const result = await container.repos.diagnostics.runIntegrityAudit(uid);
       setAuditResult(result);
     } catch (err: any) {
       console.error('Audit failed:', err);
@@ -98,7 +81,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setRelinkClassIssue(null);
 
       // Re-run audit to update issues list
-      const freshAudit = await runIntegrityAudit(uid);
+      const freshAudit = await container.repos.diagnostics.runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {
@@ -165,7 +148,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setOperationSuccessMsg('Relasi transaksi siswa berhasil ditautkan kembali ke master siswa secara atomik!');
       setRelinkStudentIssue(null);
 
-      const freshAudit = await runIntegrityAudit(uid);
+      const freshAudit = await container.repos.diagnostics.runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {

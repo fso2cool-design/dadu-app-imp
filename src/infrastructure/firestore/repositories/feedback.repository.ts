@@ -1,8 +1,12 @@
-import type { FeedbackRepository } from '../../../application/ports/feedbackRepository';
 import * as F from '../../../services/firestore/feedbacks';
-export const feedbackRepository: FeedbackRepository = {
-  getAll: (uid) => (F as any).getFeedbacks?.(uid) ?? [],
-  create: (uid,d) => (F as any).createFeedback?.(uid,d),
-  update: (uid,id,d) => (F as any).updateFeedback?.(uid,id,d),
-  delete: (uid,id) => (F as any).deleteFeedback?.(uid,id),
+export const feedbackRepository = {
+  getAll: () => F.getAllFeedbacks(),
+  getUnreadCount: () => F.getUnreadFeedbackCount(),
+  updateStatus: (id:string, status:any, reply?:string) => F.updateFeedbackStatus(id, status, reply),
+  delete: (id:string) => F.deleteFeedback(id),
+  create: (data:any) => F.createFeedback(data),
+  // legacy aliases
+  getAllFeedbacks: () => F.getAllFeedbacks(),
+  updateFeedbackStatus: (id:string, s:any, r?:string) => F.updateFeedbackStatus(id,s,r),
+  deleteFeedback: (id:string) => F.deleteFeedback(id),
 };

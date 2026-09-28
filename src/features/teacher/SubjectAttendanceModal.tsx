@@ -2,11 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
-import { 
-  getAttendanceRecordsByMeeting, 
-  saveMeetingAttendance, 
-  SaveAttendanceItem 
-} from '../../services/firestore/attendance'; // TODO port attendance repo
+import type { SaveAttendanceItem } from '../../services/firestore/attendance';
+const { getByMeeting: getAttendanceRecordsByMeeting, saveMeetingAttendance } = container.repos.attendance;
 import { Modal } from '../../components/common/Modal';
 import { Meeting, AttendanceStatus, AttendanceRecord } from '../../types';
 import { 

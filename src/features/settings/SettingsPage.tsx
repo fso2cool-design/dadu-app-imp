@@ -1,27 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import type { DatabaseStatistics, DatabaseBackup, ResetSemesterScope, ResetSemesterSummary } from '../../services/firestore/backup';
 import { container } from '../../application/ports/container';
-import { 
-  getSchoolSettings, 
-  saveSchoolSettings, 
-  getDocumentSettings, 
-  saveDocumentSettings,
-  getUserPreferences, 
-  saveUserPreferences 
-} from '../../services/firestore/settings';
-import { 
-  exportFullDatabase, 
-  importFullDatabase, 
-  getDatabaseStatistics, 
-  resetSemesterData,
-  previewSemesterReset,
-  DatabaseBackup,
-  DatabaseStatistics,
-  ResetSemesterOptions,
-  ResetSemesterScope,
-  ResetSemesterSummary,
-  ImportProgressInfo
-} from '../../services/firestore/backup';
+
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useToast } from '../../context/ToastContext';
 import { SchoolSettings, DocumentSettings, UserPreferences, SemesterType } from '../../types';
@@ -228,9 +209,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       try {
         setLoading(true);
         const [sch, docS, pref] = await Promise.all([
-          getSchoolSettings(user.uid),
-          getDocumentSettings(user.uid),
-          getUserPreferences(user.uid),
+          container.repos.settings.getSchoolSettings(user.uid),
+          container.repos.settings.getDocumentSettings(user.uid),
+          container.repos.settings.getUserPreferences(user.uid),
         ]);
 
         if (sch) {
@@ -333,7 +314,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     if (!user) return;
     try {
       setStatsLoading(true);
-      const stats = await getDatabaseStatistics(user.uid);
+      const stats = await container.repos.backup.getDatabaseStatistics(user.uid);
       setDbStats(stats);
     } catch (err) {
       console.error('Error getting stats:', err);
@@ -367,13 +348,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
         await refreshProfile();
         initialProfileRef.current = JSON.parse(JSON.stringify(profileData));
       } else if (activeTab === 'school') {
-        await saveSchoolSettings(user.uid, schoolData);
+        await container.repos.settings.saveSchoolSettings(user.uid, schoolData);
         initialSchoolRef.current = JSON.parse(JSON.stringify(schoolData));
       } else if (activeTab === 'document') {
-        await saveDocumentSettings(user.uid, documentData);
+        await container.repos.settings.saveDocumentSettings(user.uid, documentData);
         initialDocRef.current = JSON.parse(JSON.stringify(documentData));
       } else if (activeTab === 'preferences') {
-        await saveUserPreferences(user.uid, preferencesData);
+        await container.repos.settings.saveUserPreferences(user.uid, preferencesData);
         initialPrefRef.current = JSON.parse(JSON.stringify(preferencesData));
       }
 
@@ -478,7 +459,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setSuccessMsg(null);
       setErrorMsg(null);
 
-      const backup = await exportFullDatabase(
+      const backup = await container.repos.backup.exportFullDatabase(
         user.uid, 
         profileData.displayName || user.displayName || 'Guru', 
         schoolData.schoolName || 'Madrasah'
@@ -538,7 +519,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setErrorMsg(null);
       setSuccessMsg(null);
 
-      const result = await importFullDatabase(
+      const result = await container.repos.backup.importFullDatabase(
         user.uid, 
         backupFileContent, 
         importMode,
@@ -567,7 +548,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     if (!user) return;
     try {
       setIsExporting(true);
-      const backupData = await exportFullDatabase(
+      const backupData = await container.repos.backup.exportFullDatabase(
         user.uid, 
         profileData.displayName, 
         schoolData.schoolName
@@ -594,7 +575,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setIsPreviewLoading(true);
       setErrorMsg(null);
       const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
-      const preview = await previewSemesterReset(user.uid, {
+      const preview = await container.repos.backup.previewSemesterReset(user.uid, {
         academicYearId: resetAcademicYearId,
         semester: targetSemester,
         scope: resetScope,
@@ -640,7 +621,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setSuccessMsg(null);
 
       const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
-      const summary = await resetSemesterData(user.uid, {
+      const summary = await container.repos.backup.resetSemesterData(user.uid, {
         academicYearId: resetAcademicYearId,
         semester: targetSemester,
         scope: resetScope,

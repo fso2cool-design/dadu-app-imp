@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  createAcademicYear, 
-  updateAcademicYear,
-  deleteAcademicYear,
-  archiveAcademicYear,
-  unarchiveAcademicYear,
-  canDeleteAcademicYear,
-  checkAcademicYearUsage,
-  AcademicYearUsageSummary
-} from '../../services/firestore/academicYears';
+import { container } from '../../application/ports/container';
 import { 
   Calendar, 
   Plus, 
@@ -28,6 +19,8 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../context/ToastContext';
 import { AcademicYear } from '../../types';
+import type { AcademicYearUsageSummary } from '../../services/firestore/academicYears';
+const ayRepo = container.repos.academicYear as any;
 
 export const AcademicYearsPage: React.FC = () => {
   const { user } = useAuth();
@@ -83,7 +76,7 @@ export const AcademicYearsPage: React.FC = () => {
 
     if (user) {
       try {
-        const usage = await checkAcademicYearUsage(user.uid, year.id);
+        const usage = await ayRepo.checkUsage(user.uid, year.id);
         setYearUsage(usage);
       } catch (err) {
         console.error('Error checking academic year usage:', err);
@@ -100,7 +93,7 @@ export const AcademicYearsPage: React.FC = () => {
       triggerSyncFeedback('syncing', 'Menyimpan tahun ajaran ke cloud...');
 
       if (editingYear) {
-        await updateAcademicYear(user.uid, editingYear.id, {
+        await ayRepo.update(user.uid, editingYear.id, {
           label: label.trim(),
           startYear: Number(startYear),
           endYear: Number(endYear),
@@ -110,7 +103,7 @@ export const AcademicYearsPage: React.FC = () => {
         triggerSyncFeedback('saved', 'Tahun ajaran berhasil diperbarui!');
         toastSuccess(`Tahun ajaran "${label.trim()}" berhasil diperbarui.`);
       } else {
-        await createAcademicYear(user.uid, {
+        await ayRepo.create(user.uid, {
           label: label.trim(),
           startYear: Number(startYear),
           endYear: Number(endYear),
@@ -136,7 +129,7 @@ export const AcademicYearsPage: React.FC = () => {
     if (!user) return;
     try {
       triggerSyncFeedback('syncing', `Mengaktifkan tahun ajaran ${yearLabel}...`);
-      await updateAcademicYear(user.uid, id, { isActive: true });
+      await ayRepo.update(user.uid, id, { isActive: true });
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', `Tahun ajaran ${yearLabel} aktif!`);
       toastSuccess(`Tahun ajaran aktif diubah ke ${yearLabel}.`);
@@ -157,7 +150,7 @@ export const AcademicYearsPage: React.FC = () => {
     try {
       setArchiving(true);
       triggerSyncFeedback('syncing', `Mengarsipkan tahun ajaran ${year.label}...`);
-      await archiveAcademicYear(user.uid, year.id);
+      await ayRepo.archive(user.uid, year.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Tahun ajaran berhasil diarsipkan.');
       toastSuccess(`Tahun ajaran "${year.label}" telah diarsipkan.`);
@@ -174,7 +167,7 @@ export const AcademicYearsPage: React.FC = () => {
     try {
       setArchiving(true);
       triggerSyncFeedback('syncing', `Memulihkan tahun ajaran ${year.label}...`);
-      await unarchiveAcademicYear(user.uid, year.id);
+      await ayRepo.archive(user.uid, year.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Tahun ajaran dipulihkan.');
       toastSuccess(`Tahun ajaran "${year.label}" berhasil dipulihkan dari arsip.`);
@@ -188,7 +181,7 @@ export const AcademicYearsPage: React.FC = () => {
   const handleRequestDelete = async (year: AcademicYear) => {
     if (!user) return;
     try {
-      const check = await canDeleteAcademicYear(user.uid, year.id);
+      const check = await ayRepo.canDelete(user.uid, year.id);
       if (!check.canDelete) {
         setDeleteBlockedModal({
           year,
@@ -207,7 +200,7 @@ export const AcademicYearsPage: React.FC = () => {
     try {
       setDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus tahun ajaran...');
-      await deleteAcademicYear(user.uid, yearToDelete.id);
+      await ayRepo.delete(user.uid, yearToDelete.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Tahun ajaran berhasil dihapus.');
       toastSuccess(`Tahun ajaran "${yearToDelete.label}" berhasil dihapus.`);

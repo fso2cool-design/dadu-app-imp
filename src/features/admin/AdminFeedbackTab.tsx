@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '../../types';
-import { 
-  getAllFeedbacks, 
-  updateFeedbackStatus, 
-  deleteFeedback 
-} from '../../services/firestore/feedbacks';
+import { container } from '../../application/ports/container';
+const _fb = (container.repos as any).feedback;
+const getAllFeedbacks = _fb.getAll.bind(_fb);
+const updateFeedbackStatus = _fb.updateStatus.bind(_fb);
+const deleteFeedback = _fb.delete.bind(_fb);
 import { useToast } from '../../context/ToastContext';
 import { 
   Bug, 

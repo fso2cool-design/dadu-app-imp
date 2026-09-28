@@ -6,7 +6,6 @@ import { Badge } from '../../components/common/Badge';
 import { container } from '../../application/ports/container';
 import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
-import { getSchoolSettings } from '../../services/firestore/settings';
 import { ShareReportModal } from './ShareReportModal';
 import * as XLSX from 'xlsx';
 import { 
@@ -43,7 +42,7 @@ export const JournalReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    container.repos.settings.get(user.uid).then(setSchoolSettings).catch(console.error);
+    container.repos.settings.getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
 
   // Initialize selected assignment

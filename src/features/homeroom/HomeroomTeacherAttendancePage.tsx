@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { container } from '../../application/ports/container';
 import {
   TeachingAssignment,
   TeacherMonthlyAttendanceItem,
@@ -8,12 +9,6 @@ import {
   SemesterType,
   SchoolSettings,
 } from '../../types';
-import {
-  getHomeroomTeachingAssignments,
-  getTeacherMonthlyAttendance,
-  saveTeacherMonthlyAttendance,
-} from '../../services/firestore/teacherAttendance';
-import { getSchoolSettings } from '../../services/firestore/settings';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { emitSyncSuccess, emitSyncError } from '../../utils/syncEvents';
 import {
@@ -96,7 +91,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
   // Load School Settings
   useEffect(() => {
     if (!user) return;
-    getSchoolSettings(user.uid)
+    container.repos.settings.getSchoolSettings(user.uid)
       .then(res => setSchoolSettings(res))
       .catch(err => console.error('Error loading school settings:', err));
   }, [user]);
@@ -117,8 +112,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
     setLoading(true);
 
     Promise.all([
-      getHomeroomTeachingAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
-      getTeacherMonthlyAttendance(user.uid, selectedClassId, activeAcademicYear.id, selectedSemester, selectedYear, selectedMonth)
+      container.repos.teacherAttendance.getHomeroomAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
+      container.repos.teacherAttendance.getMonthlyAttendance(user.uid, selectedClassId, activeAcademicYear.id, selectedSemester, selectedYear, selectedMonth)
     ])
       .then(([asgs, savedRecord]) => {
         if (!isMounted) return;
@@ -350,7 +345,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
     setSaving(true);
     try {
-      await saveTeacherMonthlyAttendance(user.uid, {
+      await container.repos.teacherAttendance.saveMonthlyAttendance(user.uid, {
         id: `${selectedClassId}_${activeAcademicYear.id}_${selectedSemester}_${selectedYear}_${selectedMonth}`,
         classId: selectedClassId,
         className: currentClass?.name || 'Kelas Binaan',

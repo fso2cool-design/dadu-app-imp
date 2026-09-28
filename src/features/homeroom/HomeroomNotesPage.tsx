@@ -4,12 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, StudentNote, StudentNoteCategory } from '../../types';
 
-import { 
-  getStudentNotesByClass, 
-  createStudentNote, 
-  updateStudentNote, 
-  deleteStudentNote 
-} from '../../services/firestore/studentNotes';
+
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { 
@@ -114,7 +109,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
       try {
         const [enrs, noteList] = await Promise.all([
           container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          (container.repos.studentNote as any).getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          container.repos.studentNote.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 
         if (isMounted) {
@@ -188,7 +183,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
     try {
       triggerSyncFeedback('syncing', 'Menyimpan catatan pembinaan siswa...');
       if (editingNote) {
-        await updateStudentNote(user.uid, editingNote.id, {
+        await container.repos.studentNote.update(user.uid, editingNote.id, {
           studentId: formStudentId,
           studentName,
           rollNumber,
@@ -215,7 +210,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
         triggerSyncFeedback('saved', 'Catatan pembinaan diperbarui!');
         toastSuccess('Catatan pembinaan siswa berhasil diperbarui.');
       } else {
-        const created = await createStudentNote(user.uid, {
+        const created = await container.repos.studentNote.create(user.uid, {
           studentId: formStudentId,
           studentName,
           rollNumber,
@@ -254,7 +249,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
     setDeleting(true);
     try {
       triggerSyncFeedback('syncing', 'Menghapus catatan pembinaan...');
-      await deleteStudentNote(user.uid, noteToDelete);
+      await container.repos.studentNote.delete(user.uid, noteToDelete);
       setNotes(prev => prev.filter(n => n.id !== noteToDelete));
       triggerSyncFeedback('saved', 'Catatan berhasil dihapus.');
       toastSuccess('Catatan berhasil dihapus.');

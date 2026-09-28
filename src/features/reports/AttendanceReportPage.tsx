@@ -4,11 +4,6 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
-import { getMeetings } from '../../services/firestore/meetings';
-import { getAttendanceRecordsByAssignment, getAttendanceRecordsByMeetingIds } from '../../services/firestore/attendance';
-
-
-import { getSchoolSettings } from '../../services/firestore/settings';
 import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
 import { getTodayISO } from '../../utils/date';
 import * as XLSX from 'xlsx';
@@ -123,13 +118,13 @@ export const AttendanceReportPage: React.FC = () => {
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 3. Fetch all attendance records for this assignment (both independent and meeting-linked)
-        const recs = await getAttendanceRecordsByAssignment(user.uid, selectedAssignment.id);
+        const recs = await container.repos.attendance.getByAssignment(user.uid, selectedAssignment.id);
         
         // If there are legacy records queried via meetingIds that might not have assignmentId stamped, merge them
         let finalRecords = recs;
         if (mets.length > 0) {
           const mIds = mets.map(m => m.id);
-          const legacyRecs = await getAttendanceRecordsByMeetingIds(user.uid, mIds);
+          const legacyRecs = await (container.repos.attendance as any).getByMeetingIds(user.uid, mIds);
           const map = new Map<string, AttendanceRecord>();
           legacyRecs.forEach(r => map.set(r.id, r));
           recs.forEach(r => map.set(r.id, r));
