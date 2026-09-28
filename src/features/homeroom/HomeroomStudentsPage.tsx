@@ -291,6 +291,69 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
     XLSX.writeFile(wb, `Data_Siswa_Kelas_${currentClass?.name || ''}_${activeAcademicYear?.label || ''}.xlsx`);
   };
 
+  // Export to CSV for X-C hub integration
+  const handleExportCSV = () => {
+    if (enrollments.length === 0) {
+      toastWarning('Tidak ada data siswa untuk diekspor.');
+      return;
+    }
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const header = [
+      'studentId',
+      'nis',
+      'nisn',
+      'fullName',
+      'gender',
+      'birthPlace',
+      'birthDate',
+      'rollNumber',
+      'className',
+      'academicYear'
+    ];
+
+    const rows = enrollments.map(enr => {
+      return [
+        escapeCsv(enr.studentId),
+        escapeCsv(enr.student?.nis || ''),
+        escapeCsv(enr.student?.nisn || ''),
+        escapeCsv(enr.student?.fullName || ''),
+        escapeCsv(enr.student?.gender || ''),
+        escapeCsv(enr.student?.birthPlace || ''),
+        escapeCsv(enr.student?.birthDate || ''),
+        escapeCsv(enr.rollNumber || ''),
+        escapeCsv(currentClass?.name || ''),
+        escapeCsv(activeAcademicYear?.label || '')
+      ].join(',');
+    });
+
+    const csvContent = '\uFEFF' + [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const classNameSafe = currentClass?.name || 'Class';
+    const academicYearSafe = activeAcademicYear?.label || 'Year';
+    const fileName = currentClass?.name === 'X-C' 
+      ? `X-C_Students_${classNameSafe}_${academicYearSafe}.csv`
+      : `Students_${classNameSafe}_${academicYearSafe}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -344,6 +407,14 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               Download Excel (.xlsx)
+            </button>
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Export CSV X-C
             </button>
           </div>
         )}
