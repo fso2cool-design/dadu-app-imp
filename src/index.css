@@ -241,7 +241,9 @@ body {
 [data-design-system="apple-glass"] [class*="text-slate-900"],
 [data-design-system="apple-glass"] [class*="text-slate-800"],
 [data-design-system="neo-skeuomorphic"] .text-slate-900,
-[data-design-system="neo-skeuomorphic"] .text-slate-800 {
+[data-design-system="neo-skeuomorphic"] .text-slate-800,
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-900"],
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-800"] {
   color: var(--text-main) !important;
 }
 
@@ -254,7 +256,9 @@ body {
 [data-design-system="apple-glass"] [class*="text-slate-700"],
 [data-design-system="apple-glass"] [class*="text-slate-600"],
 [data-design-system="neo-skeuomorphic"] .text-slate-700,
-[data-design-system="neo-skeuomorphic"] .text-slate-600 {
+[data-design-system="neo-skeuomorphic"] .text-slate-600,
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-700"],
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-600"] {
   color: var(--text-muted) !important;
 }
 
@@ -267,18 +271,40 @@ body {
 [data-design-system="apple-glass"] [class*="text-slate-500"],
 [data-design-system="apple-glass"] [class*="text-slate-400"],
 [data-design-system="neo-skeuomorphic"] .text-slate-500,
-[data-design-system="neo-skeuomorphic"] .text-slate-400 {
+[data-design-system="neo-skeuomorphic"] .text-slate-400,
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-500"],
+[data-design-system="neo-skeuomorphic"] [class*="text-slate-400"] {
   color: var(--text-muted) !important;
 }
 
-/* 7. Typography family — apply per DS */
-[data-design-system="brutalism"] {
-  font-family: var(--ds-font-sans);
+/* 7. Typography family — apply per DS (+ body.font-sans override) */
+[data-design-system="brutalism"],
+[data-design-system="brutalism"] body,
+[data-design-system="brutalism"] .font-sans {
+  font-family: var(--ds-font-sans) !important;
 }
 [data-design-system="apple-glass"],
-[data-design-system="neo-skeuomorphic"] {
-  font-family: var(--ds-font-sans);
+[data-design-system="apple-glass"] body,
+[data-design-system="apple-glass"] .font-sans,
+[data-design-system="neo-skeuomorphic"],
+[data-design-system="neo-skeuomorphic"] body,
+[data-design-system="neo-skeuomorphic"] .font-sans {
+  font-family: var(--ds-font-sans) !important;
 }
+[data-design-system="neo-skeuomorphic"] h1,
+[data-design-system="neo-skeuomorphic"] h2,
+[data-design-system="neo-skeuomorphic"] h3,
+[data-design-system="neo-skeuomorphic"] .font-serif {
+  font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
+}
+[data-design-system="apple-glass"] .font-serif {
+  font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
+}
+
+/* G6: accent-glow */
+[data-design-system="brutalism"] { --accent-glow: rgba(255,229,0,0.4); }
+[data-design-system="apple-glass"] { --accent-glow: rgba(0,122,255,0.3); }
+[data-design-system="neo-skeuomorphic"] { --accent-glow: rgba(4,120,87,0.3); }
 
 /* ==========================================================================
    Document / Paper Isolation Boundary
