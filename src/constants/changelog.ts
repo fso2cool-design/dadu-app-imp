@@ -12,6 +12,27 @@ export interface ChangeLogItem {
 
 export const APP_CHANGELOGS: ChangeLogItem[] = [
   {
+    version: 'ver. 2.3-JRA',
+    versionCode: '2.3.0-JRA',
+    releaseDate: '30 September 2026',
+    title: 'Evolusi Design System: 3 Gaya Visual — Brutalism, Apple Glass & Neo-Skeuomorphic',
+    badge: 'Design System',
+    highlights: [
+      {
+        category: 'Design System Modern',
+        items: [
+          'Tiga pilihan gaya visual: Brutalism (tegas, kontras tinggi), Apple Glass (transparan elegan), dan Neo-Skeuomorphic (emboss lembut) — ganti instan via menu Pengaturan.',
+        ],
+      },
+      {
+        category: 'Performa & Arsitektur',
+        items: [
+          'Hapus 5 tema lama, ringankan CSS, dan rapikan arsitektur layered — tetap cepat, tetap stabil saat offline.',
+        ],
+      },
+    ],
+  },
+  {
     version: 'ver. 2.2-JRA',
     versionCode: '2.2.0-JRA',
     releaseDate: '12 September 2026',
