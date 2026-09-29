@@ -84,7 +84,7 @@ dadu-app-imp/
 ├── public/                      # Asset statis, logo, manifest PWA
 ├── src/
 │   ├── components/              # Komponen UI bersama (AppLayout, ErrorBoundary, Modal, dll.)
-│   ├── context/                 # React Contexts (WorkspaceContext, ThemeContext, ToastContext)
+│   ├── context/                 # React Contexts (WorkspaceContext, DesignSystemContext, ThemeContext, ToastContext)
 │   ├── features/                # Modul fitur berbasis domain (auth, teacher, homeroom, reports, dll.)
 │   ├── routes/                  # Definisi rute, mapping path, dan bidirectional adapter
 │   ├── services/
@@ -185,7 +185,7 @@ Proyek ini menerapkan standar mutu tinggi melalui 4 gerbang kualitas otomatis (*
 
 1. **Linting Cepat**: Biome memeriksa kepatuhan sintaksis dan best practice dalam waktu < 400ms.
 2. **Type Safety**: TypeScript compiler memastikan tidak ada *type mismatches* atau *implicit any*.
-3. **Unit & Component Testing**: Vitest menjalankan 12+ test suites (67+ skenario pengujian) mencakup utilitas, cryptography, routing adapter, auth context, dan error boundary.
+3. **Unit & Component Testing**: Vitest menjalankan 21 test suites (111+ skenario pengujian) mencakup utilitas, cryptography, routing adapter, auth context, dan error boundary.
 4. **Bundle Verification**: Vite memastikan kompilasi bundle bersih tanpa warning batas ukuran chunk.
 
 Sebelum melakukan commit atau push ke GitHub, pastikan Anda menjalankan perintah:

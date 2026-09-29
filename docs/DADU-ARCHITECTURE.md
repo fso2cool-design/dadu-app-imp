@@ -1,6 +1,6 @@
 # DADU — Architecture Document
 
-> **Version**: 2.2.0 | **Last Updated**: 2026-09-23 | **Baseline Commit**: `9d73d97` (main)
+> **Version**: 2.3.0 | **Last Updated**: 2026-09-30 | **Baseline Commit**: `48a7697` (main)
 
 ---
 
@@ -60,7 +60,8 @@ dadu-app-imp/
 │   ├── types/index.ts           # Centralized TypeScript interfaces
 │   ├── context/
 │   │   ├── WorkspaceContext.tsx  # Academic data loader (classes, subjects, etc.)
-│   │   ├── ThemeContext.tsx      # Light / dark-crimson theme
+│   │   ├── DesignSystemContext.tsx # Design system (brutalism/apple-glass/neo-skeuomorphic) + CSS vars
+│   │   ├── ThemeContext.tsx      # Thin wrapper over DesignSystemContext (backward compat)
 │   │   └── ToastContext.tsx      # Toast notification system
 │   ├── features/
 │   │   ├── admin/               # Admin user management, feedback tab

@@ -4,6 +4,33 @@ Format changelog ini mengacu pada [Keep a Changelog](https://keepachangelog.com/
 
 ---
 
+## [2.3.0] — 2026-09-30
+
+Rilis Design System Migration: ganti 5 tema legacy menjadi 3 design system modern dengan arsitektur layered tetap terjaga.
+
+### Added
+- **Design System Architecture**:
+  - `DesignSystemContext` (`src/context/DesignSystemContext.tsx`) dengan injeksi CSS var `--ds-*`, persistensi Firestore `designSystemPreference`, dan mapping legacy theme.
+  - 3 Design Systems: `brutalism` (kuning-hitam tegas), `apple-glass` (transparan blur), `neo-skeuomorphic` (emboss lembut).
+  - Token lengkap per system: `accent`, `background`, `surface`, `text`, `border`, radius, shadow.
+
+### Changed
+- **Theme System (Breaking)**:
+  - `ThemeKey` disederhanakan dari 9 nilai (6 legacy + 3 baru) menjadi hanya 3: `brutalism | apple-glass | neo-skeuomorphic`.
+  - `THEME_OPTIONS` di `src/context/ThemeContext.tsx` 5 → 3 opsi dropdown.
+  - `ThemeContext` sekarang thin wrapper di atas `DesignSystemContext` untuk backward compatibility.
+  - `src/index.css` 5 blok tema legacy dihapus, 3 blok DS baru, `data-design-system` attribute.
+  - `SettingsPage` heading `Pilihan Skema Tema Workspace` → `Pilihan Design System`, grid `lg:grid-cols-12` → `md:grid-cols-3`.
+
+### Removed
+- 5 tema legacy: `light`, `dark-crimson`, `obsidian-tactile`, `swiss-manuscript`, `solarized-comfort`, `chalkboard-school` (6 literal termasuk `light` default).
+- `src/domain/shared/result.ts` (dead code `Result<T,E>`, 0 referensi).
+
+### Verification
+- `tsc --noEmit` ✓, `biome lint` 218 files ✓, `depcruise` 235 modules / 874 deps 0 violation ✓
+- `vite build` 2255 modules 17.64s ✓, `vitest` 21 suites / 111 tests 100% pass ✓
+- Layered architecture intact (modular monolith + hexagonal lite).
+
 ## [2.2.0] — 2026-09-23
 
 Rilis modernisasi komprehensif DADU (Phases 1 s/d 8) yang meningkatkan kestabilan tipe, efisiensi bundle, arsitektur routing berbasis URL, infrastruktur pengujian otomatis, pipeline CI/CD, dan performa runtime.
