@@ -1755,7 +1755,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <div className="flex items-center gap-2">
                   <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    Pilihan Skema Tema Workspace
+                    Pilihan Design System
                   </h4>
                 </div>
 
@@ -1784,8 +1784,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 </div>
               </div>
 
-              {/* Compact 2-Column Responsive Selector: Dropdown (Left) + Live Mini Preview (Right) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+              {/* 3-Column Design System Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
                 {/* Left Column: Dropdown Controls & Philosophy */}
                 <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
@@ -1946,7 +1946,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                     {/* Mini Micro Text / Status Pill */}
                     <div className="flex items-center justify-between text-[10px] pt-1">
                       <span style={{ color: isSelectedDark ? '#94a3b8' : '#64748b' }}>
-                        Ergonomi Kontras: <strong style={{ color: currentPreviewOption.accentHex }}>WCAG {isSelectedDark && selectedTheme !== 'solarized-comfort' ? 'AAA' : 'AA'}</strong>
+                        Ergonomi Kontras: <strong style={{ color: currentPreviewOption.accentHex }}>WCAG {isSelectedDark ? 'AAA' : 'AA'}</strong>
                       </span>
                       <span style={{ color: isSelectedDark ? '#cbd5e1' : '#475569' }}>
                         {currentPreviewOption.name}

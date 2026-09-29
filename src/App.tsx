@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
+import { DesignSystemProvider } from './context/DesignSystemContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { LoginPage } from './features/auth/LoginPage';
@@ -197,11 +198,13 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <WorkspaceProvider>
-            <ThemeProvider>
-              <ToastProvider>
-                <MainApp />
-              </ToastProvider>
-            </ThemeProvider>
+            <DesignSystemProvider>
+              <ThemeProvider>
+                <ToastProvider>
+                  <MainApp />
+                </ToastProvider>
+              </ThemeProvider>
+            </DesignSystemProvider>
           </WorkspaceProvider>
         </AuthProvider>
       </BrowserRouter>

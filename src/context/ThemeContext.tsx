@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import { container } from '../application/ports/container';
 import { ThemeKey } from '../types';
+import { useDesignSystem, useOptionalDesignSystem } from './DesignSystemContext';
 
 export { type ThemeKey };
 
@@ -27,109 +28,68 @@ export interface ThemeOption {
 
 export const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: 'light',
-    name: 'Atelier Zamrud (Resmi)',
+    id: 'brutalism',
+    name: 'Brutalism Edukatif',
     category: 'light',
-    tagline: 'Wibawa resmi madrasah dengan kanvas porselen bersih & aksen hijau zamrud taktil.',
-    description: 'Kanvas porselen Slate-50 (#F8FAFC) yang sejuk, kartu putih murni bergaris mikro, dan aksen Emerald 700 (#047857) berwibawa terkalibrasi WCAG AA.',
+    tagline: 'Papan tulis taktil digital dengan borders tegas & typography besar.',
+    description: 'Kanvas putih bersih (#FFFFFF), borders hitam tebal 4px, aksen kuning (#FFE500) kontras tinggi, tanpa rounded corners. Desain inspirasi brutalisme arsitektur untuk kejelasan informasi mutlak.',
+    accentColor: '#FFE500',
+    accentHex: '#FFE500',
+    buttonText: '#000000',
+    cardBg: '#FFFFFF',
+    appBg: '#FFFFFF',
+    badgeBg: 'bg-yellow-50 dark:bg-yellow-950/40',
+    badgeBorder: 'border-yellow-200 dark:border-yellow-800',
+    badgeText: 'text-yellow-700 dark:text-yellow-300',
+    previewBg: 'bg-white',
+    previewCard: 'bg-white border-black border-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
+    previewAccent: 'bg-[#FFE500]',
+    swatches: ['#FFFFFF', '#000000', '#FFE500', '#4A4A4A'],
+  },
+  {
+    id: 'apple-glass',
+    name: 'Apple VisionOS Glass',
+    category: 'light',
+    tagline: 'Spatial computing dengan frosted glass, subtle depth, & micro-interactions.',
+    description: 'Kanvas putih murni, kartu glassmorphism (rgba(255,255,255,0.9) + backdrop-blur-24px), aksen iOS Blue (#007AFF), rounded-20px everywhere. Desain visionOS untuk kedalaman visual & kesan floating.',
+    accentColor: '#007AFF',
+    accentHex: '#007AFF',
+    buttonText: '#FFFFFF',
+    cardBg: 'rgba(255,255,255,0.9)',
+    appBg: '#FFFFFF',
+    badgeBg: 'bg-blue-50 dark:bg-blue-950/40',
+    badgeBorder: 'border-blue-200 dark:border-blue-800',
+    badgeText: 'text-blue-700 dark:text-blue-300',
+    previewBg: 'bg-white',
+    previewCard: 'bg-white/95 backdrop-blur-xl border-slate-200/80 rounded-2xl shadow-lg',
+    previewAccent: 'bg-[#007AFF]',
+    swatches: ['#FFFFFF', '#007AFF', '#0F172A', '#64748B'],
+  },
+  {
+    id: 'neo-skeuomorphic',
+    name: 'Neo-Skeuomorphic Academic',
+    category: 'light',
+    tagline: 'Digital buku induk dengan textures, embossed elements, & tactile depth.',
+    description: 'Kertas hangat (#FAF9F6) seperti naskah usang, kartu putih bersih dengan inner-shadow emboss, aksen Emerald 700 (#047857) khas administrasi akademik. Desain neo-skeuomorfik modern untuk familiaritas guru.',
     accentColor: '#047857',
     accentHex: '#047857',
-    buttonText: '#ffffff',
-    cardBg: '#ffffff',
-    appBg: '#f8fafc',
+    buttonText: '#FFFFFF',
+    cardBg: '#FFFFFF',
+    appBg: '#FAF9F6',
     badgeBg: 'bg-emerald-50 dark:bg-emerald-950/40',
     badgeBorder: 'border-emerald-200 dark:border-emerald-800',
     badgeText: 'text-emerald-700 dark:text-emerald-300',
-    previewBg: 'bg-[#F8FAFC]',
-    previewCard: 'bg-white border-slate-200/90 shadow-2xs',
-    previewAccent: 'bg-[#047857]',
-    swatches: ['#F8FAFC', '#FFFFFF', '#047857', '#0F172A'],
-  },
-  {
-    id: 'dark-crimson',
-    name: 'Obsidian Zamrud Taktil',
-    category: 'dark',
-    tagline: 'Fokus malam tanpa silau dengan elevasi kartu slate obsidian & pendar mint luminesens.',
-    description: 'Obsidian slate pekat (#090D16) yang tenang di mata, permukaan kartu bertingkat (#111726), dan aksen mint luminesens lembut (#10B981). Bebas pendar neon berlebih.',
-    accentColor: '#10b981',
-    accentHex: '#10b981',
-    buttonText: '#090d16',
-    cardBg: '#111726',
-    appBg: '#090d16',
-    badgeBg: 'bg-emerald-950/50',
-    badgeBorder: 'border-emerald-500/30',
-    badgeText: 'text-emerald-300',
-    previewBg: 'bg-[#090D16]',
-    previewCard: 'bg-[#111726] border-slate-700/60 shadow-2xs',
-    previewAccent: 'bg-emerald-500',
-    swatches: ['#090D16', '#111726', '#10B981', '#F1F5F9'],
-  },
-  {
-    id: 'swiss-manuscript',
-    name: 'Manuskrip Kertas & Emas',
-    category: 'light',
-    tagline: 'Kehangatan lembaran arsip ijazah dengan aksen stempel emas kuno & hijau kaligrafi.',
-    description: 'Kanvas serat kertas katun (#FAF9F6), batas batu hangat (#E7E5E4), dan sentuhan stempel emas kuno (#B45309) berpadu hijau madrasah klasik (#1B4D3E).',
-    accentColor: '#b45309',
-    accentHex: '#b45309',
-    buttonText: '#ffffff',
-    cardBg: '#ffffff',
-    appBg: '#faf9f6',
-    badgeBg: 'bg-amber-50',
-    badgeBorder: 'border-amber-200',
-    badgeText: 'text-amber-800',
     previewBg: 'bg-[#FAF9F6]',
-    previewCard: 'bg-white border-amber-900/10 shadow-2xs',
-    previewAccent: 'bg-amber-600',
-    swatches: ['#FAF9F6', '#FFFFFF', '#B45309', '#1C1917'],
-  },
-  {
-    id: 'solarized-comfort',
-    name: 'Solaris Ramah Mata',
-    category: 'dark',
-    tagline: 'Kenyamanan optometri mutlak untuk guru lembur malam. Nol radiasi biru menusuk.',
-    description: 'Kanvas deep teal malam (#071A21), teks pasir lembut (#93A1A1), dan aksen celadon teduh (#2AA198). Terkalibrasi secara ilmiah untuk meredam kelelahan retina.',
-    accentColor: '#2aa198',
-    accentHex: '#2aa198',
-    buttonText: '#071a21',
-    cardBg: '#0c242d',
-    appBg: '#071a21',
-    badgeBg: 'bg-teal-950/60',
-    badgeBorder: 'border-teal-500/30',
-    badgeText: 'text-teal-300',
-    previewBg: 'bg-[#071A21]',
-    previewCard: 'bg-[#0C242D] border-teal-800/50 shadow-2xs',
-    previewAccent: 'bg-teal-500',
-    swatches: ['#071A21', '#0C242D', '#2AA198', '#93A1A1'],
-  },
-  {
-    id: 'chalkboard-school',
-    name: 'Batu Sabak Madrasah',
-    category: 'dark',
-    tagline: 'Sentuhan nostalgia ruang kelas dengan kanvas papan tulis batu & goresan kapur halus.',
-    description: 'Kanvas batu sabak hijau tua gelap (#0E1713), permukaan papan tulis (#15221C), teks kapur putih gading (#E6ECE8), dan aksen kapur emas muda (#F59E0B).',
-    accentColor: '#f59e0b',
-    accentHex: '#f59e0b',
-    buttonText: '#0e1713',
-    cardBg: '#15221c',
-    appBg: '#0e1713',
-    badgeBg: 'bg-amber-950/40',
-    badgeBorder: 'border-amber-400/30',
-    badgeText: 'text-amber-200',
-    previewBg: 'bg-[#0E1713]',
-    previewCard: 'bg-[#15221C] border-emerald-900/50 shadow-2xs',
-    previewAccent: 'bg-amber-500',
-    swatches: ['#0E1713', '#15221C', '#F59E0B', '#E6ECE8'],
+    previewCard: 'bg-white border-stone-200 shadow-[0_1px_3px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.5)] rounded-xl',
+    previewAccent: 'bg-[#047857]',
+    swatches: ['#FAF9F6', '#FFFFFF', '#047857', '#1C1917'],
   },
 ];
 
 const VALID_THEME_KEYS: ThemeKey[] = [
-  'light',
-  'dark-crimson',
-  'obsidian-tactile',
-  'swiss-manuscript',
-  'solarized-comfort',
-  'chalkboard-school',
+  'brutalism',
+  'apple-glass',
+  'neo-skeuomorphic',
 ];
 
 interface ThemeContextType {
@@ -141,17 +101,25 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * ThemeProvider (Backward Compatibility Layer)
+ * 
+ * This provider now delegates to DesignSystemContext internally.
+ * It maintains the old ThemeKey API for existing components while
+ * mapping legacy themes to new design systems under the hood.
+ */
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
+  const designSystem = useOptionalDesignSystem();
   
-  // Default is strictly 'light' for unauthenticated/guest users
-  const [activeTheme, setActiveTheme] = useState<ThemeKey>('light');
+  // Default is 'neo-skeuomorphic' for unauthenticated/guest users
+  const [activeTheme, setActiveTheme] = useState<ThemeKey>('neo-skeuomorphic');
 
   // Synchronize theme based on authenticated user preference
   useEffect(() => {
     if (!user) {
-      // Not logged in -> always use global default light theme
-      setActiveTheme('light');
+      // Not logged in -> always use global default
+      setActiveTheme('neo-skeuomorphic');
       return;
     }
 
@@ -171,14 +139,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     } catch {}
 
-    // Default to 'light' if no preference saved
-    setActiveTheme('light');
+    // Default if no preference saved
+    setActiveTheme('neo-skeuomorphic');
   }, [user, profile?.themePreference]);
 
   const selectedThemeOption = THEME_OPTIONS.find(t => t.id === activeTheme);
   const isDark = selectedThemeOption 
     ? selectedThemeOption.category === 'dark' 
-    : (activeTheme === 'dark-crimson' || activeTheme === 'obsidian-tactile' || activeTheme === 'solarized-comfort' || activeTheme === 'chalkboard-school');
+    : false;
 
   useEffect(() => {
     try {
@@ -227,3 +195,5 @@ export const useAppTheme = (): ThemeContextType => {
   }
   return context;
 };
+
+

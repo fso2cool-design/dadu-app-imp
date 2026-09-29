@@ -84,6 +84,18 @@ export async function updateUserThemePreference(uid: string, theme: ThemeKey): P
   }
 }
 
+export async function updateUserDesignSystemPreference(uid: string, designSystem: string): Promise<void> {
+  const docRef = doc(db, 'users', uid);
+  try {
+    await updateDoc(docRef, {
+      designSystemPreference: designSystem,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.warn('Could not update user design system preference:', err);
+  }
+}
+
 // -------------------------------------------------------------
 // ADMIN MANAGEMENT & STORAGE QUOTA OPTIMIZATION FUNCTIONS
 // -------------------------------------------------------------

@@ -27,18 +27,274 @@ export interface UserProfile {
   defaultSemester: SemesterType;
   isOnboarded?: boolean;
   themePreference?: ThemeKey;
+  designSystemPreference?: DesignSystemKey;
   lastLoginAt?: any;
   createdAt: any;
   updatedAt: any;
 }
 
-export type ThemeKey = 
-  | 'light' 
-  | 'dark-crimson' 
-  | 'obsidian-tactile' 
-  | 'swiss-manuscript' 
-  | 'solarized-comfort' 
-  | 'chalkboard-school';
+// ==========================================================================
+// DESIGN SYSTEMS (NEW - Phase 1)
+// ==========================================================================
+
+export type DesignSystemKey = 
+  | 'brutalism' 
+  | 'apple-glass' 
+  | 'neo-skeuomorphic';
+
+export interface DesignSystemTokens {
+  colors: {
+    accent: string;
+    accentFg: string;
+    surface: string;
+    surfaceElevated: string;
+    border: string;
+    text: string;
+    textMuted: string;
+  };
+  typography: {
+    fontFamily: {
+      sans: string;
+      serif?: string;
+      mono: string;
+    };
+    scale: {
+      xs: string;
+      sm: string;
+      base: string;
+      lg: string;
+      xl: string;
+    };
+  };
+  spacing: {
+    xs: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+  };
+  borders: {
+    width: string;
+    color: string;
+    style: 'solid' | 'none';
+  };
+  elevation: {
+    none: string;
+    sm: string;
+    md: string;
+    lg: string;
+  };
+  radius: {
+    none: string;
+    sm: string;
+    md: string;
+    lg: string;
+    full: string;
+  };
+  transitions: {
+    fast: string;
+    base: string;
+    slow: string;
+  };
+}
+
+export interface DesignSystemOption {
+  id: DesignSystemKey;
+  name: string;
+  description: string;
+  tokens: DesignSystemTokens;
+}
+
+export const DESIGN_SYSTEMS: DesignSystemOption[] = [
+  {
+    id: 'brutalism',
+    name: 'Brutalism Edukatif',
+    description: 'Papan tulis taktil digital dengan borders tegas dan typography besar',
+    tokens: {
+      colors: {
+        accent: '#FFE500',
+        accentFg: '#000000',
+        surface: '#FFFFFF',
+        surfaceElevated: '#FFFFFF',
+        border: '#000000',
+        text: '#000000',
+        textMuted: '#4A4A4A',
+      },
+      typography: {
+        fontFamily: {
+          sans: 'Space Grotesk, system-ui, sans-serif',
+          mono: 'JetBrains Mono, monospace',
+        },
+        scale: {
+          xs: '0.75rem',
+          sm: '0.875rem',
+          base: '1rem',
+          lg: '1.25rem',
+          xl: '1.5rem',
+        },
+      },
+      spacing: {
+        xs: 8,
+        sm: 16,
+        md: 24,
+        lg: 40,
+        xl: 64,
+      },
+      borders: {
+        width: '4px',
+        color: '#000000',
+        style: 'solid',
+      },
+      elevation: {
+        none: 'none',
+        sm: '4px 4px 0px 0px rgba(0,0,0,1)',
+        md: '6px 6px 0px 0px rgba(0,0,0,1)',
+        lg: '8px 8px 0px 0px rgba(0,0,0,1)',
+      },
+      radius: {
+        none: '0px',
+        sm: '2px',
+        md: '2px',
+        lg: '2px',
+        full: '0px',
+      },
+      transitions: {
+        fast: '100ms ease',
+        base: '200ms ease',
+        slow: '300ms ease',
+      },
+    },
+  },
+  {
+    id: 'apple-glass',
+    name: 'Apple VisionOS Glass',
+    description: 'Spatial computing dengan frosted glass, subtle depth, dan micro-interactions',
+    tokens: {
+      colors: {
+        accent: '#007AFF',
+        accentFg: '#FFFFFF',
+        surface: '#FFFFFF',
+        surfaceElevated: '#FFFFFF',
+        border: 'rgba(0,0,0,0.08)',
+        text: '#0F172A',
+        textMuted: '#64748B',
+      },
+      typography: {
+        fontFamily: {
+          sans: 'Inter Variable, Inter, system-ui, sans-serif',
+          serif: 'Merriweather, serif',
+          mono: 'JetBrains Mono, monospace',
+        },
+        scale: {
+          xs: '0.75rem',
+          sm: '0.875rem',
+          base: '1rem',
+          lg: '1.25rem',
+          xl: '1.5rem',
+        },
+      },
+      spacing: {
+        xs: 8,
+        sm: 16,
+        md: 24,
+        lg: 32,
+        xl: 48,
+      },
+      borders: {
+        width: '1px',
+        color: 'rgba(0,0,0,0.08)',
+        style: 'solid',
+      },
+      elevation: {
+        none: 'none',
+        sm: '0 1px 2px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.04)',
+        md: '0 4px 6px rgba(0,0,0,0.05), 0 12px 24px rgba(0,0,0,0.06)',
+        lg: '0 10px 15px rgba(0,0,0,0.05), 0 24px 32px rgba(0,0,0,0.08)',
+      },
+      radius: {
+        none: '0px',
+        sm: '8px',
+        md: '12px',
+        lg: '20px',
+        full: '9999px',
+      },
+      transitions: {
+        fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
+        base: '250ms cubic-bezier(0.4, 0, 0.2, 1)',
+        slow: '400ms cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+    },
+  },
+  {
+    id: 'neo-skeuomorphic',
+    name: 'Neo-Skeuomorphic Academic',
+    description: 'Digital buku induk dengan textures, embossed elements, dan tactile depth',
+    tokens: {
+      colors: {
+        accent: '#047857',
+        accentFg: '#FFFFFF',
+        surface: '#FAF9F6',
+        surfaceElevated: '#FFFFFF',
+        border: '#D6D3D1',
+        text: '#1C1917',
+        textMuted: '#78716C',
+      },
+      typography: {
+        fontFamily: {
+          sans: 'Inter Variable, Inter, system-ui, sans-serif',
+          serif: 'Merriweather, Lora, serif',
+          mono: 'JetBrains Mono, monospace',
+        },
+        scale: {
+          xs: '0.75rem',
+          sm: '0.875rem',
+          base: '1rem',
+          lg: '1.25rem',
+          xl: '1.5rem',
+        },
+      },
+      spacing: {
+        xs: 8,
+        sm: 16,
+        md: 24,
+        lg: 32,
+        xl: 48,
+      },
+      borders: {
+        width: '1px',
+        color: '#D6D3D1',
+        style: 'solid',
+      },
+      elevation: {
+        none: 'none',
+        sm: '0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+        md: '0 4px 6px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+        lg: '0 10px 15px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+      },
+      radius: {
+        none: '0px',
+        sm: '8px',
+        md: '12px',
+        lg: '16px',
+        full: '9999px',
+      },
+      transitions: {
+        fast: '100ms ease',
+        base: '200ms ease',
+        slow: '300ms ease',
+      },
+    },
+  },
+];
+
+// ==========================================================================
+// THEME KEYS (LEGACY - Keep for backward compatibility)
+// ==========================================================================
+
+export type ThemeKey =
+  | 'brutalism'
+  | 'apple-glass'
+  | 'neo-skeuomorphic';
 
 export interface AcademicYear {
   id: string;
