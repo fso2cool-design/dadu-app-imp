@@ -174,7 +174,7 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accent: '#007AFF',
         accentFg: '#FFFFFF',
         surface: '#FFFFFF',
-        surfaceElevated: '#FFFFFF',
+        surfaceElevated: 'rgba(255,255,255,0.82)',
         border: 'rgba(0,0,0,0.08)',
         text: '#0F172A',
         textMuted: '#64748B',

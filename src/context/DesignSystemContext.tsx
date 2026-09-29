@@ -83,6 +83,14 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Inject border tokens
     root.style.setProperty('--ds-border-width', tokens.borders.width);
     root.style.setProperty('--ds-border-color', tokens.borders.color);
+    root.style.setProperty('--ds-border-style', tokens.borders.style);
+    
+    // Inject typography scale
+    root.style.setProperty('--ds-font-scale-xs', tokens.typography.scale.xs);
+    root.style.setProperty('--ds-font-scale-sm', tokens.typography.scale.sm);
+    root.style.setProperty('--ds-font-scale-base', tokens.typography.scale.base);
+    root.style.setProperty('--ds-font-scale-lg', tokens.typography.scale.lg);
+    root.style.setProperty('--ds-font-scale-xl', tokens.typography.scale.xl);
     
     // Inject elevation tokens
     root.style.setProperty('--ds-elevation-none', tokens.elevation.none);
@@ -107,6 +115,8 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     root.style.setProperty('--ds-font-mono', tokens.typography.fontFamily.mono);
     if (tokens.typography.fontFamily.serif) {
       root.style.setProperty('--ds-font-serif', tokens.typography.fontFamily.serif);
+    } else {
+      root.style.removeProperty('--ds-font-serif');
     }
     
     // Map design system colors to existing theme variables for backward compat

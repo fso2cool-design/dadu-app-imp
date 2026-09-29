@@ -18,94 +18,59 @@
    NEW DESIGN SYSTEMS (Phase 3)
    ========================================================================== */
 
-/* Design System 1: Brutalism Edukatif */
+/* Design System 1: Brutalism Edukatif — values via --ds-* vars, no duplicate hex */
 [data-design-system="brutalism"] {
-  /* Colors */
-  --app-bg: #ffffff;
-  --card-bg: #ffffff;
-  --card-border: #000000;
-  --text-main: #000000;
-  --text-muted: #4a4a4a;
-  --accent-primary: #ffe500;
-  --accent-primary-hover: #ffd700;
+  --app-bg: var(--ds-surface);
+  --card-bg: var(--ds-surface-elevated);
+  --card-border: var(--ds-border);
+  --text-main: var(--ds-text);
+  --text-muted: var(--ds-text-muted);
+  --accent-primary: var(--ds-accent);
+  --accent-primary-hover: #FFD700;
   --accent-primary-soft: rgba(255, 229, 0, 0.1);
   --accent-primary-border: rgba(255, 229, 0, 0.25);
-  --accent-primary-text: #000000;
-  --accent-text: #000000;
-  --accent-color: #ffe500;
-  --interactive-border: #000000;
-  --focus-ring: #ffe500;
-  
-  /* Design tokens */
-  --ds-border-width: 4px;
-  --ds-border-style: solid;
-  --ds-radius-sm: 2px;
-  --ds-radius-md: 2px;
-  --ds-radius-lg: 2px;
-  --ds-elevation-sm: 4px 4px 0px 0px rgba(0,0,0,1);
-  --ds-elevation-md: 6px 6px 0px 0px rgba(0,0,0,1);
-  --ds-elevation-lg: 8px 8px 0px 0px rgba(0,0,0,1);
+  --accent-primary-text: var(--ds-accent-fg);
+  --accent-text: var(--ds-accent);
+  --accent-color: var(--ds-accent);
+  --interactive-border: var(--ds-border);
+  --focus-ring: var(--ds-accent);
 }
 
 /* Design System 2: Apple VisionOS Glass */
 [data-design-system="apple-glass"] {
-  /* Colors */
-  --app-bg: #ffffff;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --accent-primary: #007aff;
-  --accent-primary-hover: #0051d5;
+  --app-bg: var(--ds-surface);
+  --card-bg: var(--ds-surface-elevated);
+  --card-border: var(--ds-border);
+  --text-main: var(--ds-text);
+  --text-muted: var(--ds-text-muted);
+  --accent-primary: var(--ds-accent);
+  --accent-primary-hover: #0051D5;
   --accent-primary-soft: rgba(0, 122, 255, 0.1);
   --accent-primary-border: rgba(0, 122, 255, 0.25);
-  --accent-primary-text: #ffffff;
-  --accent-text: #007aff;
-  --accent-color: #007aff;
-  --interactive-border: rgba(0, 0, 0, 0.08);
-  --focus-ring: #007aff;
-  
-  /* Design tokens */
-  --ds-border-width: 1px;
-  --ds-border-style: solid;
-  --ds-radius-sm: 8px;
-  --ds-radius-md: 12px;
-  --ds-radius-lg: 20px;
-  --ds-elevation-sm: 0 1px 2px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.04);
-  --ds-elevation-md: 0 4px 6px rgba(0,0,0,0.05), 0 12px 24px rgba(0,0,0,0.06);
-  --ds-elevation-lg: 0 10px 15px rgba(0,0,0,0.05), 0 24px 32px rgba(0,0,0,0.08);
-  
-  /* Glass effect */
+  --accent-primary-text: var(--ds-accent-fg);
+  --accent-text: var(--ds-accent);
+  --accent-color: var(--ds-accent);
+  --interactive-border: var(--ds-border);
+  --focus-ring: var(--ds-accent);
   --ds-backdrop-blur: blur(24px);
 }
 
 /* Design System 3: Neo-Skeuomorphic Academic */
 [data-design-system="neo-skeuomorphic"] {
-  /* Colors */
-  --app-bg: #faf9f6;
-  --card-bg: #ffffff;
-  --card-border: #d6d3d1;
-  --text-main: #1c1917;
-  --text-muted: #78716c;
-  --accent-primary: #047857;
-  --accent-primary-hover: #065f46;
+  --app-bg: var(--ds-surface);
+  --card-bg: var(--ds-surface-elevated);
+  --card-border: var(--ds-border);
+  --text-main: var(--ds-text);
+  --text-muted: var(--ds-text-muted);
+  --accent-primary: var(--ds-accent);
+  --accent-primary-hover: #065F46;
   --accent-primary-soft: rgba(4, 120, 87, 0.1);
   --accent-primary-border: rgba(4, 120, 87, 0.25);
-  --accent-primary-text: #ffffff;
-  --accent-text: #047857;
-  --accent-color: #047857;
-  --interactive-border: #d6d3d1;
-  --focus-ring: #047857;
-  
-  /* Design tokens */
-  --ds-border-width: 1px;
-  --ds-border-style: solid;
-  --ds-radius-sm: 8px;
-  --ds-radius-md: 12px;
-  --ds-radius-lg: 16px;
-  --ds-elevation-sm: 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
-  --ds-elevation-md: 0 4px 6px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
-  --ds-elevation-lg: 0 10px 15px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
+  --accent-primary-text: var(--ds-accent-fg);
+  --accent-text: var(--ds-accent);
+  --accent-color: var(--ds-accent);
+  --interactive-border: var(--ds-border);
+  --focus-ring: var(--ds-accent);
 }
 
 /* Apply backdrop-blur for apple-glass */
@@ -126,10 +91,13 @@
 /* Brutalism: force sharp corners + hard shadow + thick borders on app shells */
 [data-design-system="brutalism"] [class*="rounded-2xl"],
 [data-design-system="brutalism"] [class*="rounded-xl"],
-[data-design-system="brutalism"] [class*="rounded-lg"] {
+[data-design-system="brutalism"] [class*="rounded-lg"],
+[data-design-system="brutalism"] [class*="rounded-3xl"] {
   border-radius: var(--ds-radius-md) !important;
 }
-[data-design-system="brutalism"] [class*="shadow"] {
+[data-design-system="brutalism"] [class*="shadow"],
+[data-design-system="brutalism"] .card,
+[data-design-system="brutalism"] [class*="card"] {
   box-shadow: var(--ds-elevation-sm) !important;
 }
 [data-design-system="brutalism"] .bg-white,
@@ -139,6 +107,40 @@
 }
 [data-design-system="brutalism"] [class*="border-slate"] {
   border-color: #000 !important;
+}
+
+/* G1+G2: Apple Glass — smooth squircle + floating soft shadow */
+[data-design-system="apple-glass"] [class*="rounded-2xl"],
+[data-design-system="apple-glass"] [class*="rounded-3xl"] {
+  border-radius: var(--ds-radius-lg) !important;
+}
+[data-design-system="apple-glass"] [class*="rounded-xl"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="apple-glass"] [class*="rounded-lg"] {
+  border-radius: var(--ds-radius-sm) !important;
+}
+[data-design-system="apple-glass"] [class*="shadow"],
+[data-design-system="apple-glass"] .card,
+[data-design-system="apple-glass"] [class*="card"] {
+  box-shadow: var(--ds-elevation-sm) !important;
+}
+
+/* G1+G2: Neo-Skeuomorphic — binder curvature + tactile emboss */
+[data-design-system="neo-skeuomorphic"] [class*="rounded-2xl"],
+[data-design-system="neo-skeuomorphic"] [class*="rounded-3xl"] {
+  border-radius: var(--ds-radius-lg) !important;
+}
+[data-design-system="neo-skeuomorphic"] [class*="rounded-xl"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="neo-skeuomorphic"] [class*="rounded-lg"] {
+  border-radius: var(--ds-radius-sm) !important;
+}
+[data-design-system="neo-skeuomorphic"] [class*="shadow"],
+[data-design-system="neo-skeuomorphic"] .card,
+[data-design-system="neo-skeuomorphic"] [class*="card"] {
+  box-shadow: var(--ds-elevation-sm) !important;
 }
 
 @theme {
@@ -191,41 +193,37 @@ body {
   color: var(--text-main) !important;
 }
 
-/* 2. Legacy Arbitrary Hex & Canvas Classes -> Dynamic Theme Background */
-.dark [class*="bg-[#0c0e15]"],
-.dark [class*="bg-[#0C0E15]"],
-.dark .bg-slate-50, 
-.dark .bg-slate-900,
-.dark .bg-slate-950,
+/* 2. Canvas Classes -> Dynamic App Background (all 3 systems) */
+[data-design-system="brutalism"] .bg-slate-50,
+[data-design-system="apple-glass"] .bg-slate-50,
 [data-design-system="neo-skeuomorphic"] .bg-slate-50 {
   background-color: var(--app-bg) !important;
 }
 
-/* 3. Cards & Elevated Surfaces */
-.dark [class*="bg-[#141722]"],
-.dark .bg-white, 
-.dark .bg-slate-800,
+/* 3. Cards & Elevated Surfaces (all 3 systems) */
+[data-design-system="brutalism"] .bg-white,
+[data-design-system="apple-glass"] .bg-white,
 [data-design-system="neo-skeuomorphic"] .bg-white {
   background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
 }
 
-/* 4. Interactive Hover & Subtle Containers */
-.dark [class*="bg-[#1b1f2e]"],
-.dark [class*="bg-[#1c2130]"],
-.dark .bg-slate-100,
+/* 4. Interactive Hover & Subtle Containers (all 3 systems) */
+[data-design-system="brutalism"] .bg-slate-100,
+[data-design-system="apple-glass"] .bg-slate-100,
 [data-design-system="neo-skeuomorphic"] .bg-slate-100 {
   background-color: var(--interactive-border) !important;
 }
 
-/* 5. Borders & Dividers */
-.dark [class*="border-[#232838]"],
-.dark .border-slate-200, 
-.dark .border-slate-200\/80, 
-.dark .border-slate-200\/90,
-.dark .border-slate-100,
-.dark .border-slate-800,
-.dark .border-slate-700,
+/* 5. Borders & Dividers (all 3 systems) */
+[data-design-system="brutalism"] .border-slate-200,
+[data-design-system="brutalism"] .border-slate-200\/80,
+[data-design-system="brutalism"] .border-slate-200\/90,
+[data-design-system="brutalism"] .border-slate-100,
+[data-design-system="apple-glass"] .border-slate-200,
+[data-design-system="apple-glass"] .border-slate-200\/80,
+[data-design-system="apple-glass"] .border-slate-200\/90,
+[data-design-system="apple-glass"] .border-slate-100,
 [data-design-system="neo-skeuomorphic"] .border-slate-200,
 [data-design-system="neo-skeuomorphic"] .border-slate-200\/80,
 [data-design-system="neo-skeuomorphic"] .border-slate-200\/90,
@@ -233,34 +231,53 @@ body {
   border-color: var(--card-border) !important;
 }
 
-/* 6. Typography */
-.dark .text-slate-800, 
-.dark .text-slate-900,
-.dark [class*="text-slate-900"],
-.dark [class*="text-slate-800"],
-.dark [class*="text-slate-100"],
-.dark [class*="text-slate-200"],
+/* 6. Typography (all 3 systems) */
+[data-design-system="brutalism"] .text-slate-800,
+[data-design-system="brutalism"] .text-slate-900,
+[data-design-system="brutalism"] [class*="text-slate-900"],
+[data-design-system="brutalism"] [class*="text-slate-800"],
+[data-design-system="apple-glass"] .text-slate-800,
+[data-design-system="apple-glass"] .text-slate-900,
+[data-design-system="apple-glass"] [class*="text-slate-900"],
+[data-design-system="apple-glass"] [class*="text-slate-800"],
 [data-design-system="neo-skeuomorphic"] .text-slate-900,
 [data-design-system="neo-skeuomorphic"] .text-slate-800 {
   color: var(--text-main) !important;
 }
 
-.dark .text-slate-700,
-.dark .text-slate-600,
-.dark [class*="text-slate-700"],
-.dark [class*="text-slate-600"],
+[data-design-system="brutalism"] .text-slate-700,
+[data-design-system="brutalism"] .text-slate-600,
+[data-design-system="brutalism"] [class*="text-slate-700"],
+[data-design-system="brutalism"] [class*="text-slate-600"],
+[data-design-system="apple-glass"] .text-slate-700,
+[data-design-system="apple-glass"] .text-slate-600,
+[data-design-system="apple-glass"] [class*="text-slate-700"],
+[data-design-system="apple-glass"] [class*="text-slate-600"],
 [data-design-system="neo-skeuomorphic"] .text-slate-700,
 [data-design-system="neo-skeuomorphic"] .text-slate-600 {
   color: var(--text-muted) !important;
 }
 
-.dark .text-slate-500, 
-.dark .text-slate-400,
-.dark [class*="text-slate-500"],
-.dark [class*="text-slate-400"],
+[data-design-system="brutalism"] .text-slate-500,
+[data-design-system="brutalism"] .text-slate-400,
+[data-design-system="brutalism"] [class*="text-slate-500"],
+[data-design-system="brutalism"] [class*="text-slate-400"],
+[data-design-system="apple-glass"] .text-slate-500,
+[data-design-system="apple-glass"] .text-slate-400,
+[data-design-system="apple-glass"] [class*="text-slate-500"],
+[data-design-system="apple-glass"] [class*="text-slate-400"],
 [data-design-system="neo-skeuomorphic"] .text-slate-500,
 [data-design-system="neo-skeuomorphic"] .text-slate-400 {
   color: var(--text-muted) !important;
+}
+
+/* 7. Typography family — apply per DS */
+[data-design-system="brutalism"] {
+  font-family: var(--ds-font-sans);
+}
+[data-design-system="apple-glass"],
+[data-design-system="neo-skeuomorphic"] {
+  font-family: var(--ds-font-sans);
 }
 
 /* ==========================================================================
