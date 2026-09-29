@@ -27,6 +27,10 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile> {
   const docRef = doc(db, 'users', uid);
+  const existing = await getDoc(docRef);
+  if (existing.exists()) {
+    return { uid: existing.id, ...existing.data() } as UserProfile;
+  }
   const now = serverTimestamp();
   const isAdminEmail = data.email === 'johanrovian90@gmail.com' || data.email === 'fso2cool@gmail.com';
   

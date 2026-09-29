@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *, [data-design-system="apple-glass"], [data-design-system="apple-glass"] *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ==========================================================================
    DADU Design System Tokens & Ergonomic Foundations (Anti-AI Slop)
@@ -121,6 +121,24 @@
 [data-design-system="brutalism"] [class*="card"],
 [data-design-system="brutalism"] [class*="border"] {
   border-width: var(--ds-border-width);
+}
+
+/* Brutalism: force sharp corners + hard shadow + thick borders on app shells */
+[data-design-system="brutalism"] [class*="rounded-2xl"],
+[data-design-system="brutalism"] [class*="rounded-xl"],
+[data-design-system="brutalism"] [class*="rounded-lg"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="brutalism"] [class*="shadow"] {
+  box-shadow: var(--ds-elevation-sm) !important;
+}
+[data-design-system="brutalism"] .bg-white,
+[data-design-system="brutalism"] [class*="bg-white"] {
+  border-color: #000 !important;
+  border-width: var(--ds-border-width);
+}
+[data-design-system="brutalism"] [class*="border-slate"] {
+  border-color: #000 !important;
 }
 
 @theme {

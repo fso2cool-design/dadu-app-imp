@@ -32,9 +32,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchProfile = async (firebaseUser: User) => {
     try {
-      let p = await container.repos.user.getProfile(firebaseUser.uid);
+      let p: UserProfile | null = null;
+      try {
+        p = await container.repos.user.getProfile(firebaseUser.uid);
+      } catch (getErr: any) {
+        const code = getErr?.code || '';
+        const msg = (getErr?.message || '').toLowerCase();
+        const isOffline = code === 'unavailable' || msg.includes('offline') || msg.includes('failed to get document because the client is offline');
+        if (isOffline) {
+          console.warn('[Auth] getProfile offline — keep existing profile, skip create');
+          return;
+        }
+        throw getErr;
+      }
       if (!p) {
-        // Create initial default profile if not yet created
+        // Double-check: doc may have been created between get and create — createProfile now guards with exists check
         p = await container.repos.user.createProfile(firebaseUser.uid, {
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Guru',
           email: firebaseUser.email || '',
@@ -43,6 +55,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           defaultSemester: 'GANJIL',
           isOnboarded: false,
         });
+      } else if ((p as any).isOnboarded === undefined) {
+        // Legacy doc without isOnboarded — treat as onboarded if subcollections exist, do not force wizard
+        p.isOnboarded = true;
       }
       setProfile(p);
     } catch (err) {

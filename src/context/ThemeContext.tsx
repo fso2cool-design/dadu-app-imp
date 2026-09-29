@@ -1,8 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth } from '../features/auth/AuthContext';
-import { container } from '../application/ports/container';
+import React, { createContext, useContext } from 'react';
 import { ThemeKey } from '../types';
-import { useDesignSystem, useOptionalDesignSystem } from './DesignSystemContext';
+import { useDesignSystem } from './DesignSystemContext';
 
 export { type ThemeKey };
 
@@ -86,12 +84,6 @@ export const THEME_OPTIONS: ThemeOption[] = [
   },
 ];
 
-const VALID_THEME_KEYS: ThemeKey[] = [
-  'brutalism',
-  'apple-glass',
-  'neo-skeuomorphic',
-];
-
 interface ThemeContextType {
   activeTheme: ThemeKey;
   setTheme: (theme: ThemeKey) => void;
@@ -102,86 +94,22 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 /**
- * ThemeProvider (Backward Compatibility Layer)
- * 
- * This provider now delegates to DesignSystemContext internally.
- * It maintains the old ThemeKey API for existing components while
- * mapping legacy themes to new design systems under the hood.
+ * ThemeProvider — shim over DesignSystemContext (single source of truth)
+ * No local state, no second localStorage write, no second DOM attribute write.
+ * DesignSystemContext owns: data-design-system, --ds-* vars, persistence.
+ * This provider just aliases DesignSystemKey <-> ThemeKey (same 3 literals).
  */
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile } = useAuth();
-  const designSystem = useOptionalDesignSystem();
-  
-  // Default is 'neo-skeuomorphic' for unauthenticated/guest users
-  const [activeTheme, setActiveTheme] = useState<ThemeKey>('neo-skeuomorphic');
+  const ds = useDesignSystem();
 
-  // Synchronize theme based on authenticated user preference
-  useEffect(() => {
-    if (!user) {
-      // Not logged in -> always use global default
-      setActiveTheme('neo-skeuomorphic');
-      return;
-    }
-
-    // Logged in: resolve user theme preference
-    // 1. Profile preference from Firestore
-    if (profile?.themePreference && VALID_THEME_KEYS.includes(profile.themePreference)) {
-      setActiveTheme(profile.themePreference);
-      return;
-    }
-
-    // 2. Local storage preference tied to this user's UID
-    try {
-      const userSaved = localStorage.getItem(`app_theme_${user.uid}`) as ThemeKey;
-      if (userSaved && VALID_THEME_KEYS.includes(userSaved)) {
-        setActiveTheme(userSaved);
-        return;
-      }
-    } catch {}
-
-    // Default if no preference saved
-    setActiveTheme('neo-skeuomorphic');
-  }, [user, profile?.themePreference]);
-
-  const selectedThemeOption = THEME_OPTIONS.find(t => t.id === activeTheme);
-  const isDark = selectedThemeOption 
-    ? selectedThemeOption.category === 'dark' 
-    : false;
-
-  useEffect(() => {
-    try {
-      document.documentElement.setAttribute('data-theme', activeTheme);
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } catch {}
-  }, [activeTheme, isDark]);
-
-  const applyAndSaveTheme = (theme: ThemeKey) => {
-    setActiveTheme(theme);
-    if (user) {
-      try {
-        localStorage.setItem(`app_theme_${user.uid}`, theme);
-      } catch {}
-      // Persist to user Firestore profile so it stays synced across devices/sessions
-      container.repos.user.updateTheme(user.uid, theme);
-    }
+  const value: ThemeContextType = {
+    activeTheme: ds.activeSystem as unknown as ThemeKey,
+    setTheme: (t: ThemeKey) => ds.setSystem(t as unknown as any),
+    applyAndSaveTheme: (t: ThemeKey) => ds.applyAndSaveSystem(t as unknown as any),
+    isDark: false, // all 3 systems are light now
   };
 
-  return (
-    <ThemeContext.Provider 
-      value={{ 
-        activeTheme, 
-        setTheme: setActiveTheme, 
-        applyAndSaveTheme, 
-        isDark 
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
 export const useOptionalAppTheme = (): ThemeContextType | null => {
@@ -195,5 +123,3 @@ export const useAppTheme = (): ThemeContextType => {
   }
   return context;
 };
-
-

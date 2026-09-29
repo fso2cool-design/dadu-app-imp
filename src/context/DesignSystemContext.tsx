@@ -60,8 +60,9 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     const root = document.documentElement;
     
-    // Set data-design-system attribute
+    // Set both attributes (design-system + legacy theme alias)
     root.setAttribute('data-design-system', activeSystem);
+    root.setAttribute('data-theme', activeSystem);
     
     // Inject color tokens
     root.style.setProperty('--ds-accent', tokens.colors.accent);
