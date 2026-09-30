@@ -42,7 +42,7 @@ import {
   Info,
   ChevronDown
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { ChangeLogModal } from '../../components/common/ChangeLogModal';
