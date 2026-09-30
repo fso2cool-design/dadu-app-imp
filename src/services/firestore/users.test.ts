@@ -67,6 +67,7 @@ describe('Firestore Users Service', () => {
 
   describe('createUserProfile', () => {
     it('creates standard TEACHER profile for normal email', async () => {
+      mockGetDoc.mockResolvedValue({ exists: () => false });
       mockSetDoc.mockResolvedValueOnce(undefined);
 
       const profile = await createUserProfile('user-456', {
@@ -82,6 +83,7 @@ describe('Firestore Users Service', () => {
     });
 
     it('automatically grants ADMIN role for configured super admin emails', async () => {
+      mockGetDoc.mockResolvedValue({ exists: () => false });
       mockSetDoc.mockResolvedValueOnce(undefined);
 
       const profile = await createUserProfile('admin-789', {

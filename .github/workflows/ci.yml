@@ -39,6 +39,9 @@ jobs:
       - name: TypeScript Type Checking
         run: npm run type-check
 
+      - name: Verify Boundary Constraints
+        run: npm run check:boundaries
+
       - name: Run Test Suite
         run: npm test
 
