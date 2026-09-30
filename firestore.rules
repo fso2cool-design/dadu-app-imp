@@ -3,10 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Helper to check if current authenticated user is Super Admin
     function isSuperAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == 'johanrovian90@gmail.com' ||
-        request.auth.token.email == 'fso2cool@gmail.com'
-      );
+      return request.auth != null 
+        && request.auth.token.email_verified == true
+        && (
+          request.auth.token.email == 'johanrovian90@gmail.com' ||
+          request.auth.token.email == 'fso2cool@gmail.com'
+        );
     }
 
     match /users/{userId} {
@@ -14,8 +16,9 @@ service cloud.firestore {
       allow list: if request.auth != null && (isSuperAdmin() || request.auth.uid == userId);
       allow get: if request.auth != null && (isSuperAdmin() || request.auth.uid == userId);
       
-      // Allow create user profile during onboarding/signup
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // Allow create user profile during onboarding/signup (default role TEACHER, prevent self-admin escalation)
+      allow create: if request.auth != null && request.auth.uid == userId
+        && (!('role' in request.resource.data) || request.resource.data.role == 'TEACHER' || isSuperAdmin());
       
       // Allow update by owner (without privilege escalation) or by Super Admin
       allow update: if request.auth != null && (

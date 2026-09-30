@@ -105,6 +105,42 @@
         { "fieldPath": "academicYearId", "order": "ASCENDING" }
       ]
     }
-  ],
+  },
+     {
+       "collectionGroup": "classes",
+       "queryScope": "COLLECTION",
+       "fields": [
+         { "fieldPath": "academicYearId", "order": "ASCENDING" },
+         { "fieldPath": "name", "order": "ASCENDING" }
+       ]
+     },
+     {
+       "collectionGroup": "enrollments",
+       "queryScope": "COLLECTION",
+       "fields": [
+         { "fieldPath": "academicYearId", "order": "ASCENDING" },
+         { "fieldPath": "classId", "order": "ASCENDING" },
+         { "fieldPath": "rollNumber", "order": "ASCENDING" }
+       ]
+     }
+   },
+     {
+       "collectionGroup": "classes",
+       "queryScope": "COLLECTION",
+       "fields": [
+         { "fieldPath": "academicYearId", "order": "ASCENDING" },
+         { "fieldPath": "name", "order": "ASCENDING" }
+       ]
+     },
+     {
+       "collectionGroup": "enrollments",
+       "queryScope": "COLLECTION",
+       "fields": [
+         { "fieldPath": "academicYearId", "order": "ASCENDING" },
+         { "fieldPath": "classId", "order": "ASCENDING" },
+         { "fieldPath": "rollNumber", "order": "ASCENDING" }
+       ]
+     }
+   ],
   "fieldOverrides": []
 }
