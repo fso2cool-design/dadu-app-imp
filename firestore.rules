@@ -2,10 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper to check if current authenticated user is Super Admin
+    // Supports both hardcoded email (legacy) and custom claims (recommended)
     function isSuperAdmin() {
       return request.auth != null 
         && request.auth.token.email_verified == true
         && (
+          // Custom claims (recommended - set via Firebase Console or Admin SDK)
+          request.auth.token.admin == true
+          ||
+          // Legacy hardcoded email (backward compatibility)
           request.auth.token.email == 'johanrovian90@gmail.com' ||
           request.auth.token.email == 'fso2cool@gmail.com'
         );
