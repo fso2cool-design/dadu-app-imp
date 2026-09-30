@@ -302,7 +302,9 @@ service cloud.firestore {
           && (!('expiresAt' in resource.data) || resource.data.expiresAt == null || !(resource.data.expiresAt is timestamp) || request.time < resource.data.expiresAt)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'lastViewedAt'])
           && request.resource.data.viewCount is number
-          && request.resource.data.viewCount >= resource.data.viewCount
+          && request.resource.data.viewCount == resource.data.viewCount + 1
+          && request.resource.data.lastViewedAt is timestamp
+          && request.resource.data.lastViewedAt > resource.data.lastViewedAt
         )
       );
 
