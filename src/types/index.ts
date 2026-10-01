@@ -171,7 +171,9 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     description: 'Spatial computing dengan frosted glass, subtle depth, dan micro-interactions',
     tokens: {
       colors: {
-        accent: '#007AFF',
+        // S4.4: accent digelapkan #007AFF -> #0051D5 agar teks putih
+        // di atasnya 6.69:1 (WCAG AA). Sebelumnya 4.02:1 (gagal 4.5:1).
+        accent: '#0051D5',
         accentFg: '#FFFFFF',
         surface: '#FFFFFF',
         surfaceElevated: 'rgba(255,255,255,0.82)',

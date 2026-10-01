@@ -168,7 +168,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
           <button
             type="submit"
             disabled={loading || availableClasses.length === 0}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
             {loading ? 'Memindahkan...' : 'Konfirmasi Pindah Kelas'}

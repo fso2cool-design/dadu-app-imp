@@ -242,7 +242,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak Lembar Resmi</span>

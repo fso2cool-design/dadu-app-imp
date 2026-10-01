@@ -897,7 +897,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               className={`px-5 py-2 rounded-xl text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer ${
                 overwriteExisting && enrolledSummary.existingInDbCount > 0
                   ? 'bg-blue-600 hover:bg-blue-500'
-                  : 'bg-indigo-600 hover:bg-indigo-500'
+                  : 'btn-primary hover:opacity-90'
               }`}
             >
               <Upload className="w-3.5 h-3.5" />

@@ -191,7 +191,11 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
       </div>
 
       {/* Printable Sheet Wrapper */}
-      <div className="printable-document bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-10 shadow-sm max-w-5xl mx-auto text-slate-900 font-sans">
+      <div
+        className="printable-document bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-10 shadow-sm max-w-5xl mx-auto text-slate-900 font-sans"
+        data-paper={paperSize}
+        data-orientation={paperOrientation}
+      >
         
         {/* 1. Official Madrasah 4-Tier Letterhead (Kop Surat) */}
         {showLetterhead && (

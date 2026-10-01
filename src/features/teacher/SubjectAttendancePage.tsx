@@ -1063,7 +1063,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   onClick={() => handleStatusChange(row.studentId, 'DISPENSATION')}
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'DISPENSATION'
-                                      ? 'bg-indigo-600 text-white shadow-xs'
+                                      ? 'btn-primary text-white shadow-xs'
                                       : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-indigo-600 dark:hover:text-indigo-400'
                                   }`}
                                   title="Dispensasi (D)"

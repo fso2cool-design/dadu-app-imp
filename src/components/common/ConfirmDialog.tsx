@@ -85,7 +85,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9990] overflow-y-auto" aria-modal="true" role="dialog">
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-modal="true" role="dialog">
           <div className="flex min-h-screen items-center justify-center p-4 text-center">
             {/* Backdrop */}
             <motion.div

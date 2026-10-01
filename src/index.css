@@ -333,6 +333,11 @@ body {
 #printable-progress-report,
 #printable-progress-report * {
   color-scheme: light;
+  /* S4.1+S4.2: potong kebocoran Design System (mis. Brutalism 4px hard
+     shadow & radius 2px) agar cetakan dokumen dinas tetap formal. */
+  box-shadow: none !important;
+  text-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 .printable-document .bg-white,
@@ -435,8 +440,15 @@ body {
 
 
 @media print {
+  /* S4.5: ukuran kertas dinas. Default A4 portrait; F4/landscape dikontrol
+     via atribut data-paper / data-orientation pada root printable. */
   @page {
-    size: auto;
+    size: A4 portrait;
+    margin: 12mm 10mm;
+  }
+
+  @page :first {
+    margin-top: 10mm;
   }
 
   html,

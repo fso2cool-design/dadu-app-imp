@@ -188,7 +188,7 @@ export const JournalReportPage: React.FC = () => {
             type="button"
             onClick={() => setIsShareModalOpen(true)}
             disabled={meetings.length === 0}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
+            className="px-4 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <Share2 className="w-3.5 h-3.5" />
             <span>Bagikan Tautan Publik</span>
