@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { SquaresFour, BookOpen, Users, Printer, Database, Sliders, ShieldCheck, Heart, X, SidebarSimple, CalendarCheck, CheckSquare, Medal, Stack, CalendarDots, Clock, UserCheck, FileCsv, Notepad, CaretDown, CaretRight } from '@phosphor-icons/react';
-import { useAppTheme } from '../../context/ThemeContext';
+import { SquaresFour, BookOpen, Users, Printer, Database, Sliders, ShieldCheck, Heart, X, SidebarSimple, CalendarCheck, CheckSquare, Stack, CalendarDots, CalendarBlank, ChartBar, Clock, UserCheck, Notepad, CaretDown, CaretRight, ClipboardText } from '@phosphor-icons/react';
 import { AppLogo } from '../common/AppLogo';
 import { Tooltip } from '../common/Tooltip';
 import { APP_CONFIG } from '../../constants/app';
@@ -52,7 +51,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenFeedbackModal,
   onOpenChangeLog,
 }) => {
-  const { activeTheme, isDark } = useAppTheme();
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
 
   // Expanded accordion groups state (Single open accordion model)
@@ -98,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             { id: 'teaching-schedule', label: 'Jadwal Mengajar', icon: CalendarDots },
             { id: 'meetings', label: 'Agenda & Jurnal KBM', icon: CalendarCheck },
             { id: 'attendance-subject', label: 'Presensi Sesi Mapel', icon: CheckSquare },
-            { id: 'grades', label: 'Penilaian Siswa', icon: Medal },
+            { id: 'grades', label: 'Penilaian Siswa', icon: ClipboardText },
           ]
         },
         { 
@@ -106,10 +104,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Ruang Wali Kelas', 
           icon: Users,
           subItems: [
-            { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: FileCsv },
+            { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: Users },
             { id: 'homeroom-class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
             { id: 'homeroom-teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
-            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarDots },
+            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: ChartBar },
           ]
         },
       ],
@@ -128,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Data Master', 
           icon: Database,
           subItems: [
-            { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarDots },
+            { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarBlank },
             { id: 'master-classes', label: 'Data Rombel / Kelas', icon: Stack },
             { id: 'master-students', label: 'Data Siswa Terpadu', icon: Users },
             { id: 'master-subjects', label: 'Mata Pelajaran', icon: BookOpen },
@@ -229,11 +227,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const renderContent = (compact: boolean) => (
-    <div className="flex flex-col h-full bg-slate-50/95 dark:bg-[#0c0e15] text-slate-700 dark:text-slate-300 select-none">
+    <div className="flex flex-col h-full select-none" style={{ background: "var(--ds-surface)", color: "var(--ds-text)" }}>
       {/* Brand Header with Hover Toggle */}
-      <div className={`relative flex items-center border-b border-slate-200/90 dark:border-[#232838] transition-all ${
+      <div className={`relative flex items-center border-b transition-all ${
         compact ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3.5'
-      }`}>
+      }`} style={{ borderColor: "var(--ds-border)" }}>
         {compact ? (
           /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
           <div 
@@ -248,11 +246,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Tooltip content={hoveredTopToggle ? 'Buka sidebar' : 'DADU Workspace'} position="right">
               <button
                 type="button"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-white hover:bg-slate-100 dark:bg-[#141722] dark:hover:bg-[#1b1f2e] dark:hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 cursor-pointer shadow-xs border border-slate-200 dark:border-[#232838]"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs border" style={{ background: "var(--ds-surface-elevated)", color: "var(--ds-text)", borderColor: "var(--ds-border)" }}
                 aria-label="Buka sidebar"
               >
                 {hoveredTopToggle ? (
-                  <SidebarSimple className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
+                  <SidebarSimple className="w-5 h-5 animate-in zoom-in-75 duration-150" style={{ color: "var(--ds-accent)" }} />
                 ) : (
                   <AppLogo size="sm" variant="mark" />
                 )}
@@ -274,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     setHoveredTopToggle(false);
                     onToggleCompact();
                   }}
-                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
+                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
                   aria-label="Tutup sidebar"
                 >
                   <SidebarSimple className="w-4 h-4" />
@@ -285,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800"
+                className="lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
                 aria-label="Tutup menu"
               >
                 <X className="w-5 h-5" />
@@ -303,9 +301,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div key={gIdx} className="space-y-1">
             {group.groupTitle && (
               compact ? (
-                <div className="my-2 border-t border-slate-200 dark:border-[#232838] mx-1" />
+                <div className="my-2 border-t mx-1" style={{ borderColor: "var(--ds-border)" }} />
               ) : (
-                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--ds-text-muted)" }}>
                   {group.groupTitle}
                 </div>
               )
@@ -329,15 +327,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
                           compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
-                          isDirectParentActive
+                          isDirectParentActive || isGroupActive
                             ? 'text-accent-text font-bold'
-                            : isGroupActive
-                              ? 'bg-slate-200/80 dark:bg-[#141722] text-slate-900 dark:text-white font-bold shadow-2xs'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-accent-text hover:bg-slate-200/60 dark:hover:bg-[#141722] active:scale-[0.98]'
+                            : 'hover:text-slate-900 dark:hover:text-accent-text active:scale-[0.98]'
                         }`}
                       >
-                      {/* Fluid Sliding Active Capsule for top-level item */}
-                      {isDirectParentActive && (
+                      {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
+                      {(isDirectParentActive || isGroupActive) && (
                         <motion.div
                           layoutId="sidebar-active-parent-capsule"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
@@ -352,8 +348,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
                         <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                           isDirectParentActive 
-                            ? 'text-accent-primary' 
-                            : isGroupActive 
                             ? 'text-accent-primary' 
                             : 'text-slate-500 dark:text-slate-400'
                         }`} />
@@ -377,13 +371,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                       toggleGroupCollapse(item.id, e as any);
                                     }
                                   }}
-                                  className="p-1 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                                  className="p-1 rounded-md transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
                                   aria-label={isExpanded ? 'Ciutkan menu' : 'Buka menu'}
                                 >
                                   {isExpanded ? (
                                     <CaretDown className="w-3.5 h-3.5" />
                                   ) : (
-                                    <CaretRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                                    <CaretRight className="w-3.5 h-3.5" style={{ color: "var(--ds-text-muted)" }} />
                                   )}
                                 </span>
                               )}
@@ -401,7 +395,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   {/* Render Accordion Sub-items when expanded */}
                   {isExpanded && item.subItems && (
-                    <div className="ml-5 pl-2 border-l border-slate-200 dark:border-[#202534] space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
+                    <div className="ml-5 pl-2 border-l space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150" style={{ borderColor: "var(--ds-border)" }}>
                       {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = isSubItemActive(sub.id);
@@ -414,7 +408,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
                               isSubActive
                                 ? 'text-accent-text font-bold'
-                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-accent-text hover:bg-slate-200/60 dark:hover:bg-[#141722]/60'
+                                : 'hover:text-slate-900 dark:hover:text-accent-text'
                             }`}
                           >
                             {/* Fluid Sliding Active Capsule for sub-menu item */}
@@ -452,8 +446,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Workspace Footer: Clean Dadu Workspace label */}
       {!compact && (
-        <div className="p-3 border-t border-slate-200 dark:border-[#232838]">
-          <div className="px-2 pt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 select-none">
+        <div className="p-3 border-t" style={{ borderColor: "var(--ds-border)" }}>
+          <div className="px-2 pt-0.5 text-[11px] font-semibold select-none" style={{ color: "var(--ds-text-muted)" }}>
             {APP_CONFIG.name}
           </div>
         </div>
@@ -464,9 +458,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar with z-40 to prevent Header overlap */}
-      <aside className={`hidden lg:block shrink-0 h-screen sticky top-0 z-40 border-r border-slate-200 dark:border-[#232838] transition-all duration-200 ${
+      <aside className={`hidden lg:block shrink-0 h-screen sticky top-0 z-40 border-r transition-all duration-200 ${
         isCompact ? 'w-18' : 'w-64'
-      }`}>
+      }`} style={{ borderColor: "var(--ds-border)", background: "var(--ds-surface)" } as any}>
         {renderContent(isCompact)}
       </aside>
 

@@ -15,131 +15,24 @@
 
 
 /* ==========================================================================
-   NEW DESIGN SYSTEMS (Phase 3)
+   DESIGN SYSTEMS: paper-craft | minimalist | atelier
    ========================================================================== */
 
-/* Design System 1: Brutalism Edukatif — values via --ds-* vars, no duplicate hex */
-[data-design-system="brutalism"] {
-  --app-bg: var(--ds-surface);
-  --card-bg: var(--ds-surface-elevated);
-  --card-border: var(--ds-border);
-  --text-main: var(--ds-text);
-  --text-muted: var(--ds-text-muted);
-  --accent-primary: var(--ds-accent);
-  --accent-primary-hover: #FFD700;
-  --accent-primary-soft: rgba(255, 229, 0, 0.1);
-  --accent-primary-border: rgba(255, 229, 0, 0.25);
-  --accent-primary-text: var(--ds-accent-fg);
-  --accent-text: var(--ds-accent);
-  --accent-color: var(--ds-accent);
-  --interactive-border: var(--ds-border);
-  --focus-ring: var(--ds-accent);
-}
-
-/* Design System 2: Apple VisionOS Glass */
-[data-design-system="apple-glass"] {
-  --app-bg: var(--ds-surface);
-  --card-bg: var(--ds-surface-elevated);
-  --card-border: var(--ds-border);
-  --text-main: var(--ds-text);
-  --text-muted: var(--ds-text-muted);
-  --accent-primary: var(--ds-accent);
-  --accent-primary-hover: #0051D5;
-  --accent-primary-soft: rgba(0, 122, 255, 0.1);
-  --accent-primary-border: rgba(0, 122, 255, 0.25);
-  --accent-primary-text: var(--ds-accent-fg);
-  --accent-text: var(--ds-accent);
-  --accent-color: var(--ds-accent);
-  --interactive-border: var(--ds-border);
-  --focus-ring: var(--ds-accent);
-  --ds-backdrop-blur: blur(24px);
-}
-
-/* Design System 3: Neo-Skeuomorphic Academic */
-[data-design-system="neo-skeuomorphic"] {
-  --app-bg: var(--ds-surface);
-  --card-bg: var(--ds-surface-elevated);
-  --card-border: var(--ds-border);
-  --text-main: var(--ds-text);
-  --text-muted: var(--ds-text-muted);
-  --accent-primary: var(--ds-accent);
-  --accent-primary-hover: #065F46;
-  --accent-primary-soft: rgba(4, 120, 87, 0.1);
-  --accent-primary-border: rgba(4, 120, 87, 0.25);
-  --accent-primary-text: var(--ds-accent-fg);
-  --accent-text: var(--ds-accent);
-  --accent-color: var(--ds-accent);
-  --interactive-border: var(--ds-border);
-  --focus-ring: var(--ds-accent);
-}
-
-/* Apply backdrop-blur for apple-glass */
-[data-design-system="apple-glass"] .card,
-[data-design-system="apple-glass"] [class*="card"],
-[data-design-system="apple-glass"] [class*="bg-white"] {
-  backdrop-filter: var(--ds-backdrop-blur);
-  -webkit-backdrop-filter: var(--ds-backdrop-blur);
-}
-
-/* Apply border-width for brutalism */
-[data-design-system="brutalism"] .card,
-[data-design-system="brutalism"] [class*="card"],
-[data-design-system="brutalism"] [class*="border"] {
-  border-width: var(--ds-border-width);
-}
-
-/* Brutalism: force sharp corners + hard shadow + thick borders on app shells */
-[data-design-system="brutalism"] [class*="rounded-2xl"],
-[data-design-system="brutalism"] [class*="rounded-xl"],
-[data-design-system="brutalism"] [class*="rounded-lg"],
-[data-design-system="brutalism"] [class*="rounded-3xl"] {
-  border-radius: var(--ds-radius-md) !important;
-}
-[data-design-system="brutalism"] [class*="shadow"],
-[data-design-system="brutalism"] .card,
-[data-design-system="brutalism"] [class*="card"] {
-  box-shadow: var(--ds-elevation-sm) !important;
-}
-[data-design-system="brutalism"] .bg-white,
-[data-design-system="brutalism"] [class*="bg-white"] {
-  border-color: #000 !important;
-  border-width: var(--ds-border-width);
-}
-[data-design-system="brutalism"] [class*="border-slate"] {
-  border-color: #000 !important;
-}
-
-/* G1+G2: Apple Glass — smooth squircle + floating soft shadow */
-[data-design-system="apple-glass"] [class*="rounded-2xl"],
-[data-design-system="apple-glass"] [class*="rounded-3xl"] {
-  border-radius: var(--ds-radius-lg) !important;
-}
-[data-design-system="apple-glass"] [class*="rounded-xl"] {
-  border-radius: var(--ds-radius-md) !important;
-}
-[data-design-system="apple-glass"] [class*="rounded-lg"] {
-  border-radius: var(--ds-radius-sm) !important;
-}
-[data-design-system="apple-glass"] [class*="shadow"],
-[data-design-system="apple-glass"] .card,
-[data-design-system="apple-glass"] [class*="card"] {
-  box-shadow: var(--ds-elevation-sm) !important;
-}
 
 /* G1+G2: Neo-Skeuomorphic — binder curvature + tactile emboss */
-[data-design-system="neo-skeuomorphic"] [class*="rounded-2xl"],
-[data-design-system="neo-skeuomorphic"] [class*="rounded-3xl"] {
+[data-design-system="atelier"] [class*="rounded-2xl"],
+[data-design-system="atelier"] [class*="rounded-3xl"] {
   border-radius: var(--ds-radius-lg) !important;
 }
-[data-design-system="neo-skeuomorphic"] [class*="rounded-xl"] {
+[data-design-system="atelier"] [class*="rounded-xl"] {
   border-radius: var(--ds-radius-md) !important;
 }
-[data-design-system="neo-skeuomorphic"] [class*="rounded-lg"] {
+[data-design-system="atelier"] [class*="rounded-lg"] {
   border-radius: var(--ds-radius-sm) !important;
 }
-[data-design-system="neo-skeuomorphic"] [class*="shadow"],
-[data-design-system="neo-skeuomorphic"] .card,
-[data-design-system="neo-skeuomorphic"] [class*="card"] {
+[data-design-system="atelier"] [class*="shadow"],
+[data-design-system="atelier"] .card,
+[data-design-system="atelier"] [class*="card"] {
   box-shadow: var(--ds-elevation-sm) !important;
 }
 
@@ -366,130 +259,130 @@ body {
 }
 
 /* ==========================================================================
-   Global Surface & Contrast Overrides (Universal Bridge for All 5 Themes)
+   Global Surface & Contrast Overrides (Universal Bridge)
    ========================================================================== */
 
 /* 1. App Body & Background Canvas */
 .dark body, 
-[data-design-system="apple-glass"] body,
-[data-design-system="brutalism"] body,
-[data-design-system="neo-skeuomorphic"] body {
+[data-design-system="minimalist"] body,
+[data-design-system="paper-craft"] body,
+[data-design-system="atelier"] body {
   background-color: var(--app-bg) !important;
   color: var(--text-main) !important;
 }
 
 /* 2. Canvas Classes -> Dynamic App Background (all 3 systems) */
-[data-design-system="brutalism"] .bg-slate-50,
-[data-design-system="apple-glass"] .bg-slate-50,
-[data-design-system="neo-skeuomorphic"] .bg-slate-50 {
+[data-design-system="paper-craft"] .bg-slate-50,
+[data-design-system="minimalist"] .bg-slate-50,
+[data-design-system="atelier"] .bg-slate-50 {
   background-color: var(--app-bg) !important;
 }
 
 /* 3. Cards & Elevated Surfaces (all 3 systems) */
-[data-design-system="brutalism"] .bg-white,
-[data-design-system="apple-glass"] .bg-white,
-[data-design-system="neo-skeuomorphic"] .bg-white {
+[data-design-system="paper-craft"] .bg-white,
+[data-design-system="minimalist"] .bg-white,
+[data-design-system="atelier"] .bg-white {
   background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
 }
 
 /* 4. Interactive Hover & Subtle Containers (all 3 systems) */
-[data-design-system="brutalism"] .bg-slate-100,
-[data-design-system="apple-glass"] .bg-slate-100,
-[data-design-system="neo-skeuomorphic"] .bg-slate-100 {
+[data-design-system="paper-craft"] .bg-slate-100,
+[data-design-system="minimalist"] .bg-slate-100,
+[data-design-system="atelier"] .bg-slate-100 {
   background-color: var(--interactive-border) !important;
 }
 
 /* 5. Borders & Dividers (all 3 systems) */
-[data-design-system="brutalism"] .border-slate-200,
-[data-design-system="brutalism"] .border-slate-200\/80,
-[data-design-system="brutalism"] .border-slate-200\/90,
-[data-design-system="brutalism"] .border-slate-100,
-[data-design-system="apple-glass"] .border-slate-200,
-[data-design-system="apple-glass"] .border-slate-200\/80,
-[data-design-system="apple-glass"] .border-slate-200\/90,
-[data-design-system="apple-glass"] .border-slate-100,
-[data-design-system="neo-skeuomorphic"] .border-slate-200,
-[data-design-system="neo-skeuomorphic"] .border-slate-200\/80,
-[data-design-system="neo-skeuomorphic"] .border-slate-200\/90,
-[data-design-system="neo-skeuomorphic"] .border-slate-100 {
+[data-design-system="paper-craft"] .border-slate-200,
+[data-design-system="paper-craft"] .border-slate-200\/80,
+[data-design-system="paper-craft"] .border-slate-200\/90,
+[data-design-system="paper-craft"] .border-slate-100,
+[data-design-system="minimalist"] .border-slate-200,
+[data-design-system="minimalist"] .border-slate-200\/80,
+[data-design-system="minimalist"] .border-slate-200\/90,
+[data-design-system="minimalist"] .border-slate-100,
+[data-design-system="atelier"] .border-slate-200,
+[data-design-system="atelier"] .border-slate-200\/80,
+[data-design-system="atelier"] .border-slate-200\/90,
+[data-design-system="atelier"] .border-slate-100 {
   border-color: var(--card-border) !important;
 }
 
 /* 6. Typography (all 3 systems) */
-[data-design-system="brutalism"] .text-slate-800,
-[data-design-system="brutalism"] .text-slate-900,
-[data-design-system="brutalism"] [class*="text-slate-900"],
-[data-design-system="brutalism"] [class*="text-slate-800"],
-[data-design-system="apple-glass"] .text-slate-800,
-[data-design-system="apple-glass"] .text-slate-900,
-[data-design-system="apple-glass"] [class*="text-slate-900"],
-[data-design-system="apple-glass"] [class*="text-slate-800"],
-[data-design-system="neo-skeuomorphic"] .text-slate-900,
-[data-design-system="neo-skeuomorphic"] .text-slate-800,
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-900"],
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-800"] {
+[data-design-system="paper-craft"] .text-slate-800,
+[data-design-system="paper-craft"] .text-slate-900,
+[data-design-system="paper-craft"] [class*="text-slate-900"],
+[data-design-system="paper-craft"] [class*="text-slate-800"],
+[data-design-system="minimalist"] .text-slate-800,
+[data-design-system="minimalist"] .text-slate-900,
+[data-design-system="minimalist"] [class*="text-slate-900"],
+[data-design-system="minimalist"] [class*="text-slate-800"],
+[data-design-system="atelier"] .text-slate-900,
+[data-design-system="atelier"] .text-slate-800,
+[data-design-system="atelier"] [class*="text-slate-900"],
+[data-design-system="atelier"] [class*="text-slate-800"] {
   color: var(--text-main) !important;
 }
 
-[data-design-system="brutalism"] .text-slate-700,
-[data-design-system="brutalism"] .text-slate-600,
-[data-design-system="brutalism"] [class*="text-slate-700"],
-[data-design-system="brutalism"] [class*="text-slate-600"],
-[data-design-system="apple-glass"] .text-slate-700,
-[data-design-system="apple-glass"] .text-slate-600,
-[data-design-system="apple-glass"] [class*="text-slate-700"],
-[data-design-system="apple-glass"] [class*="text-slate-600"],
-[data-design-system="neo-skeuomorphic"] .text-slate-700,
-[data-design-system="neo-skeuomorphic"] .text-slate-600,
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-700"],
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-600"] {
+[data-design-system="paper-craft"] .text-slate-700,
+[data-design-system="paper-craft"] .text-slate-600,
+[data-design-system="paper-craft"] [class*="text-slate-700"],
+[data-design-system="paper-craft"] [class*="text-slate-600"],
+[data-design-system="minimalist"] .text-slate-700,
+[data-design-system="minimalist"] .text-slate-600,
+[data-design-system="minimalist"] [class*="text-slate-700"],
+[data-design-system="minimalist"] [class*="text-slate-600"],
+[data-design-system="atelier"] .text-slate-700,
+[data-design-system="atelier"] .text-slate-600,
+[data-design-system="atelier"] [class*="text-slate-700"],
+[data-design-system="atelier"] [class*="text-slate-600"] {
   color: var(--text-muted) !important;
 }
 
-[data-design-system="brutalism"] .text-slate-500,
-[data-design-system="brutalism"] .text-slate-400,
-[data-design-system="brutalism"] [class*="text-slate-500"],
-[data-design-system="brutalism"] [class*="text-slate-400"],
-[data-design-system="apple-glass"] .text-slate-500,
-[data-design-system="apple-glass"] .text-slate-400,
-[data-design-system="apple-glass"] [class*="text-slate-500"],
-[data-design-system="apple-glass"] [class*="text-slate-400"],
-[data-design-system="neo-skeuomorphic"] .text-slate-500,
-[data-design-system="neo-skeuomorphic"] .text-slate-400,
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-500"],
-[data-design-system="neo-skeuomorphic"] [class*="text-slate-400"] {
+[data-design-system="paper-craft"] .text-slate-500,
+[data-design-system="paper-craft"] .text-slate-400,
+[data-design-system="paper-craft"] [class*="text-slate-500"],
+[data-design-system="paper-craft"] [class*="text-slate-400"],
+[data-design-system="minimalist"] .text-slate-500,
+[data-design-system="minimalist"] .text-slate-400,
+[data-design-system="minimalist"] [class*="text-slate-500"],
+[data-design-system="minimalist"] [class*="text-slate-400"],
+[data-design-system="atelier"] .text-slate-500,
+[data-design-system="atelier"] .text-slate-400,
+[data-design-system="atelier"] [class*="text-slate-500"],
+[data-design-system="atelier"] [class*="text-slate-400"] {
   color: var(--text-muted) !important;
 }
 
 /* 7. Typography family — apply per DS (+ body.font-sans override) */
-[data-design-system="brutalism"],
-[data-design-system="brutalism"] body,
-[data-design-system="brutalism"] .font-sans {
+[data-design-system="paper-craft"],
+[data-design-system="paper-craft"] body,
+[data-design-system="paper-craft"] .font-sans {
   font-family: var(--ds-font-sans) !important;
 }
-[data-design-system="apple-glass"],
-[data-design-system="apple-glass"] body,
-[data-design-system="apple-glass"] .font-sans,
-[data-design-system="neo-skeuomorphic"],
-[data-design-system="neo-skeuomorphic"] body,
-[data-design-system="neo-skeuomorphic"] .font-sans {
+[data-design-system="minimalist"],
+[data-design-system="minimalist"] body,
+[data-design-system="minimalist"] .font-sans,
+[data-design-system="atelier"],
+[data-design-system="atelier"] body,
+[data-design-system="atelier"] .font-sans {
   font-family: var(--ds-font-sans) !important;
 }
-[data-design-system="neo-skeuomorphic"] h1,
-[data-design-system="neo-skeuomorphic"] h2,
-[data-design-system="neo-skeuomorphic"] h3,
-[data-design-system="neo-skeuomorphic"] .font-serif {
+[data-design-system="atelier"] h1,
+[data-design-system="atelier"] h2,
+[data-design-system="atelier"] h3,
+[data-design-system="atelier"] .font-serif {
   font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
 }
-[data-design-system="apple-glass"] .font-serif {
+[data-design-system="minimalist"] .font-serif {
   font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
 }
 
 /* G6: accent-glow */
-[data-design-system="brutalism"] { --accent-glow: rgba(255,229,0,0.4); }
-[data-design-system="apple-glass"] { --accent-glow: rgba(0,122,255,0.3); }
-[data-design-system="neo-skeuomorphic"] { --accent-glow: rgba(4,120,87,0.3); }
+[data-design-system="paper-craft"] { --accent-glow: rgba(255,229,0,0.4); }
+[data-design-system="minimalist"] { --accent-glow: rgba(0,122,255,0.3); }
+[data-design-system="atelier"] { --accent-glow: rgba(4,120,87,0.3); }
 
 /* ==========================================================================
    Document / Paper Isolation Boundary
@@ -610,15 +503,15 @@ body {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus,
-[data-design-system="apple-glass"] input:focus,
-[data-design-system="apple-glass"] select:focus,
-[data-design-system="apple-glass"] textarea:focus,
-[data-design-system="brutalism"] input:focus,
-[data-design-system="brutalism"] select:focus,
-[data-design-system="brutalism"] textarea:focus,
-[data-design-system="neo-skeuomorphic"] input:focus,
-[data-design-system="neo-skeuomorphic"] select:focus,
-[data-design-system="neo-skeuomorphic"] textarea:focus, [data-design-system="paper-craft"] input:focus, [data-design-system="paper-craft"] select:focus, [data-design-system="paper-craft"] textarea:focus, [data-design-system="minimalist"] input:focus, [data-design-system="minimalist"] select:focus, [data-design-system="minimalist"] textarea:focus, [data-design-system="atelier"] input:focus, [data-design-system="atelier"] select:focus, [data-design-system="atelier"] textarea:focus {
+[data-design-system="minimalist"] input:focus,
+[data-design-system="minimalist"] select:focus,
+[data-design-system="minimalist"] textarea:focus,
+[data-design-system="paper-craft"] input:focus,
+[data-design-system="paper-craft"] select:focus,
+[data-design-system="paper-craft"] textarea:focus,
+[data-design-system="atelier"] input:focus,
+[data-design-system="atelier"] select:focus,
+[data-design-system="atelier"] textarea:focus, [data-design-system="paper-craft"] input:focus, [data-design-system="paper-craft"] select:focus, [data-design-system="paper-craft"] textarea:focus, [data-design-system="minimalist"] input:focus, [data-design-system="minimalist"] select:focus, [data-design-system="minimalist"] textarea:focus, [data-design-system="atelier"] input:focus, [data-design-system="atelier"] select:focus, [data-design-system="atelier"] textarea:focus {
   border-color: var(--focus-ring) !important;
   box-shadow: 0 0 0 1.5px var(--focus-ring), 0 0 8px var(--accent-glow) !important;
 }

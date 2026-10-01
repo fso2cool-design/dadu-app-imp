@@ -31,25 +31,24 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
       maxWidth="2xl"
     >
       <div className="space-y-5 -mt-2">
-        {/* Header Visual */}
-        <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 rounded-2xl p-5 text-white shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none -mr-10 -mt-10" />
+        {/* Header Visual — uses active design-system accent token */}
+        <div className="rounded-2xl p-5 shadow-sm relative overflow-hidden border" style={{ background: "var(--ds-accent)", color: "var(--ds-accent-fg)", borderColor: "var(--ds-border)" }}>
           
           <div className="flex items-center gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-sm text-white border border-white/20">
-              <Sparkle className="w-3.5 h-3.5 text-amber-300" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold backdrop-blur-sm border" style={{ background: "color-mix(in srgb, var(--ds-accent-fg) 14%, transparent)", color: "var(--ds-accent-fg)", borderColor: "color-mix(in srgb, var(--ds-accent-fg) 22%, transparent)" }}>
+              <Sparkle className="w-3.5 h-3.5" style={{ color: "var(--ds-accent-fg)" }} />
               {LATEST_CHANGELOG.badge || 'Catatan Pembaruan'}
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-100 font-medium">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: "color-mix(in srgb, var(--ds-accent-fg) 78%, transparent)" }}>
               <CalendarBlank className="w-3.5 h-3.5" />
               {LATEST_CHANGELOG.releaseDate}
             </span>
           </div>
 
-          <h2 className="text-xl font-bold tracking-tight text-white">
+          <h2 className="text-xl font-bold tracking-tight" style={{ color: "var(--ds-accent-fg)" }}>
             {LATEST_CHANGELOG.version}
           </h2>
-          <p className="text-xs text-emerald-100 mt-1 max-w-lg leading-relaxed">
+          <p className="text-xs mt-1 max-w-lg leading-relaxed" style={{ color: "color-mix(in srgb, var(--ds-accent-fg) 82%, transparent)" }}>
             {LATEST_CHANGELOG.title}
           </p>
         </div>
@@ -59,16 +58,16 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
           {LATEST_CHANGELOG.highlights.map((cat, idx) => (
             <div
               key={idx}
-              className="p-3.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors"
+              className="p-3.5 rounded-xl border bg-white dark:bg-slate-900 transition-colors" style={{ borderColor: "var(--ds-border)" } as any}
             >
               <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-1.5">
-                <span className="w-1.5 h-3.5 rounded-full bg-emerald-600 inline-block" />
+                <span className="w-1.5 h-3.5 rounded-full inline-block" style={{ background: "var(--ds-accent)" }} />
                 {cat.category}
               </h4>
               <ul className="space-y-1.5">
                 {cat.items.map((item, iIdx) => (
                   <li key={iIdx} className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2 leading-relaxed">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "var(--ds-accent)" }} />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -84,7 +83,7 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
               type="checkbox"
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+              className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 cursor-pointer" style={{ accentColor: "var(--ds-accent)" } as any}
             />
             <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
               Jangan tampilkan lagi untuk versi ini

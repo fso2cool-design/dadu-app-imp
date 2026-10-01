@@ -77,15 +77,8 @@ export async function recordUserLastLogin(uid: string): Promise<void> {
 }
 
 export async function updateUserThemePreference(uid: string, theme: ThemeKey): Promise<void> {
-  const docRef = doc(db, 'users', uid);
-  try {
-    await updateDoc(docRef, {
-      themePreference: theme,
-      updatedAt: serverTimestamp(),
-    });
-  } catch (err) {
-    console.warn('Could not update user theme preference:', err);
-  }
+  // Deprecated shim — single source is designSystemPreference; keep fallback read path.
+  return updateUserDesignSystemPreference(uid, theme as unknown as string);
 }
 
 export async function updateUserDesignSystemPreference(uid: string, designSystem: string): Promise<void> {

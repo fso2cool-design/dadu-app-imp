@@ -108,6 +108,9 @@ export interface DesignSystemOption {
   id: DesignSystemKey;
   name: string;
   description: string;
+  tagline: string;
+  swatches: [string,string,string,string];
+  preview: { card: string; accent: string };
   tokens: DesignSystemTokens;
 }
 
@@ -134,6 +137,9 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     id: 'paper-craft',
     name: 'Paper Craft',
     description: 'Scrapbook hangat ala X-C Hub: border tinta, hard shadow, sticky notes',
+    tagline: 'Kertas \u0026 tinta, bayangan tajam',
+    swatches: ['#FAF7EE','#1C1917','#FF5A36','#A8A29E'],
+    preview: { card: 'bg-[#FFFDF9] border-[#292524]', accent: 'bg-[#FF5A36]' },
     tokens: {
       colors: {
         accent: '#FF5A36',
@@ -202,6 +208,9 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     id: 'minimalist',
     name: 'Minimalist',
     description: 'Warm monochrome editorial: hairline border, judul serif besar, pastel lembut',
+    tagline: 'Monokrom hangat, serif editorial',
+    swatches: ['#F7F6F3','#2F3437','#E7E5E0','#57534E'],
+    preview: { card: 'bg-white border-[#EAEAEA]', accent: 'bg-[#2F3437]' },
     tokens: {
       colors: {
         accent: '#2F3437',
@@ -271,6 +280,9 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     id: 'atelier',
     name: 'Atelier',
     description: 'High-end soft: double-bezel nested card, squircle, tipografi display besar',
+    tagline: 'Gelap pekat OLED, squircle lembut',
+    swatches: ['#FDFBF7','#050505','#F5F2EB','#1C1917'],
+    preview: { card: 'bg-white border-[#E8E2D9]', accent: 'bg-[#1C1917]' },
     tokens: {
       colors: {
         accent: '#1C1917',
@@ -339,13 +351,10 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
 ];
 
 // ==========================================================================
-// THEME KEYS (LEGACY - Keep for backward compatibility)
+// THEME KEYS (ALIAS \u2014 single source, do NOT duplicate literals)
 // ==========================================================================
 
-export type ThemeKey =
-  | 'brutalism'
-  | 'apple-glass'
-  | 'neo-skeuomorphic';
+export type ThemeKey = DesignSystemKey;
 
 export interface AcademicYear {
   id: string;
