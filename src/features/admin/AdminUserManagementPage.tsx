@@ -336,7 +336,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             <div className="flex items-center gap-1.5 sm:gap-2">
               <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">Panel Admin</h1>
               <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
-                SUPER ADMIN
+                ADMINISTRATOR
               </span>
             </div>
             <p className="text-[11px] text-slate-400 truncate hidden sm:block">

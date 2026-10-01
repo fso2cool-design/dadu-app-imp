@@ -261,11 +261,11 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors disabled:opacity-60 cursor-pointer"
               >
                 <option value="TEACHER">Guru (Teacher)</option>
-                <option value="ADMIN">Administrator (Super Admin)</option>
+                <option value="ADMIN">Administrator (Admin)</option>
               </select>
               {isSuperAdminEmail && (
                 <span className="text-[10px] text-amber-400 mt-1 block">
-                  Peran Super Admin Akun Utama tidak dapat diubah.
+                  Peran Administrator Akun Utama tidak dapat diubah.
                 </span>
               )}
             </div>
