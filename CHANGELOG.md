@@ -6,21 +6,21 @@ Format changelog ini mengacu pada [Keep a Changelog](https://keepachangelog.com/
 
 ## [2.3.0] — 2026-09-30
 
-Rilis Design System Migration: ganti 5 tema legacy menjadi 3 design system modern dengan arsitektur layered tetap terjaga.
+Rilis Theme Consolidation: ganti 5 tema legacy menjadi 3 tema modern dengan arsitektur layered tetap terjaga.
 
 ### Added
-- **Design System Architecture**:
+- **Theme Architecture**:
   - `DesignSystemContext` (`src/context/DesignSystemContext.tsx`) dengan injeksi CSS var `--ds-*`, persistensi Firestore `designSystemPreference`, dan mapping legacy theme.
-  - 3 Design Systems: `brutalism` (kuning-hitam tegas), `apple-glass` (transparan blur), `neo-skeuomorphic` (emboss lembut).
-  - Token lengkap per system: `accent`, `background`, `surface`, `text`, `border`, radius, shadow.
+  - 3 Tema: `paper-craft` (kertas & tinta, bayangan tajam), `minimalist` (monokrom hangat, serif editorial), `atelier` (gelap pekat OLED, squircle lembut).
+  - Token lengkap per tema: `accent`, `background`, `surface`, `text`, `border`, radius, shadow.
 
 ### Changed
 - **Theme System (Breaking)**:
-  - `ThemeKey` disederhanakan dari 9 nilai (6 legacy + 3 baru) menjadi hanya 3: `brutalism | apple-glass | neo-skeuomorphic`.
+  - `ThemeKey` disederhanakan dari 9 nilai (6 legacy + 3 baru) menjadi hanya 3: `paper-craft | minimalist | atelier`.
   - `THEME_OPTIONS` di `src/context/ThemeContext.tsx` 5 → 3 opsi dropdown.
   - `ThemeContext` sekarang thin wrapper di atas `DesignSystemContext` untuk backward compatibility.
-  - `src/index.css` 5 blok tema legacy dihapus, 3 blok DS baru, `data-design-system` attribute.
-  - `SettingsPage` heading `Pilihan Skema Tema Workspace` → `Pilihan Design System`, grid `lg:grid-cols-12` → `md:grid-cols-3`.
+  - `src/index.css` 5 blok tema legacy dihapus, 3 blok baru, `data-design-system` attribute.
+  - `SettingsPage` heading `Pilihan Skema Tema Workspace` → `Pilihan Tema`, grid `lg:grid-cols-12` → `md:grid-cols-3`.
 
 ### Removed
 - 5 tema legacy: `light`, `dark-crimson`, `obsidian-tactile`, `swiss-manuscript`, `solarized-comfort`, `chalkboard-school` (6 literal termasuk `light` default).
