@@ -23,6 +23,25 @@ const databaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || fireba
 // Initialize Firebase App
 export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+// S2.3 App Check (anti-abuse: hanya request dari aplikasi resmi yang lolos).
+// Aktif hanya bila VITE_APPCHECK_SITE_KEY terisi (reCAPTCHA Enterprise site key
+// dari Google Cloud Console). Tanpa key → App Check nonaktif, aplikasi tetap jalan.
+const appCheckSiteKey = import.meta.env.VITE_APPCHECK_SITE_KEY as string | undefined;
+if (appCheckSiteKey) {
+  if (import.meta.env.DEV) {
+    // Token debug lokal: nilai tercetak di console browser saat dev,
+    // daftarkan di Firebase Console > Build > App Check > Manage debug tokens.
+    (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN =
+      import.meta.env.VITE_APPCHECK_DEBUG_TOKEN || true;
+  }
+  void import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) => {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+      isTokenAutoRefreshEnabled: true,
+    });
+  });
+}
+
 // Initialize Auth
 export const auth = getAuth(app);
 
