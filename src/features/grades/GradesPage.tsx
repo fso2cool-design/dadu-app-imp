@@ -760,7 +760,7 @@ export const GradesPage: React.FC = () => {
           <button
             type="button"
             onClick={handleExportExcel}
-            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] bg-white dark:bg-[var(--ds-surface-elevated)] hover:bg-slate-50 dark:hover:bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Ekspor Excel</span>
@@ -779,7 +779,7 @@ export const GradesPage: React.FC = () => {
             type="button"
             disabled={isArchivedYear}
             onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] bg-white dark:bg-[var(--ds-surface-elevated)] hover:bg-slate-50 dark:hover:bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>Import Excel</span>
@@ -851,7 +851,7 @@ export const GradesPage: React.FC = () => {
       )}
 
       {/* Assignment Selector & Class Banner */}
-      <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs transition-colors">
+      <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs transition-colors">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-cyan-950/60 text-orange-600 dark:text-cyan-400 border border-orange-200 dark:border-cyan-500/40 flex items-center justify-center font-bold">
@@ -865,7 +865,7 @@ export const GradesPage: React.FC = () => {
                 <select
                   value={currentAssignmentId}
                   onChange={(e) => handleAssignmentChange(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] font-bold text-slate-800 dark:text-slate-200 text-xs bg-slate-50 dark:bg-[#0c0e15] hover:bg-slate-100 dark:hover:bg-[#1b1f2e] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] font-bold text-slate-800 dark:text-slate-200 text-xs bg-slate-50 dark:bg-[var(--ds-surface)] hover:bg-slate-100 dark:hover:bg-[var(--ds-surface-elevated)] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
                 >
                   {teachingAssignments.map(a => (
                     <option key={a.id} value={a.id}>
@@ -881,9 +881,9 @@ export const GradesPage: React.FC = () => {
           </div>
 
           {/* Quick Settings: Formula & KKTP */}
-          <div className="flex flex-wrap items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#232838]">
+          <div className="flex flex-wrap items-center gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[var(--ds-border)]">
             {/* Calculation Method */}
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs">
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[var(--ds-surface)] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs">
               <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
               <span className="text-slate-500 dark:text-slate-400 font-medium">Metode:</span>
               <select
@@ -897,7 +897,7 @@ export const GradesPage: React.FC = () => {
             </div>
 
             {/* Missing score treatment */}
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs">
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[var(--ds-surface)] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs">
               <span className="text-slate-500 dark:text-slate-400 font-medium">Nilai Kosong:</span>
               <select
                 value={missingScoreTreatment}
@@ -910,7 +910,7 @@ export const GradesPage: React.FC = () => {
             </div>
 
             {/* KKTP Passing Threshold */}
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs">
+            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[var(--ds-surface)] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs">
               <span className="text-slate-500 dark:text-slate-400 font-medium">KKTP / KKM:</span>
               <input
                 type="number"
@@ -918,7 +918,7 @@ export const GradesPage: React.FC = () => {
                 max={100}
                 value={passingGrade}
                 onChange={(e) => setPassingGrade(Number(e.target.value) || 75)}
-                className="w-12 font-mono font-bold text-orange-700 dark:text-cyan-400 bg-white dark:bg-[#141722] px-1.5 py-0.5 rounded border border-slate-200 dark:border-[#232838] text-center"
+                className="w-12 font-mono font-bold text-orange-700 dark:text-cyan-400 bg-white dark:bg-[var(--ds-surface-elevated)] px-1.5 py-0.5 rounded border border-slate-200 dark:border-[var(--ds-border)] text-center"
               />
             </div>
           </div>
@@ -928,7 +928,7 @@ export const GradesPage: React.FC = () => {
       {/* KPI Overview Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Total Assessments & Progress */}
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Kelengkapan Nilai</span>
             <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
@@ -943,7 +943,7 @@ export const GradesPage: React.FC = () => {
               {assessmentItems.length} Kolom Tagihan
             </span>
           </div>
-          <div className="w-full h-1.5 bg-slate-100 dark:bg-[#0c0e15] rounded-full overflow-hidden mt-2 border border-slate-200/50 dark:border-[#232838]">
+          <div className="w-full h-1.5 bg-slate-100 dark:bg-[var(--ds-surface)] rounded-full overflow-hidden mt-2 border border-slate-200/50 dark:border-[var(--ds-border)]">
             <div
               style={{ width: `${overallCompleteness.percentage}%` }}
               className={`h-full transition-all duration-300 ${
@@ -956,7 +956,7 @@ export const GradesPage: React.FC = () => {
         </div>
 
         {/* Class Average */}
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex items-center justify-between transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex items-center justify-between transition-colors">
           <div>
             <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 block">Rata-rata Kelas</span>
             <div className="flex items-baseline gap-2 mt-1">
@@ -977,7 +977,7 @@ export const GradesPage: React.FC = () => {
         </div>
 
         {/* Passed Rate */}
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex items-center justify-between transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex items-center justify-between transition-colors">
           <div>
             <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 block">Tingkat Ketuntasan</span>
             <div className="flex items-baseline gap-2 mt-1">
@@ -1005,7 +1005,7 @@ export const GradesPage: React.FC = () => {
         </div>
 
         {/* Grade Distribution */}
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Distribusi Predikat</span>
             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">A/B/C/D</span>
@@ -1044,7 +1044,7 @@ export const GradesPage: React.FC = () => {
       )}
 
       {/* Funnel & Toolbar Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-3 shadow-2xs transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-3 shadow-2xs transition-colors">
         {/* MagnifyingGlass */}
         <div className="relative flex-1 max-w-xs">
           <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1053,7 +1053,7 @@ export const GradesPage: React.FC = () => {
             placeholder="Cari siswa atau NIS..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 bg-slate-50 dark:bg-[#0c0e15]"
+            className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 bg-slate-50 dark:bg-[var(--ds-surface)]"
           />
         </div>
 
@@ -1075,7 +1075,7 @@ export const GradesPage: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-[var(--ds-surface)] focus:outline-hidden cursor-pointer"
           >
             <option value="ROLL">Urutkan: No. Absen</option>
             <option value="NAME">Urutkan: Nama (A-Z)</option>
@@ -1104,7 +1104,7 @@ export const GradesPage: React.FC = () => {
       {loading ? (
         <SkeletonTable rows={10} columns={7} />
       ) : enrollments.length === 0 ? (
-        <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] p-12 text-center transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] rounded-2xl border border-slate-200 dark:border-[var(--ds-border)] p-12 text-center transition-colors">
           <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Belum Ada Siswa di Kelas Ini</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">
@@ -1112,18 +1112,18 @@ export const GradesPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl shadow-2xs overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl shadow-2xs overflow-hidden transition-colors">
           <div className="overflow-x-auto max-h-[620px] scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
             <table className="w-full text-left border-collapse text-xs">
               {/* Table Header */}
-              <thead className="bg-slate-50/90 dark:bg-[#0c0e15]/90 sticky top-0 z-20 backdrop-blur-xs border-b border-slate-200 dark:border-[#232838]">
+              <thead className="bg-slate-50/90 dark:bg-[var(--ds-surface)]/90 sticky top-0 z-20 backdrop-blur-xs border-b border-slate-200 dark:border-[var(--ds-border)]">
                 <tr>
                   {/* Sticky Column: No */}
-                  <th className="sticky left-0 z-30 bg-slate-50 dark:bg-[#0c0e15] px-3 py-3 w-12 text-center font-bold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="sticky left-0 z-30 bg-slate-50 dark:bg-[var(--ds-surface)] px-3 py-3 w-12 text-center font-bold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-[var(--ds-border)]">
                     No
                   </th>
                   {/* Sticky Column: NIS & Nama */}
-                  <th className="sticky left-12 z-30 bg-slate-50 dark:bg-[#0c0e15] px-4 py-3 min-w-[200px] max-w-[260px] font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="sticky left-12 z-30 bg-slate-50 dark:bg-[var(--ds-surface)] px-4 py-3 min-w-[200px] max-w-[260px] font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[var(--ds-border)]">
                     Nama Siswa
                   </th>
 
@@ -1134,7 +1134,7 @@ export const GradesPage: React.FC = () => {
                     return (
                       <th
                         key={item.id}
-                        className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[#232838] group/col relative"
+                        className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[var(--ds-border)] group/col relative"
                       >
                         <div className="flex flex-col items-center justify-center">
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/40 uppercase tracking-tight mb-0.5">
@@ -1172,7 +1172,7 @@ export const GradesPage: React.FC = () => {
 
                       {/* Header quick actions on hover */}
                       {!isArchivedYear && (
-                        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[#141722]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[#232838]">
+                        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[var(--ds-surface-elevated)]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[var(--ds-border)]">
                           <Tooltip content="Edit Kolom" position="top">
                             <button
                               type="button"
@@ -1201,7 +1201,7 @@ export const GradesPage: React.FC = () => {
                   })}
 
                   {/* Empty Add Column Button Header */}
-                  <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[#232838]">
+                  <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[var(--ds-border)]">
                     {!isArchivedYear && (
                       <Tooltip content="Tambah Kolom Penilaian Baru" position="top">
                         <button
@@ -1219,11 +1219,11 @@ export const GradesPage: React.FC = () => {
                   </th>
 
                   {/* Final Score Calculated Header */}
-                  <th className="px-4 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="px-4 py-3 min-w-[100px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[var(--ds-border)]">
                     Nilai Akhir
                   </th>
                   {/* Predicate Header */}
-                  <th className="px-3 py-3 min-w-[80px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[#232838]">
+                  <th className="px-3 py-3 min-w-[80px] text-center font-bold text-slate-800 dark:text-slate-100 bg-emerald-50/50 dark:bg-emerald-950/30 border-r border-slate-200 dark:border-[var(--ds-border)]">
                     Predikat
                   </th>
                   {/* Status Ketuntasan Header */}
@@ -1242,15 +1242,15 @@ export const GradesPage: React.FC = () => {
                   return (
                     <tr
                       key={enr.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-[#1b1f2e] transition-colors group"
+                      className="hover:bg-slate-50/70 dark:hover:bg-[var(--ds-surface-elevated)] transition-colors group"
                     >
                       {/* Sticky Roll Number */}
-                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] px-3 py-2 text-center font-mono font-semibold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-[#232838]">
+                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[var(--ds-surface-elevated)] dark:group-hover:bg-[#1b1f2e] px-3 py-2 text-center font-mono font-semibold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-[var(--ds-border)]">
                         {enr.rollNumber || index + 1}
                       </td>
 
                       {/* Sticky Student Name & NIS */}
-                      <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] px-4 py-2 border-r border-slate-200 dark:border-[#232838]">
+                      <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[var(--ds-surface-elevated)] dark:group-hover:bg-[#1b1f2e] px-4 py-2 border-r border-slate-200 dark:border-[var(--ds-border)]">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
                             {enr.student?.fullName || 'Nama Siswa'}
@@ -1279,7 +1279,7 @@ export const GradesPage: React.FC = () => {
                         return (
                           <td
                             key={item.id}
-                            className="px-2 py-1 text-center border-r border-slate-100 dark:border-[#232838] relative group/cell"
+                            className="px-2 py-1 text-center border-r border-slate-100 dark:border-[var(--ds-border)] relative group/cell"
                           >
                             <div className="flex items-center justify-center gap-1">
                               <input
@@ -1295,8 +1295,8 @@ export const GradesPage: React.FC = () => {
                                   isScoreLow
                                     ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
                                     : numVal !== null
-                                    ? 'bg-white dark:bg-[#0c0e15] border-slate-300 dark:border-[#2e344a] text-slate-900 dark:text-slate-100 font-bold shadow-2xs'
-                                    : 'bg-slate-50/60 dark:bg-[#0c0e15]/40 border-dashed border-slate-300/80 dark:border-[#232838] text-slate-400 dark:text-slate-600 hover:border-slate-400'
+                                    ? 'bg-white dark:bg-[var(--ds-surface)] border-slate-300 dark:border-[#2e344a] text-slate-900 dark:text-slate-100 font-bold shadow-2xs'
+                                    : 'bg-slate-50/60 dark:bg-[var(--ds-surface)]/40 border-dashed border-slate-300/80 dark:border-[var(--ds-border)] text-slate-400 dark:text-slate-600 hover:border-slate-400'
                                 }`}
                               />
 
@@ -1331,17 +1331,17 @@ export const GradesPage: React.FC = () => {
                       })}
 
                       {/* Spacer empty cell */}
-                      <td className="border-r border-slate-100 dark:border-[#232838]"></td>
+                      <td className="border-r border-slate-100 dark:border-[var(--ds-border)]"></td>
 
                       {/* Final Score Calculated Value */}
-                      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[#232838] font-mono font-bold text-sm bg-orange-50/30 dark:bg-cyan-950/20">
+                      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-orange-50/30 dark:bg-cyan-950/20">
                         <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-orange-950 dark:text-cyan-300'}>
                           {calc?.finalScore || 0}
                         </span>
                       </td>
 
                       {/* Predicate */}
-                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[#232838] bg-orange-50/30 dark:bg-cyan-950/20">
+                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-orange-50/30 dark:bg-cyan-950/20">
                         <span
                           className={`inline-block w-6 py-0.5 rounded-md font-bold text-xs font-mono ${
                             calc?.predicate === 'A'
