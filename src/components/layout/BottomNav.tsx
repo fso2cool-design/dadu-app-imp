@@ -1,11 +1,5 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  CalendarCheck2, 
-  CheckSquare, 
-  Award, 
-  Menu
-} from 'lucide-react';
+import { SquaresFour, CalendarCheck, CheckSquare, Medal, List } from '@phosphor-icons/react';
 import { useAppTheme } from '../../context/ThemeContext';
 
 interface BottomNavProps {
@@ -22,11 +16,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const { activeTheme, isDark } = useAppTheme();
 
   const navItems = [
-    { id: 'more', label: 'Menu', icon: Menu, isMore: true },
-    { id: 'dashboard', label: 'Dasbor', icon: LayoutDashboard },
-    { id: 'meetings', label: 'Jurnal', icon: CalendarCheck2 },
+    { id: 'more', label: 'List', icon: List, isMore: true },
+    { id: 'dashboard', label: 'Dasbor', icon: SquaresFour },
+    { id: 'meetings', label: 'Jurnal', icon: CalendarCheck },
     { id: 'attendance-subject', label: 'Presensi', icon: CheckSquare },
-    { id: 'grades', label: 'Nilai', icon: Award },
+    { id: 'grades', label: 'Nilai', icon: Medal },
   ];
 
   return (
@@ -43,7 +37,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 type="button"
                 onClick={onOpenMobileMenu}
                 className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 active:scale-95 min-w-[52px]"
-                aria-label="Buka Semua Menu"
+                aria-label="Buka Semua List"
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium mt-0.5">

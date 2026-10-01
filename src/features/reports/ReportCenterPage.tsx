@@ -5,26 +5,7 @@ import { PAPER } from '../../constants/print';
 import { container } from '../../application/ports/container';
 import { Badge } from '../../components/common/Badge';
 import { SchoolSettings, DocumentSettings } from '../../types';
-import { 
-  Printer, 
-  CreditCard,
-  FileText, 
-  BarChart3, 
-  Table, 
-  CalendarCheck2, 
-  Award, 
-  Users, 
-  StickyNote, 
-  CheckCircle2, 
-  Sliders, 
-  ArrowRight, 
-  FileSpreadsheet, 
-  Building2,
-  Download,
-  Settings,
-  Sparkles,
-  GraduationCap
-} from 'lucide-react';
+import { Printer, CreditCard, FileText, ChartBar, Table, CalendarCheck, Medal, Users, Notepad, CheckCircle, Sliders, ArrowRight, FileCsv, Buildings, Download, Gear, Sparkle, GraduationCap } from '@phosphor-icons/react';
 
 interface ReportCenterPageProps {
   onNavigate: (route: string) => void;
@@ -101,7 +82,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       title: 'Laporan Rekap Presensi',
       category: 'Presensi & Kehadiran',
       desc: 'Rekapitulasi persentase kehadiran siswa per mapel atau presensi harian wali kelas lengkap dengan statistik H/S/I/A.',
-      icon: BarChart3,
+      icon: ChartBar,
       badge: 'Resmi',
       badgeColor: 'blue',
       route: 'reports-attendance',
@@ -111,7 +92,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       title: 'Laporan Daftar Nilai Mapel',
       category: 'Penilaian Akademik',
       desc: 'Daftar nilai semesteran per komponen tugas, ulangan harian, STS, SAS, nilai akhir berbobot, dan keterangan ketuntasan KKTP.',
-      icon: Award,
+      icon: Medal,
       badge: 'Kurikulum',
       badgeColor: 'purple',
       route: 'reports-grades',
@@ -131,7 +112,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       title: 'Buku Jurnal Agenda Mengajar',
       category: 'Bukti Fisik KBM',
       desc: 'Rekapitulasi pelaksanaan pembelajaran (KBM), materi, tujuan pembelajaran, keterlaksanaan, dan absensi per pertemuan.',
-      icon: CalendarCheck2,
+      icon: CalendarCheck,
       badge: 'Administrasi',
       badgeColor: 'emerald',
       route: 'reports-journal',
@@ -171,7 +152,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
       title: 'Rekap Catatan & Bimbingan Siswa',
       category: 'Bimbingan Karakter',
       desc: 'Log catatan prestasi, kedisiplinan, tindak lanjut wali kelas, dan pembinaan kepribadian siswa.',
-      icon: StickyNote,
+      icon: Notepad,
       badge: 'Konseling',
       badgeColor: 'rose',
       route: 'homeroom-notes',
@@ -191,14 +172,14 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
         </p>
       </div>
 
-      {/* Main Grid: Catalog and Document Settings */}
+      {/* Main Grid: Catalog and Document Gear */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         {/* Left 2 Cols: Report Catalog Cards */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileCsv className="w-4 h-4 text-emerald-600" />
               Katalog Dokumen Resmi Siap Cetak
             </h3>
             <span className="text-xs text-slate-400 font-medium">6 Format Laporan</span>
@@ -251,7 +232,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
           </div>
         </div>
 
-        {/* Right 1 Col: Quick Document Settings & Format Customizer */}
+        {/* Right 1 Col: Quick Document Gear & Format Customizer */}
         <div className="space-y-4">
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
             <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-slate-100">
@@ -330,7 +311,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
               {/* School identity status info */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] text-slate-600">
                 <div className="flex items-center gap-1.5 font-semibold text-slate-800 mb-1">
-                  <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <Buildings className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Identitas Terdaftar:</span>
                 </div>
                 <p className="text-slate-700 font-medium truncate">
@@ -343,7 +324,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
 
               {saveSuccess && (
                 <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle className="w-3.5 h-3.5" />
                   Format dokumen berhasil disimpan!
                 </div>
               )}
@@ -353,7 +334,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                 disabled={savingSettings}
                 className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               >
-                <Settings className="w-3.5 h-3.5" />
+                <Gear className="w-3.5 h-3.5" />
                 <span>{savingSettings ? 'Menyimpan...' : 'Simpan Format Dokumen'}</span>
               </button>
             </form>

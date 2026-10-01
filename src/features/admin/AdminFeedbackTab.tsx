@@ -6,24 +6,7 @@ const getAllFeedbacks = _fb.getAll.bind(_fb);
 const updateFeedbackStatus = _fb.updateStatus.bind(_fb);
 const deleteFeedback = _fb.delete.bind(_fb);
 import { useToast } from '../../context/ToastContext';
-import { 
-  Bug, 
-  Lightbulb, 
-  Sparkles, 
-  HelpCircle, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Trash2, 
-  MessageSquare, 
-  RefreshCw, 
-  Filter, 
-  Search,
-  ExternalLink,
-  ChevronRight,
-  ShieldCheck,
-  AlertTriangle
-} from 'lucide-react';
+import { Bug, Lightbulb, Sparkle, Question, Clock, CheckCircle, WarningCircle, Trash, Chat, ArrowClockwise, Funnel, MagnifyingGlass, ArrowSquareOut, CaretRight, ShieldCheck, Warning } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 
 interface AdminFeedbackTabProps {
@@ -121,13 +104,13 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       case 'IMPROVEMENT':
         return {
           label: 'Perbaikan',
-          icon: Sparkles,
+          icon: Sparkle,
           badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
         };
       default:
         return {
           label: 'Lainnya',
-          icon: HelpCircle,
+          icon: Question,
           badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
         };
     }
@@ -152,7 +135,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       case 'RESOLVED':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-            <CheckCircle2 className="w-3 h-3" />
+            <CheckCircle className="w-3 h-3" />
             Selesai / Dituntaskan
           </span>
         );
@@ -180,7 +163,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-            <MessageSquare className="w-5 h-5" />
+            <Chat className="w-5 h-5" />
           </div>
           <div>
             <div className="text-xs text-slate-400 font-medium">Total Masukan</div>
@@ -190,7 +173,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
 
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
-            <AlertCircle className="w-5 h-5" />
+            <WarningCircle className="w-5 h-5" />
           </div>
           <div>
             <div className="text-xs text-slate-400 font-medium">Perlu Ditinjau (Baru)</div>
@@ -210,7 +193,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
 
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
+            <CheckCircle className="w-5 h-5" />
           </div>
           <div>
             <div className="text-xs text-slate-400 font-medium">Telah Selesai</div>
@@ -219,10 +202,10 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Funnel and MagnifyingGlass Bar */}
       <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <MagnifyingGlass className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
@@ -233,7 +216,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {/* Status Filter */}
+          {/* Status Funnel */}
           <div className="flex items-center rounded-xl bg-slate-800 p-1 border border-slate-700 text-xs">
             <button
               type="button"
@@ -280,7 +263,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
             title="Muat Ulang"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+            <ArrowClockwise className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
         </div>
       </div>
@@ -288,13 +271,13 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       {/* Feedbacks List */}
       {loading ? (
         <div className="p-12 text-center text-slate-400 space-y-3">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
+          <ArrowClockwise className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
           <p className="text-xs">Memuat laporan feedback...</p>
         </div>
       ) : filteredFeedbacks.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
-            <CheckCircle2 className="w-6 h-6" />
+            <CheckCircle className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-white">Tidak Ada Laporan Masukan</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -376,7 +359,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                       className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                       title="Hapus Feedback Permanen"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -415,7 +398,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
             <h4 className="text-sm font-bold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
+              <Chat className="w-4 h-4 text-emerald-400" />
               Catatan / Balasan Admin untuk "{selectedFeedback.title}"
             </h4>
             <textarea
@@ -459,7 +442,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         >
           <div className="space-y-4 text-slate-800 dark:text-slate-200">
             <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl">
-              <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <Warning className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div className="text-xs space-y-1">
                 <p className="font-bold text-rose-900 dark:text-rose-200">
                   Hapus permanen dari database Firestore?
@@ -487,12 +470,12 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               >
                 {deleting ? (
                   <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <ArrowClockwise className="w-3.5 h-3.5 animate-spin" />
                     <span>Menghapus...</span>
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash className="w-3.5 h-3.5" />
                     <span>Hapus Permanen</span>
                   </>
                 )}

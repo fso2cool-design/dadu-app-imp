@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  X,
-  UserPlus,
-  UserCheck,
-  FileEdit,
-  CheckCircle2,
-  AlertCircle,
-} from 'lucide-react';
+import { X, UserPlus, UserCheck, FilePlus, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import {
   Subject,
   TeacherMonthlyAttendanceItem,
@@ -195,7 +188,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 }`}
               >
                 <div className="font-bold flex items-center gap-1.5">
-                  <FileEdit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <FilePlus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span>Jadwal Khusus / Luar Master</span>
                 </div>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
@@ -473,7 +466,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
               type="submit"
               className="btn-primary px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
-              <CheckCircle2 className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4" />
               <span>Tambahkan Baris ke Rekap</span>
             </button>
           </div>

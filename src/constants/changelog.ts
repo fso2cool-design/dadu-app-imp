@@ -12,6 +12,31 @@ export interface ChangeLogItem {
 
 export const APP_CHANGELOGS: ChangeLogItem[] = [
   {
+    version: 'ver. 2.4.0-JRA',
+    versionCode: '2.4.0-JRA',
+    releaseDate: '1 Oktober 2026',
+    title: 'Tampilan Baru: Paper-Craft, Minimalist & Atelier + Mode Gelap',
+    badge: 'Tampilan',
+    highlights: [
+      {
+        category: 'Gaya Visual Baru',
+        items: [
+          'Tiga gaya baru menggantikan yang lama: Paper-Craft (kertas hangat), Minimalist (bersih dan rapi), dan Atelier (premium) — ganti instan via menu Pengaturan.',
+          'Setiap gaya kini punya mode gelap: tombol bulan/matahari di pengaturan untuk beralih terang-gelap.',
+          'Pilihan lama Anda tetap terbawa otomatis ke gaya baru yang sepadan.',
+        ],
+      },
+      {
+        category: 'Keterbacaan & Ikon',
+        items: [
+          'Huruf baru (Geist dan Newsreader) tersimpan di aplikasi — tetap bagus walau tanpa internet.',
+          'Seluruh ikon diganti ke keluarga Phosphor agar tampil seragam di semua halaman.',
+          'Semua kombinasi warna teks sudah diuji kontrasnya agar tetap terbaca jelas, termasuk mode gelap.',
+        ],
+      },
+    ],
+  },
+  {
     version: 'ver. 2.3.1-JRA',
     versionCode: '2.3.1-JRA',
     releaseDate: '1 Oktober 2026',

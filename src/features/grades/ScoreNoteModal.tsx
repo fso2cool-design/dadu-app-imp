@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
-import { StickyNote, CheckCircle2, User, Award } from 'lucide-react';
+import { Notepad, CheckCircle, User, Medal } from '@phosphor-icons/react';
 
 interface ScoreNoteModalProps {
   isOpen: boolean;
@@ -57,7 +57,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
           <div className="flex items-center justify-between text-slate-500 text-[11px]">
             <span>Penilaian: <strong className="text-slate-700">{assessmentName}</strong></span>
             <span className="flex items-center gap-1">
-              <Award className="w-3 h-3 text-emerald-500" />
+              <Medal className="w-3 h-3 text-emerald-500" />
               Skor: <strong className="text-emerald-700 font-mono text-xs">{currentScore || '-'}</strong>
             </span>
           </div>
@@ -65,7 +65,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
 
         <div>
           <label className="block font-semibold text-slate-700 mb-1 flex items-center gap-1">
-            <StickyNote className="w-3.5 h-3.5 text-slate-400" />
+            <Notepad className="w-3.5 h-3.5 text-slate-400" />
             Catatan Guru / Keterangan Remedial
           </label>
           <textarea
@@ -107,7 +107,7 @@ export const ScoreNoteModal: React.FC<ScoreNoteModalProps> = ({
             type="submit"
             className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle className="w-4 h-4" />
             <span>Simpan Catatan</span>
           </button>
         </div>

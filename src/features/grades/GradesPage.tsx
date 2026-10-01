@@ -20,31 +20,7 @@ import {
 } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import {
-  Award,
-  Plus,
-  Save,
-  Download,
-  Upload,
-  FileSpreadsheet,
-  Trash2,
-  Edit2,
-  Search,
-  Filter,
-  Layers,
-  ChevronDown,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  Users,
-  Percent,
-  SlidersHorizontal,
-  HelpCircle,
-  StickyNote,
-  Sparkles,
-  ArrowUpDown,
-  FileCheck
-} from 'lucide-react';
+import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { useToast } from '../../context/ToastContext';
@@ -85,7 +61,7 @@ export const GradesPage: React.FC = () => {
   // Archive check
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived || selectedAssignment?.isArchived);
 
-  // Filters & Search
+  // Filters & MagnifyingGlass
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PASSED' | 'REMEDIAL'>('ALL');
   const [sortBy, setSortBy] = useState<'ROLL' | 'NAME' | 'FINAL_DESC' | 'FINAL_ASC'>('ROLL');
@@ -228,7 +204,7 @@ export const GradesPage: React.FC = () => {
     setIsDirty(true);
   };
 
-  // Save all changes to Firestore
+  // FloppyDisk all changes to Firestore
   const handleSaveAll = async () => {
     if (!user || !activeAssignment) return;
     if (isArchivedYear) {
@@ -531,7 +507,7 @@ export const GradesPage: React.FC = () => {
   const displayedEnrollments = useMemo(() => {
     let list = [...enrollments];
 
-    // Filter by search
+    // Funnel by search
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
       list = list.filter(enr => {
@@ -542,7 +518,7 @@ export const GradesPage: React.FC = () => {
       });
     }
 
-    // Filter by status
+    // Funnel by status
     if (statusFilter === 'PASSED') {
       list = list.filter(enr => studentCalculations[enr.studentId]?.isPassed);
     } else if (statusFilter === 'REMEDIAL') {
@@ -770,7 +746,7 @@ export const GradesPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <Award className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+            <Medal className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
             Nilai Akademik & Penilaian
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -823,7 +799,7 @@ export const GradesPage: React.FC = () => {
             <span>Tambah Kolom Nilai</span>
           </button>
 
-          {/* Save Button */}
+          {/* FloppyDisk Button */}
           <button
             type="button"
             onClick={handleSaveAll}
@@ -836,7 +812,7 @@ export const GradesPage: React.FC = () => {
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-60'
             }`}
           >
-            <Save className="w-4 h-4" />
+            <FloppyDisk className="w-4 h-4" />
             <span>{saving ? 'Menyimpan...' : isDirty ? 'Simpan Perubahan*' : 'Tersimpan'}</span>
           </button>
         </div>
@@ -846,7 +822,7 @@ export const GradesPage: React.FC = () => {
       {isArchivedYear && (
         <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 rounded-2xl flex items-center justify-between text-xs animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <WarningCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div>
               <span className="font-bold block">Mode Arsip Historis (Read-Only)</span>
               <span className="text-[11px] text-amber-700 dark:text-amber-300">
@@ -858,11 +834,11 @@ export const GradesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Save Success Toast Banner */}
+      {/* FloppyDisk Success Toast Banner */}
       {saveSuccessMessage && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-semibold">{saveSuccessMessage}</span>
           </div>
           <button
@@ -879,7 +855,7 @@ export const GradesPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-cyan-950/60 text-orange-600 dark:text-cyan-400 border border-orange-200 dark:border-cyan-500/40 flex items-center justify-center font-bold">
-              <Layers className="w-5 h-5" />
+              <Stack className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
@@ -996,7 +972,7 @@ export const GradesPage: React.FC = () => {
             </div>
           </div>
           <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/40 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5" />
+            <TrendUp className="w-5 h-5" />
           </div>
         </div>
 
@@ -1024,7 +1000,7 @@ export const GradesPage: React.FC = () => {
             </div>
           </div>
           <div className="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/40 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5" />
+            <CheckCircle className="w-5 h-5" />
           </div>
         </div>
 
@@ -1059,7 +1035,7 @@ export const GradesPage: React.FC = () => {
       {calculationMethod === 'WEIGHTED_AVERAGE' && totalActiveWeight !== 100 && assessmentItems.length > 0 && (
         <div className="p-3 bg-amber-50/80 border border-amber-200 text-amber-800 rounded-2xl flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <WarningCircle className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
               Perhatian: Total bobot aktif saat ini adalah <strong>{totalActiveWeight}%</strong> (disarankan tepat 100% untuk formula Rata-rata Berbobot presisi).
             </span>
@@ -1067,11 +1043,11 @@ export const GradesPage: React.FC = () => {
         </div>
       )}
 
-      {/* Filter & Toolbar Bar */}
+      {/* Funnel & Toolbar Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-3 shadow-2xs transition-colors">
-        {/* Search */}
+        {/* MagnifyingGlass */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Cari siswa atau NIS..."
@@ -1117,7 +1093,7 @@ export const GradesPage: React.FC = () => {
               }}
               className="px-2.5 py-1.5 rounded-xl border border-orange-200 dark:border-cyan-500/40 bg-orange-50/70 dark:bg-cyan-950/40 hover:bg-orange-100 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
+              <FileCsv className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
               <span>Paste Excel</span>
             </button>
           )}
@@ -1206,7 +1182,7 @@ export const GradesPage: React.FC = () => {
                               }}
                               className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded cursor-pointer"
                             >
-                              <Edit2 className="w-3 h-3" />
+                              <PencilSimple className="w-3 h-3" />
                             </button>
                           </Tooltip>
                           <Tooltip content="Hapus Kolom" position="top">
@@ -1215,7 +1191,7 @@ export const GradesPage: React.FC = () => {
                               onClick={() => handleDeleteItem(item.id, item.name)}
                               className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash className="w-3 h-3" />
                             </button>
                           </Tooltip>
                         </div>
@@ -1346,7 +1322,7 @@ export const GradesPage: React.FC = () => {
                                       : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
                                   }`}
                                 >
-                                  <StickyNote className="w-3 h-3" />
+                                  <Notepad className="w-3 h-3" />
                                 </button>
                               </Tooltip>
                             </div>

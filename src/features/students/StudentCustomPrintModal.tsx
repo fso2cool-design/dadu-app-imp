@@ -5,21 +5,7 @@ import { Student, Enrollment, ClassItem, SchoolSettings } from '../../types';
 import { container } from '../../application/ports/container';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
-import { 
-  Printer, 
-  CheckSquare, 
-  Square, 
-  Settings2, 
-  Building2, 
-  Sparkles,
-  ArrowLeft,
-  ArrowRight,
-  Plus,
-  Trash2,
-  X,
-  SlidersHorizontal,
-  RotateCcw
-} from 'lucide-react';
+import { Printer, CheckSquare, Square, GearFine, Buildings, Sparkle, ArrowLeft, ArrowRight, Plus, Trash, X, SlidersHorizontal, ArrowCounterClockwise } from '@phosphor-icons/react';
 
 export interface StudentPrintItem {
   student: Student;
@@ -454,7 +440,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           {/* Header & Orientation */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <Settings2 className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
+              <GearFine className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
               <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Pengaturan Format & Kustomisasi Kolom</span>
             </div>
             <div className="flex items-center gap-2">
@@ -487,7 +473,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <Sparkle className="w-3.5 h-3.5 text-amber-500" />
                   Template Cepat (Preset Awal):
                 </span>
                 {appliedPreset && isMatchingPreset && (
@@ -645,7 +631,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                           className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer shrink-0"
                           title="Hapus Kolom Kustom"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     );
@@ -751,7 +737,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 onClick={resetOrderToDefault}
                 className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
               >
-                <RotateCcw className="w-3 h-3" />
+                <ArrowCounterClockwise className="w-3 h-3" />
                 Reset Urutan Bawaan
               </button>
             </div>
@@ -937,7 +923,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                       className="max-w-14 max-h-14 object-contain"
                     />
                   ) : (
-                    <Building2 className="w-12 h-12 text-slate-800" />
+                    <Buildings className="w-12 h-12 text-slate-800" />
                   )}
                 </div>
 

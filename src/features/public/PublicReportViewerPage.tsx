@@ -2,26 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { container } from '../../application/ports/container';
 const { getByToken: getSharedReportByToken, incrementView: incrementReportViewCount, decrypt: decryptSharedReport } = container.repos.sharedReport;
 import { SharedReport } from '../../types';
-import { 
-  Share2, 
-  Lock, 
-  Printer, 
-  FileSpreadsheet, 
-  Clock, 
-  Eye, 
-  Calendar, 
-  CheckCircle2, 
-  AlertCircle, 
-  Building2, 
-  Award,
-  ChevronRight,
-  ExternalLink,
-  ShieldCheck,
-  UserCheck,
-  BookOpen,
-  BarChart3,
-  Table
-} from 'lucide-react';
+import { ShareNetwork, Lock, Printer, FileCsv, Clock, Eye, CalendarBlank, CheckCircle, WarningCircle, Buildings, Medal, CaretRight, ArrowSquareOut, ShieldCheck, UserCheck, BookOpen, ChartBar, Table } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 
@@ -204,7 +185,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 animate-pulse mb-3">
-          <Share2 className="w-6 h-6" />
+          <ShareNetwork className="w-6 h-6" />
         </div>
         <p className="text-xs font-semibold text-slate-700">Menghubungkan ke Laporan Resmi...</p>
         <p className="text-[11px] text-slate-400 mt-0.5">Memvalidasi token akses publik</p>
@@ -218,7 +199,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-md space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 mx-auto flex items-center justify-center text-2xl font-bold">
-            <AlertCircle className="w-7 h-7" />
+            <WarningCircle className="w-7 h-7" />
           </div>
           <h2 className="text-base font-bold text-slate-800">Tautan Laporan Tidak Tersedia</h2>
           <p className="text-xs text-slate-500 leading-relaxed">
@@ -272,7 +253,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
               />
               {passcodeError && (
                 <p className="text-[11px] font-medium text-rose-600 mt-1.5 flex items-center justify-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> Kode akses salah. Silakan coba lagi.
+                  <WarningCircle className="w-3 h-3" /> Kode akses salah. Silakan coba lagi.
                 </p>
               )}
             </div>
@@ -306,7 +287,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-md space-y-3">
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
+          <WarningCircle className="w-8 h-8 text-rose-500 mx-auto" />
           <h3 className="text-sm font-bold text-slate-800">Dokumen Belum Terbuka</h3>
           <p className="text-xs text-slate-500">
             Silakan masukkan kode akses resmi untuk mendekripsi isi laporan ini.
@@ -339,7 +320,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
                   {payload.title}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  <CheckCircle2 className="w-3 h-3" /> Terverifikasi
+                  <CheckCircle className="w-3 h-3" /> Terverifikasi
                 </span>
               </div>
               <p className="text-[11px] text-slate-500">
@@ -354,7 +335,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
               onClick={handleExportExcel}
               className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <FileCsv className="w-3.5 h-3.5 text-emerald-600" />
               <span>Ekspor Excel</span>
             </button>
 

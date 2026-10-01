@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
-import { 
-  Calendar, 
-  Plus, 
-  Check, 
-  Star, 
-  Edit2, 
-  Trash2, 
-  Archive, 
-  ArchiveRestore, 
-  Lock, 
-  AlertCircle 
-} from 'lucide-react';
+import { CalendarBlank, Plus, Check, Star, PencilSimple, Trash, Archive, ArrowCounterClockwise, Lock, WarningCircle } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { Badge } from '../../components/common/Badge';
@@ -226,7 +215,7 @@ export const AcademicYearsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-zinc-100 tracking-tight flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <CalendarBlank className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Master Tahun Ajaran
           </h1>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
@@ -285,7 +274,7 @@ export const AcademicYearsPage: React.FC = () => {
       {/* Grid of Academic Years */}
       {filteredYears.length === 0 ? (
         <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-10 text-center">
-          <Calendar className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+          <CalendarBlank className="w-8 h-8 text-slate-400 mx-auto mb-2" />
           <p className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
             {filterTab === 'ARCHIVED' ? 'Tidak ada tahun ajaran yang diarsipkan' : 'Belum ada tahun ajaran'}
           </p>
@@ -359,7 +348,7 @@ export const AcademicYearsPage: React.FC = () => {
                           className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                           title="Edit Tahun Ajaran"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <PencilSimple className="w-4 h-4" />
                         </button>
                         {!isCurrentActive && (
                           <button
@@ -381,7 +370,7 @@ export const AcademicYearsPage: React.FC = () => {
                         className="px-2 py-1 rounded-lg text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1 transition-colors cursor-pointer"
                         title="Pulihkan dari Arsip"
                       >
-                        <ArchiveRestore className="w-3.5 h-3.5" />
+                        <ArrowCounterClockwise className="w-3.5 h-3.5" />
                         <span>Pulihkan</span>
                       </button>
                     )}
@@ -393,7 +382,7 @@ export const AcademicYearsPage: React.FC = () => {
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                         title="Hapus Tahun Ajaran"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash className="w-4 h-4" />
                       </button>
                     )}
                   </div>
@@ -539,7 +528,7 @@ export const AcademicYearsPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <WarningCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-800 dark:text-amber-300">
               <p className="font-bold">Tahun ajaran dilindungi oleh tata kelola data</p>
               <p className="mt-1 leading-relaxed">

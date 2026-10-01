@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { SchoolSettings, DocumentSettings } from '../../types';
-import { Printer, MessageCircle, Check, Share2, Building2, Trophy, Sliders } from 'lucide-react';
+import { Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Sliders } from '@phosphor-icons/react';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 
 interface StudentRaporModalProps {
@@ -145,7 +145,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Buildings className="w-3.5 h-3.5" />
               <span>{showKop ? 'Kop: Aktif' : 'Kop: Nonaktif'}</span>
             </button>
           </div>
@@ -158,7 +158,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
               title="Salin ringkasan rapor dalam format teks WhatsApp"
             >
-              {copiedWA ? <Check className="w-3.5 h-3.5" /> : <MessageCircle className="w-3.5 h-3.5" />}
+              {copiedWA ? <Check className="w-3.5 h-3.5" /> : <ChatCircle className="w-3.5 h-3.5" />}
               <span>{copiedWA ? 'Tersalin ke Clipboard!' : 'Salin Pesan WA'}</span>
             </button>
 
@@ -170,7 +170,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                 className="px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
                 title={`Kirim WA ke Orang Tua (${parentPhone})`}
               >
-                <Share2 className="w-3.5 h-3.5" />
+                <ShareNetwork className="w-3.5 h-3.5" />
                 <span>Kirim WA</span>
               </button>
             )}

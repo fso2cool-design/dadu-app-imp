@@ -7,20 +7,7 @@ import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { TeachingAssignment, Meeting } from '../../types';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
-import { 
-  BookOpen, 
-  Users, 
-  CalendarCheck2, 
-  CheckSquare, 
-  Plus, 
-  Layers, 
-  Award,
-  Filter,
-  GraduationCap,
-  Sparkles,
-  CalendarDays,
-  Clock
-} from 'lucide-react';
+import { BookOpen, Users, CalendarCheck, CheckSquare, Plus, Stack, Medal, Funnel, GraduationCap, Sparkle, CalendarDots, Clock } from '@phosphor-icons/react';
 
 interface TeachingClassesPageProps {
   onNavigate: (route: string, state?: any) => void;
@@ -189,7 +176,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
             className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
             title="Lihat Matriks Jadwal Mengajar Mingguan"
           >
-            <CalendarDays className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+            <CalendarDots className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
             <span>Jadwal Mengajar</span>
           </button>
 
@@ -208,14 +195,14 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         </div>
       </div>
 
-      {/* Filter Bar (Kelas & Mata Pelajaran) */}
+      {/* Funnel Bar (Kelas & Mata Pelajaran) */}
       {teachingAssignments.length > 0 && (
         <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
-            {/* Filter Kelas */}
+            {/* Funnel Kelas */}
             <div className="w-full sm:w-56">
               <label htmlFor="filter-class-select" className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                Filter Kelas / Rombel
+                Funnel Kelas / Rombel
               </label>
               <div className="relative">
                 <select
@@ -234,10 +221,10 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
               </div>
             </div>
 
-            {/* Filter Mata Pelajaran */}
+            {/* Funnel Mata Pelajaran */}
             <div className="w-full sm:w-64">
               <label htmlFor="filter-subject-select" className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                Filter Mata Pelajaran
+                Funnel Mata Pelajaran
               </label>
               <div className="relative">
                 <select
@@ -271,7 +258,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
                 }}
                 className="text-xs text-orange-600 dark:text-cyan-400 hover:underline font-semibold cursor-pointer"
               >
-                Reset Filter
+                Reset Funnel
               </button>
             )}
           </div>
@@ -283,7 +270,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         <SkeletonCardGrid count={teachingAssignments.length > 0 ? teachingAssignments.length : 3} />
       ) : teachingAssignments.length === 0 ? (
         <div className="bg-white dark:bg-[#141722] p-12 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-          <Layers className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <Stack className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Plotting Pengajaran Aktif</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
             Anda belum memiliki rombel kelas atau mata pelajaran yang diampu pada semester ini. Silakan buat plotting di menu Master Data.
@@ -297,8 +284,8 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         </div>
       ) : filteredAssignments.length === 0 ? (
         <div className="bg-white dark:bg-[#141722] p-10 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-          <Filter className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Tidak Ada Rombel yang Sesuai Filter</h3>
+          <Funnel className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Tidak Ada Rombel yang Sesuai Funnel</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1 mb-3">
             Silakan ubah pilihan filter kelas atau mata pelajaran untuk melihat data rombel lainnya.
           </p>
@@ -413,7 +400,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
                     className="px-2 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     title="Buka Jurnal KBM"
                   >
-                    <CalendarCheck2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                    <CalendarCheck className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                     Jurnal
                   </button>
 
@@ -439,7 +426,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
                     className="px-2 py-2.5 rounded-xl bg-accent-primary-soft hover:opacity-90 text-accent-text border border-accent-primary-border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
                     title="Buka Buku Nilai"
                   >
-                    <Award className="w-3.5 h-3.5 text-accent-primary" />
+                    <Medal className="w-3.5 h-3.5 text-accent-primary" />
                     Nilai
                   </button>
                 </div>

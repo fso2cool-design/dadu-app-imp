@@ -8,18 +8,7 @@ import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
 import { ShareReportModal } from './ShareReportModal';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { 
-  CalendarCheck2, 
-  Search, 
-  BookOpen, 
-  Layers, 
-  Calendar, 
-  CheckCircle2, 
-  FileSpreadsheet, 
-  Clock,
-  Sparkles,
-  Share2
-} from 'lucide-react';
+import { CalendarCheck, MagnifyingGlass, BookOpen, Stack, CalendarBlank, CheckCircle, FileCsv, Clock, Sparkle, ShareNetwork } from '@phosphor-icons/react';
 
 // In-memory module cache for instant SWR journal report rendering
 const journalReportCache = new Map<string, Meeting[]>();
@@ -175,7 +164,7 @@ export const JournalReportPage: React.FC = () => {
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-            <CalendarCheck2 className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+            <CalendarCheck className="w-5 h-5 text-indigo-600 dark:text-red-400" />
             Laporan Jurnal Agenda Mengajar
           </h1>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
@@ -190,7 +179,7 @@ export const JournalReportPage: React.FC = () => {
             disabled={meetings.length === 0}
             className="px-4 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <ShareNetwork className="w-3.5 h-3.5" />
             <span>Bagikan Tautan Publik</span>
           </button>
         </div>
@@ -217,9 +206,9 @@ export const JournalReportPage: React.FC = () => {
             </select>
           </div>
 
-          {/* Search Input */}
+          {/* MagnifyingGlass Input */}
           <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari materi atau topik..."
@@ -237,7 +226,7 @@ export const JournalReportPage: React.FC = () => {
               <span className="text-[10px] uppercase font-bold text-teal-700 block">Pertemuan Terselenggara</span>
               <span className="text-lg font-black text-teal-950">{meetings.length} <span className="text-xs font-normal text-teal-700">Sesi</span></span>
             </div>
-            <Calendar className="w-6 h-6 text-teal-500" />
+            <CalendarBlank className="w-6 h-6 text-teal-500" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
@@ -247,7 +236,7 @@ export const JournalReportPage: React.FC = () => {
                 {meetings.filter(m => m.attendanceSummary && m.attendanceSummary.total > 0).length} <span className="text-xs font-normal text-emerald-700">Pertemuan</span>
               </span>
             </div>
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            <CheckCircle className="w-6 h-6 text-emerald-400" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between col-span-2 sm:col-span-1">

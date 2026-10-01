@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, RefreshCw, CheckCircle2, Link2, UserCheck, X, AlertCircle, Search } from 'lucide-react';
+import { ShieldCheck, ArrowClockwise, CheckCircle, LinkSimple, UserCheck, X, WarningCircle, MagnifyingGlass } from '@phosphor-icons/react';
 import { container } from '../../application/ports/container';
 import type { DiagnosticResult, IntegrityIssue } from '../../services/firestore/diagnostics';
 import { ClassItem, AcademicYear, Student } from '../../types';
@@ -184,14 +184,14 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           disabled={isAuditing}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-50"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin' : ''}`} />
+          <ArrowClockwise className={`w-3.5 h-3.5 ${isAuditing ? 'animate-spin' : ''}`} />
           <span>{isAuditing ? 'Menganalisis Relasi...' : 'Jalankan Audit Integritas'}</span>
         </button>
       </div>
 
       {operationSuccessMsg && (
         <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>{operationSuccessMsg}</span>
         </div>
       )}
@@ -266,7 +266,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           {/* Issues List */}
           {filteredIssues.length === 0 ? (
             <div className="p-8 text-center rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+              <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
               <h5 className="font-bold text-sm text-emerald-900 dark:text-emerald-200">Database Sehat & Berintegritas</h5>
               <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 max-w-md mx-auto">
                 Tidak ditemukan dokumen orphan, duplikasi NISN aktif, maupun relasi putus pada filter ini.
@@ -309,7 +309,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                         onClick={() => handleOpenClassRelink(issue)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs transition-colors cursor-pointer"
                       >
-                        <Link2 className="w-3.5 h-3.5" />
+                        <LinkSimple className="w-3.5 h-3.5" />
                         <span>Re-Link Kelas</span>
                       </button>
                     )}
@@ -340,7 +340,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           <div className="bg-white dark:bg-[#11141f] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <Link2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <LinkSimple className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Pemulihan Relasi Kelas Penempatan (Re-Link)
               </h4>
               <button
@@ -367,7 +367,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
             {classRelinkError && (
               <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{classRelinkError}</span>
               </div>
             )}
@@ -462,7 +462,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
             {studentRelinkError && (
               <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{studentRelinkError}</span>
               </div>
             )}
@@ -486,7 +486,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                     disabled={isSearchingNisn || !nisnSearchQuery.trim()}
                     className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-semibold cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                   >
-                    <Search className="w-3.5 h-3.5" />
+                    <MagnifyingGlass className="w-3.5 h-3.5" />
                     <span>{isSearchingNisn ? 'Mencari...' : 'Cari'}</span>
                   </button>
                 </div>

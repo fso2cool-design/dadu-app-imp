@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AlertTriangle, Trash2, Info, HelpCircle, X, Loader2 } from 'lucide-react';
+import { Warning, Trash, Info, Question, X, CircleNotch } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export type ConfirmVariant = 'danger' | 'warning' | 'primary' | 'info';
@@ -48,19 +48,19 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   const config = {
     danger: {
-      icon: Trash2,
+      icon: Trash,
       iconBg: 'bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60',
       btnClass: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-600/20 focus:ring-rose-500',
       defaultConfirmLabel: 'Hapus Data',
     },
     warning: {
-      icon: AlertTriangle,
+      icon: Warning,
       iconBg: 'bg-amber-100 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60',
       btnClass: 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow-sm shadow-amber-500/20 focus:ring-amber-500',
       defaultConfirmLabel: 'Ya, Lanjutkan',
     },
     primary: {
-      icon: HelpCircle,
+      icon: Question,
       iconBg: 'bg-accent-primary-soft text-accent-text border border-accent-primary-border',
       btnClass: 'btn-primary shadow-sm',
       defaultConfirmLabel: 'Konfirmasi',
@@ -148,7 +148,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   disabled={isLoading}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${config.btnClass}`}
                 >
-                  {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {isLoading && <CircleNotch className="w-3.5 h-3.5 animate-spin" />}
                   {finalConfirmLabel}
                 </button>
               </div>

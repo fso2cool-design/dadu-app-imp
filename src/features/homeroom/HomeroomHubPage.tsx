@@ -7,17 +7,7 @@ import { HomeroomTeacherAttendancePage } from './HomeroomTeacherAttendancePage';
 import { HomeroomStudentsPage } from './HomeroomStudentsPage';
 import { HomeroomNotesPage } from './HomeroomNotesPage';
 import { HomeroomClassSchedulePage } from './HomeroomClassSchedulePage';
-import { 
-  Users, 
-  LayoutDashboard, 
-  CalendarDays, 
-  CalendarRange, 
-  FileSpreadsheet, 
-  StickyNote,
-  GraduationCap,
-  UserCheck,
-  Clock
-} from 'lucide-react';
+import { Users, SquaresFour, CalendarDots, FileCsv, Notepad, GraduationCap, UserCheck, Clock } from '@phosphor-icons/react';
 
 interface HomeroomHubPageProps {
   initialTab?: string;
@@ -56,13 +46,13 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
   };
 
   const tabs: Array<{ id: HomeroomTab; label: string; icon: any }> = [
-    { id: 'students', label: 'Daftar Siswa Kelas', icon: FileSpreadsheet },
+    { id: 'students', label: 'Daftar Siswa Kelas', icon: FileCsv },
     { id: 'class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
     { id: 'teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
-    { id: 'monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarRange },
-    { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDays },
-    { id: 'notes', label: 'Catatan & Sikap', icon: StickyNote },
-    { id: 'dashboard', label: 'Dashboard Binaan', icon: LayoutDashboard },
+    { id: 'monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarDots },
+    { id: 'daily-attendance', label: 'Presensi Harian', icon: CalendarDots },
+    { id: 'notes', label: 'Catatan & Sikap', icon: Notepad },
+    { id: 'dashboard', label: 'Dashboard Binaan', icon: SquaresFour },
   ];
 
   return (

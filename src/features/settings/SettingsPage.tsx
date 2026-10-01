@@ -10,38 +10,7 @@ import { SignaturePadModal } from '../../components/common/SignaturePadModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 import { Badge } from '../../components/common/Badge';
-import { 
-  User, 
-  Building2, 
-  FileCode2, 
-  Sliders, 
-  Calendar,
-  Save, 
-  CheckCircle2, 
-  AlertCircle,
-  Database,
-  Download,
-  Upload,
-  RefreshCw,
-  Activity,
-  HardDrive,
-  Trash2,
-  PenTool,
-  Image as ImageIcon,
-  Check,
-  FileSpreadsheet,
-  Layers,
-  Sparkles,
-  Eye,
-  ShieldCheck,
-  AlertTriangle,
-  Server,
-  Palette,
-  Sun,
-  Moon,
-  Info,
-  ChevronDown
-} from 'lucide-react';
+import { User, Buildings, FileCode, Sliders, CalendarBlank, FloppyDisk, CheckCircle, WarningCircle, Database, Download, Upload, ArrowClockwise, Pulse, HardDrive, Trash, PenNib, Image as ImageIcon, Check, FileCsv, Stack, Sparkle, Eye, ShieldCheck, Warning, Palette, Sun, Moon, Info, CaretDown } from '@phosphor-icons/react';
 
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
@@ -644,12 +613,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
   const tabs: Array<{ id: TabType; label: string; icon: any; badge?: string }> = [
     { id: 'profile', label: 'Profil Guru', icon: User },
-    { id: 'school', label: 'Identitas Madrasah', icon: Building2 },
-    { id: 'document', label: 'Format Dokumen & Kop', icon: FileCode2 },
+    { id: 'school', label: 'Identitas Madrasah', icon: Buildings },
+    { id: 'document', label: 'Format Dokumen & Kop', icon: FileCode },
     { id: 'backup', label: 'Backup & Restore', icon: Database, badge: 'Portabilitas' },
-    { id: 'stats', label: 'Kesehatan Database', icon: Activity },
+    { id: 'stats', label: 'Kesehatan Database', icon: Pulse },
     { id: 'preferences', label: 'Preferensi', icon: Sliders },
-    { id: 'maintenance', label: 'Pemeliharaan', icon: Trash2 },
+    { id: 'maintenance', label: 'Pemeliharaan', icon: Trash },
   ];
 
   return (
@@ -702,7 +671,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       {/* Success Notification */}
       {successMsg && (
         <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs animate-in fade-in duration-150">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+          <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
           <span className="font-medium">{successMsg}</span>
         </div>
       )}
@@ -710,7 +679,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       {/* Error Notification */}
       {errorMsg && (
         <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs animate-in fade-in duration-150">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+          <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span className="font-medium">{errorMsg}</span>
         </div>
       )}
@@ -819,7 +788,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-xs text-slate-800 flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-emerald-600" />
+                    <PenNib className="w-4 h-4 text-emerald-600" />
                     Tanda Tangan Digital Guru
                   </h4>
                   <p className="text-[11px] text-slate-500">
@@ -832,7 +801,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   onClick={() => setIsTeacherSigModalOpen(true)}
                   className="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
-                  <PenTool className="w-3.5 h-3.5" />
+                  <PenNib className="w-3.5 h-3.5" />
                   <span>{profileData.signatureUrl ? 'Ubah Tanda Tangan' : 'Buat Tanda Tangan'}</span>
                 </button>
               </div>
@@ -848,7 +817,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   </div>
                   <div className="space-y-1">
                     <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Tanda Tangan Aktif
+                      <CheckCircle className="w-3.5 h-3.5" /> Tanda Tangan Aktif
                     </span>
                     <p className="text-[11px] text-slate-400">Siap dicantumkan pada titimangsa dokumen cetak resmi.</p>
                   </div>
@@ -864,7 +833,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 disabled={saving}
                 className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
-                <Save className="w-4 h-4" />
+                <FloppyDisk className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Profil Guru'}
               </button>
             </div>
@@ -965,7 +934,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         />
                       ) : (
                         <div className="text-center text-slate-300 dark:text-slate-600 flex flex-col items-center">
-                          <Building2 className="w-7 h-7 mb-0.5" />
+                          <Buildings className="w-7 h-7 mb-0.5" />
                           <span className="text-[8px] font-bold uppercase">Madrasah</span>
                         </div>
                       )}
@@ -1238,7 +1207,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 disabled={saving}
                 className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
-                <Save className="w-4 h-4" />
+                <FloppyDisk className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Identitas Madrasah'}
               </button>
             </div>
@@ -1370,7 +1339,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                       />
                     ) : (
                       <div className="w-14 h-14 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400">
-                        <Building2 className="w-6 h-6 text-slate-400 mb-0.5" />
+                        <Buildings className="w-6 h-6 text-slate-400 mb-0.5" />
                         <span className="text-[8px] font-bold uppercase">Madrasah</span>
                       </div>
                     )}
@@ -1389,7 +1358,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 disabled={saving}
                 className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
               >
-                <Save className="w-4 h-4" />
+                <FloppyDisk className="w-4 h-4" />
                 {saving ? 'Menyimpan...' : 'Simpan Format Dokumen'}
               </button>
             </div>
@@ -1470,7 +1439,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <div className="flex items-center justify-between">
                   <div>
                     <h5 className="font-bold text-xs text-emerald-950 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                      <Sparkle className="w-4 h-4 text-emerald-600" />
                       Pratinjau Isi File Backup Terpilih
                     </h5>
                     <p className="text-[11px] text-emerald-700">
@@ -1562,7 +1531,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-emerald-600" />
+                  <Pulse className="w-4 h-4 text-emerald-600" />
                   Statistik & Status Kesehatan Firestore
                 </h3>
                 <p className="text-[11px] text-slate-400">Pemantauan volumetrik rekaman data aktif pada ruang penyimpanan terisolasi Anda.</p>
@@ -1574,7 +1543,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 disabled={statsLoading}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
               >
-                <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${statsLoading ? 'animate-spin' : ''}`} />
+                <ArrowClockwise className={`w-3.5 h-3.5 text-emerald-600 ${statsLoading ? 'animate-spin' : ''}`} />
                 <span>Segarkan Status</span>
               </button>
             </div>
@@ -1583,7 +1552,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <Server className="w-5 h-5" />
+                  <Database className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-semibold block uppercase">Koneksi Firestore</span>
@@ -1596,7 +1565,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                  <Activity className="w-5 h-5" />
+                  <Pulse className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-semibold block uppercase">Latensi Jaringan</span>
@@ -1705,7 +1674,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   disabled={saving}
                   className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
                 >
-                  <Save className="w-4 h-4" />
+                  <FloppyDisk className="w-4 h-4" />
                   {saving ? 'Menyimpan...' : 'Simpan Preferensi Workspace'}
                 </button>
               </div>
@@ -1716,7 +1685,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block uppercase tracking-wider flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+                    <CalendarBlank className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
                     Sistem Hari Belajar & Kalender Libur Madrasah
                   </span>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -1728,7 +1697,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   onClick={() => setIsHolidayModalOpen(true)}
                   className="px-4 py-2 bg-white dark:bg-[#141722] hover:bg-slate-100 dark:hover:bg-[#1c2130] border border-slate-300 dark:border-[#232838] text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-2 transition-colors cursor-pointer shrink-0"
                 >
-                  <Calendar className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+                  <CalendarBlank className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
                   <span>Kelola Kalender & Libur</span>
                 </button>
               </div>
@@ -1778,7 +1747,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                     }`}
                   >
-                    <Save className="w-4 h-4" />
+                    <FloppyDisk className="w-4 h-4" />
                     <span>{selectedTheme === activeTheme ? 'Tema Aktif' : 'Terapkan & Simpan Tema'}</span>
                   </button>
                 </div>
@@ -1806,7 +1775,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         ))}
                       </select>
                       <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <ChevronDown className="w-4 h-4" />
+                        <CaretDown className="w-4 h-4" />
                       </div>
                     </div>
 
@@ -1818,7 +1787,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         </span>
                         {selectedTheme === activeTheme && (
                           <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
+                            <CheckCircle className="w-3 h-3" />
                             Sedang Digunakan
                           </span>
                         )}
@@ -1968,7 +1937,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-emerald-600 dark:text-cyan-400" />
+                    <Sparkle className="w-4 h-4 text-emerald-600 dark:text-cyan-400" />
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       Versi Aplikasi: {APP_CONFIG.versionDisplay}
                     </span>
@@ -1985,7 +1954,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   onClick={() => setIsChangeLogModalOpen(true)}
                   className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-700 dark:text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-emerald-200/80 dark:border-slate-700"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkle className="w-3.5 h-3.5" />
                   <span>Lihat Catatan Rilis</span>
                 </button>
               </div>
@@ -1998,7 +1967,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           <div className="space-y-6">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                <Trash2 className="w-4 h-4 text-rose-600" />
+                <Trash className="w-4 h-4 text-rose-600" />
                 Pemeliharaan & Pembersihan Data Semester (Semantic Reset)
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -2031,7 +2000,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             {/* Main Semantic Reset Form */}
             <div className="p-5 rounded-2xl bg-rose-50/50 border border-rose-200 space-y-5 max-w-2xl">
               <div className="flex items-start gap-3 border-b border-rose-100 pb-3">
-                <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <Warning className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-bold text-xs text-rose-950">Proteksi & Filter Semantik</h4>
                   <p className="text-[11px] text-rose-700 leading-relaxed mt-1">
@@ -2062,7 +2031,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
                 {academicYears.find(ay => ay.id === resetAcademicYearId)?.isArchived && (
                   <div className="mt-2 p-2.5 rounded-xl bg-red-100/90 border border-red-300 text-[11px] text-red-800 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                    <WarningCircle className="w-4 h-4 shrink-0 text-red-600" />
                     <span>
                       <strong>Tahun Ajaran ini Diarsipkan:</strong> Status read-only aktif. Reset data dikunci untuk menjaga integritas riwayat terdahulu.
                     </span>
@@ -2291,7 +2260,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 }
                 className="w-full px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-40"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash className="w-4 h-4" />
                 <span>{isResetting ? 'Mengeksekusi Pembersihan Batch...' : 'Bersihkan Data Semester Terpilih Sekarang'}</span>
               </button>
             </div>
@@ -2300,7 +2269,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
             {lastResetSummary && (
               <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2 font-bold text-emerald-950">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
                   <span>Audit Pembersihan Terakhir Berhasil</span>
                 </div>
                 <p className="text-[11px] text-emerald-800">
@@ -2364,7 +2333,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
         discardButtonText="Buang Perubahan"
       />
 
-      {/* Attendance Holidays & Calendar Modal */}
+      {/* Attendance Holidays & CalendarBlank Modal */}
       <AttendanceHolidaysModal
         isOpen={isHolidayModalOpen}
         onClose={() => setIsHolidayModalOpen(false)}

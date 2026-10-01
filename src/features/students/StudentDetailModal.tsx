@@ -2,20 +2,7 @@ import React from 'react';
 import { Modal } from '../../components/common/Modal';
 import { Student, Enrollment, StudentCustomFieldDefinition } from '../../types';
 import { Badge } from '../../components/common/Badge';
-import { 
-  User, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  BookOpen, 
-  MessageSquare, 
-  ExternalLink,
-  GraduationCap,
-  ShieldCheck,
-  Sliders,
-  CreditCard,
-  FileText
-} from 'lucide-react';
+import { User, Phone, MapPin, CalendarBlank, BookOpen, Chat, ArrowSquareOut, GraduationCap, ShieldCheck, Sliders, CreditCard, FileText } from '@phosphor-icons/react';
 
 interface StudentDetailModalProps {
   isOpen: boolean;
@@ -99,7 +86,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="space-y-3 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40">
             <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-1">
-              <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <CalendarBlank className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               Biodata & Kelahiran
             </h4>
             <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
@@ -126,7 +113,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     rel="noreferrer"
                     className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-0.5"
                   >
-                    Chat WA <ExternalLink className="w-3 h-3" />
+                    Chat WA <ArrowSquareOut className="w-3 h-3" />
                   </a>
                 )}
               </p>
@@ -193,7 +180,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         {student.notes && (
           <div className="p-3 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 rounded-xl text-xs text-amber-900 dark:text-amber-200">
             <p className="font-bold mb-0.5 flex items-center gap-1 text-amber-950 dark:text-amber-200">
-              <MessageSquare className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" /> Catatan Khusus Guru:
+              <Chat className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" /> Catatan Khusus Guru:
             </p>
             <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">{student.notes}</p>
           </div>

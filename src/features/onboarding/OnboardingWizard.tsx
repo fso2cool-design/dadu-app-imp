@@ -3,22 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { OnboardingData } from '../../services/firestore/onboarding';
 import { container } from '../../application/ports/container';
-import { 
-  User, 
-  Building2, 
-  Calendar, 
-  Layers, 
-  BookOpen, 
-  Briefcase, 
-  ChevronRight, 
-  ChevronLeft, 
-  Check, 
-  Plus, 
-  Trash2, 
-  Sparkles,
-  AlertCircle,
-  GraduationCap
-} from 'lucide-react';
+import { User, Buildings, CalendarBlank, Stack, BookOpen, Briefcase, CaretRight, CaretLeft, Check, Plus, Trash, Sparkle, WarningCircle, GraduationCap } from '@phosphor-icons/react';
 import { AppLogo } from '../../components/common/AppLogo';
 import { APP_CONFIG } from '../../constants/app';
 
@@ -250,9 +235,9 @@ export const OnboardingWizard: React.FC = () => {
 
   const stepsList = [
     { num: 1, title: 'Profil Guru', icon: User },
-    { num: 2, title: 'Madrasah', icon: Building2 },
-    { num: 3, title: 'Tahun Ajaran', icon: Calendar },
-    { num: 4, title: 'Kelas', icon: Layers },
+    { num: 2, title: 'Madrasah', icon: Buildings },
+    { num: 3, title: 'Tahun Ajaran', icon: CalendarBlank },
+    { num: 4, title: 'Kelas', icon: Stack },
     { num: 5, title: 'Mata Pelajaran', icon: BookOpen },
     { num: 6, title: 'Pengajaran', icon: Briefcase },
   ];
@@ -272,7 +257,7 @@ export const OnboardingWizard: React.FC = () => {
               <AppLogo size={36} variant="mark" animated={true} />
             </div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <Sparkle className="w-3.5 h-3.5 text-emerald-400" />
               Inisialisasi {APP_CONFIG.name}
             </div>
           </div>
@@ -325,7 +310,7 @@ export const OnboardingWizard: React.FC = () => {
         <div className="bg-[#141722]/95 border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
           {error && (
             <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+              <WarningCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
@@ -416,7 +401,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <Building2 className="w-5 h-5 text-orange-400" />
+                  <Buildings className="w-5 h-5 text-orange-400" />
                   2. Identitas Madrasah / Sekolah
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -570,7 +555,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <Calendar className="w-5 h-5 text-orange-400" />
+                  <CalendarBlank className="w-5 h-5 text-orange-400" />
                   3. Tahun Ajaran & Semester Berjalan
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -658,7 +643,7 @@ export const OnboardingWizard: React.FC = () => {
               <div className="border-b border-slate-800 pb-3 mb-2 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                    <Layers className="w-5 h-5 text-orange-400" />
+                    <Stack className="w-5 h-5 text-orange-400" />
                     4. Daftar Rombongan Belajar (Kelas)
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -798,7 +783,7 @@ export const OnboardingWizard: React.FC = () => {
                       title={formData.classes.length <= 1 ? 'Kosongkan baris kelas ini' : 'Hapus kelas ini'}
                       className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
@@ -882,7 +867,7 @@ export const OnboardingWizard: React.FC = () => {
                         onClick={() => removeSubject(idx)}
                         className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash className="w-4 h-4" />
                       </button>
                     )}
                   </div>
@@ -958,7 +943,7 @@ export const OnboardingWizard: React.FC = () => {
                 onClick={() => { setStep(s => s - 1); setError(null); }}
                 className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                <ChevronLeft className="w-4 h-4" /> Kembali
+                <CaretLeft className="w-4 h-4" /> Kembali
               </button>
             ) : <div />}
 
@@ -981,7 +966,7 @@ export const OnboardingWizard: React.FC = () => {
                 }}
                 className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-orange-600/30 transition-all cursor-pointer"
               >
-                Lanjut <ChevronRight className="w-4 h-4" />
+                Lanjut <CaretRight className="w-4 h-4" />
               </button>
             ) : (
               <button

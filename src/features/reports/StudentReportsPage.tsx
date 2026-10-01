@@ -14,21 +14,7 @@ import {
 } from '../../types';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
-import { 
-  GraduationCap, 
-  Printer, 
-  MessageCircle, 
-  Check, 
-  Share2, 
-  Building2, 
-  Trophy, 
-  Users, 
-  Search, 
-  Sliders, 
-  CheckCircle2, 
-  AlertCircle,
-  FileText
-} from 'lucide-react';
+import { GraduationCap, Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Users, MagnifyingGlass, Sliders, CheckCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { useToast } from '../../context/ToastContext';
 
 interface StudentReportsPageProps {
@@ -442,7 +428,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition-all cursor-pointer"
                   title="Salin Rangkuman Teks WhatsApp"
                 >
-                  {copiedWA ? <Check className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+                  {copiedWA ? <Check className="w-4 h-4" /> : <ChatCircle className="w-4 h-4" />}
                 </button>
               )}
             </div>
@@ -474,7 +460,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Buildings className="w-3.5 h-3.5" />
               <span>{showKop ? 'Kop Madrasah: Aktif' : 'Kop: Sembunyi'}</span>
             </button>
 
@@ -487,7 +473,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
               }`}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" />
               <span>{showSignatures ? 'Tanda Tangan: Aktif' : 'Tanda Tangan: Sembunyi'}</span>
             </button>
           </div>
@@ -514,7 +500,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
             <div className="space-y-8">
               <div className="no-print p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 rounded-2xl text-xs flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <WarningCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                   <span>
                     Menampilkan <strong>{allStudentsRaporData.length}</strong> lembar rapor siswa. Saat mencetak, masing-masing lembar otomatis berada di halaman terpisah.
                   </span>

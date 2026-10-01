@@ -6,17 +6,7 @@ import type { SaveAttendanceItem } from '../../services/firestore/attendance';
 const { getByMeeting: getAttendanceRecordsByMeeting, saveMeetingAttendance } = container.repos.attendance;
 import { Modal } from '../../components/common/Modal';
 import { Meeting, AttendanceStatus, AttendanceRecord } from '../../types';
-import { 
-  CheckSquare, 
-  UserCheck, 
-  CheckCircle2, 
-  AlertCircle, 
-  Save, 
-  Sparkles, 
-  Search,
-  Users,
-  Info
-} from 'lucide-react';
+import { CheckSquare, UserCheck, CheckCircle, WarningCircle, FloppyDisk, Sparkle, MagnifyingGlass, Users, Info } from '@phosphor-icons/react';
 
 interface SubjectAttendanceModalProps {
   isOpen: boolean;
@@ -166,7 +156,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
     );
   }, [rows, searchQuery]);
 
-  // Save Attendance to Firestore
+  // FloppyDisk Attendance to Firestore
   const handleSave = async () => {
     if (!user || !meeting || rows.length === 0) return;
 
@@ -235,7 +225,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                 onClick={handleSetAllPresent}
                 className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1 shadow-2xs transition-all cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <Sparkle className="w-3.5 h-3.5 text-emerald-600" />
                 Set Semua Hadir (H)
               </button>
             ) : (
@@ -274,9 +264,9 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
           </div>
         </div>
 
-        {/* Search filter */}
+        {/* MagnifyingGlass filter */}
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
@@ -289,14 +279,14 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
         {/* Feedback messages */}
         {errorMsg && (
           <div className="flex items-center gap-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {saveSuccessMsg && (
           <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{saveSuccessMsg}</span>
           </div>
         )}
@@ -450,7 +440,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                 onClick={handleSave}
                 className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
               >
-                <Save className="w-3.5 h-3.5" />
+                <FloppyDisk className="w-3.5 h-3.5" />
                 {saving ? 'Menyimpan...' : 'Simpan Presensi'}
               </button>
             )}

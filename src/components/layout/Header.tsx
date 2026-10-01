@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  Menu, 
-  ChevronDown, 
-  Clock, 
-  Maximize2, 
-  Minimize2, 
-  Cloud, 
-  CloudOff, 
-  RefreshCw, 
-  Settings, 
-  LogOut, 
-  Sparkles,
-  Check,
-  MessageSquareHeart,
-  ShieldCheck,
-} from 'lucide-react';
+import { List, CaretDown, Clock, ArrowsOut, ArrowsIn, Cloud, CloudSlash, ArrowClockwise, Gear, SignOut, Sparkle, Check, Heart, ShieldCheck } from '@phosphor-icons/react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -270,7 +255,7 @@ export const Header: React.FC<HeaderProps> = ({
           type="button"
           onClick={onOpenMobileMenu}
           className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
-          aria-label="Buka Menu"
+          aria-label="Buka List"
         >
           <AppLogo size={28} variant="mark" />
           <span className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight hidden xs:inline">
@@ -309,7 +294,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-slate-500 dark:text-slate-400 font-medium">Pilih Rombel & Mapel</span>
             )}
 
-            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform ${showClassDropdown ? 'rotate-180' : ''}`} />
+            <CaretDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform ${showClassDropdown ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Class Switcher Dropdown Modal */}
@@ -471,7 +456,7 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label={syncMessage}
             >
               {syncStatus === 'syncing' && (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+                <ArrowClockwise className="w-3.5 h-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
               )}
               {syncStatus === 'saved' && (
                 <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300 animate-in zoom-in duration-200" />
@@ -480,7 +465,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 transition-transform hover:scale-110" />
               )}
               {syncStatus === 'offline' && (
-                <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <CloudSlash className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               )}
 
               {/* Live activity dot for saving */}
@@ -505,9 +490,9 @@ export const Header: React.FC<HeaderProps> = ({
               aria-label={isFullscreen ? 'Keluar Layar Penuh (Esc)' : 'Mode Layar Penuh'}
             >
               {isFullscreen ? (
-                <Minimize2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <ArrowsIn className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               ) : (
-                <Maximize2 className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <ArrowsOut className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               )}
             </button>
           </Tooltip>
@@ -544,10 +529,10 @@ export const Header: React.FC<HeaderProps> = ({
                 {isAdmin ? 'Administrator' : 'Guru'}
               </div>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden md:block" />
+            <CaretDown className="w-3.5 h-3.5 text-slate-400 hidden md:block" />
           </button>
 
-          {/* Profile Dropdown Menu */}
+          {/* Profile Dropdown List */}
           {showUserDropdown && (
             <div 
               className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#141722] p-2 shadow-2xl border border-slate-200 dark:border-[#232838] z-50 animate-in fade-in slide-in-from-top-2"
@@ -597,7 +582,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
                 >
-                  <MessageSquareHeart className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
+                  <Heart className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>Kirim Masukan & Lapor Bug</span>
                 </button>
               )}
@@ -610,7 +595,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
               >
-                <Settings className="w-4 h-4 text-slate-400 shrink-0" />
+                <Gear className="w-4 h-4 text-slate-400 shrink-0" />
                 Pengaturan Profil & Madrasah
               </button>
 
@@ -624,7 +609,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
               >
-                <LogOut className="w-4 h-4" />
+                <SignOut className="w-4 h-4" />
                 Keluar dari Workspace
               </button>
             </div>

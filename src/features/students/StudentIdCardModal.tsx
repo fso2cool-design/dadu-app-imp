@@ -7,20 +7,7 @@ import { formatOfficialSignatureName } from '../../utils/formatOfficialName';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { Modal } from '../../components/common/Modal';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
-import { 
-  Printer, 
-  CreditCard, 
-  Sparkles, 
-  Check, 
-  QrCode, 
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  Cake,
-  Copy,
-  UserCheck,
-  Scissors
-} from 'lucide-react';
+import { Printer, CreditCard, Sparkle, Check, QrCode, Buildings, CaretLeft, CaretRight, Cake, Copy, UserCheck, Scissors } from '@phosphor-icons/react';
 
 export interface StudentIdCardModalProps {
   isOpen: boolean;
@@ -227,7 +214,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkle className="w-3.5 h-3.5" />
                 <span>Kartu Virtual</span>
               </button>
 
@@ -322,7 +309,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                   className="p-1 rounded-lg bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:cursor-not-allowed"
                   title="Siswa Sebelumnya"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <CaretLeft className="w-3.5 h-3.5" />
                 </button>
                 <span>{currentIndex + 1} / {enrollments.length}</span>
                 <button
@@ -332,7 +319,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                   className="p-1 rounded-lg bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:cursor-not-allowed"
                   title="Siswa Selanjutnya"
                 >
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <CaretRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -377,7 +364,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                           className="w-8 h-8 object-contain" 
                         />
                       ) : (
-                        <Building2 className="w-5 h-5 text-emerald-300" />
+                        <Buildings className="w-5 h-5 text-emerald-300" />
                       )}
                     </div>
                   </div>
@@ -559,7 +546,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                             className="w-7 h-7 object-contain"
                           />
                         ) : (
-                          <Building2 className="w-4 h-4 text-slate-500" />
+                          <Buildings className="w-4 h-4 text-slate-500" />
                         )}
                       </div>
                     </div>

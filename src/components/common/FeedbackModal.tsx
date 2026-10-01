@@ -4,15 +4,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { container } from '../../application/ports/container';
 import { FeedbackType } from '../../types';
 import { useToast } from '../../context/ToastContext';
-import { 
-  Bug, 
-  Lightbulb, 
-  Sparkles, 
-  HelpCircle, 
-  Send, 
-  CheckCircle2, 
-  AlertCircle 
-} from 'lucide-react';
+import { Bug, Lightbulb, Sparkle, Question, PaperPlane, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -91,14 +83,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       type: 'IMPROVEMENT',
       label: 'Perbaikan / Kemudahan',
       desc: 'Penyempurnaan alur kerja, tampilan, atau kecepatan',
-      icon: Sparkles,
+      icon: Sparkle,
       color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/60',
     },
     {
       type: 'OTHER',
       label: 'Lainnya / Saran',
       desc: 'Pertanyaan atau masukan umum seputar aplikasi DADU',
-      icon: HelpCircle,
+      icon: Question,
       color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/60',
     },
   ];
@@ -119,7 +111,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
       {submitted ? (
         <div className="py-8 text-center space-y-3 animate-in fade-in zoom-in-95">
           <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
-            <CheckCircle2 className="w-8 h-8" />
+            <CheckCircle className="w-8 h-8" />
           </div>
           <h4 className="text-base font-bold text-slate-800 dark:text-white">
             Masukan Berhasil Terkirim!
@@ -228,7 +220,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 <span>Mengirim...</span>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" />
+                  <PaperPlane className="w-3.5 h-3.5" />
                   <span>Kirim Laporan</span>
                 </>
               )}

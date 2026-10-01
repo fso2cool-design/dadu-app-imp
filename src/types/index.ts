@@ -28,6 +28,7 @@ export interface UserProfile {
   isOnboarded?: boolean;
   themePreference?: ThemeKey;
   designSystemPreference?: DesignSystemKey;
+  designSystemModePreference?: DesignSystemMode;
   lastLoginAt?: any;
   createdAt: any;
   updatedAt: any;
@@ -37,21 +38,26 @@ export interface UserProfile {
 // DESIGN SYSTEMS (NEW - Phase 1)
 // ==========================================================================
 
-export type DesignSystemKey = 
-  | 'brutalism' 
-  | 'apple-glass' 
-  | 'neo-skeuomorphic';
+export type DesignSystemKey =
+  | 'paper-craft'
+  | 'minimalist'
+  | 'atelier';
+
+export type DesignSystemMode = 'light' | 'dark';
+
+export interface DesignSystemColorTokens {
+  accent: string;
+  accentFg: string;
+  surface: string;
+  surfaceElevated: string;
+  border: string;
+  text: string;
+  textMuted: string;
+}
 
 export interface DesignSystemTokens {
-  colors: {
-    accent: string;
-    accentFg: string;
-    surface: string;
-    surfaceElevated: string;
-    border: string;
-    text: string;
-    textMuted: string;
-  };
+  colors: DesignSystemColorTokens;
+  darkColors: DesignSystemColorTokens;
   typography: {
     fontFamily: {
       sans: string;
@@ -105,25 +111,52 @@ export interface DesignSystemOption {
   tokens: DesignSystemTokens;
 }
 
+// Contrast audit (WCAG AA, relative-luminance formula, computed 2026-10-01):
+// paper-craft light: text #1C1917/bg #FAF7EE 16.33, muted #6B6259/bg 5.57,
+//   ink #1C1917/accent #FF5A36 5.64 (white on #FF5A36 is 3.10 -> FAIL, never use).
+//   NOTE: spec muted #78716C on #FAF7EE is 4.48 -> FAIL, darkened to #6B6259.
+// paper-craft dark: text #FAF7EE/bg #1C1917 16.33, muted #A8A29E/bg 6.93,
+//   card text #FAF7EE/#292524 14.16.
+// minimalist light: text #2F3437/#F7F6F3 11.65, muted #57534E/bg 7.06,
+//   white/accent-ink #2F3437 12.60.
+// minimalist dark: text #F7F6F3/bg #201E1C 15.37, muted #A8A29E/bg 6.59,
+//   ink/accent-bone #E7E5E0 13.89.
+// atelier light: text #1C1917/#FDFBF7 16.92, muted #6B6560/bg 5.56,
+//   cream/accent-ink #1C1917 16.92.
+// atelier dark (OLED): text #F5F2EB/#050505 18.23, muted #A8A29E/bg 8.08,
+//   card text #F5F2EB/#111111 16.89.
+// Pastel note pairs (paper-craft sticky notes): red #9F2F2D/#FDEBEC 6.66,
+//   blue #1F6C9F/#E1F3FE 4.98, green #346538/#EDF3EC 6.08,
+//   yellow #956400/#FBF3DB 4.62. All >= 4.5.
+
 export const DESIGN_SYSTEMS: DesignSystemOption[] = [
   {
-    id: 'brutalism',
-    name: 'Brutalism Edukatif',
-    description: 'Papan tulis taktil digital dengan borders tegas dan typography besar',
+    id: 'paper-craft',
+    name: 'Paper Craft',
+    description: 'Scrapbook hangat ala X-C Hub: border tinta, hard shadow, sticky notes',
     tokens: {
       colors: {
-        accent: '#FFE500',
-        accentFg: '#000000',
-        surface: '#FFFFFF',
-        surfaceElevated: '#FFFFFF',
-        border: '#000000',
-        text: '#000000',
-        textMuted: '#4A4A4A',
+        accent: '#FF5A36',
+        accentFg: '#1C1917',
+        surface: '#FAF7EE',
+        surfaceElevated: '#FFFDF9',
+        border: '#292524',
+        text: '#1C1917',
+        textMuted: '#6B6259',
+      },
+      darkColors: {
+        accent: '#FF5A36',
+        accentFg: '#1C1917',
+        surface: '#1C1917',
+        surfaceElevated: '#292524',
+        border: '#FAF7EE',
+        text: '#FAF7EE',
+        textMuted: '#A8A29E',
       },
       typography: {
         fontFamily: {
-          sans: 'Space Grotesk, system-ui, sans-serif',
-          mono: 'JetBrains Mono, monospace',
+          sans: 'Geist, system-ui, sans-serif',
+          mono: 'Geist Mono, monospace',
         },
         scale: {
           xs: '0.75rem',
@@ -141,22 +174,22 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         xl: 64,
       },
       borders: {
-        width: '4px',
-        color: '#000000',
+        width: '1.5px',
+        color: '#292524',
         style: 'solid',
       },
       elevation: {
         none: 'none',
-        sm: '4px 4px 0px 0px rgba(0,0,0,1)',
-        md: '6px 6px 0px 0px rgba(0,0,0,1)',
-        lg: '8px 8px 0px 0px rgba(0,0,0,1)',
+        sm: '3px 3px 0px 0px #1C1917',
+        md: '5px 5px 0px 0px #1C1917',
+        lg: '8px 8px 0px 0px #1C1917',
       },
       radius: {
         none: '0px',
-        sm: '2px',
-        md: '2px',
-        lg: '2px',
-        full: '0px',
+        sm: '4px',
+        md: '6px',
+        lg: '8px',
+        full: '9999px',
       },
       transitions: {
         fast: '100ms ease',
@@ -166,86 +199,33 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     },
   },
   {
-    id: 'apple-glass',
-    name: 'Apple VisionOS Glass',
-    description: 'Spatial computing dengan frosted glass, subtle depth, dan micro-interactions',
+    id: 'minimalist',
+    name: 'Minimalist',
+    description: 'Warm monochrome editorial: hairline border, judul serif besar, pastel lembut',
     tokens: {
       colors: {
-        // S4.4: accent digelapkan #007AFF -> #0051D5 agar teks putih
-        // di atasnya 6.69:1 (WCAG AA). Sebelumnya 4.02:1 (gagal 4.5:1).
-        accent: '#0051D5',
+        accent: '#2F3437',
         accentFg: '#FFFFFF',
-        surface: '#FFFFFF',
-        surfaceElevated: 'rgba(255,255,255,0.82)',
-        border: 'rgba(0,0,0,0.08)',
-        text: '#0F172A',
-        textMuted: '#64748B',
-      },
-      typography: {
-        fontFamily: {
-          sans: 'Inter Variable, Inter, system-ui, sans-serif',
-          serif: 'Merriweather, serif',
-          mono: 'JetBrains Mono, monospace',
-        },
-        scale: {
-          xs: '0.75rem',
-          sm: '0.875rem',
-          base: '1rem',
-          lg: '1.25rem',
-          xl: '1.5rem',
-        },
-      },
-      spacing: {
-        xs: 8,
-        sm: 16,
-        md: 24,
-        lg: 32,
-        xl: 48,
-      },
-      borders: {
-        width: '1px',
-        color: 'rgba(0,0,0,0.08)',
-        style: 'solid',
-      },
-      elevation: {
-        none: 'none',
-        sm: '0 1px 2px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.04)',
-        md: '0 4px 6px rgba(0,0,0,0.05), 0 12px 24px rgba(0,0,0,0.06)',
-        lg: '0 10px 15px rgba(0,0,0,0.05), 0 24px 32px rgba(0,0,0,0.08)',
-      },
-      radius: {
-        none: '0px',
-        sm: '8px',
-        md: '12px',
-        lg: '20px',
-        full: '9999px',
-      },
-      transitions: {
-        fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
-        base: '250ms cubic-bezier(0.4, 0, 0.2, 1)',
-        slow: '400ms cubic-bezier(0.4, 0, 0.2, 1)',
-      },
-    },
-  },
-  {
-    id: 'neo-skeuomorphic',
-    name: 'Neo-Skeuomorphic Academic',
-    description: 'Digital buku induk dengan textures, embossed elements, dan tactile depth',
-    tokens: {
-      colors: {
-        accent: '#047857',
-        accentFg: '#FFFFFF',
-        surface: '#FAF9F6',
+        surface: '#F7F6F3',
         surfaceElevated: '#FFFFFF',
-        border: '#D6D3D1',
-        text: '#1C1917',
-        textMuted: '#78716C',
+        border: '#EAEAEA',
+        text: '#2F3437',
+        textMuted: '#57534E',
+      },
+      darkColors: {
+        accent: '#E7E5E0',
+        accentFg: '#1C1917',
+        surface: '#201E1C',
+        surfaceElevated: '#2A2725',
+        border: 'rgba(255,255,255,0.1)',
+        text: '#F7F6F3',
+        textMuted: '#A8A29E',
       },
       typography: {
         fontFamily: {
-          sans: 'Inter Variable, Inter, system-ui, sans-serif',
-          serif: 'Merriweather, Lora, serif',
-          mono: 'JetBrains Mono, monospace',
+          sans: 'Geist, system-ui, sans-serif',
+          serif: 'Newsreader, Georgia, serif',
+          mono: 'Geist Mono, monospace',
         },
         scale: {
           xs: '0.75rem',
@@ -264,14 +244,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
       },
       borders: {
         width: '1px',
-        color: '#D6D3D1',
+        color: '#EAEAEA',
         style: 'solid',
       },
       elevation: {
         none: 'none',
-        sm: '0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
-        md: '0 4px 6px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
-        lg: '0 10px 15px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5)',
+        sm: '0 1px 2px rgba(0,0,0,0.04)',
+        md: '0 4px 12px rgba(0,0,0,0.05)',
+        lg: '0 12px 28px rgba(0,0,0,0.07)',
       },
       radius: {
         none: '0px',
@@ -281,9 +261,78 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         full: '9999px',
       },
       transitions: {
-        fast: '100ms ease',
-        base: '200ms ease',
-        slow: '300ms ease',
+        fast: '150ms ease',
+        base: '250ms ease',
+        slow: '400ms ease',
+      },
+    },
+  },
+  {
+    id: 'atelier',
+    name: 'Atelier',
+    description: 'High-end soft: double-bezel nested card, squircle, tipografi display besar',
+    tokens: {
+      colors: {
+        accent: '#1C1917',
+        accentFg: '#FDFBF7',
+        surface: '#FDFBF7',
+        surfaceElevated: '#FFFFFF',
+        border: '#E8E2D9',
+        text: '#1C1917',
+        textMuted: '#6B6560',
+      },
+      darkColors: {
+        accent: '#F5F2EB',
+        accentFg: '#050505',
+        surface: '#050505',
+        surfaceElevated: '#111111',
+        border: '#2A2A2A',
+        text: '#F5F2EB',
+        textMuted: '#A8A29E',
+      },
+      typography: {
+        fontFamily: {
+          sans: 'Geist, system-ui, sans-serif',
+          serif: 'Newsreader, Georgia, serif',
+          mono: 'Geist Mono, monospace',
+        },
+        scale: {
+          xs: '0.75rem',
+          sm: '0.875rem',
+          base: '1rem',
+          lg: '1.375rem',
+          xl: '1.75rem',
+        },
+      },
+      spacing: {
+        xs: 8,
+        sm: 16,
+        md: 24,
+        lg: 32,
+        xl: 56,
+      },
+      borders: {
+        width: '1px',
+        color: '#E8E2D9',
+        style: 'solid',
+      },
+      elevation: {
+        none: 'none',
+        sm: '0 1px 2px rgba(28,25,23,0.05), 0 4px 12px rgba(28,25,23,0.05)',
+        md: '0 2px 4px rgba(28,25,23,0.05), 0 16px 32px rgba(28,25,23,0.08)',
+        lg: '0 4px 8px rgba(28,25,23,0.05), 0 32px 56px rgba(28,25,23,0.12)',
+      },
+      radius: {
+        none: '0px',
+        sm: '16px',
+        md: '24px',
+        lg: '32px',
+        full: '9999px',
+      },
+      transitions: {
+        fast: '180ms cubic-bezier(0.32, 0.72, 0, 1)',
+        base: '300ms cubic-bezier(0.32, 0.72, 0, 1)',
+        slow: '500ms cubic-bezier(0.32, 0.72, 0, 1)',
       },
     },
   },

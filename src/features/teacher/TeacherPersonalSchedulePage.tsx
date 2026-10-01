@@ -4,21 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from '../reports/PrintDocumentLayout';
 import { TeachingAssignment } from '../../types';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { 
-  Calendar, 
-  Clock, 
-  Printer, 
-  Download, 
-  Layers, 
-  BookOpen, 
-  MapPin, 
-  CalendarDays,
-  Sparkles,
-  ArrowRight,
-  Filter,
-  CheckCircle2,
-  CalendarCheck2
-} from 'lucide-react';
+import { CalendarBlank, Clock, Printer, Download, Stack, BookOpen, MapPin, CalendarDots, Sparkle, ArrowRight, Funnel, CheckCircle, CalendarCheck } from '@phosphor-icons/react';
 
 const DAYS_OF_WEEK = [
   { key: 'SENIN', label: 'Senin' },
@@ -74,7 +60,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
     const slots: TeacherScheduleSlot[] = [];
     const unscheduled: TeachingAssignment[] = [];
 
-    // Filter assignments yang aktif dan milik semester berjalan
+    // Funnel assignments yang aktif dan milik semester berjalan
     const activeAssignments = teachingAssignments.filter(ta => 
       !ta.isArchived && 
       ta.isActive !== false &&
@@ -204,7 +190,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight mt-1.5 flex items-center gap-2">
-            <CalendarDays className="w-6 h-6 text-orange-500 dark:text-cyan-400" />
+            <CalendarDots className="w-6 h-6 text-orange-500 dark:text-cyan-400" />
             <span>Jadwal Mengajar Saya</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -250,7 +236,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
 
         <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500 shrink-0">
-            <Layers className="w-5 h-5" />
+            <Stack className="w-5 h-5" />
           </div>
           <div>
             <span className="text-[11px] font-semibold text-slate-400 block">Rombel Kelas Diampu</span>
@@ -273,7 +259,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
         </div>
       </div>
 
-      {/* Filter Hari */}
+      {/* Funnel Hari */}
       <div className="bg-white dark:bg-[#141722] p-2 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
         <button
           type="button"
@@ -317,7 +303,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
       {/* Grid Tampilan Jadwal Mingguan */}
       {scheduledSlots.length === 0 ? (
         <div className="bg-white dark:bg-[#141722] p-12 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-          <CalendarDays className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <CalendarDots className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Jadwal Pelajaran Ditetapkan</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
             Plotting mata pelajaran dan rombel kelas Anda belum memiliki informasi hari dan jam mengajar. Anda dapat melengkapinya di menu Plotting Pengajaran.
@@ -407,7 +393,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
       {/* Rombel Belum Terjadwal (Notice jika ada) */}
       {unscheduledAssignments.length > 0 && (
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-3">
-          <Calendar className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <CalendarBlank className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
           <div className="flex-1">
             <span className="font-bold block mb-0.5">
               Terdapat {unscheduledAssignments.length} Rombel Ampuan Belum Memiliki Jadwal Hari & Jam:

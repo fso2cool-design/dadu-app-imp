@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home, ChevronDown, ChevronUp } from 'lucide-react';
+import { Warning, ArrowClockwise, House, CaretDown, CaretUp } from '@phosphor-icons/react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -84,7 +84,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       >
         <div className="max-w-md w-full bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5 transition-all">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
-            <AlertTriangle className="w-7 h-7" />
+            <Warning className="w-7 h-7" />
           </div>
 
           <div className="space-y-2">
@@ -102,7 +102,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               onClick={this.handleReset}
               className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <ArrowClockwise className="w-3.5 h-3.5" />
               Coba Lagi
             </button>
 
@@ -111,7 +111,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               onClick={this.handleGoHome}
               className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <Home className="w-3.5 h-3.5" />
+              <House className="w-3.5 h-3.5" />
               Ke Dashboard
             </button>
           </div>
@@ -124,7 +124,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 className="w-full flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 font-medium py-1 transition-colors"
               >
                 <span>Informasi Diagnostik Error</span>
-                {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {showDetails ? <CaretUp className="w-3.5 h-3.5" /> : <CaretDown className="w-3.5 h-3.5" />}
               </button>
 
               {showDetails && (

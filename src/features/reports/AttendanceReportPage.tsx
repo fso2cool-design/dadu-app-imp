@@ -7,20 +7,7 @@ import { Badge } from '../../components/common/Badge';
 import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
 import { getTodayISO } from '../../utils/date';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { 
-  BarChart3, 
-  CalendarCheck2, 
-  Users, 
-  Search, 
-  Filter, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Layers, 
-  Download,
-  Percent,
-  Clock,
-  Share2
-} from 'lucide-react';
+import { ChartBar, CalendarCheck, Users, MagnifyingGlass, Funnel, Warning, CheckCircle, Stack, Download, Percent, Clock, ShareNetwork } from '@phosphor-icons/react';
 import { ShareReportModal } from './ShareReportModal';
 
 interface StudentAttendanceSummary {
@@ -413,7 +400,7 @@ export const AttendanceReportPage: React.FC = () => {
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+            <ChartBar className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
             Laporan Rekapitulasi Presensi
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -433,7 +420,7 @@ export const AttendanceReportPage: React.FC = () => {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <CalendarCheck2 className="w-3.5 h-3.5" />
+              <CalendarCheck className="w-3.5 h-3.5" />
               Presensi Mapel
             </button>
             <button
@@ -456,13 +443,13 @@ export const AttendanceReportPage: React.FC = () => {
             disabled={activeSummaries.length === 0}
             className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <ShareNetwork className="w-3.5 h-3.5" />
             <span>Bagikan Tautan Publik</span>
           </button>
         </div>
       </div>
 
-      {/* Filter Selector Bar (Hidden on Print) */}
+      {/* Funnel Selector Bar (Hidden on Print) */}
       <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {reportMode === 'SUBJECT' ? (
@@ -500,9 +487,9 @@ export const AttendanceReportPage: React.FC = () => {
             </div>
           )}
 
-          {/* Search Input */}
+          {/* MagnifyingGlass Input */}
           <div className="relative min-w-[220px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari siswa atau NIS..."
@@ -528,7 +515,7 @@ export const AttendanceReportPage: React.FC = () => {
               <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block">100% Hadir</span>
               <span className="text-lg font-black text-emerald-950 dark:text-emerald-200">{stats.perfectCount} <span className="text-xs font-normal text-emerald-700 dark:text-emerald-400">Siswa</span></span>
             </div>
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            <CheckCircle className="w-6 h-6 text-emerald-400" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-500/40 flex items-center justify-between">
@@ -536,7 +523,7 @@ export const AttendanceReportPage: React.FC = () => {
               <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block">Kehadiran &lt; 75%</span>
               <span className="text-lg font-black text-rose-950 dark:text-rose-200">{stats.criticalCount} <span className="text-xs font-normal text-rose-700 dark:text-rose-400">Siswa</span></span>
             </div>
-            <AlertTriangle className="w-6 h-6 text-rose-400" />
+            <Warning className="w-6 h-6 text-rose-400" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] flex items-center justify-between">

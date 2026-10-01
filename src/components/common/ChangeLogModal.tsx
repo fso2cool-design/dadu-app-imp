@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
-import { Sparkles, Calendar, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Sparkle, CalendarBlank, CheckCircle, ArrowRight } from '@phosphor-icons/react';
 import { LATEST_CHANGELOG, CHANGELOG_STORAGE_KEY } from '../../constants/changelog';
 
 interface ChangeLogModalProps {
@@ -37,11 +37,11 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
           
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-sm text-white border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <Sparkle className="w-3.5 h-3.5 text-amber-300" />
               {LATEST_CHANGELOG.badge || 'Catatan Pembaruan'}
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] text-emerald-100 font-medium">
-              <Calendar className="w-3.5 h-3.5" />
+              <CalendarBlank className="w-3.5 h-3.5" />
               {LATEST_CHANGELOG.releaseDate}
             </span>
           </div>
@@ -68,7 +68,7 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
               <ul className="space-y-1.5">
                 {cat.items.map((item, iIdx) => (
                   <li key={iIdx} className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2 leading-relaxed">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                     <span>{item}</span>
                   </li>
                 ))}

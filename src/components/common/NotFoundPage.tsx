@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Compass, ArrowLeft } from 'lucide-react';
+import { House, Compass, ArrowLeft } from '@phosphor-icons/react';
 import { AppLogo } from './AppLogo';
 import { useOptionalAppTheme } from '../../context/ThemeContext';
 import { APP_CONFIG } from '../../constants/app';
@@ -88,7 +88,7 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onNavigate }) => {
             onClick={handleGoHome}
             className="w-full sm:w-1/2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold btn-primary shadow-md cursor-pointer"
           >
-            <Home className="w-4 h-4" />
+            <House className="w-4 h-4" />
             Dashboard
           </button>
         </div>

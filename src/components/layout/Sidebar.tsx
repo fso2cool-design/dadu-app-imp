@@ -1,30 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
-  LayoutDashboard, 
-  BookOpen,
-  Users, 
-  Printer, 
-  Database,
-  Sliders,
-  ShieldCheck,
-  MessageSquareHeart,
-  X,
-  PanelLeftClose,
-  PanelLeftOpen,
-  CalendarCheck2,
-  CheckSquare,
-  Award,
-  Layers,
-  CalendarDays,
-  CalendarRange,
-  Clock,
-  UserCheck,
-  FileSpreadsheet,
-  StickyNote,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
+import { SquaresFour, BookOpen, Users, Printer, Database, Sliders, ShieldCheck, Heart, X, SidebarSimple, CalendarCheck, CheckSquare, Medal, Stack, CalendarDots, Clock, UserCheck, FileCsv, Notepad, CaretDown, CaretRight } from '@phosphor-icons/react';
 import { useAppTheme } from '../../context/ThemeContext';
 import { AppLogo } from '../common/AppLogo';
 import { Tooltip } from '../common/Tooltip';
@@ -112,17 +88,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       groupTitle: null,
       items: [
-        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'dashboard', label: 'Dashboard', icon: SquaresFour },
         { 
           id: 'teacher', 
           label: 'Ruang Guru', 
           icon: BookOpen,
           subItems: [
-            { id: 'teaching-classes', label: 'Rombel Ampuan', icon: Layers },
-            { id: 'teaching-schedule', label: 'Jadwal Mengajar', icon: CalendarDays },
-            { id: 'meetings', label: 'Agenda & Jurnal KBM', icon: CalendarCheck2 },
+            { id: 'teaching-classes', label: 'Rombel Ampuan', icon: Stack },
+            { id: 'teaching-schedule', label: 'Jadwal Mengajar', icon: CalendarDots },
+            { id: 'meetings', label: 'Agenda & Jurnal KBM', icon: CalendarCheck },
             { id: 'attendance-subject', label: 'Presensi Sesi Mapel', icon: CheckSquare },
-            { id: 'grades', label: 'Penilaian Siswa', icon: Award },
+            { id: 'grades', label: 'Penilaian Siswa', icon: Medal },
           ]
         },
         { 
@@ -130,10 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Ruang Wali Kelas', 
           icon: Users,
           subItems: [
-            { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: FileSpreadsheet },
+            { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: FileCsv },
             { id: 'homeroom-class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
             { id: 'homeroom-teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
-            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarRange },
+            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: CalendarDots },
           ]
         },
       ],
@@ -152,8 +128,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Data Master', 
           icon: Database,
           subItems: [
-            { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarDays },
-            { id: 'master-classes', label: 'Data Rombel / Kelas', icon: Layers },
+            { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarDots },
+            { id: 'master-classes', label: 'Data Rombel / Kelas', icon: Stack },
             { id: 'master-students', label: 'Data Siswa Terpadu', icon: Users },
             { id: 'master-subjects', label: 'Mata Pelajaran', icon: BookOpen },
             { id: 'master-teaching', label: 'Plotting Mengajar', icon: Clock },
@@ -173,7 +149,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ...(!isAdmin ? [{
       groupTitle: 'BANTUAN & SARAN',
       items: [
-        { id: 'feedback-modal', label: 'Kirim Masukan', icon: MessageSquareHeart },
+        { id: 'feedback-modal', label: 'Kirim Masukan', icon: Heart },
       ],
     }] : []),
   ];
@@ -276,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label="Buka sidebar"
               >
                 {hoveredTopToggle ? (
-                  <PanelLeftOpen className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
+                  <SidebarSimple className="w-5 h-5 text-emerald-500 dark:text-emerald-400 animate-in zoom-in-75 duration-150" />
                 ) : (
                   <AppLogo size="sm" variant="mark" />
                 )}
@@ -301,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
                   aria-label="Tutup sidebar"
                 >
-                  <PanelLeftClose className="w-4 h-4" />
+                  <SidebarSimple className="w-4 h-4" />
                 </button>
               )}
 
@@ -405,9 +381,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   aria-label={isExpanded ? 'Ciutkan menu' : 'Buka menu'}
                                 >
                                   {isExpanded ? (
-                                    <ChevronDown className="w-3.5 h-3.5" />
+                                    <CaretDown className="w-3.5 h-3.5" />
                                   ) : (
-                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                                    <CaretRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                                   )}
                                 </span>
                               )}

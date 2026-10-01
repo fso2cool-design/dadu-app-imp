@@ -5,24 +5,7 @@ const { create: createSharedReport, getUserReports: getUserSharedReports, revoke
 import { SharedReport, SharedReportType, SharedReportPayload } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
-import { 
-  Share2, 
-  Link, 
-  Copy, 
-  Check, 
-  Lock, 
-  Clock, 
-  ShieldCheck, 
-  AlertCircle,
-  ExternalLink,
-  Ban,
-  Trash2,
-  List,
-  PlusCircle,
-  Eye,
-  Calendar,
-  KeyRound
-} from 'lucide-react';
+import { ShareNetwork, Link, Copy, Check, Lock, Clock, ShieldCheck, WarningCircle, ArrowSquareOut, Prohibit, Trash, List, PlusCircle, Eye, CalendarBlank, Key } from '@phosphor-icons/react';
 
 interface ShareReportModalProps {
   isOpen: boolean;
@@ -322,7 +305,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   disabled={loading}
                   className="btn-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
                 >
-                  <Share2 className="w-3.5 h-3.5" />
+                  <ShareNetwork className="w-3.5 h-3.5" />
                   {loading ? 'Membuat Tautan...' : 'Buat Tautan Publik'}
                 </button>
               </div>
@@ -400,7 +383,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   rel="noreferrer"
                   className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 dark:border-[#232838] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ArrowSquareOut className="w-3.5 h-3.5" />
                   <span>Buka Pratinjau</span>
                 </a>
 
@@ -427,7 +410,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
               </div>
             ) : userReports.length === 0 ? (
               <div className="py-8 text-center text-slate-400 space-y-2 bg-slate-50 dark:bg-[#141722] rounded-2xl border border-dashed border-slate-200 dark:border-[#232838]">
-                <Share2 className="w-8 h-8 mx-auto opacity-40 text-slate-500" />
+                <ShareNetwork className="w-8 h-8 mx-auto opacity-40 text-slate-500" />
                 <p className="font-semibold text-xs text-slate-600 dark:text-slate-300">Belum Ada Tautan Berbagi</p>
                 <p className="text-[11px]">Anda belum pernah membuat tautan publik untuk dibagikan.</p>
                 <button
@@ -511,7 +494,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                                 title="Buka Tautan"
                                 className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]"
                               >
-                                <ExternalLink className="w-3.5 h-3.5" />
+                                <ArrowSquareOut className="w-3.5 h-3.5" />
                               </a>
                               <button
                                 type="button"
@@ -520,7 +503,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                                 title="Cabut Akses Publik"
                                 className="p-1.5 rounded-lg text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/50 cursor-pointer disabled:opacity-50"
                               >
-                                <Ban className="w-3.5 h-3.5" />
+                                <Prohibit className="w-3.5 h-3.5" />
                               </button>
                             </>
                           )}
@@ -531,7 +514,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                             title="Hapus Permanen"
                             className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer disabled:opacity-50"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

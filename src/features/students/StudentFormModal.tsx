@@ -7,7 +7,7 @@ const { create: createStudent, update: updateStudent, checkUsage: checkStudentUs
 const { create: createEnrollment, update: updateEnrollment, transfer: transferStudentEnrollment } = container.repos.enrollment as any;
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment, StudentCustomFieldDefinition } from '../../types';
-import { User, Phone, MapPin, BookOpen, AlertCircle, Lock, ShieldCheck, Sliders } from 'lucide-react';
+import { User, Phone, MapPin, BookOpen, WarningCircle, Lock, ShieldCheck, Sliders } from '@phosphor-icons/react';
 
 interface StudentFormModalProps {
   isOpen: boolean;
@@ -219,7 +219,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {errorMsg && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
@@ -425,7 +425,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
           <div className="space-y-3 animate-in fade-in duration-150">
             {existingEnrollment && (
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs">
-                <AlertCircle className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <WarningCircle className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div>
                   <p className="font-bold">Penempatan Rombel Terkunci</p>
                   <p className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">

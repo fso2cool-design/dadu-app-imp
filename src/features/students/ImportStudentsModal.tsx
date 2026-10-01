@@ -5,7 +5,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
 import type { ImportStudentItem } from '../../application/students/importStudents.usecase';
 import { Modal } from '../../components/common/Modal';
-import { Upload, FileSpreadsheet, Download, CheckCircle2, AlertTriangle, X, Check, ArrowRight, Layers, HelpCircle, RefreshCw, Sparkles, ShieldCheck } from 'lucide-react';
+import { Upload, FileCsv, Download, CheckCircle, Warning, X, Check, ArrowRight, Stack, Question, ArrowClockwise, Sparkle, ShieldCheck } from '@phosphor-icons/react';
 import { GenderType, ClassItem, Student, StudentCustomFieldDefinition } from '../../types';
 import { downloadStudentExcelTemplate } from '../../utils/studentExcelTemplate';
 import { sanitizeExcelDate, getRowValueByAliases } from '../../utils/excelImportSanitizer';
@@ -512,7 +512,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileCsv className="w-4 h-4 text-emerald-600" />
               Template Excel Resmi (Dengan Kolom Kelas)
             </h4>
             <p className="text-[11px] text-slate-500 mt-0.5 max-w-xl">
@@ -595,7 +595,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             {/* Header info bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-indigo-50 border border-indigo-100 gap-2">
               <div className="flex items-center gap-2 flex-wrap">
-                <FileSpreadsheet className="w-4 h-4 text-indigo-600" />
+                <FileCsv className="w-4 h-4 text-indigo-600" />
                 <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">{fileName}</span>
                 <span className="text-[11px] bg-white dark:bg-[#141722] text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-bold border border-indigo-200 dark:border-indigo-800">
                   {parsedRows.length} Baris Siswa
@@ -624,7 +624,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             {unmatchedClassGroups.length > 0 && (
               <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2.5">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <Warning className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Ditemukan Nama Kelas di Excel yang Belum Terdaftar di Rombel:</span>
                 </div>
                 <p className="text-[11px] text-amber-700">
@@ -672,7 +672,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 ${
                     overwriteExisting ? 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                   }`}>
-                    <RefreshCw className={`w-4 h-4 ${overwriteExisting ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`} />
+                    <ArrowClockwise className={`w-4 h-4 ${overwriteExisting ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -775,7 +775,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                           )}
                           {r.classMatchStatus === 'UNMATCHED' && (
                             <span title="Nama kelas tidak ditemukan di sistem, perlu diarahkan" className="shrink-0 text-amber-500 dark:text-amber-400">
-                              <AlertTriangle className="w-3.5 h-3.5" />
+                              <Warning className="w-3.5 h-3.5" />
                             </span>
                           )}
                         </div>
@@ -822,7 +822,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
                           r.isExistingInDb ? (
                             overwriteExisting ? (
                               <span className="inline-flex items-center text-blue-600 dark:text-blue-400 text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
-                                <RefreshCw className="w-2.5 h-2.5 mr-0.5" /> Ditimpa
+                                <ArrowClockwise className="w-2.5 h-2.5 mr-0.5" /> Ditimpa
                               </span>
                             ) : (
                               <span className="inline-flex items-center text-slate-600 dark:text-slate-300 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
@@ -851,14 +851,14 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         {/* Feedback Messages */}
         {errorMsg && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+            <Warning className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {successInfo && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>
               {successInfo.updated > 0 ? (
                 <>
@@ -876,7 +876,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         {/* Footer Buttons */}
         <div className="flex items-center justify-between pt-3 border-t border-slate-100">
           <div className="text-[11px] text-slate-400 flex items-center gap-1">
-            <HelpCircle className="w-3.5 h-3.5" />
+            <Question className="w-3.5 h-3.5" />
             Nomor absen otomatis tersortir per-kelas sesuai urutan A-Z data.
           </div>
           <div className="flex gap-2">

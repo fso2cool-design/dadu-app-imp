@@ -4,7 +4,7 @@ import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
-import { Building2, Award, Sparkles } from 'lucide-react';
+import { Buildings, Medal, Sparkle } from '@phosphor-icons/react';
 
 export interface SubjectScoreItem {
   subjectId: string;
@@ -142,7 +142,7 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
                 />
               ) : (
                 <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 no-print">
-                  <Building2 className="w-5 h-5 text-slate-400 mb-0.5" />
+                  <Buildings className="w-5 h-5 text-slate-400 mb-0.5" />
                   <span className="text-[7px] font-bold uppercase">Madrasah</span>
                 </div>
               )}

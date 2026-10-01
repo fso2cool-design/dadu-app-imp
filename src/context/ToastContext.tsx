@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { CheckCircle2, AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { CheckCircle, WarningCircle, Warning, Info, X } from '@phosphor-icons/react';
 import { AnimatePresence, motion } from 'motion/react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -121,9 +121,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               >
                 {/* Icon */}
                 <div className="shrink-0 mt-0.5">
-                  {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-                  {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400" />}
-                  {t.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-400" />}
+                  {t.type === 'success' && <CheckCircle className="w-5 h-5 text-emerald-400" />}
+                  {t.type === 'error' && <WarningCircle className="w-5 h-5 text-rose-400" />}
+                  {t.type === 'warning' && <Warning className="w-5 h-5 text-amber-400" />}
                   {t.type === 'info' && <Info className="w-5 h-5 text-sky-400 dark:text-cyan-400" />}
                 </div>
 

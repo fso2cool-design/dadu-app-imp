@@ -6,21 +6,7 @@ import { getTodayISO, formatDateWithDay } from '../../utils/date';
 import { ATTENDANCE_STATUS_LIST, ATTENDANCE_STATUS_META } from '../../constants/attendance';
 import type { SaveDailyAttendanceItem } from '../../services/firestore/homeroomAttendance';
 import { container } from '../../application/ports/container';
-import { 
-  CalendarDays, 
-  Calendar,
-  Check, 
-  CheckCircle2, 
-  ChevronLeft, 
-  ChevronRight, 
-  Download, 
-  Save, 
-  Search, 
-  Users, 
-  AlertCircle,
-  FileSpreadsheet,
-  UserX
-} from 'lucide-react';
+import { CalendarDots, CalendarBlank, Check, CheckCircle, CaretLeft, CaretRight, Download, FloppyDisk, MagnifyingGlass, Users, WarningCircle, FileCsv, UserMinus } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 import { GenderBadge } from '../../components/common/GenderIcon';
@@ -332,7 +318,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
     return { present, sick, permitted, absent, dispensation, total, rate };
   }, [enrollments, attendanceState]);
 
-  // Save handler
+  // FloppyDisk handler
   const handleSave = async () => {
     if (!user || !activeAcademicYear || !currentClass) return;
 
@@ -437,7 +423,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       {/* Historical Archive Banner */}
       {isArchivedYear && (
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs">
-          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <WarningCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <span className="font-bold">Mode Arsip Historis (Read-Only):</span> Tahun Ajaran ini telah diarsipkan. Seluruh data presensi harian siswa rombel dikunci permanen demi integritas data laporan.
           </div>
@@ -471,7 +457,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               onClick={handleExportExcel}
               className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <FileCsv className="w-4 h-4 text-emerald-600" />
               Export Excel
             </button>
             <button
@@ -481,7 +467,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               title={isArchivedYear ? 'Tahun Ajaran telah diarsipkan (read-only)' : 'Simpan Presensi'}
               className="btn-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
             >
-              <Save className="w-4 h-4" />
+              <FloppyDisk className="w-4 h-4" />
               {saving ? 'Menyimpan...' : (isArchivedYear ? 'Terkunci (Arsip)' : 'Simpan Presensi')}
             </button>
           </div>
@@ -515,11 +501,11 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               className="p-1.5 rounded-lg border border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
               title="Hari Sebelumnya"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <CaretLeft className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] px-3 py-1.5 rounded-lg">
-              <CalendarDays className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+              <CalendarDots className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               <input
                 type="date"
                 value={date}
@@ -534,7 +520,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               className="p-1.5 rounded-lg border border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
               title="Hari Berikutnya"
             >
-              <ChevronRight className="w-4 h-4" />
+              <CaretRight className="w-4 h-4" />
             </button>
 
             <button
@@ -551,7 +537,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-[#0c0e15] hover:bg-slate-100 dark:hover:bg-[#1b1f2e] rounded-lg border border-slate-300 dark:border-[#232838] transition-colors cursor-pointer"
               title="Atur Sistem Hari Belajar 5/6 Hari & Hari Libur Kustom"
             >
-              <Calendar className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+              <CalendarBlank className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
               <span>Kalender & Libur</span>
             </button>
           </div>
@@ -561,7 +547,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       {!currentClass ? (
         <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
           <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-900/50">
-            <UserX className="w-8 h-8" />
+            <UserMinus className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
             Pilih Kelas Binaan untuk Presensi Harian
@@ -577,7 +563,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <div className="bg-amber-50 dark:bg-amber-950/40 p-3.5 rounded-2xl border border-amber-200 dark:border-amber-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 dark:text-amber-300">
               <div className="flex items-center gap-2.5 text-xs font-semibold">
                 <span className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/80 text-amber-700 dark:text-amber-300 shrink-0">
-                  <Calendar className="w-4 h-4" />
+                  <CalendarBlank className="w-4 h-4" />
                 </span>
                 <span>
                   <strong>Hari Non-Efektif / Libur:</strong> {holidayInfo.reason}
@@ -636,7 +622,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         </div>
       </div>
 
-      {/* Batch Operations & Student Search */}
+      {/* Batch Operations & Student MagnifyingGlass */}
       <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Fast Batch Setting */}
         <div className="flex flex-wrap items-center gap-2">
@@ -660,7 +646,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           </button>
         </div>
 
-        {/* Search & Filter */}
+        {/* MagnifyingGlass & Filter */}
         <div className="flex items-center gap-3">
           {/* Status Filter */}
           <select
@@ -677,9 +663,9 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <option value="DISPENSATION">Dispen Saja</option>
           </select>
 
-          {/* Search Input */}
+          {/* MagnifyingGlass Input */}
           <div className="relative w-48 sm:w-60">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <MagnifyingGlass className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
@@ -808,7 +794,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         </div>
       </div>
 
-      {/* Class General Notes & Save Footer */}
+      {/* Class General Notes & FloppyDisk Footer */}
       <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs space-y-3 transition-colors">
         <label htmlFor="homeroom-notes-area" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
           Catatan & Kejadian Khusus Wali Kelas Hari Ini:

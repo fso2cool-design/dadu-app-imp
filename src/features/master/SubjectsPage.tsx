@@ -3,18 +3,7 @@ import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 const { create: createSubject, update: updateSubject, archive: archiveSubject, unarchive: unarchiveSubject, canDelete: canDeleteSubject, delete: deleteSubject } = container.repos.subject as any;
-import { 
-  BookOpen, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Archive, 
-  ArchiveRestore, 
-  AlertCircle,
-  Search,
-  CheckCircle2,
-  Lock
-} from 'lucide-react';
+import { BookOpen, Plus, PencilSimple, Trash, Archive, ArrowCounterClockwise, WarningCircle, MagnifyingGlass, CheckCircle, Lock } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { Badge } from '../../components/common/Badge';
@@ -182,7 +171,7 @@ export const SubjectsPage: React.FC = () => {
       if (filterTab === 'ACTIVE' && sub.isArchived) return false;
       if (filterTab === 'ARCHIVED' && !sub.isArchived) return false;
 
-      // Search query filter
+      // MagnifyingGlass query filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchName = sub.name.toLowerCase().includes(q);
@@ -220,7 +209,7 @@ export const SubjectsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Filter Tabs & Search Bar */}
+      {/* Filter Tabs & MagnifyingGlass Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
         <div className="flex items-center gap-1 overflow-x-auto">
           <button
@@ -259,7 +248,7 @@ export const SubjectsPage: React.FC = () => {
         </div>
 
         <div className="relative sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
@@ -337,7 +326,7 @@ export const SubjectsPage: React.FC = () => {
                       title="Ubah Mata Pelajaran"
                       className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-colors cursor-pointer"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      <PencilSimple className="w-3.5 h-3.5" />
                     </button>
 
                     <button
@@ -352,7 +341,7 @@ export const SubjectsPage: React.FC = () => {
                       }`}
                     >
                       {isArchived ? (
-                        <ArchiveRestore className="w-3.5 h-3.5" />
+                        <ArrowCounterClockwise className="w-3.5 h-3.5" />
                       ) : (
                         <Archive className="w-3.5 h-3.5" />
                       )}
@@ -364,7 +353,7 @@ export const SubjectsPage: React.FC = () => {
                       title="Hapus Mata Pelajaran"
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>

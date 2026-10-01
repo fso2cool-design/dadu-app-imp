@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { SchoolSettings, DocumentSettings } from '../../types';
-import { Printer, Building2, Trophy, Users, AlertCircle } from 'lucide-react';
+import { Printer, Buildings, Trophy, Users, WarningCircle } from '@phosphor-icons/react';
 
 interface BatchRaporPrintModalProps {
   isOpen: boolean;
@@ -82,7 +82,7 @@ export const BatchRaporPrintModal: React.FC<BatchRaporPrintModalProps> = ({
                   : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Buildings className="w-3.5 h-3.5" />
               <span>{showKop ? 'Kop: Aktif' : 'Kop: Nonaktif'}</span>
             </button>
           </div>
@@ -104,7 +104,7 @@ export const BatchRaporPrintModal: React.FC<BatchRaporPrintModalProps> = ({
 
         {/* Notice Info Banner */}
         <div className="no-print p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 rounded-xl text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+          <WarningCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
           <span>
             Setiap rapor siswa otomatis dipisahkan dengan pemisah halaman cetak (<em>page break</em>). Pada dialog cetak peramban, pilih <strong>Destination: Save as PDF</strong> atau printer fisik Anda.
           </span>

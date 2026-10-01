@@ -4,7 +4,7 @@ import { container } from '../../application/ports/container';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
-import { Printer, Download, Building2, Sliders, CheckCircle, FileSpreadsheet, X } from 'lucide-react';
+import { Printer, Download, Buildings, Sliders, CheckCircle, FileCsv, X } from '@phosphor-icons/react';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { PAPER, type PaperSizeKey } from '../../constants/print';
 
@@ -136,7 +136,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
                 : 'bg-white dark:bg-[#141722] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5" />
+            <Buildings className="w-3.5 h-3.5" />
             <span>{showLetterhead ? 'Kop Madrasah: Aktif' : 'Kop Madrasah: Nonaktif'}</span>
           </button>
 
@@ -162,7 +162,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
               disabled={excelExportDisabled}
               className="px-3.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <FileCsv className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>Ekspor Excel</span>
             </button>
           )}
@@ -243,7 +243,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 no-print">
-                    <Building2 className="w-6 h-6 text-slate-400 mb-0.5" />
+                    <Buildings className="w-6 h-6 text-slate-400 mb-0.5" />
                     <span className="text-[8px] font-bold uppercase">Madrasah</span>
                   </div>
                 )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { AssessmentItem, Enrollment } from '../../types';
-import { FileSpreadsheet, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { FileCsv, CheckCircle, WarningCircle, ArrowRight } from '@phosphor-icons/react';
 
 interface PasteExcelModalProps {
   isOpen: boolean;
@@ -107,14 +107,14 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
       <div className="space-y-4 text-xs">
         {error && (
           <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <WarningCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-emerald-900 leading-relaxed">
           <p className="font-semibold mb-1 flex items-center gap-1.5">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileCsv className="w-4 h-4 text-emerald-600" />
             Cara Praktis Paste Nilai:
           </p>
           <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-emerald-800">
@@ -205,7 +205,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             disabled={parsedPreview.length === 0 || !selectedItemId}
             className="btn-primary px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle className="w-4 h-4" />
             <span>Terapkan Nilai ({parsedPreview.filter(p => p.score !== null).length} Siswa)</span>
           </button>
         </div>

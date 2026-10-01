@@ -1,17 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  X, 
-  User, 
-  Mail, 
-  Phone, 
-  Shield, 
-  GraduationCap, 
-  Briefcase, 
-  BookOpen, 
-  CheckCircle2, 
-  AlertCircle,
-  Hash
-} from 'lucide-react';
+import { X, User, Envelope, Phone, Shield, GraduationCap, Briefcase, BookOpen, CheckCircle, WarningCircle, Hash } from '@phosphor-icons/react';
 import { UserProfile, UserRole, AccountStatus } from '../../types';
 
 interface EditUserModalProps {
@@ -128,7 +116,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 [scrollbar-width:thin]">
           {errorMessage && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <WarningCircle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -136,7 +124,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
           {/* User Meta Banner */}
           <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-slate-400">
-              <Mail className="w-4 h-4 text-emerald-400" />
+              <Envelope className="w-4 h-4 text-emerald-400" />
               <span className="text-slate-300 font-medium">{email}</span>
             </div>
             <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
@@ -329,7 +317,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4" />
                 <span>Simpan Perubahan</span>
               </>
             )}

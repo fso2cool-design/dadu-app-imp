@@ -16,30 +16,7 @@ import { EditUserModal } from './EditUserModal';
 import { UserProfile } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
-import { 
-  ShieldCheck, 
-  Users, 
-  UserX, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Trash2, 
-  Search, 
-  RefreshCw, 
-  Database, 
-  LogOut, 
-  ExternalLink,
-  Shield,
-  GraduationCap,
-  HardDrive,
-  Check,
-  X,
-  UserCheck,
-  AlertCircle,
-  MessageSquare,
-  Sparkles,
-  Clock,
-  Edit
-} from 'lucide-react';
+import { ShieldCheck, Users, UserMinus, CheckCircle, Warning, Trash, MagnifyingGlass, ArrowClockwise, Database, SignOut, ArrowSquareOut, Shield, GraduationCap, HardDrive, Check, X, UserCheck, WarningCircle, Chat, Sparkle, Clock, Pencil } from '@phosphor-icons/react';
 
 const formatLastLoginDate = (timestamp: any): string => {
   if (!timestamp) return '';
@@ -135,7 +112,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const [purging, setPurging] = useState<boolean>(false);
   const [purgeSuccessCount, setPurgeSuccessCount] = useState<number | null>(null);
 
-  // Edit user modal state
+  // Pencil user modal state
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
 
   const showToast = (type: 'success' | 'error', text: string) => {
@@ -387,7 +364,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             onClick={logout}
             className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <SignOut className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Keluar</span>
           </button>
         </div>
@@ -419,7 +396,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
+            <Chat className="w-4 h-4" />
             <span>Pusat Masukan & Laporan</span>
             {unreadFeedbackCount > 0 && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
@@ -459,7 +436,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
               <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-                  <UserX className="w-6 h-6" />
+                  <UserMinus className="w-6 h-6" />
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-slate-400 block">Akun Ditangguhkan</span>
@@ -484,7 +461,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
               <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
                 <div className="relative flex-1 min-w-[200px]">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -528,7 +505,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold flex items-center gap-1.5 border border-amber-500/30 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                   title="Bersihkan data orphan / residu akun yang sudah dihapus"
                 >
-                  <Trash2 className="w-3.5 h-3.5 text-amber-400" />
+                  <Trash className="w-3.5 h-3.5 text-amber-400" />
                   <span>Sapu Residu (UID)</span>
                 </button>
 
@@ -538,7 +515,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   disabled={loading}
                   className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  <ArrowClockwise className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -568,7 +545,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-slate-400">
                       <div className="inline-flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" />
+                        <ArrowClockwise className="w-4 h-4 animate-spin text-emerald-400" />
                         <span>Memuat data pengguna dari Firestore...</span>
                       </div>
                     </td>
@@ -666,7 +643,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             </div>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-medium">
-                              <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+                              <WarningCircle className="w-3 h-3 text-amber-400 shrink-0" />
                               <span>Belum Pernah Login</span>
                             </span>
                           )}
@@ -685,15 +662,15 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {/* Edit User Profile button */}
+                            {/* Pencil User Profile button */}
                             <button
                               type="button"
                               onClick={() => setEditingUser(u)}
                               className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[11px] font-semibold border border-emerald-500/30 transition-colors flex items-center gap-1 cursor-pointer"
-                              title="Edit Profil & Hak Akses"
+                              title="Pencil Profil & Hak Akses"
                             >
-                              <Edit className="w-3 h-3" />
-                              <span>Edit Profil</span>
+                              <Pencil className="w-3 h-3" />
+                              <span>Pencil Profil</span>
                             </button>
 
                             {/* Suspend / Activate toggle */}
@@ -723,7 +700,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                                 className="px-2.5 py-1 rounded-lg bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white text-[11px] font-semibold border border-rose-500/30 transition-colors flex items-center gap-1 cursor-pointer"
                                 title="Hapus Total Akun & Semua Data DB"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash className="w-3 h-3" />
                                 <span>Hapus Total (Clean DB)</span>
                               </button>
                             )}
@@ -758,7 +735,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <div className="space-y-4 text-slate-800">
             {loadingStats ? (
               <div className="py-8 text-center text-slate-500">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
+                <ArrowClockwise className="w-6 h-6 animate-spin mx-auto text-emerald-600 mb-2" />
                 <span className="text-xs">Menghitung dokumen di Firestore...</span>
               </div>
             ) : userStats ? (
@@ -825,7 +802,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <div className="space-y-4 text-slate-800">
             <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs space-y-2">
               <div className="flex items-center gap-2 text-rose-800 font-bold">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                <Warning className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>TINDAKAN PERMANEN & BERDAMPAK BESAR</span>
               </div>
               <p className="text-rose-900 leading-relaxed">
@@ -870,12 +847,12 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               >
                 {purging ? (
                   <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <ArrowClockwise className="w-3.5 h-3.5 animate-spin" />
                     <span>Menghapus Dokumen dari DB...</span>
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash className="w-3.5 h-3.5" />
                     <span>Hapus Total Sekarang</span>
                   </>
                 )}
@@ -902,7 +879,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <div className="space-y-4 text-slate-800">
             <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs space-y-1.5">
               <div className="flex items-center gap-2 text-amber-800 font-bold">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                <Warning className="w-4 h-4 shrink-0 text-amber-600" />
                 <span>Pembersihan Residu Data Akun yang Telah Dihapus</span>
               </div>
               <p className="text-amber-900 leading-relaxed">
@@ -915,7 +892,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Search className="w-3.5 h-3.5 text-amber-600" />
+                    <MagnifyingGlass className="w-3.5 h-3.5 text-amber-600" />
                     Deteksi Otomatis Dokumen Yatim
                   </h4>
                   <p className="text-[11px] text-slate-500">
@@ -930,12 +907,12 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 >
                   {scanningOrphans ? (
                     <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <ArrowClockwise className="w-3.5 h-3.5 animate-spin" />
                       <span>Memindai Firestore...</span>
                     </>
                   ) : (
                     <>
-                      <Search className="w-3.5 h-3.5" />
+                      <MagnifyingGlass className="w-3.5 h-3.5" />
                       <span>{hasScanned ? 'Pindai Ulang Database' : 'Mulai Pindai Residu Otomatis'}</span>
                     </>
                   )}
@@ -945,7 +922,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               {/* Scan Results */}
               {hasScanned && detectedOrphans.length === 0 && (
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center gap-2 text-emerald-800">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                   <div>
                     <span className="font-bold">Database Bersih & Rapi! </span>
                     <span className="text-[11px] text-emerald-700">Tidak ada residu akun yatim yang terdeteksi di Firestore. Seluruh dokumen terhubung dengan akun pengguna aktif.</span>
@@ -957,7 +934,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 <div className="space-y-2.5 pt-1">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4 text-rose-600" />
+                      <WarningCircle className="w-4 h-4 text-rose-600" />
                       Terdeteksi {detectedOrphans.length} Akun Yatim Berisi Dokumen:
                     </span>
                     <button
@@ -968,12 +945,12 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     >
                       {sweepingAll ? (
                         <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <ArrowClockwise className="w-3.5 h-3.5 animate-spin" />
                           <span>Menyapu Seluruh Akun...</span>
                         </>
                       ) : (
                         <>
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" />
                           <span>Sapu Bersih Semua Sekaligus</span>
                         </>
                       )}
@@ -1034,12 +1011,12 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 >
                   {sweepingResidual ? (
                     <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <ArrowClockwise className="w-3.5 h-3.5 animate-spin" />
                       <span>Menyapu...</span>
                     </>
                   ) : (
                     <>
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash className="w-3.5 h-3.5" />
                       <span>Sapu UID Manual</span>
                     </>
                   )}

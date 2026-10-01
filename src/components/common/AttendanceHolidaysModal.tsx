@@ -3,20 +3,7 @@ import { Modal } from './Modal';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { AttendanceSettings, CustomHoliday, SchoolDaysOption } from '../../types';
 import { useToast } from '../../context/ToastContext';
-import { 
-  Calendar, 
-  Plus, 
-  Trash2, 
-  CheckCircle2, 
-  AlertCircle, 
-  CalendarDays, 
-  Clock, 
-  Sparkles, 
-  Check, 
-  Save, 
-  Info,
-  CalendarRange
-} from 'lucide-react';
+import { CalendarBlank, Plus, Trash, CheckCircle, WarningCircle, CalendarDots, Clock, Sparkle, Check, FloppyDisk, Info } from '@phosphor-icons/react';
 
 interface AttendanceHolidaysModalProps {
   isOpen: boolean;
@@ -102,7 +89,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
     'Libur Semester Genap',
   ];
 
-  // Save all settings
+  // FloppyDisk all settings
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -144,7 +131,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
       onClose={onClose}
       title="Pengaturan Hari Belajar & Kalender Libur"
       subtitle="Atur hari efektif belajar mingguan (5 vs 6 hari) serta jadwal hari libur kustom madrasah"
-      icon={<Calendar className="w-5 h-5 text-orange-500 dark:text-cyan-400" />}
+      icon={<CalendarBlank className="w-5 h-5 text-orange-500 dark:text-cyan-400" />}
       maxWidth="max-w-2xl"
     >
       <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
@@ -233,7 +220,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
         <div className="space-y-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <CalendarRange className="w-4 h-4 text-accent-text" />
+              <CalendarDots className="w-4 h-4 text-accent-text" />
               Daftar Hari Libur Kustom Madrasah & Nasional
             </span>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -324,7 +311,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
 
             {formError && (
               <p className="text-[11px] text-rose-500 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5" />
+                <WarningCircle className="w-3.5 h-3.5" />
                 {formError}
               </p>
             )}
@@ -357,7 +344,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
 
             {holidays.length === 0 ? (
               <div className="p-6 rounded-xl border border-dashed border-slate-200 dark:border-[#232838] text-center text-slate-400 text-xs bg-slate-50/50 dark:bg-[#0c0e15]/40">
-                <CalendarDays className="w-6 h-6 mx-auto mb-1.5 text-slate-300 dark:text-slate-600" />
+                <CalendarDots className="w-6 h-6 mx-auto mb-1.5 text-slate-300 dark:text-slate-600" />
                 <p>Belum ada hari libur kustom yang ditambahkan.</p>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                   Tambahkan jadwal libur di atas untuk menandai tanggal non-efektif di modul presensi guru dan wali kelas.
@@ -374,7 +361,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/40 flex items-center justify-center shrink-0">
-                          <Calendar className="w-3.5 h-3.5" />
+                          <CalendarBlank className="w-3.5 h-3.5" />
                         </span>
                         <div className="min-w-0">
                           <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
@@ -394,7 +381,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
                         title="Hapus hari libur ini"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash className="w-4 h-4" />
                       </button>
                     </div>
                   );
@@ -428,7 +415,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
             disabled={saving}
             className="btn-primary px-5 py-2.5 disabled:opacity-50 rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <Save className="w-4 h-4" />
+            <FloppyDisk className="w-4 h-4" />
             {saving ? 'Menyimpan...' : 'Simpan Pengaturan'}
           </button>
         </div>

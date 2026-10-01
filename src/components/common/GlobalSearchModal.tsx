@@ -1,26 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
-import { 
-  Search, 
-  Layers, 
-  CalendarCheck2, 
-  CheckSquare, 
-  Award, 
-  Users, 
-  BarChart3, 
-  FileSpreadsheet, 
-  StickyNote, 
-  Printer, 
-  BookOpen, 
-  ArrowRight,
-  User,
-  GraduationCap,
-  Building2,
-  Database,
-  Sliders,
-  X
-} from 'lucide-react';
+import { MagnifyingGlass, Stack, CalendarCheck, CheckSquare, Medal, Users, ChartBar, FileCsv, Notepad, Printer, BookOpen, ArrowRight, User, GraduationCap, Buildings, Database, Sliders, X } from '@phosphor-icons/react';
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
@@ -60,24 +41,24 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   // Static Navigation Items
   const staticItems: SearchResultItem[] = [
-    { id: 'nav-dashboard', title: 'Dashboard Utama', subtitle: 'Ikhtisar aktivitas mengajar & statistik', category: 'MENU', icon: Layers, route: 'dashboard' },
+    { id: 'nav-dashboard', title: 'Dashboard Utama', subtitle: 'Ikhtisar aktivitas mengajar & statistik', category: 'MENU', icon: Stack, route: 'dashboard' },
     { id: 'nav-teaching', title: 'Pengajaran Saya', subtitle: 'Daftar penugasan rombel dan mapel aktif', category: 'MENU', icon: BookOpen, route: 'teaching' },
-    { id: 'nav-meetings', title: 'Pertemuan & Jurnal KBM', subtitle: 'Catatan agenda mengajar & materi', category: 'MENU', icon: CalendarCheck2, route: 'meetings' },
+    { id: 'nav-meetings', title: 'Pertemuan & Jurnal KBM', subtitle: 'Catatan agenda mengajar & materi', category: 'MENU', icon: CalendarCheck, route: 'meetings' },
     { id: 'nav-attendance-subject', title: 'Presensi Mata Pelajaran', subtitle: 'Absensi cepat pertemuan mapel H/S/I/A/D', category: 'MENU', icon: CheckSquare, route: 'attendance-subject' },
-    { id: 'nav-grades', title: 'Buku Nilai & Asesmen', subtitle: 'Penginputan nilai formatif, sumatif & bobot', category: 'MENU', icon: Award, route: 'grades' },
+    { id: 'nav-grades', title: 'Buku Nilai & Asesmen', subtitle: 'Penginputan nilai formatif, sumatif & bobot', category: 'MENU', icon: Medal, route: 'grades' },
     { id: 'nav-homeroom-dashboard', title: 'Dashboard Wali Kelas', subtitle: 'Ringkasan kelas binaan & absensi', category: 'MENU', icon: Users, route: 'homeroom-dashboard' },
     { id: 'nav-homeroom-attendance-daily', title: 'Presensi Harian Kelas', subtitle: 'Absensi harian rombongan belajar', category: 'MENU', icon: CheckSquare, route: 'homeroom-attendance-daily' },
-    { id: 'nav-homeroom-attendance-monthly', title: 'Presensi Bulanan (Matriks)', subtitle: 'Buku absensi bulanan tanggal 1-31', category: 'MENU', icon: BarChart3, route: 'homeroom-attendance-monthly' },
+    { id: 'nav-homeroom-attendance-monthly', title: 'Presensi Bulanan (Matriks)', subtitle: 'Buku absensi bulanan tanggal 1-31', category: 'MENU', icon: ChartBar, route: 'homeroom-attendance-monthly' },
     { id: 'nav-homeroom-students', title: 'Data Siswa Binaan', subtitle: 'Daftar biodata siswa kelas wali', category: 'MENU', icon: Users, route: 'homeroom-students' },
-    { id: 'nav-homeroom-notes', title: 'Catatan & Konseling Siswa', subtitle: 'Jurnal kejadian & bimbingan siswa', category: 'MENU', icon: StickyNote, route: 'homeroom-notes' },
-    { id: 'nav-reports-attendance', title: 'Laporan Rekap Presensi', subtitle: 'Cetak dokumen rekap kehadiran resmi', category: 'LAPORAN', icon: BarChart3, route: 'reports-attendance' },
-    { id: 'nav-reports-grades', title: 'Laporan Daftar Nilai', subtitle: 'Cetak daftar nilai per mapel', category: 'LAPORAN', icon: Award, route: 'reports-grades' },
-    { id: 'nav-reports-legger', title: 'Legger Nilai Rombel', subtitle: 'Matriks legger nilai terpadu & ranking', category: 'LAPORAN', icon: FileSpreadsheet, route: 'reports-legger' },
-    { id: 'nav-reports-journal', title: 'Laporan Jurnal Mengajar', subtitle: 'Buku rekapitulasi KBM semester', category: 'LAPORAN', icon: CalendarCheck2, route: 'reports-journal' },
+    { id: 'nav-homeroom-notes', title: 'Catatan & Konseling Siswa', subtitle: 'Jurnal kejadian & bimbingan siswa', category: 'MENU', icon: Notepad, route: 'homeroom-notes' },
+    { id: 'nav-reports-attendance', title: 'Laporan Rekap Presensi', subtitle: 'Cetak dokumen rekap kehadiran resmi', category: 'LAPORAN', icon: ChartBar, route: 'reports-attendance' },
+    { id: 'nav-reports-grades', title: 'Laporan Daftar Nilai', subtitle: 'Cetak daftar nilai per mapel', category: 'LAPORAN', icon: Medal, route: 'reports-grades' },
+    { id: 'nav-reports-legger', title: 'Legger Nilai Rombel', subtitle: 'Matriks legger nilai terpadu & ranking', category: 'LAPORAN', icon: FileCsv, route: 'reports-legger' },
+    { id: 'nav-reports-journal', title: 'Laporan Jurnal Mengajar', subtitle: 'Buku rekapitulasi KBM semester', category: 'LAPORAN', icon: CalendarCheck, route: 'reports-journal' },
     { id: 'nav-reports-center', title: 'Pusat Format Dokumen & Cetak', subtitle: 'Report Center & pengaturan kop', category: 'LAPORAN', icon: Printer, route: 'reports-center' },
     { id: 'nav-master-students', title: 'Master Data Siswa & Rombel', subtitle: 'Database induk seluruh siswa madrasah', category: 'MENU', icon: GraduationCap, route: 'master-students' },
     { id: 'nav-settings-profile', title: 'Profil Guru & Tanda Tangan', subtitle: 'Biodata & tanda tangan digital resmi', category: 'PENGATURAN', icon: User, route: 'settings-profile' },
-    { id: 'nav-settings-school', title: 'Identitas Madrasah & Stempel', subtitle: 'Nama lembaga, NSM, NPSN & Kepala', category: 'PENGATURAN', icon: Building2, route: 'settings-school' },
+    { id: 'nav-settings-school', title: 'Identitas Madrasah & Stempel', subtitle: 'Nama lembaga, NSM, NPSN & Kepala', category: 'PENGATURAN', icon: Buildings, route: 'settings-school' },
     { id: 'nav-settings-document', title: 'Format Dokumen & Kop Surat', subtitle: 'Ukuran kertas, margin & kop Kemenag', category: 'PENGATURAN', icon: Printer, route: 'settings-document' },
     { id: 'nav-settings-backup', title: 'Backup & Restore Database', subtitle: 'Ekspor/impor seluruh data JSON 1-klik', category: 'PENGATURAN', icon: Database, route: 'settings-backup' },
     { id: 'nav-settings-stats', title: 'Kesehatan Database Firestore', subtitle: 'Metrik latensi & jumlah dokumen', category: 'PENGATURAN', icon: Sliders, route: 'settings-stats' },
@@ -154,9 +135,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         className="bg-white dark:bg-[#141722] rounded-3xl border border-slate-200/90 dark:border-[#232838] shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
-        {/* Search Bar Input */}
+        {/* MagnifyingGlass Bar Input */}
         <div className="p-4 border-b border-slate-100 dark:border-[#232838] flex items-center gap-3">
-          <Search className="w-5 h-5 text-orange-500 dark:text-cyan-400 shrink-0" />
+          <MagnifyingGlass className="w-5 h-5 text-orange-500 dark:text-cyan-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"

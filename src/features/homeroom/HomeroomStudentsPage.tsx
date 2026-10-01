@@ -9,28 +9,7 @@ import { StudentExamCardModal } from '../students/StudentExamCardModal';
 import { StudentCustomPrintModal, StudentPrintItem } from '../students/StudentCustomPrintModal';
 import { GenderBadge, GenderIcon } from '../../components/common/GenderIcon';
 import { SkeletonTable } from '../../components/common/Skeleton';
-import { 
-  Users, 
-  Search, 
-  FileSpreadsheet, 
-  UserCheck, 
-  Phone, 
-  Home, 
-  Calendar, 
-  StickyNote, 
-  Plus, 
-  Award, 
-  ShieldAlert, 
-  Eye, 
-  Filter, 
-  CheckCircle2, 
-  AlertCircle,
-  Printer,
-  CreditCard,
-  FileText,
-  UserX,
-  Layers
-} from 'lucide-react';
+import { Users, MagnifyingGlass, FileCsv, UserCheck, Phone, House, CalendarBlank, Notepad, Plus, Medal, ShieldWarning, Eye, Funnel, CheckCircle, WarningCircle, Printer, CreditCard, FileText, UserMinus, Stack } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 
@@ -405,7 +384,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               onClick={handleExportExcel}
               className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <FileCsv className="w-3.5 h-3.5" />
               Download Excel (.xlsx)
             </button>
             <button
@@ -423,7 +402,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       {!currentClass ? (
         <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
-            <UserX className="w-8 h-8" />
+            <UserMinus className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
             Tidak Ada Kelas Binaan Terpilih
@@ -444,13 +423,13 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               onClick={() => onNavigate && onNavigate('master-classes')}
               className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
-              <Layers className="w-4 h-4" /> Atur Wali di Master Kelas
+              <Stack className="w-4 h-4" /> Atur Wali di Master Kelas
             </button>
           </div>
         </div>
       ) : (
         <>
-          {/* Filter & Search Bar */}
+          {/* Funnel & MagnifyingGlass Bar */}
           <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
               {/* Class Select */}
@@ -474,7 +453,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                 </select>
               </div>
 
-              {/* Gender Filter */}
+              {/* Gender Funnel */}
               <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
                 <button
                   type="button"
@@ -508,9 +487,9 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               </div>
             </div>
 
-            {/* Search */}
+            {/* MagnifyingGlass */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <MagnifyingGlass className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
@@ -716,7 +695,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <h4 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                  <StickyNote className="w-4 h-4 text-purple-600" />
+                  <Notepad className="w-4 h-4 text-purple-600" />
                   Riwayat Catatan Pembinaan & Karakter
                 </h4>
                 <span className="text-[11px] text-slate-500">

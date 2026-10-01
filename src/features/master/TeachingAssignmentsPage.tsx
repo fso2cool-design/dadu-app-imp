@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { Briefcase, Plus, Edit2, Trash2, Calendar, Clock, MapPin, Layers, Archive, ArchiveRestore, Lock, AlertCircle } from 'lucide-react';
+import { Briefcase, Plus, PencilSimple, Trash, CalendarBlank, Clock, MapPin, Stack, Archive, ArrowCounterClockwise, Lock, WarningCircle } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -272,7 +272,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
       {filteredAssignments.length === 0 ? (
         <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-10 text-center">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
-            <Layers className="w-6 h-6" />
+            <Stack className="w-6 h-6" />
           </div>
           <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">
             {filterTab === 'ARCHIVED' ? 'Tidak ada penugasan diarsipkan' : 'Belum ada plotting pengajaran'}
@@ -325,7 +325,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                   {/* Schedule info block */}
                   <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800 space-y-1.5 text-xs">
                     <div className="flex items-center gap-2 text-slate-700 dark:text-zinc-300">
-                      <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <CalendarBlank className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span className="font-semibold">
                         {assign.dayOfWeek ? `Hari ${assign.dayOfWeek}` : <span className="text-slate-400 dark:text-zinc-500 italic font-normal">Hari belum diatur</span>}
                       </span>
@@ -360,7 +360,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                           className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
                           title="Edit Jadwal & Penugasan"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <PencilSimple className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
@@ -380,7 +380,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                         className="px-2 py-1 rounded-lg text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1 transition-colors cursor-pointer"
                         title="Aktifkan Kembali"
                       >
-                        <ArchiveRestore className="w-3.5 h-3.5" />
+                        <ArrowCounterClockwise className="w-3.5 h-3.5" />
                         <span>Aktifkan</span>
                       </button>
                     )}
@@ -391,7 +391,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                       title="Hapus Penugasan"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -567,7 +567,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <WarningCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-800 dark:text-amber-300">
               <p className="font-bold">Penugasan memiliki riwayat transaksi akademik</p>
               <p className="mt-1 leading-relaxed">

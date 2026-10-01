@@ -1,6 +1,6 @@
 import React from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { Layers, CalendarCheck2, CheckSquare, Award, Users, BarChart3, FileSpreadsheet, StickyNote, Printer } from 'lucide-react';
+import { Stack, CalendarCheck, CheckSquare, Medal, Users, ChartBar, FileCsv, Notepad, Printer } from '@phosphor-icons/react';
 import { Badge } from './Badge';
 
 interface PhaseShellPageProps {
@@ -15,14 +15,14 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
     'teaching': {
       title: 'Pengajaran Saya',
       subtitle: 'Daftar penugasan kelas dan mata pelajaran aktif',
-      icon: Layers,
+      icon: Stack,
       phase: 'Phase 3 — Teacher Module',
       desc: 'Modul ini menampilkan daftar detail pertemuan, absensi, dan penilaian per kelas yang Anda ajar.',
     },
     'meetings': {
       title: 'Pertemuan & Jurnal Mengajar',
       subtitle: 'Catatan agenda kegiatan belajar, materi, dan tujuan pembelajaran',
-      icon: CalendarCheck2,
+      icon: CalendarCheck,
       phase: 'Phase 3 — Teacher Module',
       desc: 'Pencatatan jurnal per pertemuan terhubung langsung dengan kehadiran siswa pada kelas & mapel aktif.',
     },
@@ -36,7 +36,7 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
     'grades': {
       title: 'Nilai Akademik & Penilaian',
       subtitle: 'Input tugas, kuis, praktik, sumatif & formula perhitungan otomatis',
-      icon: Award,
+      icon: Medal,
       phase: 'Phase 5 — Assessment',
       desc: 'Spreadsheet modern dengan dukungan paste Excel, weighted average calculation engine, dan validasi nilai.',
     },
@@ -57,49 +57,49 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
     'homeroom-attendance-monthly': {
       title: 'Presensi Bulanan (Matriks)',
       subtitle: 'Tampilan buku presensi bulanan tanggal 1 s.d. 31',
-      icon: BarChart3,
+      icon: ChartBar,
       phase: 'Phase 4 — Homeroom Module',
       desc: 'Matriks kehadiran bulanan interaktif dengan rekap otomatis per siswa.',
     },
     'homeroom-students': {
       title: 'Data Siswa Kelas',
       subtitle: 'Daftar induk siswa, biodata, NIS/NISN, dan status enrollment',
-      icon: FileSpreadsheet,
+      icon: FileCsv,
       phase: 'Phase 4 — Homeroom Module',
       desc: 'Profil lengkap siswa, rekap kehadiran individual, catatan kepribadian, dan import Excel.',
     },
     'homeroom-notes': {
       title: 'Catatan & Konseling Siswa',
       subtitle: 'Pencatatan pembinaan karakter, prestasi, dan kejadian khusus',
-      icon: StickyNote,
+      icon: Notepad,
       phase: 'Phase 4 — Homeroom Module',
       desc: 'Log catatan berkategori (Akademik, Perilaku, Prestasi, Kedisiplinan) dengan penanda penting.',
     },
     'reports-attendance': {
       title: 'Laporan Rekap Presensi',
       subtitle: 'Dokumen rekap presensi mapel dan presensi harian',
-      icon: BarChart3,
+      icon: ChartBar,
       phase: 'Phase 6 — Reports & Legger',
       desc: 'Rekapitulasi kehadiran siap cetak & ekspor dengan kop madrasah dan tanda tangan.',
     },
     'reports-grades': {
       title: 'Laporan Daftar Nilai',
       subtitle: 'Daftar nilai akhir per komponen penilaian',
-      icon: Award,
+      icon: Medal,
       phase: 'Phase 6 — Reports & Legger',
       desc: 'Format cetak daftar nilai resmi per semester untuk pengarsipan kurikulum.',
     },
     'reports-legger': {
       title: 'Legger Nilai Akademik',
       subtitle: 'Tabel legger terpadu hasil olahan seluruh nilai',
-      icon: BarChart3,
+      icon: ChartBar,
       phase: 'Phase 6 — Reports & Legger',
       desc: 'Legger otomatis tanpa input ulang, siap ekspor ke Excel dan PDF.',
     },
     'reports-journal': {
       title: 'Laporan Jurnal Mengajar',
       subtitle: 'Rekapitulasi jurnal kegiatan belajar mengajar per semester',
-      icon: CalendarCheck2,
+      icon: CalendarCheck,
       phase: 'Phase 6 — Reports & Legger',
       desc: 'Dokumen bukti fisik keterlaksanaan kurikulum dan materi pembelajaran.',
     },
@@ -122,7 +122,7 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
   const item = configs[route] || {
     title: 'Halaman Modul',
     subtitle: 'Modul Dadu Workspace',
-    icon: Layers,
+    icon: Stack,
     phase: 'Pengembangan Bertahap',
     desc: 'Modul ini siap dikembangkan pada tahapan fase berikutnya sesuai arsitektur master prompt.',
   };

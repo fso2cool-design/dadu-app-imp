@@ -4,7 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
 import { Modal } from '../../components/common/Modal';
 import { Enrollment } from '../../types';
-import { ArrowRightLeft, AlertCircle } from 'lucide-react';
+import { ArrowsLeftRight, WarningCircle } from '@phosphor-icons/react';
 
 interface TransferClassModalProps {
   isOpen: boolean;
@@ -84,7 +84,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
       <form onSubmit={handleTransfer} className="space-y-4">
         {errorMessage && (
           <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <WarningCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Gagal Mutasi Kelas</p>
               <p className="text-[11px] mt-0.5">{errorMessage}</p>
@@ -170,7 +170,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
             disabled={loading || availableClasses.length === 0}
             className="px-5 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5" />
+            <ArrowsLeftRight className="w-3.5 h-3.5" />
             {loading ? 'Memindahkan...' : 'Konfirmasi Pindah Kelas'}
           </button>
         </div>

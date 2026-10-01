@@ -1,17 +1,17 @@
 import React from 'react';
-import { LucideIcon, Inbox } from 'lucide-react';
+import { Icon, Tray } from '@phosphor-icons/react';
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
+  icon?: Icon;
   title: string;
   description?: string;
   actionText?: string;
   onAction?: () => void;
-  actionIcon?: LucideIcon;
+  actionIcon?: Icon;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon: Icon = Inbox,
+  icon: Icon = Tray,
   title,
   description,
   actionText,

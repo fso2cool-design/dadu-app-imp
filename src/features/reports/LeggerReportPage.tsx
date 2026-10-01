@@ -29,25 +29,7 @@ import {
   DocumentSettings 
 } from '../../types';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { 
-  Table, 
-  Search, 
-  TrendingUp, 
-  Trophy, 
-  Users, 
-  FileSpreadsheet, 
-  Layers, 
-  ArrowUpDown,
-  Sparkles,
-  CalendarCheck,
-  RefreshCw,
-  CheckCircle2,
-  Printer,
-  FileText,
-  Filter,
-  GraduationCap,
-  Share2
-} from 'lucide-react';
+import { Table, MagnifyingGlass, TrendUp, Trophy, Users, FileCsv, Stack, ArrowsDownUp, Sparkle, CalendarCheck, ArrowClockwise, CheckCircle, Printer, FileText, Funnel, GraduationCap, ShareNetwork } from '@phosphor-icons/react';
 
 interface StudentLeggerRow {
   enrollmentId: string;
@@ -540,7 +522,7 @@ export const LeggerReportPage: React.FC = () => {
             disabled={calculatedRows.length === 0}
             className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
-            <Share2 className="w-4 h-4" />
+            <ShareNetwork className="w-4 h-4" />
             <span>Bagikan Tautan Publik</span>
           </button>
 
@@ -556,7 +538,7 @@ export const LeggerReportPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Control & Filter Bar (Hidden on Print) */}
+      {/* Control & Funnel Bar (Hidden on Print) */}
       <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -576,7 +558,7 @@ export const LeggerReportPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Status Filter */}
+            {/* Status Funnel */}
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Status:</label>
               <select
@@ -623,13 +605,13 @@ export const LeggerReportPage: React.FC = () => {
               title="Perbarui data legger & presensi"
               className="p-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-[#232838] bg-slate-50 dark:bg-[#0c0e15] transition-all cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-orange-600 dark:text-cyan-400' : ''}`} />
+              <ArrowClockwise className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-orange-600 dark:text-cyan-400' : ''}`} />
             </button>
           </div>
 
-          {/* Search Input */}
+          {/* MagnifyingGlass Input */}
           <div className="relative min-w-[200px]">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari nama atau NIS..."
@@ -647,7 +629,7 @@ export const LeggerReportPage: React.FC = () => {
               <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-cyan-400 block">Rata-rata Rombel</span>
               <span className="text-lg font-black text-orange-950 dark:text-cyan-200">{classStats.overallAvg}</span>
             </div>
-            <TrendingUp className="w-6 h-6 text-orange-400 dark:text-cyan-400" />
+            <TrendUp className="w-6 h-6 text-orange-400 dark:text-cyan-400" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-500/40 flex items-center justify-between">
@@ -679,7 +661,7 @@ export const LeggerReportPage: React.FC = () => {
                 {filteredRows.length > 0 ? `${Math.round((classStats.passedCount / filteredRows.length) * 100)}% Tuntas` : '0%'}
               </span>
             </div>
-            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            <CheckCircle className="w-6 h-6 text-emerald-500" />
           </div>
         </div>
       </div>
@@ -759,7 +741,7 @@ export const LeggerReportPage: React.FC = () => {
                       <td className="border border-slate-900 px-2 py-1 text-center font-mono text-[11px]">{r.nis}</td>
                       <td className="border border-slate-900 px-3 py-1 font-semibold text-slate-900 flex items-center justify-between gap-1.5">
                         <div className="flex items-center gap-1.5">
-                          {isTopThree && <Sparkles className="w-3 h-3 text-amber-500 shrink-0 no-print" />}
+                          {isTopThree && <Sparkle className="w-3 h-3 text-amber-500 shrink-0 no-print" />}
                           <span>{r.name}</span>
                         </div>
                         {r.status !== 'ACTIVE' && (

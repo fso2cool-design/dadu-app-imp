@@ -1,15 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { 
-  X, 
-  PenTool, 
-  RotateCcw, 
-  Trash2, 
-  Check, 
-  Upload, 
-  Image as ImageIcon,
-  Sparkles,
-  Info
-} from 'lucide-react';
+import { X, PenNib, ArrowCounterClockwise, Trash, Check, Upload, Image as ImageIcon, Sparkle, Info } from '@phosphor-icons/react';
 
 interface SignaturePadModalProps {
   isOpen: boolean;
@@ -200,7 +190,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <PenTool className="w-5 h-5" />
+              <PenNib className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-slate-800">{title}</h3>
@@ -227,7 +217,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <PenTool className="w-3.5 h-3.5" />
+            <PenNib className="w-3.5 h-3.5" />
             <span>Goreskan Tanda Tangan (Canvas)</span>
           </button>
 
@@ -300,7 +290,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                     className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
                     title="Undo goresan"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <ArrowCounterClockwise className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
@@ -308,7 +298,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                     className="p-1.5 rounded-lg border border-slate-200 text-rose-600 hover:bg-rose-50 cursor-pointer"
                     title="Hapus semua"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -329,7 +319,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
                 {!hasDrawn && (
                   <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-400 text-xs">
-                    <PenTool className="w-6 h-6 mb-1 text-slate-300 animate-pulse" />
+                    <PenNib className="w-6 h-6 mb-1 text-slate-300 animate-pulse" />
                     <span>Goreskan tanda tangan Anda di area ini</span>
                     <span className="text-[10px] text-slate-400 mt-0.5">(Gunakan mouse, trackpad, atau layar sentuh)</span>
                   </div>

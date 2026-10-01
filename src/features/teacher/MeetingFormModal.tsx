@@ -5,7 +5,7 @@ import { container } from '../../application/ports/container';
 const { create: createMeeting, update: updateMeeting, getAll: getMeetings } = container.repos.meeting;
 import { Modal } from '../../components/common/Modal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
-import { CalendarCheck2, Clock, BookOpen, FileText, Sparkles, CheckCircle2, AlertCircle, Landmark } from 'lucide-react';
+import { CalendarCheck, Clock, BookOpen, FileText, Sparkle, CheckCircle, WarningCircle, Bank } from '@phosphor-icons/react';
 
 interface MeetingFormModalProps {
   isOpen: boolean;
@@ -254,7 +254,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         {errorMsg && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
@@ -287,7 +287,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
-            <Landmark className="w-3.5 h-3.5" />
+            <Bank className="w-3.5 h-3.5" />
             <span>Kegiatan Madrasah / Non-KBM</span>
           </button>
         </div>
@@ -295,7 +295,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
         {/* Banner Penjelasan jika Non-KBM */}
         {meetingType === 'MADRASAH_ACTIVITY' && (
           <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2">
-            <Sparkles className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <Sparkle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div className="leading-relaxed">
               <strong>Mode Kegiatan Madrasah:</strong> Digunakan saat jam pelajaran digantikan oleh agenda resmi (Upacara, Rapat Dinas, AKMI/ANBK, PHBI, dll). Jam ini tetap dihitung sah dalam riwayat mengajar tanpa mewajibkan pengisian materi kurikulum atau capaian pembelajaran (CP/TP).
             </div>
@@ -362,7 +362,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
             />
             {holidayInfo.isHoliday && (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <WarningCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>Libur: {holidayInfo.reason}</span>
               </p>
             )}
@@ -548,7 +548,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
             disabled={loading}
             className="px-5 py-2 rounded-xl btn-primary text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
           >
-            <CalendarCheck2 className="w-3.5 h-3.5" />
+            <CalendarCheck className="w-3.5 h-3.5" />
             {loading ? 'Menyimpan...' : (meetingToEdit ? 'Simpan Perubahan' : 'Simpan Jurnal Agenda')}
           </button>
         </div>

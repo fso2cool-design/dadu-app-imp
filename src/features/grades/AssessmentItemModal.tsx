@@ -6,7 +6,7 @@ import { AssessmentItem, AssessmentCategory, TeachingAssignment } from '../../ty
 import { container } from '../../application/ports/container';
 const { createItem: createAssessmentItem, updateItem: updateAssessmentItem } = container.repos.assessment;
 import { getTodayISO } from '../../utils/date';
-import { Award, Calendar, Percent, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Medal, CalendarBlank, Percent, FileText, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 
 interface AssessmentItemModalProps {
   isOpen: boolean;
@@ -230,14 +230,14 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         {isArchivedYear && (
           <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 rounded-xl flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <WarningCircle className="w-4 h-4 shrink-0" />
             <span>Tahun Ajaran ini telah diarsipkan. Kolom penilaian berstatus Read-Only dan tidak dapat diubah.</span>
           </div>
         )}
 
         {error && (
           <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-200 rounded-xl flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <WarningCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -310,7 +310,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
 
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <CalendarBlank className="w-3.5 h-3.5 text-slate-400" />
               Tanggal Pelaksanaan
             </label>
             <input
@@ -345,7 +345,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
 
           <div>
             <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <Award className="w-3.5 h-3.5 text-slate-400" />
+              <Medal className="w-3.5 h-3.5 text-slate-400" />
               Skor Maksimum (Skala)
             </label>
             <input
@@ -416,7 +416,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               <span>Menyimpan...</span>
             ) : (
               <>
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4" />
                 <span>{itemToEdit ? 'Perbarui Kolom' : 'Buat Kolom Penilaian'}</span>
               </>
             )}

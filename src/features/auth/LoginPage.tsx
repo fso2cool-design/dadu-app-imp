@@ -1,23 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-import { 
-  ChevronLeft, 
-  AlertCircle, 
-  CheckCircle2, 
-  Lock, 
-  Mail, 
-  User as UserIcon,
-  BookOpen, 
-  GraduationCap, 
-  Play, 
-  Eye, 
-  EyeOff, 
-  LogIn, 
-  UserPlus, 
-  ShieldCheck,
-  Check,
-  CalendarCheck
-} from 'lucide-react';
+import { CaretLeft, WarningCircle, CheckCircle, Lock, Envelope, User as UserIcon, BookOpen, GraduationCap, Play, Eye, EyeSlash, SignIn, UserPlus, ShieldCheck, Check, CalendarCheck } from '@phosphor-icons/react';
 import { WorkflowDemoModal } from './WorkflowDemoModal';
 import { AppLogo } from '../../components/common/AppLogo';
 import { KemenagLogo } from '../../components/common/KemenagLogo';
@@ -149,7 +132,7 @@ export const LoginPage: React.FC = () => {
                 onClick={() => { setMode('login'); setError(null); setSuccessMsg(null); }}
                 className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <CaretLeft className="w-3.5 h-3.5" />
                 <span>Kembali ke halaman masuk</span>
               </button>
             )}
@@ -158,7 +141,7 @@ export const LoginPage: React.FC = () => {
           {/* Error Notice */}
           {error && (
             <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-700 dark:text-rose-300 text-xs animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
+              <WarningCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
               <span className="leading-snug">{error}</span>
             </div>
           )}
@@ -166,7 +149,7 @@ export const LoginPage: React.FC = () => {
           {/* Success Notice */}
           {successMsg && (
             <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-xs animate-in fade-in duration-200">
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
               <span className="leading-snug">{successMsg}</span>
             </div>
           )}
@@ -218,7 +201,7 @@ export const LoginPage: React.FC = () => {
                 Alamat Email <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+                <Envelope className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
                 <input
                   id="auth-email"
                   type="email"
@@ -255,7 +238,7 @@ export const LoginPage: React.FC = () => {
                     title={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
                     aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -320,7 +303,7 @@ export const LoginPage: React.FC = () => {
                   </span>
                 ) : mode === 'login' ? (
                   <>
-                    <LogIn className="w-4 h-4" />
+                    <SignIn className="w-4 h-4" />
                     <span>Masuk ke Akun</span>
                   </>
                 ) : mode === 'signup' ? (

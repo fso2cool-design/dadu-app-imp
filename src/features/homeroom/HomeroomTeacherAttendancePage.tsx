@@ -11,28 +11,7 @@ import {
 } from '../../types';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { emitSyncSuccess, emitSyncError } from '../../utils/syncEvents';
-import {
-  CalendarDays,
-  CheckCircle2,
-  Download,
-  FileSpreadsheet,
-  Printer,
-  RotateCcw,
-  Save,
-  Search,
-  Sparkles,
-  Users,
-  AlertCircle,
-  Briefcase,
-  Plus,
-  Trash2,
-  ArrowRightLeft,
-  UserPlus,
-  BookOpen,
-  Check,
-  Percent,
-  RefreshCw,
-} from 'lucide-react';
+import { CalendarDots, CheckCircle, Download, FileCsv, Printer, ArrowCounterClockwise, FloppyDisk, MagnifyingGlass, Sparkle, Users, WarningCircle, Briefcase, Plus, Trash, ArrowsLeftRight, UserPlus, BookOpen, Check, Percent, ArrowClockwise } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
 import { OfficialDocumentHeader } from '../../components/common/OfficialDocumentHeader';
@@ -62,7 +41,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
   const [selectedSemester, setSelectedSemester] = useState<SemesterType>(activeSemester || 'GANJIL');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
 
-  // Search & Filter
+  // MagnifyingGlass & Filter
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Data State
@@ -499,7 +478,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
               title="Isi otomatis semua guru hadir 100% sesuai target tatap muka"
             >
-              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <Sparkle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Set Semua Hadir Penuh</span>
             </button>
 
@@ -509,7 +488,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
               title="Muat ulang daftar guru dari Master Penugasan jika ada baris yang terhapus"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+              <ArrowClockwise className="w-3.5 h-3.5 text-slate-500" />
               <span>Muat Ulang Master</span>
             </button>
 
@@ -527,7 +506,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               onClick={handleExportExcel}
               className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all"
             >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <FileCsv className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Ekspor Excel</span>
             </button>
 
@@ -636,7 +615,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
           <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Target Pertemuan</span>
-              <CalendarDays className="w-4 h-4 text-violet-500" />
+              <CalendarDots className="w-4 h-4 text-violet-500" />
             </div>
             <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
               {stats.totalTarget} <span className="text-xs font-normal text-slate-500">Tatap Muka</span>
@@ -661,7 +640,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
           <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ada Ketidakhadiran</span>
-              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <WarningCircle className="w-4 h-4 text-amber-500" />
             </div>
             <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white">
               {stats.teachersWithAbsence}{' '}
@@ -694,16 +673,16 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               disabled={saving}
               className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
-              <Save className="w-4 h-4" />
+              <FloppyDisk className="w-4 h-4" />
               <span>{saving ? 'Menyimpan...' : 'Simpan Rekapitulasi Bulan Ini'}</span>
             </button>
           </div>
         </div>
 
-        {/* Search Input */}
+        {/* MagnifyingGlass Input */}
         <div className="flex items-center justify-between gap-3">
           <div className="relative w-full max-w-sm">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <MagnifyingGlass className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
@@ -967,7 +946,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           <div className="flex items-center gap-1 flex-wrap">
                             {missingNotesPrompt && (
                               <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-0.5 mr-1">
-                                <AlertCircle className="w-3 h-3" />
+                                <WarningCircle className="w-3 h-3" />
                                 Ada absensi, mohon isi alasan:
                               </span>
                             )}
@@ -1000,7 +979,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             title="Reset baris ini ke Hadir Penuh"
                             className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#283146] text-slate-400 hover:text-slate-600 cursor-pointer"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <ArrowCounterClockwise className="w-3.5 h-3.5" />
                           </button>
 
                           <button
@@ -1009,7 +988,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             title="Hapus baris ini dari rekapitulasi bulan ini"
                             className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-500 hover:text-rose-600 cursor-pointer"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

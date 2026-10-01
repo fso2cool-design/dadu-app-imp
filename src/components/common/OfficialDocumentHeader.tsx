@@ -1,6 +1,6 @@
 import React from 'react';
 import { SchoolSettings } from '../../types';
-import { Building2 } from 'lucide-react';
+import { Buildings } from '@phosphor-icons/react';
 
 // Default Kemenag "Ikhlas Beramal" Clean Vector Logo
 export const DEFAULT_KEMENAG_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -108,7 +108,7 @@ export const OfficialDocumentHeader: React.FC<OfficialDocumentHeaderProps> = ({
                 />
               ) : (
                 <div className="w-16 h-16 rounded-xl border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 no-print">
-                  <Building2 className="w-6 h-6 text-slate-400 mb-0.5" />
+                  <Buildings className="w-6 h-6 text-slate-400 mb-0.5" />
                   <span className="text-[8px] font-bold uppercase">Madrasah</span>
                 </div>
               )}

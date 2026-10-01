@@ -5,15 +5,7 @@ import { ClassesPage } from './ClassesPage';
 import { SubjectsPage } from './SubjectsPage';
 import { TeachingAssignmentsPage } from './TeachingAssignmentsPage';
 import { AcademicYearsPage } from './AcademicYearsPage';
-import { 
-  Database, 
-  UserCheck, 
-  Layers, 
-  BookOpen, 
-  Briefcase, 
-  Calendar,
-  Sparkles
-} from 'lucide-react';
+import { Database, UserCheck, Stack, BookOpen, Briefcase, CalendarBlank, Sparkle } from '@phosphor-icons/react';
 
 interface MasterDataPageProps {
   initialTab?: string;
@@ -64,8 +56,8 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
   };
 
   const tabs: Array<{ id: MasterTab; label: string; icon: any; desc: string }> = [
-    { id: 'academic-years', label: 'Tahun Ajaran', icon: Calendar, desc: 'Periode aktif & semester' },
-    { id: 'classes', label: 'Data Rombel / Kelas', icon: Layers, desc: 'Rombel, tingkat & wali kelas' },
+    { id: 'academic-years', label: 'Tahun Ajaran', icon: CalendarBlank, desc: 'Periode aktif & semester' },
+    { id: 'classes', label: 'Data Rombel / Kelas', icon: Stack, desc: 'Rombel, tingkat & wali kelas' },
     { id: 'students', label: 'Data Siswa Terpadu', icon: UserCheck, desc: 'Database seluruh siswa & NISN' },
     { id: 'subjects', label: 'Mata Pelajaran', icon: BookOpen, desc: 'Kurikulum & kode mapel' },
     { id: 'teaching', label: 'Plotting Mengajar', icon: Briefcase, desc: 'Distribusi beban ajar guru' },

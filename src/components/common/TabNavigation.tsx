@@ -1,10 +1,10 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { Icon } from '@phosphor-icons/react';
 
 export interface TabItem {
   id: string;
   label: string;
-  icon?: LucideIcon;
+  icon?: Icon;
   badge?: string | number;
   badgeVariant?: 'default' | 'danger' | 'success' | 'warning';
 }

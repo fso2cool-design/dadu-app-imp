@@ -6,15 +6,7 @@ import { GradesReportPage } from './GradesReportPage';
 import { LeggerReportPage } from './LeggerReportPage';
 import { JournalReportPage } from './JournalReportPage';
 import { StudentReportsPage } from './StudentReportsPage';
-import { 
-  Printer, 
-  LayoutGrid, 
-  BarChart3, 
-  FileText, 
-  Table, 
-  BookMarked,
-  GraduationCap
-} from 'lucide-react';
+import { Printer, SquaresFour, ChartBar, FileText, Table, Bookmark, GraduationCap } from '@phosphor-icons/react';
 
 interface ReportsHubPageProps {
   initialTab?: string;
@@ -40,12 +32,12 @@ export const ReportsHubPage: React.FC<ReportsHubPageProps> = ({
   }, [initialTab]);
 
   const tabs: Array<{ id: ReportTab; label: string; icon: any }> = [
-    { id: 'center', label: 'Katalog Laporan', icon: LayoutGrid },
+    { id: 'center', label: 'Katalog Laporan', icon: SquaresFour },
     { id: 'rapor', label: 'Cetak Rapor Siswa', icon: GraduationCap },
     { id: 'legger', label: 'Legger Nilai', icon: Table },
     { id: 'grades', label: 'Daftar Nilai', icon: FileText },
-    { id: 'attendance', label: 'Rekap Presensi', icon: BarChart3 },
-    { id: 'journal', label: 'Jurnal Mengajar', icon: BookMarked },
+    { id: 'attendance', label: 'Rekap Presensi', icon: ChartBar },
+    { id: 'journal', label: 'Jurnal Mengajar', icon: Bookmark },
   ];
 
   return (

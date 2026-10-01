@@ -8,22 +8,7 @@ import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { container } from '../../application/ports/container';
 import { Modal } from '../../components/common/Modal';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
-import { 
-  Printer, 
-  Share2, 
-  Copy, 
-  Check, 
-  FileText, 
-  Award, 
-  CheckCircle2, 
-  AlertCircle,
-  Calendar,
-  User,
-  HeartHandshake,
-  MessageCircle,
-  Building2,
-  ExternalLink
-} from 'lucide-react';
+import { Printer, ShareNetwork, Copy, Check, FileText, Medal, CheckCircle, WarningCircle, CalendarBlank, User, Handshake, ChatCircle, Buildings, ArrowSquareOut } from '@phosphor-icons/react';
 
 interface StudentProgressReportModalProps {
   isOpen: boolean;
@@ -225,7 +210,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                 className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all"
                 title="Buka WhatsApp Web / App untuk kirim langsung ke wali siswa"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
+                <ChatCircle className="w-3.5 h-3.5" />
                 <span>Kirim via WA</span>
               </a>
             )}
@@ -299,7 +284,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                   />
                 ) : (
                   <div className="w-12 h-12 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 no-print">
-                    <Building2 className="w-5 h-5 text-slate-400" />
+                    <Buildings className="w-5 h-5 text-slate-400" />
                   </div>
                 )}
               </div>

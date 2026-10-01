@@ -143,6 +143,191 @@
   box-shadow: var(--ds-elevation-sm) !important;
 }
 
+/* Self-hosted fonts: Geist Sans (body), Newsreader (editorial display), Geist Mono (meta) */
+@font-face {
+  font-family: "Geist Sans";
+  src: url("/fonts/geist-sans-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist Sans";
+  src: url("/fonts/geist-sans-700.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("/fonts/newsreader-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("/fonts/newsreader-400-italic.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Newsreader";
+  src: url("/fonts/newsreader-600.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/geist-mono-500.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+
+/* ==========================================================================
+   NEW SYSTEMS: paper-craft | minimalist | atelier (Worker B)
+   Tokens come from DesignSystemContext --ds-* injection; blocks below only
+   coerce app vars + shape/elevation, NO duplicate hex.
+   ========================================================================== */
+[data-design-system="paper-craft"],
+[data-design-system="minimalist"],
+[data-design-system="atelier"] {
+  --app-bg: var(--ds-surface);
+  --card-bg: var(--ds-surface-elevated);
+  --card-border: var(--ds-border);
+  --text-main: var(--ds-text);
+  --text-muted: var(--ds-text-muted);
+  --accent-primary: var(--ds-accent);
+  --accent-primary-hover: var(--ds-accent);
+  --accent-primary-soft: color-mix(in srgb, var(--ds-accent) 10%, transparent);
+  --accent-primary-border: color-mix(in srgb, var(--ds-accent) 25%, transparent);
+  --accent-primary-text: var(--ds-accent-fg);
+  --accent-text: var(--ds-accent);
+  --accent-color: var(--ds-accent);
+  --interactive-border: var(--ds-border);
+  --focus-ring: var(--ds-accent);
+  --accent-glow: color-mix(in srgb, var(--ds-accent) 35%, transparent);
+}
+
+/* Dark variants per system: dark mode flips tokens via context (light/dark
+   --ds-* injection); .dark selectors below only adjust elevation/glow. */
+[data-design-system="paper-craft"].dark,
+.dark [data-design-system="paper-craft"] {
+  --accent-glow: color-mix(in srgb, var(--ds-accent) 45%, transparent);
+}
+[data-design-system="minimalist"].dark,
+.dark [data-design-system="minimalist"] {
+  --accent-glow: color-mix(in srgb, var(--ds-accent) 25%, transparent);
+}
+[data-design-system="atelier"].dark,
+.dark [data-design-system="atelier"] {
+  --accent-glow: color-mix(in srgb, var(--ds-accent) 40%, transparent);
+}
+
+/* Per-system radius / shadow / border coercion */
+[data-design-system="paper-craft"] [class*="rounded-2xl"],
+[data-design-system="paper-craft"] [class*="rounded-xl"],
+[data-design-system="paper-craft"] [class*="rounded-lg"],
+[data-design-system="paper-craft"] [class*="rounded-3xl"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="paper-craft"] [class*="shadow"],
+[data-design-system="paper-craft"] .card,
+[data-design-system="paper-craft"] [class*="card"] {
+  box-shadow: var(--ds-elevation-sm) !important;
+}
+[data-design-system="paper-craft"] .bg-white,
+[data-design-system="paper-craft"] [class*="bg-white"],
+[data-design-system="paper-craft"] [class*="border-slate"] {
+  border-color: var(--ds-border) !important;
+  border-width: var(--ds-border-width);
+}
+[data-design-system="minimalist"] [class*="rounded-2xl"],
+[data-design-system="minimalist"] [class*="rounded-3xl"] {
+  border-radius: var(--ds-radius-lg) !important;
+}
+[data-design-system="minimalist"] [class*="rounded-xl"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="minimalist"] [class*="rounded-lg"] {
+  border-radius: var(--ds-radius-sm) !important;
+}
+[data-design-system="minimalist"] [class*="shadow"],
+[data-design-system="minimalist"] .card,
+[data-design-system="minimalist"] [class*="card"] {
+  box-shadow: var(--ds-elevation-sm) !important;
+}
+[data-design-system="atelier"] [class*="rounded-2xl"],
+[data-design-system="atelier"] [class*="rounded-3xl"] {
+  border-radius: var(--ds-radius-lg) !important;
+}
+[data-design-system="atelier"] [class*="rounded-xl"] {
+  border-radius: var(--ds-radius-md) !important;
+}
+[data-design-system="atelier"] [class*="rounded-lg"] {
+  border-radius: var(--ds-radius-sm) !important;
+}
+[data-design-system="atelier"] [class*="shadow"],
+[data-design-system="atelier"] .card,
+[data-design-system="atelier"] [class*="card"] {
+  box-shadow: var(--ds-elevation-sm) !important;
+}
+[data-design-system="atelier"] .card,
+[data-design-system="atelier"] [class*="card"],
+[data-design-system="atelier"] [class*="bg-white"] {
+  backdrop-filter: var(--ds-backdrop-blur, none);
+  -webkit-backdrop-filter: var(--ds-backdrop-blur, none);
+}
+
+/* Paper-craft press physics: active translate 1px + shadow shrink */
+[data-design-system="paper-craft"] .btn-primary:active:not(:disabled),
+[data-design-system="paper-craft"] .tactile-press:active,
+[data-design-system="paper-craft"] button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: var(--ds-elevation-none, none) !important;
+}
+
+/* Pastel sticky-note utilities (paper-craft scrapbook) */
+.paper-note-yellow { background-color: var(--ds-note-yellow, #FEF3C7); color: var(--ds-text); }
+.paper-note-pink { background-color: var(--ds-note-pink, #FCE7F3); color: var(--ds-text); }
+.paper-note-blue { background-color: var(--ds-note-blue, #DBEAFE); color: var(--ds-text); }
+.paper-note-green { background-color: var(--ds-note-green, #D1FAE5); color: var(--ds-text); }
+
+/* Typography: body Geist Sans w/ system-ui fallback; editorial serif display */
+[data-design-system="paper-craft"],
+[data-design-system="paper-craft"] body,
+[data-design-system="paper-craft"] .font-sans,
+[data-design-system="minimalist"],
+[data-design-system="minimalist"] body,
+[data-design-system="minimalist"] .font-sans,
+[data-design-system="atelier"],
+[data-design-system="atelier"] body,
+[data-design-system="atelier"] .font-sans {
+  font-family: var(--ds-font-sans) !important;
+}
+[data-design-system="minimalist"] h1,
+[data-design-system="minimalist"] h2,
+[data-design-system="minimalist"] h3,
+[data-design-system="minimalist"] .font-serif,
+[data-design-system="atelier"] .font-serif,
+[data-design-system="paper-craft"] .font-serif {
+  font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
+}
+
+/* Surface bridge for the three new systems */
+[data-design-system="paper-craft"] .bg-slate-50,
+[data-design-system="minimalist"] .bg-slate-50,
+[data-design-system="atelier"] .bg-slate-50 {
+  background-color: var(--app-bg) !important;
+}
+[data-design-system="paper-craft"] .bg-white,
+[data-design-system="minimalist"] .bg-white,
+[data-design-system="atelier"] .bg-white {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+}
+[data-design-system="paper-craft"] .bg-slate-100,
+[data-design-system="minimalist"] .bg-slate-100,
+[data-design-system="atelier"] .bg-slate-100 {
+  background-color: var(--interactive-border) !important;
+}
+
 @theme {
   --color-accent-primary: var(--accent-primary);
   --color-accent-primary-hover: var(--accent-primary-hover);
@@ -433,7 +618,7 @@ body {
 [data-design-system="brutalism"] textarea:focus,
 [data-design-system="neo-skeuomorphic"] input:focus,
 [data-design-system="neo-skeuomorphic"] select:focus,
-[data-design-system="neo-skeuomorphic"] textarea:focus {
+[data-design-system="neo-skeuomorphic"] textarea:focus, [data-design-system="paper-craft"] input:focus, [data-design-system="paper-craft"] select:focus, [data-design-system="paper-craft"] textarea:focus, [data-design-system="minimalist"] input:focus, [data-design-system="minimalist"] select:focus, [data-design-system="minimalist"] textarea:focus, [data-design-system="atelier"] input:focus, [data-design-system="atelier"] select:focus, [data-design-system="atelier"] textarea:focus {
   border-color: var(--focus-ring) !important;
   box-shadow: 0 0 0 1.5px var(--focus-ring), 0 0 8px var(--accent-glow) !important;
 }

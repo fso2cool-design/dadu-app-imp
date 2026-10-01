@@ -8,26 +8,7 @@ import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
 import { SkeletonMeetingList } from '../../components/common/Skeleton';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { 
-  CalendarCheck2, 
-  Plus, 
-  Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  CheckSquare, 
-  Download, 
-  Printer, 
-  Clock, 
-  BookOpen, 
-  ChevronRight, 
-  Layers, 
-  AlertCircle,
-  FileSpreadsheet,
-  CheckCircle2,
-  Calendar,
-  Sparkles
-} from 'lucide-react';
+import { CalendarCheck, Plus, MagnifyingGlass, Funnel, Pencil, Trash, CheckSquare, Download, Printer, Clock, BookOpen, CaretRight, Stack, WarningCircle, FileCsv, CheckCircle, CalendarBlank, Sparkle } from '@phosphor-icons/react';
 
 interface MeetingsJournalPageProps {
   initialAssignmentId?: string;
@@ -234,7 +215,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       {/* Historical Archive Banner */}
       {isArchivedYear && (
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-xs">
-          <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <WarningCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <div>
             <span className="font-bold">Mode Arsip Historis (Read-Only):</span> Tahun Ajaran ini telah diarsipkan. Seluruh agenda jurnal KBM dan rekaman presensi dikunci demi integritas riwayat akademik.
           </div>
@@ -246,7 +227,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
         <div>
           <div className="flex items-center gap-2.5">
             <span className="p-2.5 rounded-xl bg-accent-primary-soft text-accent-text border border-accent-primary-border">
-              <CalendarCheck2 className="w-5 h-5" />
+              <CalendarCheck className="w-5 h-5" />
             </span>
             <div>
               <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Agenda & Jurnal Mengajar</h1>
@@ -310,7 +291,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             </div>
           </div>
           <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-100 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle className="w-4 h-4" />
           </div>
         </div>
 
@@ -354,7 +335,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Funnel and MagnifyingGlass Bar */}
       <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between transition-colors">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Assignment Selector */}
@@ -382,7 +363,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
           {/* Status filter */}
           <div className="w-full sm:w-44">
-            <label htmlFor="select-status-journal" className="sr-only">Filter Status</label>
+            <label htmlFor="select-status-journal" className="sr-only">Funnel Status</label>
             <select
               id="select-status-journal"
               value={statusFilter}
@@ -399,9 +380,9 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
           </div>
         </div>
 
-        {/* Search input */}
+        {/* MagnifyingGlass input */}
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
@@ -417,7 +398,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
         <SkeletonMeetingList count={3} />
       ) : filteredMeetings.length === 0 ? (
         <div className="bg-white dark:bg-[#141722] p-12 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
-          <CalendarCheck2 className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <CalendarCheck className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Agenda Pertemuan</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
             {searchQuery 
@@ -460,7 +441,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                       Kelas {meeting.className} • {meeting.subjectName}
                     </span>
                     <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
-                      <Calendar className="w-3.5 h-3.5" />
+                      <CalendarBlank className="w-3.5 h-3.5" />
                       {meeting.date}
                     </span>
                     {meeting.timeSlot && (
@@ -514,12 +495,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                       </div>
                     ) : meeting.meetingType === 'MADRASAH_ACTIVITY' ? (
                       <div className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center justify-end gap-1">
-                        <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                        <Sparkle className="w-3.5 h-3.5 shrink-0" />
                         <span>Agenda Sah (Non-KBM)</span>
                       </div>
                     ) : (
                       <div className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center justify-end gap-1">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        <WarningCircle className="w-3.5 h-3.5 shrink-0" />
                         <span>Presensi Belum Diisi</span>
                       </div>
                     )}
@@ -533,7 +514,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         setIsAttendanceModalOpen(true);
                       }}
                       className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
-                      title={isArchivedYear ? 'Lihat Rekap Presensi (Read-Only)' : 'Input / Edit Presensi'}
+                      title={isArchivedYear ? 'Lihat Rekap Presensi (Read-Only)' : 'Input / Pencil Presensi'}
                     >
                       <CheckSquare className="w-3.5 h-3.5" />
                       {isArchivedYear ? 'Lihat Presensi' : 'Presensi'}
@@ -546,9 +527,9 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         setIsFormModalOpen(true);
                       }}
                       className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                      title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Edit Jurnal Pertemuan'}
+                      title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Pencil Jurnal Pertemuan'}
                     >
-                      <Edit className="w-4 h-4" />
+                      <Pencil className="w-4 h-4" />
                     </button>
 
                     <button
@@ -557,7 +538,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                       className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Hapus Pertemuan'}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -573,7 +554,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
           <div className="bg-white dark:bg-[#141722] rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 dark:border-[#232838] space-y-4">
             <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
               <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-100 dark:border-rose-500/30">
-                <Trash2 className="w-5 h-5" />
+                <Trash className="w-5 h-5" />
               </div>
               <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">Hapus Agenda Pertemuan?</h3>
             </div>
@@ -586,7 +567,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             {meetingToDelete.attendanceSummary && (meetingToDelete.attendanceSummary.totalRecords || meetingToDelete.attendanceSummary.total) > 0 ? (
               <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/40 text-blue-800 dark:text-blue-200 text-xs space-y-1">
                 <div className="font-bold flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <CheckCircle className="w-4 h-4 shrink-0" />
                   <span>Jaminan Integritas Presensi</span>
                 </div>
                 <p>

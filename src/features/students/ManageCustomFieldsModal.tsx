@@ -4,19 +4,7 @@ import { StudentCustomFieldDefinition } from '../../types';
 import { container } from '../../application/ports/container';
 const { create: createStudentCustomField, update: updateStudentCustomField, delete: deleteStudentCustomField } = container.repos.studentCustomField as any;
 import { useAuth } from '../auth/AuthContext';
-import { 
-  Sliders, 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  Check, 
-  X, 
-  HelpCircle, 
-  Table, 
-  CheckCircle2, 
-  AlertCircle,
-  FileSpreadsheet
-} from 'lucide-react';
+import { Sliders, Plus, Trash, PencilSimple, Check, X, Question, Table, CheckCircle, WarningCircle, FileCsv } from '@phosphor-icons/react';
 
 interface ManageCustomFieldsModalProps {
   isOpen: boolean;
@@ -167,7 +155,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
       <div className="space-y-4">
         {/* Helper Banner */}
         <div className="p-3.5 rounded-xl bg-orange-50/70 dark:bg-slate-800/80 border border-orange-200/60 dark:border-slate-700/60 flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-          <FileSpreadsheet className="w-4 h-4 text-orange-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+          <FileCsv className="w-4 h-4 text-orange-600 dark:text-cyan-400 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
             <strong className="text-slate-900 dark:text-slate-100">Fleksibel & Otomatis:</strong> Kolom yang Anda buat di sini akan otomatis muncul di form input siswa, profil detail, template Excel, serta dipetakan secara otomatis saat Anda melakukan <strong>Impor Data Siswa via Excel / CSV</strong>.
           </div>
@@ -175,14 +163,14 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
 
         {errorMsg && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <WarningCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {successMsg && (
           <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{successMsg}</span>
           </div>
         )}
@@ -366,7 +354,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                       className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                       title="Edit kolom ini"
                     >
-                      <Edit2 className="w-3.5 h-3.5" />
+                      <PencilSimple className="w-3.5 h-3.5" />
                     </button>
 
                     <button
@@ -375,7 +363,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                       className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
                       title="Hapus kolom ini"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>

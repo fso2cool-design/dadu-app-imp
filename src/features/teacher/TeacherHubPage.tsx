@@ -5,14 +5,7 @@ import { MeetingsJournalPage } from './MeetingsJournalPage';
 import { SubjectAttendancePage } from './SubjectAttendancePage';
 import { GradesPage } from '../grades/GradesPage';
 import { TeacherPersonalSchedulePage } from './TeacherPersonalSchedulePage';
-import { 
-  BookOpen, 
-  Layers, 
-  CalendarCheck2, 
-  CheckSquare, 
-  Award,
-  CalendarDays 
-} from 'lucide-react';
+import { BookOpen, Stack, CalendarCheck, CheckSquare, Medal, CalendarDots } from '@phosphor-icons/react';
 
 interface TeacherHubPageProps {
   initialTab?: string;
@@ -54,11 +47,11 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
   };
 
   const tabs: Array<{ id: TeacherTab; label: string; icon: any }> = [
-    { id: 'classes', label: 'Rombel Ampuan', icon: Layers },
-    { id: 'schedule', label: 'Jadwal Mengajar', icon: CalendarDays },
-    { id: 'journal', label: 'Agenda & Jurnal KBM', icon: CalendarCheck2 },
+    { id: 'classes', label: 'Rombel Ampuan', icon: Stack },
+    { id: 'schedule', label: 'Jadwal Mengajar', icon: CalendarDots },
+    { id: 'journal', label: 'Agenda & Jurnal KBM', icon: CalendarCheck },
     { id: 'attendance', label: 'Presensi Sesi Mapel', icon: CheckSquare },
-    { id: 'grades', label: 'Penilaian Siswa', icon: Award },
+    { id: 'grades', label: 'Penilaian Siswa', icon: Medal },
   ];
 
   return (

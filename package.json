@@ -1,7 +1,7 @@
 {
   "name": "dadu-workspace",
   "private": true,
-  "version": "2.3.1",
+  "version": "2.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -20,8 +20,8 @@
     "check:boundaries": "depcruise src --config .dependency-cruiser.cjs"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "firebase": "^12.18.0",
-    "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",

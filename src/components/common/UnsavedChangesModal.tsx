@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Save, Trash2, X, Loader2 } from 'lucide-react';
+import { Warning, FloppyDisk, Trash, X, CircleNotch } from '@phosphor-icons/react';
 
 export interface UnsavedChangesModalProps {
   isOpen: boolean;
@@ -58,7 +58,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
         {/* Header Icon + Title */}
         <div className="flex items-start gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-xs">
-            <AlertTriangle className="w-6 h-6" />
+            <Warning className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
@@ -81,7 +81,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
           )}
         </div>
 
-        {/* Action Buttons: Save & Proceed, Discard & Proceed, Cancel */}
+        {/* Action Buttons: FloppyDisk & Proceed, Discard & Proceed, Cancel */}
         <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
           {handleSave && (
             <button
@@ -92,12 +92,12 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <CircleNotch className="w-4 h-4 animate-spin" />
                   <span>Menyimpan...</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <FloppyDisk className="w-4 h-4" />
                   <span>{saveButtonText}</span>
                 </>
               )}
@@ -111,7 +111,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
               disabled={isSaving}
               className="w-full sm:flex-1 py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-950/70 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash className="w-4 h-4" />
               <span>{discardButtonText}</span>
             </button>
           )}
