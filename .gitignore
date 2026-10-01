@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 .vercel
+
+# Firebase Admin service account (RAHASIA - jangan commit)
+tools/serviceAccountKey.json
+
