@@ -6,6 +6,7 @@ import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Printer, Download, Building2, Sliders, CheckCircle, FileSpreadsheet, X } from 'lucide-react';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { PAPER, type PaperSizeKey } from '../../constants/print';
 
 interface PrintDocumentLayoutProps {
   title: string;
@@ -22,7 +23,7 @@ interface PrintDocumentLayoutProps {
   customTeacherNip?: string;
   customTeacherRole?: string;
   paperOrientation?: 'PORTRAIT' | 'LANDSCAPE';
-  paperSize?: 'A4' | 'F4' | 'LETTER';
+  paperSize?: PaperSizeKey;
 }
 
 export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({

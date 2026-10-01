@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
+import { PAPER } from '../../constants/print';
 import { container } from '../../application/ports/container';
 import { Badge } from '../../components/common/Badge';
 import { SchoolSettings, DocumentSettings } from '../../types';
@@ -272,9 +273,9 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
                   onChange={(e) => setDocSettings({ ...docSettings, paperSize: e.target.value as any })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-medium text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"
                 >
-                  <option value="A4">A4 (210 x 297 mm)</option>
-                  <option value="F4">F4 / Folio (215 x 330 mm)</option>
-                  <option value="LETTER">Letter (216 x 279 mm)</option>
+                  {(Object.keys(PAPER) as Array<keyof typeof PAPER>).map((key) => (
+                    <option key={key} value={key}>{PAPER[key].label}</option>
+                  ))}
                 </select>
               </div>
 
