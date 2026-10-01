@@ -32,7 +32,7 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     return { uid: existing.id, ...existing.data() } as UserProfile;
   }
   const now = serverTimestamp();
-  const isAdminEmail = data.email === 'johanrovian90@gmail.com' || data.email === 'fso2cool@gmail.com';
+  const isAdminEmail = data.email === 'johanrovian90@gmail.com';
   
   const profileData: Omit<UserProfile, 'uid'> = {
     displayName: data.displayName || '',

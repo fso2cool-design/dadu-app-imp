@@ -51,7 +51,7 @@ function AuthenticatedApp() {
     return resolvePathToRouteKey(location.pathname);
   }, [location.pathname]);
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com' || profile?.email === 'fso2cool@gmail.com';
+  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
 
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {

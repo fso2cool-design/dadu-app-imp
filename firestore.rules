@@ -11,8 +11,7 @@ service cloud.firestore {
           request.auth.token.admin == true
           ||
           // Legacy hardcoded email (backward compatibility)
-          request.auth.token.email == 'johanrovian90@gmail.com' ||
-          request.auth.token.email == 'fso2cool@gmail.com'
+          request.auth.token.email == 'johanrovian90@gmail.com'
         );
     }
 
