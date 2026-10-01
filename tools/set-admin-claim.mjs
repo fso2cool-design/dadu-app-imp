@@ -13,8 +13,9 @@
  * (beserta claim admin) diterbitkan. Rules firestore sudah membaca
  * request.auth.token.admin == true (lihat firestore.rules isSuperAdmin()).
  */
-import admin from 'firebase-admin';
 import { readFileSync } from 'node:fs';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 
 const serviceAccountPath = new URL('./serviceAccountKey.json', import.meta.url);
 
@@ -37,21 +38,22 @@ try {
   process.exit(1);
 }
 
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+initializeApp({ credential: cert(serviceAccount) });
+const auth = getAuth();
 
-const user = await admin.auth().getUserByEmail(email);
+const user = await auth.getUserByEmail(email);
 const current = user.customClaims ?? {};
 
 if (remove) {
   const { admin: _dropped, ...rest } = current;
-  await admin.auth().setCustomUserClaims(user.uid, rest);
+  await auth.setCustomUserClaims(user.uid, rest);
   console.log(`Claim admin DIHAPUS untuk ${email} (uid: ${user.uid})`);
 } else {
-  await admin.auth().setCustomUserClaims(user.uid, { ...current, admin: true });
+  await auth.setCustomUserClaims(user.uid, { ...current, admin: true });
   console.log(`Claim admin:true DIPASANG untuk ${email} (uid: ${user.uid})`);
 }
 
-const check = await admin.auth().getUser(user.uid);
+const check = await auth.getUser(user.uid);
 console.log('Claims sekarang:', JSON.stringify(check.customClaims ?? {}));
 console.log('SELESAI. User harus LOGOUT lalu LOGIN ulang agar claim aktif.');
 process.exit(0);
