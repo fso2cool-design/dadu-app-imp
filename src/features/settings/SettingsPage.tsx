@@ -13,6 +13,7 @@ import { Badge } from '../../components/common/Badge';
 import { User, Buildings, FileCode, Sliders, CalendarBlank, FloppyDisk, CheckCircle, WarningCircle, Database, Download, Upload, ArrowClockwise, Pulse, HardDrive, Trash, PenNib, Image as ImageIcon, Check, FileCsv, Stack, Sparkle, Eye, ShieldCheck, Warning, Palette, Sun, Moon, Info, CaretDown } from '@phosphor-icons/react';
 
 import { THEME_OPTIONS, ThemeKey, useAppTheme } from '../../context/ThemeContext';
+import { DESIGN_SYSTEMS } from '../../types';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 import { ChangeLogModal } from '../../components/common/ChangeLogModal';
 import { APP_CONFIG } from '../../constants/app';
@@ -28,11 +29,18 @@ type TabType = 'profile' | 'school' | 'document' | 'preferences' | 'backup' | 's
 export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profile' }) => {
   const { user, profile, refreshProfile } = useAuth();
   const { classes, academicYears, activeAcademicYear, activeSemester, reloadWorkspaceData, triggerSyncFeedback, attendanceSettings } = useWorkspace();
-  const { activeTheme, applyAndSaveTheme } = useAppTheme();
+  const { activeTheme, applyAndSaveTheme, mode, toggleMode, applyAndSaveMode } = useAppTheme();
   const { success: toastSuccess, error: toastError } = useToast();
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>(activeTheme);
+  const [previewMode, setPreviewMode] = useState<'light' | 'dark'>(mode);
+
+  useEffect(() => {
+    setPreviewMode(mode);
+  }, [mode]);
+  const activeDS = DESIGN_SYSTEMS.find(ds => ds.id === selectedTheme) || DESIGN_SYSTEMS[1];
+  const isSelectedDark = previewMode === 'dark';
+  const previewColors = isSelectedDark ? activeDS.tokens.darkColors : activeDS.tokens.colors;
   const currentPreviewOption = THEME_OPTIONS.find(t => t.id === selectedTheme) || THEME_OPTIONS[0];
-  const isSelectedDark = currentPreviewOption.category === 'dark';
 
   useEffect(() => {
     setSelectedTheme(activeTheme);
@@ -1724,7 +1732,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <div className="flex items-center gap-2">
                   <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                    Pilihan Design System
+                    Pilihan Tema & Mode Tampilan
                   </h4>
                 </div>
 
@@ -1733,10 +1741,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                     type="button"
                     onClick={() => {
                       applyAndSaveTheme(selectedTheme);
-                      setSuccessMsg('Tema visual berhasil diterapkan dan disimpan!');
+                      applyAndSaveMode(previewMode);
+                      setSuccessMsg('Tema visual dan mode tampilan berhasil diterapkan dan disimpan!');
                       setTimeout(() => setSuccessMsg(null), 3500);
                     }}
-                    disabled={selectedTheme === activeTheme}
+                    disabled={selectedTheme === activeTheme && previewMode === mode}
                     style={selectedTheme !== activeTheme ? {
                       backgroundColor: currentPreviewOption.accentHex,
                       color: currentPreviewOption.buttonText,
@@ -1748,34 +1757,68 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                     }`}
                   >
                     <FloppyDisk className="w-4 h-4" />
-                    <span>{selectedTheme === activeTheme ? 'Tema Aktif' : 'Terapkan & Simpan Tema'}</span>
+                    <span>{selectedTheme === activeTheme && previewMode === mode ? 'Tema & Mode Aktif' : 'Terapkan & Simpan'}</span>
                   </button>
                 </div>
               </div>
 
               {/* 3-Column Design System Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
-                {/* Left Column: Dropdown Controls & Philosophy */}
+                {/* Left Column: Dropdown Controls, Mode Selector & Philosophy */}
                 <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      Pilih Karakter Tema
-                    </label>
-                    
-                    <div className="relative">
-                      <select
-                        value={selectedTheme}
-                        onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
-                        className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
-                      >
-                        {THEME_OPTIONS.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name} ({t.category === 'dark' ? 'Mode Gelap' : 'Mode Terang'})
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <CaretDown className="w-4 h-4" />
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Pilih Desain Tema
+                      </label>
+                      <div className="relative">
+                        <select
+                          value={selectedTheme}
+                          onChange={(e) => setSelectedTheme(e.target.value as ThemeKey)}
+                          className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
+                        >
+                          {THEME_OPTIONS.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          <CaretDown className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mode Terang / Gelap Switcher */}
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Mode Tampilan
+                      </label>
+                      <div className="grid grid-cols-2 gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewMode('light')}
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            previewMode === 'light'
+                              ? 'bg-amber-100 text-amber-900 dark:bg-amber-400/20 dark:text-amber-200 shadow-xs ring-1 ring-amber-300 dark:ring-amber-500/40'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          <Sun className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                          <span>Mode Terang</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPreviewMode('dark')}
+                          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            previewMode === 'dark'
+                              ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-950/80 dark:text-indigo-200 shadow-xs ring-1 ring-indigo-300 dark:ring-indigo-500/40'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          <Moon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                          <span>Mode Gelap</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1783,9 +1826,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                     <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
-                          {currentPreviewOption.category === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang'}
+                          {isSelectedDark ? '🌙 Mode Gelap' : '☀️ Mode Terang'}
                         </span>
-                        {selectedTheme === activeTheme && (
+                        {selectedTheme === activeTheme && previewMode === mode && (
                           <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                             <CheckCircle className="w-3 h-3" />
                             Sedang Digunakan
@@ -1804,10 +1847,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                   {/* Micro Palette Swatches */}
                   <div className="pt-2 flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800/80">
                     <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                      Palet Utama:
+                      Palet Utama ({isSelectedDark ? 'Gelap' : 'Terang'}):
                     </span>
                     <div className="flex items-center gap-1.5">
-                      {currentPreviewOption.swatches.map((color, idx) => (
+                      {[previewColors.surface, previewColors.surfaceElevated, previewColors.accent, previewColors.text].map((color, idx) => (
                         <span
                           key={idx}
                           style={{ backgroundColor: color }}
@@ -1823,7 +1866,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                 <div className="lg:col-span-6 flex flex-col">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <Eye className="w-3.5 h-3.5" style={{ color: currentPreviewOption.accentHex }} />
+                      <Eye className="w-3.5 h-3.5" style={{ color: previewColors.accent }} />
                       Pratinjau Komponen Miniatur
                     </span>
                     <span className="text-[10px] text-slate-400">Interaktif & Real-time</span>
@@ -1831,42 +1874,48 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
                   {/* Mini Mockup Container with exact preview colors */}
                   <div 
-                    style={{ backgroundColor: currentPreviewOption.appBg }}
-                    className="flex-1 p-4 rounded-2xl border border-slate-300/80 dark:border-slate-700 transition-colors duration-200 flex flex-col justify-between space-y-3 shadow-inner"
+                    style={{ 
+                      backgroundColor: previewColors.surface,
+                      borderColor: previewColors.border 
+                    }}
+                    className="flex-1 p-4 rounded-2xl border transition-colors duration-200 flex flex-col justify-between space-y-3 shadow-inner"
                   >
                     {/* Mini Header */}
                     <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
                       <div className="flex items-center gap-2">
                         <div 
                           style={{ 
-                            backgroundColor: currentPreviewOption.accentHex,
-                            color: currentPreviewOption.buttonText
+                            backgroundColor: previewColors.accent,
+                            color: previewColors.accentFg
                           }}
                           className="w-5 h-5 rounded-lg flex items-center justify-center text-[9px] font-bold shadow-2xs"
                         >
                           D
                         </div>
                         <span 
-                          style={{ color: isSelectedDark ? '#f1f5f9' : '#0f172a' }}
+                          style={{ color: previewColors.text }}
                           className="text-xs font-bold"
                         >
                           DADU Madrasah
                         </span>
                       </div>
                       <span 
-                        style={{ backgroundColor: currentPreviewOption.accentHex }}
+                        style={{ backgroundColor: previewColors.accent }}
                         className="w-2 h-2 rounded-full animate-pulse"
                       />
                     </div>
 
                     {/* Mini Grade Card */}
                     <div 
-                      style={{ backgroundColor: currentPreviewOption.cardBg }}
-                      className="p-3 rounded-xl border border-black/10 dark:border-white/10 shadow-xs space-y-2"
+                      style={{ 
+                        backgroundColor: previewColors.surfaceElevated,
+                        borderColor: previewColors.border
+                      }}
+                      className="p-3 rounded-xl border shadow-xs space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <span 
-                          style={{ color: isSelectedDark ? '#cbd5e1' : '#475569' }}
+                          style={{ color: previewColors.textMuted }}
                           className="text-[11px] font-semibold"
                         >
                           Penilaian Harian (PH-1)
@@ -1885,13 +1934,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                       <div className="flex items-center justify-between pt-1">
                         <div>
                           <span 
-                            style={{ color: isSelectedDark ? '#94a3b8' : '#64748b' }}
+                            style={{ color: previewColors.textMuted }}
                             className="text-[10px] block"
                           >
                             Nilai Rata-rata
                           </span>
                           <span 
-                            style={{ color: isSelectedDark ? '#f8fafc' : '#0f172a' }}
+                            style={{ color: previewColors.text }}
                             className="text-base font-black tracking-tight"
                           >
                             95.0
@@ -1902,8 +1951,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
                         <button
                           type="button"
                           style={{ 
-                            backgroundColor: currentPreviewOption.accentHex,
-                            color: currentPreviewOption.buttonText
+                            backgroundColor: previewColors.accent,
+                            color: previewColors.accentFg
                           }}
                           className="tactile-press px-3 py-1.5 rounded-lg text-[11px] font-bold shadow-2xs"
                         >
@@ -1914,11 +1963,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
                     {/* Mini Micro Text / Status Pill */}
                     <div className="flex items-center justify-between text-[10px] pt-1">
-                      <span style={{ color: isSelectedDark ? '#94a3b8' : '#64748b' }}>
-                        Ergonomi Kontras: <strong style={{ color: currentPreviewOption.accentHex }}>WCAG {isSelectedDark ? 'AAA' : 'AA'}</strong>
+                      <span style={{ color: previewColors.textMuted }}>
+                        Ergonomi Kontras: <strong style={{ color: previewColors.accent }}>WCAG {isSelectedDark ? 'AAA' : 'AA'}</strong>
                       </span>
-                      <span style={{ color: isSelectedDark ? '#cbd5e1' : '#475569' }}>
-                        {currentPreviewOption.name}
+                      <span style={{ color: previewColors.textMuted }}>
+                        {activeDS.name} ({isSelectedDark ? 'Mode Gelap' : 'Mode Terang'})
                       </span>
                     </div>
                   </div>

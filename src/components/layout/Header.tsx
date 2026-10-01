@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { List, CaretDown, Clock, ArrowsOut, ArrowsIn, Cloud, CloudSlash, ArrowClockwise, Gear, SignOut, Sparkle, Check, Heart, ShieldCheck } from '@phosphor-icons/react';
+import { List, CaretDown, Clock, ArrowsOut, ArrowsIn, Cloud, CloudSlash, ArrowClockwise, Gear, SignOut, Sparkle, Check, Heart, ShieldCheck, Sun, Moon } from '@phosphor-icons/react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -74,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
     reloadWorkspaceData,
     triggerSyncFeedback
   } = useWorkspace();
-  const { activeTheme, isDark } = useAppTheme();
+  const { activeTheme, isDark, mode, applyAndSaveMode } = useAppTheme();
 
   const [localTime, setLocalTime] = useState<string>('');
   const [localTimeZone, setLocalTimeZone] = useState<string>('');
@@ -471,6 +471,30 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Live activity dot for saving */}
               {syncStatus === 'syncing' && (
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              )}
+            </button>
+          </Tooltip>
+        </div>
+
+        {/* Dark / Light Mode Toggle Button */}
+        <div className="flex shrink-0">
+          <Tooltip
+            position="bottom"
+            content={mode === 'dark' ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                const nextMode = mode === 'dark' ? 'light' : 'dark';
+                applyAndSaveMode(nextMode);
+              }}
+              className="p-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#141722] dark:hover:bg-[var(--ds-surface)] border border-slate-200/90 dark:border-[var(--ds-border)] text-slate-600 dark:text-slate-300 transition-all cursor-pointer shadow-2xs"
+              aria-label={mode === 'dark' ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'}
+            >
+              {mode === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400 animate-in spin-in-180 duration-200" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 animate-in spin-in-180 duration-200" />
               )}
             </button>
           </Tooltip>
