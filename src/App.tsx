@@ -25,28 +25,26 @@ const OnboardingWizard = lazy(() => import('./features/onboarding/OnboardingWiza
 const PublicReportViewerPage = lazy(() => import('./features/public/PublicReportViewerPage').then(m => ({ default: m.PublicReportViewerPage })));
 const FeedbackModal = lazy(() => import('./components/common/FeedbackModal').then(m => ({ default: m.FeedbackModal })));
 
-function MainApp() {
+function getPublicShareToken(pathname: string, searchParams: URLSearchParams): string | null {
+  const queryToken = searchParams.get('share');
+  if (queryToken) return queryToken;
+
+  const pathParts = pathname.split('/');
+  const shareIdx = pathParts.indexOf('share');
+  if (shareIdx !== -1 && pathParts[shareIdx + 1]) {
+    return pathParts[shareIdx + 1];
+  }
+  return null;
+}
+
+function AuthenticatedApp() {
   const { user, profile, loading: authLoading } = useAuth();
   const { loading: workspaceLoading } = useWorkspace();
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
   const [showFeedbackModal, setShowFeedbackModal] = useState<boolean>(false);
   const [adminBadgeCount, setAdminBadgeCount] = useState<number>(0);
-
-  // Check for public share token in URL query params: ?share=<token> or /share/<token>
-  const publicShareToken = useMemo(() => {
-    const queryToken = searchParams.get('share');
-    if (queryToken) return queryToken;
-
-    const pathParts = location.pathname.split('/');
-    const shareIdx = pathParts.indexOf('share');
-    if (shareIdx !== -1 && pathParts[shareIdx + 1]) {
-      return pathParts[shareIdx + 1];
-    }
-    return null;
-  }, [location.pathname, searchParams]);
 
   // Derive active route key from current URL path
   const currentRoute = useMemo(() => {
@@ -77,25 +75,12 @@ function MainApp() {
     navigate(targetPath, { state });
   };
 
-  // If public share token is present in the URL, directly render read-only public viewer
-  if (publicShareToken) {
-    return (
-      <Suspense fallback={<LoadingScreen message="Memuat dokumen publik..." />}>
-        <PublicReportViewerPage token={publicShareToken} />
-      </Suspense>
-    );
-  }
-
   if (authLoading) {
     return <LoadingScreen message="Memeriksa sesi login..." />;
   }
 
-  // Not logged in -> Show Login / Signup
-  if (!user) {
-    return <LoginPage />;
-  }
-
-  // Logged in but still initializing user profile or workspace data
+  // AuthenticatedApp hanya dirender saat user sudah login (dijaga MainApp),
+  // jadi WorkspaceProvider di atasnya aman dimount.
   if (!profile || workspaceLoading) {
     return <LoadingScreen message="Menyiapkan ruang kerja Anda..." />;
   }
@@ -121,8 +106,8 @@ function MainApp() {
   if (isAdmin && location.pathname === '/admin') {
     return (
       <Suspense fallback={<LoadingScreen message="Menyiapkan panel admin..." />}>
-        <AdminUserManagementPage 
-          onSwitchToTeacherApp={() => handleNavigate('dashboard')} 
+        <AdminUserManagementPage
+          onSwitchToTeacherApp={() => handleNavigate('dashboard')}
         />
       </Suspense>
     );
@@ -165,8 +150,8 @@ function MainApp() {
 
   return (
     <>
-      <AppLayout 
-        currentRoute={currentRoute} 
+      <AppLayout
+        currentRoute={currentRoute}
         onNavigate={handleNavigate}
         isAdmin={isAdmin}
         adminBadgeCount={adminBadgeCount}
@@ -192,20 +177,52 @@ function MainApp() {
   );
 }
 
+function MainApp() {
+  const { user, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const publicShareToken = getPublicShareToken(location.pathname, searchParams);
+
+  // Halaman publik: tanpa WorkspaceProvider agar tidak memuat Firestore
+  // workspace (573kB) dan tidak memicu query sebelum ada sesi.
+  if (publicShareToken) {
+    return (
+      <Suspense fallback={<LoadingScreen message="Memuat dokumen publik..." />}>
+        <PublicReportViewerPage token={publicShareToken} />
+      </Suspense>
+    );
+  }
+
+  if (authLoading) {
+    return <LoadingScreen message="Memeriksa sesi login..." />;
+  }
+
+  // Belum login: tanpa WorkspaceProvider (halaman Login ringan).
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  // Sudah login: WorkspaceProvider aman dimount, query workspace berjalan.
+  return (
+    <WorkspaceProvider>
+      <AuthenticatedApp />
+    </WorkspaceProvider>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary isRoot fallbackTitle="Terjadi Kendala Aplikasi">
       <BrowserRouter>
         <AuthProvider>
-          <WorkspaceProvider>
-            <DesignSystemProvider>
-              <ThemeProvider>
-                <ToastProvider>
-                  <MainApp />
-                </ToastProvider>
-              </ThemeProvider>
-            </DesignSystemProvider>
-          </WorkspaceProvider>
+          <DesignSystemProvider>
+            <ThemeProvider>
+              <ToastProvider>
+                <MainApp />
+              </ToastProvider>
+            </ThemeProvider>
+          </DesignSystemProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
