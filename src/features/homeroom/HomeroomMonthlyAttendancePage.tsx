@@ -18,7 +18,7 @@ import {
   Info,
   UserX
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 
@@ -239,6 +239,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
 
   // Export matrix to Excel
   const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (enrollments.length === 0) return;
 
     let schoolInfo: any = null;

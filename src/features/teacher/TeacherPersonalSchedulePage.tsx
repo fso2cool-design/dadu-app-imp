@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from '../reports/PrintDocumentLayout';
 import { TeachingAssignment } from '../../types';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   Calendar, 
   Clock, 
@@ -157,7 +157,8 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
   }, [scheduledSlots]);
 
   // Ekspor Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     const dataRows: any[] = [];
 
     DAYS_OF_WEEK.forEach(day => {

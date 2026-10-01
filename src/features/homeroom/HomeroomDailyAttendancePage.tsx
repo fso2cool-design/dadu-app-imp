@@ -21,7 +21,7 @@ import {
   FileSpreadsheet,
   UserX
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
@@ -393,7 +393,8 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   }, [enrollments, searchQuery, filterStatus, attendanceState]);
 
   // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (enrollments.length === 0) return;
 
     const dataRows = enrollments.map((enr, idx) => {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
@@ -109,8 +109,8 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     return null;
   };
 
-  const handleDownload = () => {
-    downloadStudentExcelTemplate(activeClasses, customFields);
+  const handleDownload = async () => {
+    await downloadStudentExcelTemplate(activeClasses, customFields);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +124,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
+        const XLSX = await loadXlsx();
         const bstr = evt.target?.result;
         const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
         const wsName = wb.SheetNames[0];

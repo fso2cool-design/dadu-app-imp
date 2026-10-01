@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
@@ -411,7 +411,8 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
   };
 
   // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     const dataToExport = viewMode === 'class'
       ? filteredEnrollments.map((en, idx) => ({
           'No Absen': en.rollNumber || (idx + 1),
@@ -568,7 +569,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
           <button
             type="button"
-            onClick={() => downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived), customFields)}
+            onClick={() => void downloadStudentExcelTemplate(classes.filter(c => c.academicYearId === activeAcademicYear?.id && !c.isArchived), customFields)}
             className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Unduh format template Excel untuk data siswa beserta kolom kustom dan contoh kelas"
           >

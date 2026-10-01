@@ -22,7 +22,7 @@ import {
   BarChart3,
   Table
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
 
 interface PublicReportViewerPageProps {
@@ -121,7 +121,8 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
     window.print();
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (!report) return;
     const { payload, reportType } = report;
 

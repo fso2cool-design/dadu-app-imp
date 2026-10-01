@@ -7,7 +7,7 @@ import { container } from '../../application/ports/container';
 import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
 import { ShareReportModal } from './ShareReportModal';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   CalendarCheck2, 
   Search, 
@@ -101,7 +101,8 @@ export const JournalReportPage: React.FC = () => {
   const formatDate = (dateStr: string) => formatDateWithDay(dateStr);
 
   // Export Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (meetings.length === 0) return;
 
     const sheetData: any[] = [];

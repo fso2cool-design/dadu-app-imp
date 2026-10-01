@@ -33,7 +33,7 @@ import {
   Percent,
   RefreshCw,
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
 import { OfficialDocumentHeader } from '../../components/common/OfficialDocumentHeader';
 
@@ -422,7 +422,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
   }, [items]);
 
   // Ekspor Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (items.length === 0) {
       alert('Tidak ada data untuk diekspor.');
       return;

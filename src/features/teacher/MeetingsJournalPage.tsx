@@ -7,7 +7,7 @@ import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
 import { SkeletonMeetingList } from '../../components/common/Skeleton';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   CalendarCheck2, 
   Plus, 
@@ -179,7 +179,8 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   };
 
   // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (filteredMeetings.length === 0) return;
 
     const exportRows = filteredMeetings.map((m, index) => ({

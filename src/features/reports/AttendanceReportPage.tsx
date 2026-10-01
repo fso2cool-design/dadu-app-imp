@@ -6,7 +6,7 @@ import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
 import { getTodayISO } from '../../utils/date';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   BarChart3, 
   CalendarCheck2, 
@@ -322,7 +322,8 @@ export const AttendanceReportPage: React.FC = () => {
   );
 
   // Handle Export Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (activeSummaries.length === 0) return;
 
     const sheetData: any[] = [];

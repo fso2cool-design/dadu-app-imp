@@ -12,7 +12,7 @@ import { Meeting, AttendanceStatus, AttendanceRecord, Enrollment } from '../../t
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { getTodayISO, formatDateIndonesian } from '../../utils/date';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   CheckSquare, 
   Users, 
@@ -535,7 +535,8 @@ export const SubjectAttendancePage: React.FC = () => {
   }, [studentRows, searchQuery]);
 
   // Export Rekap Matriks to Excel
-  const handleExportMatrixExcel = () => {
+  const handleExportMatrixExcel = async () => {
+    const XLSX = await loadXlsx();
     if (!currentAssignment || allEnrollments.length === 0 || matrixColumns.length === 0) return;
 
     const rowsData = allEnrollments.map((en, idx) => {

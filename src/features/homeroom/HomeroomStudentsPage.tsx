@@ -31,7 +31,7 @@ import {
   UserX,
   Layers
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 
 interface HomeroomStudentsPageProps {
@@ -254,7 +254,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
   };
 
   // Export to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (enrollments.length === 0) {
       toastWarning('Tidak ada data siswa untuk diekspor.');
       return;
@@ -290,7 +291,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
   };
 
   // Export to CSV for X-C hub integration
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
+    const XLSX = await loadXlsx();
     if (enrollments.length === 0) {
       toastWarning('Tidak ada data siswa untuk diekspor.');
       return;

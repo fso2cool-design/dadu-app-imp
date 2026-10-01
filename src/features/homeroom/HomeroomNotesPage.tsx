@@ -26,7 +26,7 @@ import {
   AlertCircle,
   UserX
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 
 interface HomeroomNotesPageProps {
@@ -264,7 +264,8 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
   };
 
   // Export notes to Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (notes.length === 0) {
       toastWarning('Tidak ada catatan pembinaan siswa untuk diekspor.');
       return;

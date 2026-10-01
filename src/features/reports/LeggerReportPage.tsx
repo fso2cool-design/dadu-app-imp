@@ -28,7 +28,7 @@ import {
   SchoolSettings, 
   DocumentSettings 
 } from '../../types';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   Table, 
   Search, 
@@ -389,7 +389,8 @@ export const LeggerReportPage: React.FC = () => {
   };
 
   // Handle Export Excel Legger
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (calculatedRows.length === 0) return;
 
     const sheetData: any[] = [];

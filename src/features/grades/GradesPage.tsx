@@ -19,7 +19,7 @@ import {
   CalculationMethod 
 } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import {
   Award,
   Plus,
@@ -570,7 +570,8 @@ export const GradesPage: React.FC = () => {
   }, [enrollments, searchTerm, statusFilter, sortBy, studentCalculations]);
 
   // Export to Excel (.xlsx)
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (!activeAssignment || enrollments.length === 0) {
       toastWarning('Tidak ada data nilai siswa untuk diekspor.');
       return;
@@ -634,8 +635,9 @@ export const GradesPage: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       try {
+        const XLSX = await loadXlsx();
         const bstr = evt.target?.result;
         const wb = XLSX.read(bstr, { type: 'binary' });
         const wsname = wb.SheetNames[0];

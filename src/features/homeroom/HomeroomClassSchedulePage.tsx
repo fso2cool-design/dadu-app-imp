@@ -11,7 +11,7 @@ import {
 import { PrintDocumentLayout } from '../reports/PrintDocumentLayout';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   CalendarDays, 
   Plus, 
@@ -424,7 +424,8 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
   };
 
   // Export to Excel (.xlsx)
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (!currentClass) return;
 
     const rows: any[] = [];

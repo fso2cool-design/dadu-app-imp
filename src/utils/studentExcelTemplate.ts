@@ -1,10 +1,11 @@
-import * as XLSX from 'xlsx';
 import { ClassItem, StudentCustomFieldDefinition } from '../types';
+import { loadXlsx } from './lazyXlsx';
 
-export function downloadStudentExcelTemplate(
+export async function downloadStudentExcelTemplate(
   availableClasses: ClassItem[] = [],
   customFields: StudentCustomFieldDefinition[] = []
 ) {
+  const XLSX = await loadXlsx();
   const activeClasses = availableClasses.filter(c => !c.isArchived);
   const sampleClass1 = activeClasses[0]?.name || 'X-A';
   const sampleClass2 = activeClasses[1]?.name || (activeClasses[0]?.name ? `${activeClasses[0].name}-B` : 'X-B');

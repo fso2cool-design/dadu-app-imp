@@ -7,7 +7,7 @@ import { container } from '../../application/ports/container';
 
 import { TeachingAssignment, AssessmentItem, Score, Enrollment } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
-import * as XLSX from 'xlsx';
+import { loadXlsx } from '../../utils/lazyXlsx';
 import { 
   Award, 
   Search, 
@@ -201,7 +201,8 @@ export const GradesReportPage: React.FC = () => {
   }, [gradeRows]);
 
   // Handle Export Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXlsx();
     if (gradeRows.length === 0) return;
 
     const sheetData: any[] = [];
