@@ -12,6 +12,31 @@ export interface ChangeLogItem {
 
 export const APP_CHANGELOGS: ChangeLogItem[] = [
   {
+    version: 'ver. 2.3.1-JRA',
+    versionCode: '2.3.1-JRA',
+    releaseDate: '1 Oktober 2026',
+    title: 'Keamanan & Kinerja: Satu Superadmin, Cetakan Formal, dan Aplikasi Lebih Ringan',
+    badge: 'Keamanan',
+    highlights: [
+      {
+        category: 'Keamanan',
+        items: [
+          'Satu akun superadmin dengan klaim admin resmi — atur pengguna dan peran hanya dari akun utama.',
+          'Aturan database diperketat dan sudah aktif di server: tiap pengguna hanya mengakses datanya sendiri.',
+          'Dukungan App Check disiapkan (opsional) sebagai lapisan anti-penyalahgunaan kuota.',
+        ],
+      },
+      {
+        category: 'Kinerja & Cetakan',
+        items: [
+          'Pustaka Excel dimuat hanya saat dibutuhkan — aplikasi dibuka lebih cepat.',
+          'Dokumen cetak (A4/F4) selalu tampil formal: tanpa bayangan dan sudut gaya aplikasi.',
+          'Kontras tombol diperbaiki agar teks selalu terbaca jelas di semua gaya visual.',
+        ],
+      },
+    ],
+  },
+  {
     version: 'ver. 2.3-JRA',
     versionCode: '2.3.0-JRA',
     releaseDate: '30 September 2026',
