@@ -217,15 +217,17 @@ export default function App() {
   return (
     <ErrorBoundary isRoot fallbackTitle="Terjadi Kendala Aplikasi">
       <BrowserRouter>
-        <AuthProvider>
-          <DesignSystemProvider>
-            <ThemeProvider>
-              <ToastProvider>
-                <MainApp />
-              </ToastProvider>
-            </ThemeProvider>
-          </DesignSystemProvider>
-        </AuthProvider>
+        <ApplicationProvider app={container.app}>
+          <AuthProvider>
+            <DesignSystemProvider>
+              <ThemeProvider>
+                <ToastProvider>
+                  <MainApp />
+                </ToastProvider>
+              </ThemeProvider>
+            </DesignSystemProvider>
+          </AuthProvider>
+        </ApplicationProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );
