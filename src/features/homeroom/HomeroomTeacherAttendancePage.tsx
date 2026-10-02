@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import {
   TeachingAssignment,
   TeacherMonthlyAttendanceItem,
@@ -23,6 +23,7 @@ const MONTH_NAMES = [
 
 export const HomeroomTeacherAttendancePage: React.FC = () => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const {
     activeAcademicYear,
     activeSemester,
@@ -70,7 +71,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
   // Load School Settings
   useEffect(() => {
     if (!user) return;
-    container.repos.settings.getSchoolSettings(user.uid)
+    app.settings.getSchoolSettings(user.uid)
       .then(res => setSchoolSettings(res))
       .catch(err => console.error('Error loading school settings:', err));
   }, [user]);
@@ -91,8 +92,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
     setLoading(true);
 
     Promise.all([
-      container.repos.teacherAttendance.getHomeroomAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
-      container.repos.teacherAttendance.getMonthlyAttendance(user.uid, selectedClassId, activeAcademicYear.id, selectedSemester, selectedYear, selectedMonth)
+      app.attendance.getHomeroomAssignments(user.uid, activeAcademicYear.id, selectedSemester, selectedClassId),
+      app.attendance.getMonthlyAttendance(user.uid, selectedClassId, activeAcademicYear.id, selectedSemester, selectedYear, selectedMonth)
     ])
       .then(([asgs, savedRecord]) => {
         if (!isMounted) return;
@@ -324,7 +325,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
     setSaving(true);
     try {
-      await container.repos.teacherAttendance.saveMonthlyAttendance(user.uid, {
+      await app.attendance.saveMonthlyAttendance(user.uid, {
         id: `${selectedClassId}_${activeAcademicYear.id}_${selectedSemester}_${selectedYear}_${selectedMonth}`,
         classId: selectedClassId,
         className: currentClass?.name || 'Kelas Binaan',

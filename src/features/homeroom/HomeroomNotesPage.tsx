@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, StudentNote, StudentNoteCategory } from '../../types';
@@ -21,6 +21,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
   initialStudentId,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { 
     activeAcademicYear, 
@@ -90,8 +91,8 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
       setLoading(true);
       try {
         const [enrs, noteList] = await Promise.all([
-          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          container.repos.studentNote.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          app.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          app.students.getStudentNotesByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 
         if (isMounted) {
@@ -165,7 +166,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
     try {
       triggerSyncFeedback('syncing', 'Menyimpan catatan pembinaan siswa...');
       if (editingNote) {
-        await container.repos.studentNote.update(user.uid, editingNote.id, {
+        await app.students.updateStudentNote(user.uid, editingNote.id, {
           studentId: formStudentId,
           studentName,
           rollNumber,
@@ -192,7 +193,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
         triggerSyncFeedback('saved', 'Catatan pembinaan diperbarui!');
         toastSuccess('Catatan pembinaan siswa berhasil diperbarui.');
       } else {
-        const created = await container.repos.studentNote.create(user.uid, {
+        const created = await app.students.createStudentNote(user.uid, {
           studentId: formStudentId,
           studentName,
           rollNumber,
@@ -231,7 +232,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
     setDeleting(true);
     try {
       triggerSyncFeedback('syncing', 'Menghapus catatan pembinaan...');
-      await container.repos.studentNote.delete(user.uid, noteToDelete);
+      await app.students.deleteStudentNote(user.uid, noteToDelete);
       setNotes(prev => prev.filter(n => n.id !== noteToDelete));
       triggerSyncFeedback('saved', 'Catatan berhasil dihapus.');
       toastSuccess('Catatan berhasil dihapus.');

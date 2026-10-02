@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
-import { container } from '../application/ports/container';
+import { useApplication } from '../application/ApplicationContext';
 import type { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../types';
 
 export function useWorkspaceData() {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [activeAcademicYear, setActiveAcademicYear] = useState<AcademicYear | null>(null);
   const [activeSemester, setActiveSemester] = useState<SemesterType>('GANJIL');
@@ -21,7 +22,7 @@ export function useWorkspaceData() {
     if (!user) { setLoading(false); return; }
     setLoading(true); setError(null);
     try {
-      const res = await container.useCases.loadWorkspace(user.uid, profile?.defaultSemester as any);
+      const res = await app.workspace.loadWorkspace(user.uid, profile?.defaultSemester as any);
       setAcademicYears(res.academicYears);
       setActiveAcademicYear(res.activeAcademicYear);
       setActiveSemester(res.activeSemester);
@@ -34,7 +35,7 @@ export function useWorkspaceData() {
     } catch (e: any) {
       setError(e?.message || 'Gagal memuat workspace');
     } finally { setLoading(false); }
-  }, [user, profile?.defaultSemester]);
+  }, [app, user, profile?.defaultSemester]);
 
   useEffect(() => { load(); }, [load]);
 

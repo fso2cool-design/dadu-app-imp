@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { Enrollment, StudentNote, DailyAttendanceRecord } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { StudentProgressReportModal } from '../students/StudentProgressReportModal';
@@ -19,6 +19,7 @@ interface HomeroomStudentsPageProps {
 
 export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { 
     activeAcademicYear, 
@@ -88,8 +89,8 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       setLoading(true);
       try {
         const [enrs, atts] = await Promise.all([
-          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          container.repos.homeroomAttendance.getAllForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
+          app.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          app.attendance.getAllDailyForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
         ]);
 
         if (isMounted) {
@@ -118,7 +119,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
     async function loadNotes() {
       setLoadingNotes(true);
       try {
-        const notes = await container.repos.studentNote.getByStudent(user!.uid, selectedEnrollment!.studentId);
+        const notes = await app.students.getStudentNotes(user!.uid, selectedEnrollment!.studentId);
         if (isMounted) setStudentNotesList(notes);
       } catch (err) {
         console.error('Error loading student notes:', err);
@@ -202,7 +203,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
 
     setSavingNote(true);
     try {
-      const newNote = await container.repos.studentNote.create(user.uid, {
+      const newNote = await app.students.createStudentNote(user.uid, {
         studentId: selectedEnrollment.studentId,
         studentName: selectedEnrollment.student?.fullName || '',
         rollNumber: selectedEnrollment.rollNumber,

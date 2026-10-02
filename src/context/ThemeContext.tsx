@@ -7,7 +7,6 @@ export { type ThemeKey };
 export interface ThemeOption {
   id: ThemeKey;
   name: string;
-  category: 'light' | 'dark';
   tagline: string;
   description: string;
   accentColor: string;
@@ -30,7 +29,6 @@ function toThemeOption(ds: typeof DESIGN_SYSTEMS[number]): ThemeOption {
   return {
     id: ds.id as unknown as ThemeKey,
     name: ds.name,
-    category: 'light',
     tagline: ds.tagline,
     description: ds.description,
     accentColor: c.accent,

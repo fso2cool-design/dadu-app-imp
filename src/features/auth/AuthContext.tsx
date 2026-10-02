@@ -9,7 +9,7 @@ import {
   updateProfile as updateFirebaseProfile
 } from 'firebase/auth';
 import { auth } from '../../services/firebase/config';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { UserProfile } from '../../types';
 
 interface AuthContextType {
@@ -29,12 +29,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const app = useApplication();
 
   const fetchProfile = async (firebaseUser: User) => {
     try {
       let p: UserProfile | null = null;
       try {
-        p = await container.repos.user.getProfile(firebaseUser.uid);
+        p = await app.auth.getProfile(firebaseUser.uid);
       } catch (getErr: any) {
         const code = getErr?.code || '';
         const msg = (getErr?.message || '').toLowerCase();
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       if (!p) {
         // Double-check: doc may have been created between get and create — createProfile now guards with exists check
-        p = await container.repos.user.createProfile(firebaseUser.uid, {
+        p = await app.auth.createProfile(firebaseUser.uid, {
           displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Guru',
           email: firebaseUser.email || '',
           role: 'TEACHER',
@@ -72,7 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Record last login once per browser session/device
         try {
           if (sessionStorage.getItem('login_session_recorded') !== currentUser.uid) {
-            container.repos.user.recordLastLogin(currentUser.uid);
+            app.auth.recordLastLogin(currentUser.uid);
             sessionStorage.setItem('login_session_recorded', currentUser.uid);
           }
         } catch {}
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, pass: string) => {
     const res = await signInWithEmailAndPassword(auth, email, pass);
-    await container.repos.user.recordLastLogin(res.user.uid);
+    await app.auth.recordLastLogin(res.user.uid);
     try {
       sessionStorage.setItem('login_session_recorded', res.user.uid);
     } catch {}
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (name) {
       await updateFirebaseProfile(res.user, { displayName: name });
     }
-    const initialProfile = await container.repos.user.createProfile(res.user.uid, {
+    const initialProfile = await app.auth.createProfile(res.user.uid, {
       displayName: name || email.split('@')[0],
       email: res.user.email || '',
       role: 'TEACHER',
@@ -108,7 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       defaultSemester: 'GANJIL',
       isOnboarded: false,
     });
-    await container.repos.user.recordLastLogin(res.user.uid);
+    await app.auth.recordLastLogin(res.user.uid);
     try {
       sessionStorage.setItem('login_session_recorded', res.user.uid);
     } catch {}

@@ -1,6 +1,8 @@
 import { act, render, renderHook, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApplicationProvider } from '../../application/ApplicationContext';
+import type { ApplicationOperations } from '../../application/types';
 
 let authStateCallback: ((user: any) => void) | null = null;
 const mockUnsubscribe = vi.fn();
@@ -21,16 +23,19 @@ vi.mock('../../services/firebase/config', () => ({
   auth: { app: { name: '[DEFAULT]' } },
 }));
 
-vi.mock('../../services/firestore/users', () => ({
-  getUserProfile: vi.fn().mockResolvedValue({
-    uid: 'user-1',
-    displayName: 'Guru Fulan',
-    email: 'guru@test.com',
-    role: 'TEACHER',
-  }),
-  createUserProfile: vi.fn(),
-  recordUserLastLogin: vi.fn(),
-}));
+const mockApp: ApplicationOperations = {
+  auth: {
+    getProfile: vi.fn().mockResolvedValue({
+      uid: 'user-1',
+      displayName: 'Guru Fulan',
+      email: 'guru@test.com',
+      role: 'TEACHER',
+    }),
+    createProfile: vi.fn(),
+    recordLastLogin: vi.fn(),
+    updateProfile: vi.fn(),
+  },
+} as any;
 
 import { AuthProvider, useAuth } from './AuthContext';
 
@@ -59,9 +64,11 @@ describe('AuthContext & AuthProvider', () => {
     };
 
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>
+      <ApplicationProvider app={mockApp}>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </ApplicationProvider>
     );
 
     // Initial state before onAuthStateChanged fires
@@ -88,9 +95,11 @@ describe('AuthContext & AuthProvider', () => {
     };
 
     render(
-      <AuthProvider>
-        <TestConsumer />
-      </AuthProvider>
+      <ApplicationProvider app={mockApp}>
+        <AuthProvider>
+          <TestConsumer />
+        </AuthProvider>
+      </ApplicationProvider>
     );
 
     // Simulate onAuthStateChanged with authenticated user

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, StudentNote, ClassItem } from '../../types';
@@ -13,6 +13,7 @@ interface HomeroomDashboardPageProps {
 
 export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -68,10 +69,10 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       setLoading(true);
       try {
         const [enrs, todayRecs, allRecs, notes] = await Promise.all([
-          container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
-          ((container.repos.homeroomAttendance as any).getByDate(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr)),
-          (container.repos.homeroomAttendance as any).getAllForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
-          (container.repos.studentNote as any).getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          app.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
+          app.attendance.getDailyAttendanceRecords(user!.uid, activeAcademicYear!.id, currentClass!.id, todayStr),
+          app.attendance.getAllDailyForClass(user!.uid, currentClass!.id, activeAcademicYear!.id),
+          app.students.getStudentNotesByClass(user!.uid, activeAcademicYear!.id, currentClass!.id),
         ]);
 
         if (isMounted) {

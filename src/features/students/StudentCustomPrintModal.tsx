@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Student, Enrollment, ClassItem, SchoolSettings } from '../../types';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
 import { Printer, CheckSquare, Square, GearFine, Buildings, Sparkle, ArrowLeft, ArrowRight, Plus, Trash, X, SlidersHorizontal, ArrowCounterClockwise } from '@phosphor-icons/react';
@@ -183,6 +183,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
   selectedClass,
 }) => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { activeAcademicYear, activeSemester } = useWorkspace();
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
 
@@ -229,7 +230,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
 
   useEffect(() => {
     if (!user || !isOpen) return;
-    container.repos.settings.getSchoolSettings(user.uid)
+    app.settings.getSchoolSettings(user.uid)
       .then(sch => {
         if (sch) setSchoolSettings(sch);
       })

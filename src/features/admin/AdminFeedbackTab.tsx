@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '../../types';
-import { container } from '../../application/ports/container';
-const _fb = (container.repos as any).feedback;
-const getAllFeedbacks = _fb.getAll.bind(_fb);
-const updateFeedbackStatus = _fb.updateStatus.bind(_fb);
-const deleteFeedback = _fb.delete.bind(_fb);
+import { useApplication } from '../../application/ApplicationContext';
 import { useToast } from '../../context/ToastContext';
 import { Bug, Lightbulb, Sparkle, Question, Clock, CheckCircle, WarningCircle, Trash, Chat, ArrowClockwise, Funnel, MagnifyingGlass, ArrowSquareOut, CaretRight, ShieldCheck, Warning } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
@@ -17,6 +13,10 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
   onFeedbackCountChange,
 }) => {
   const { success: toastSuccess, error: toastError } = useToast();
+  const app = useApplication();
+  const getAllFeedbacks = app.admin.getFeedbackList;
+  const updateFeedbackStatus = app.admin.updateFeedbackStatus;
+  const deleteFeedback = app.admin.deleteFeedback;
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -35,7 +35,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
   const fetchFeedbacks = async () => {
     setLoading(true);
     try {
-      const data = await getAllFeedbacks();
+      const data = await app.admin.getFeedbackList();
       setFeedbacks(data);
       if (onFeedbackCountChange) onFeedbackCountChange();
     } catch (err: any) {
@@ -53,7 +53,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
   const handleUpdateStatus = async (item: FeedbackItem, newStatus: FeedbackStatus, reply?: string) => {
     setUpdating(true);
     try {
-      await updateFeedbackStatus(item.id, newStatus, reply);
+      await app.admin.updateFeedbackStatus(item.id, newStatus, reply);
       setFeedbacks(prev => prev.map(f => f.id === item.id ? { 
         ...f, 
         status: newStatus, 
@@ -74,7 +74,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
     if (!feedbackToDelete) return;
     setDeleting(true);
     try {
-      await deleteFeedback(feedbackToDelete.id);
+      await app.admin.deleteFeedback(feedbackToDelete.id);
       setFeedbacks(prev => prev.filter(f => f.id !== feedbackToDelete.id));
       toastSuccess('Laporan feedback berhasil dihapus permanen dari database.');
       if (onFeedbackCountChange) onFeedbackCountChange();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { container } from '../../application/ports/container';
-const { create: createSharedReport, getUserReports: getUserSharedReports, revoke: revokeSharedReport, delete: deleteSharedReport } = container.repos.sharedReport;
+import { useApplication } from '../../application/ApplicationContext';
+
 import { SharedReport, SharedReportType, SharedReportPayload } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
@@ -23,6 +23,8 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
   payload,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
+  const { createSharedReport, getUserSharedReports, revokeSharedReport, deleteSharedReport } = app.reports;
   const { success, error, info } = useToast();
 
   const [activeTab, setActiveTab] = useState<'create' | 'list'>('create');

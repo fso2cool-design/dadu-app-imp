@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentCustomFieldDefinition } from '../../types';
-import { container } from '../../application/ports/container';
-const { create: createStudentCustomField, update: updateStudentCustomField, delete: deleteStudentCustomField } = container.repos.studentCustomField as any;
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { Sliders, Plus, Trash, PencilSimple, Check, X, Question, Table, CheckCircle, WarningCircle, FileCsv } from '@phosphor-icons/react';
 
@@ -20,6 +19,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
   onFieldsChanged,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
   const handleToggleShowInTable = async (field: StudentCustomFieldDefinition) => {
     if (!user) return;
     try {
-      await updateStudentCustomField(user.uid, field.id, {
+      await app.students.updateCustomField(user.uid, field.id, {
         showInTable: !field.showInTable,
       });
       onFieldsChanged();
@@ -84,7 +84,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
 
     try {
       setLoading(true);
-      await deleteStudentCustomField(user.uid, field.id);
+      await app.students.deleteCustomField(user.uid, field.id);
       onFieldsChanged();
       setSuccessMsg(`Kolom "${field.name}" berhasil dihapus.`);
       setTimeout(() => setSuccessMsg(null), 3000);
@@ -109,7 +109,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
         : [];
 
       if (editingFieldId) {
-        await updateStudentCustomField(user.uid, editingFieldId, {
+        await app.students.updateCustomField(user.uid, editingFieldId, {
           name: name.trim(),
           type,
           options: parsedOptions,
@@ -122,7 +122,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
           ? key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '')
           : name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
 
-        await createStudentCustomField(user.uid, {
+        await app.students.createCustomField(user.uid, {
           name: name.trim(),
           key: generatedKey,
           type,

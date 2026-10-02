@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import type { SaveAttendanceItem } from '../../domain/attendance.types';
-const { getByMeeting: getAttendanceRecordsByMeeting, getByMeetingIds: getAttendanceRecordsByMeetingIds, getByAssignment: getAttendanceRecordsByAssignment, getByDate: getAttendanceRecordsByDate, saveSubjectAttendance } = container.repos.attendance;
+
 import { MeetingFormModal } from './MeetingFormModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
@@ -43,6 +43,7 @@ const subjectAttendanceCache = new Map<string, StudentRow[]>();
 
 export const SubjectAttendancePage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
   const { teachingAssignments, activeAcademicYear, activeSemester, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
@@ -111,7 +112,7 @@ export const SubjectAttendancePage: React.FC = () => {
     const fetchMeetings = async () => {
       try {
         if (!cached) setLoadingMeetings(true);
-        const data = await container.repos.meeting.getAll(user.uid, {
+        const data = await app.meetings.getAll(user.uid, {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester,
           teachingAssignmentId: selectedAssignmentId,
@@ -167,7 +168,7 @@ export const SubjectAttendancePage: React.FC = () => {
         const enrollKey = `${user.uid}_${activeAcademicYear.id}_${currentAssignment.classId}`;
         let enrollments = classEnrollmentsCache.get(enrollKey);
         if (!enrollments) {
-          enrollments = await container.repos.enrollment.getByClass(
+          enrollments = await app.enrollment.getByClass(
             user.uid,
             activeAcademicYear.id,
             currentAssignment.classId
@@ -178,10 +179,10 @@ export const SubjectAttendancePage: React.FC = () => {
         // Fetch existing records for this session (try by meeting if selected, otherwise by date)
         let existingRecords: AttendanceRecord[] = [];
         if (selectedMeetingId) {
-          existingRecords = await getAttendanceRecordsByMeeting(user.uid, selectedMeetingId);
+          existingRecords = await app.attendance.getByMeeting(user.uid, selectedMeetingId);
         }
         if (existingRecords.length === 0 && selectedDate) {
-          existingRecords = await getAttendanceRecordsByDate(user.uid, currentAssignment.id, selectedDate);
+          existingRecords = await app.attendance.getByDate(user.uid, currentAssignment.id, selectedDate);
         }
 
         if (!isMounted) return;
@@ -237,7 +238,7 @@ export const SubjectAttendancePage: React.FC = () => {
     const loadMatrixData = async () => {
       try {
         setLoadingMatrix(true);
-        const enrollments = await container.repos.enrollment.getByClass(
+        const enrollments = await app.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           currentAssignment.classId
@@ -245,13 +246,13 @@ export const SubjectAttendancePage: React.FC = () => {
         setAllEnrollments(enrollments.filter(e => e.status === 'ACTIVE' && e.student));
 
         // 1. Fetch all records for this assignment (both independent and meeting-linked)
-        const recs = await getAttendanceRecordsByAssignment(user.uid, currentAssignment.id);
+        const recs = await app.attendance.getByAssignment(user.uid, currentAssignment.id);
 
         // Merge with any legacy records queried via meetingIds
         const mIds = meetings.map(m => m.id);
         let mergedRecords = [...recs];
         if (mIds.length > 0) {
-          const legacy = await getAttendanceRecordsByMeetingIds(user.uid, mIds);
+          const legacy = await app.attendance.getByMeetingIds(user.uid, mIds);
           const map = new Map<string, AttendanceRecord>();
           legacy.forEach(r => map.set(r.id, r));
           recs.forEach(r => map.set(r.id, r));
@@ -383,7 +384,7 @@ export const SubjectAttendancePage: React.FC = () => {
         note: r.note.trim(),
       }));
 
-      const summary = await saveSubjectAttendance(user.uid, {
+      const summary = await app.attendance.saveSubjectAttendance(user.uid, {
         academicYearId: activeAcademicYear.id,
         semester: activeSemester,
         teachingAssignmentId: currentAssignment.id,

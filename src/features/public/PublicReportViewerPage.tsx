@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { container } from '../../application/ports/container';
-const { getByToken: getSharedReportByToken, incrementView: incrementReportViewCount, decrypt: decryptSharedReport } = container.repos.sharedReport;
+import { useApplication } from '../../application/ApplicationContext';
+
 import { SharedReport } from '../../types';
 import { ShareNetwork, Lock, Printer, FileCsv, Clock, Eye, CalendarBlank, CheckCircle, WarningCircle, Buildings, Medal, CaretRight, ArrowSquareOut, ShieldCheck, UserCheck, BookOpen, ChartBar, Table } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
@@ -11,6 +11,8 @@ interface PublicReportViewerPageProps {
 }
 
 export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ token }) => {
+  const app = useApplication();
+  const { getSharedReportByToken, incrementReportViewCount, decryptSharedReport } = { getSharedReportByToken: app.reports.getSharedReportByToken, incrementReportViewCount: app.reports.incrementView, decryptSharedReport: app.reports.decrypt };
   const [report, setReport] = useState<SharedReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

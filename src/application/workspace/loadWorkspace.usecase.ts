@@ -2,7 +2,7 @@ import type { AcademicYearRepository } from '../ports/academicYearRepository';
 import type { ClassRepository } from '../ports/classRepository';
 import type { SubjectRepository } from '../ports/subjectRepository';
 import type { TeachingAssignmentRepository } from '../ports/teachingAssignmentRepository';
-import type { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../../types';
+import type { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings, UserPreferences } from '../../types';
 
 const DEFAULT_ATTENDANCE_SETTINGS: AttendanceSettings = { schoolDaysOption: 6, holidays: [] };
 
@@ -12,7 +12,7 @@ export interface LoadWorkspaceDeps {
   subjectRepo: SubjectRepository;
   teachingAssignmentRepo: TeachingAssignmentRepository;
   // settings injected as functions to avoid circular port dep; optional
-  getUserPreferences?: (uid: string) => Promise<any>;
+  getUserPreferences?: (uid: string) => Promise<UserPreferences | null>;
   getAttendanceSettings?: (uid: string) => Promise<AttendanceSettings>;
 }
 
@@ -48,7 +48,7 @@ export async function loadWorkspaceUseCase(
   ]);
 
   let attSettings: AttendanceSettings = DEFAULT_ATTENDANCE_SETTINGS as AttendanceSettings;
-  let prefs: any = null;
+  let prefs: UserPreferences | null = null;
   if (deps.getAttendanceSettings) {
     try { attSettings = await deps.getAttendanceSettings(uid); } catch {}
   }

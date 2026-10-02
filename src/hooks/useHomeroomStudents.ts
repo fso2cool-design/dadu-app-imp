@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { container } from '../application/ports/container';
+import { useApplication } from '../application/ApplicationContext';
 import type { Enrollment, DailyAttendanceRecord, StudentNote } from '../types';
 
 export function useHomeroomStudents(uid: string | undefined, activeAcademicYearId: string | undefined, classId: string | undefined) {
+  const app = useApplication();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<DailyAttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,14 +13,14 @@ export function useHomeroomStudents(uid: string | undefined, activeAcademicYearI
     setLoading(true);
     try {
       const [enrs, atts] = await Promise.all([
-        container.repos.enrollment.getByClass(uid, activeAcademicYearId, classId).then(list => list.filter(e => e.status === 'ACTIVE')),
-        container.repos.homeroomAttendance.getAllForClass(uid, classId, activeAcademicYearId),
+        app.enrollment.getByClass(uid, activeAcademicYearId, classId).then(list => list.filter(e => e.status === 'ACTIVE')),
+        app.attendance.getAllDailyForClass(uid, classId, activeAcademicYearId),
       ]);
       setEnrollments(enrs);
       setAttendanceRecords(atts as DailyAttendanceRecord[]);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [uid, activeAcademicYearId, classId]);
+  }, [app, uid, activeAcademicYearId, classId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -43,23 +44,24 @@ export function useHomeroomStudents(uid: string | undefined, activeAcademicYearI
 }
 
 export function useStudentNotes(uid: string | undefined, studentId: string | undefined) {
+  const app = useApplication();
   const [notes, setNotes] = useState<StudentNote[]>([]);
   const [loading, setLoading] = useState(false);
   const load = useCallback(async () => {
     if (!uid || !studentId) { setNotes([]); return; }
     setLoading(true);
     try {
-      const list = await container.repos.studentNote.getByStudent(uid, studentId);
+      const list = await app.students.getStudentNotes(uid, studentId);
       setNotes(list as unknown as StudentNote[]);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [uid, studentId]);
+  }, [app, uid, studentId]);
   useEffect(() => { load(); }, [load]);
   const create = useCallback(async (data: any) => {
     if (!uid) throw new Error('no uid');
-    const created: StudentNote = await container.repos.studentNote.create(uid, data as any);
+    const created: StudentNote = await app.students.createStudentNote(uid, data as any);
     setNotes(prev => [created, ...prev]);
     return created;
-  }, [uid]);
+  }, [app, uid]);
   return { notes, loading, reload: load, create, setNotes };
 }

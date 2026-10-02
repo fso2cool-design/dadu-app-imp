@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
 import { ShareReportModal } from './ShareReportModal';
@@ -15,6 +15,7 @@ const journalReportCache = new Map<string, Meeting[]>();
 
 export const JournalReportPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -31,7 +32,7 @@ export const JournalReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    container.repos.settings.getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
+    app.settings.getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
 
   // Initialize selected assignment
@@ -56,7 +57,7 @@ export const JournalReportPage: React.FC = () => {
     const fetchJournalData = async () => {
       if (!cached) setLoading(true);
       try {
-        const mets = await container.repos.meeting.getAll(user.uid, { 
+        const mets = await app.meetings.getAll(user.uid, { 
           teachingAssignmentId: selectedAssignment.id,
           academicYearId: activeAcademicYear.id,
           semester: activeSemester

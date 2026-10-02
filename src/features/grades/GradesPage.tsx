@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
@@ -27,6 +27,7 @@ import { useToast } from '../../context/ToastContext';
 
 export const GradesPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { 
     teachingAssignments, 
@@ -129,13 +130,13 @@ export const GradesPage: React.FC = () => {
       setIsDirty(false);
 
       // 1. Fetch assessment columns for this assignment
-      const items = await (container.repos.assessment as any).getItems(user.uid, {
+      const items = await app.grades.getItems(user.uid, {
         teachingAssignmentId: activeAssignment.id,
       });
       setAssessmentItems(items);
 
       // 2. Fetch class enrollments
-      const enrs = await container.repos.enrollment.getByClass(
+      const enrs = await app.enrollment.getByClass(
         user.uid,
         activeAssignment.academicYearId,
         activeAssignment.classId
@@ -147,7 +148,7 @@ export const GradesPage: React.FC = () => {
       // 3. Fetch scores for all assessment items
       const itemIds = items.map(i => i.id);
       if (itemIds.length > 0) {
-        const scores = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
+        const scores = await app.grades.getScoresByItemIds(user.uid, itemIds);
         const newScoresMap: Record<string, number | string> = {};
         const newNotesMap: Record<string, string> = {};
 
@@ -253,7 +254,7 @@ export const GradesPage: React.FC = () => {
         });
       });
 
-      await (container.repos.assessment as any).saveMatrixScores(user.uid, scoresToSave);
+      await app.grades.saveMatrixScores(user.uid, scoresToSave);
       setInitialScoresMap({ ...scoresMap });
       setIsDirty(false);
       triggerSyncFeedback('saved', 'Nilai siswa berhasil disimpan ke cloud!');
@@ -316,7 +317,7 @@ export const GradesPage: React.FC = () => {
     if (!user) return;
 
     try {
-      const check = await (container.repos.assessment as any).canDeleteItem(user.uid, itemId);
+      const check = await app.grades.canDeleteItem(user.uid, itemId);
       if (!check.canDelete) {
         toastWarning(check.reason || 'Kolom penilaian tidak dapat dihapus karena sudah memiliki nilai siswa.');
         return;
@@ -333,7 +334,7 @@ export const GradesPage: React.FC = () => {
     setDeletingItem(true);
     try {
       triggerSyncFeedback('syncing', `Menghapus kolom penilaian ${itemToDelete.name}...`);
-      await (container.repos.assessment as any).deleteItem(user.uid, itemToDelete.id);
+      await app.grades.deleteItem(user.uid, itemToDelete.id);
       triggerSyncFeedback('saved', 'Kolom penilaian berhasil dihapus.');
       toastSuccess(`Kolom "${itemToDelete.name}" berhasil dihapus.`);
       setItemToDelete(null);

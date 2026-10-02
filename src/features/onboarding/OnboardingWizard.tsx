@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { OnboardingData } from '../../domain/onboarding.types';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { User, Buildings, CalendarBlank, Stack, BookOpen, Briefcase, CaretRight, CaretLeft, Check, Plus, Trash, Sparkle, WarningCircle, GraduationCap } from '@phosphor-icons/react';
 import { AppLogo } from '../../components/common/AppLogo';
 import { APP_CONFIG } from '../../constants/app';
@@ -11,6 +11,7 @@ export type LevelPresetKey = 'MA_SMA' | 'MTS_SMP' | 'MI_SD' | 'SMK_MAK' | 'CUSTO
 
 export const OnboardingWizard: React.FC = () => {
   const { user, profile, refreshProfile } = useAuth();
+  const app = useApplication();
   const { reloadWorkspaceData } = useWorkspace();
 
   const [step, setStep] = useState<number>(1);
@@ -81,7 +82,7 @@ export const OnboardingWizard: React.FC = () => {
         throw new Error('Minimal harus ada 1 mata pelajaran yang didaftarkan.');
       }
 
-      await container.repos.onboarding.submitOnboarding(user.uid, user.email || '', formData);
+      await app.onboarding.submitOnboarding(user.uid, user.email || '', formData);
       await refreshProfile();
       await reloadWorkspaceData();
     } catch (err: any) {

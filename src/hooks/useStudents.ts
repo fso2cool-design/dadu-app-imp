@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { container } from '../application/ports/container';
+import { useApplication } from '../application/ApplicationContext';
 import type { Student } from '../types';
 
 export function useStudents(uid: string | undefined, opts?: { status?: string }) {
+  const app = useApplication();
   const [data, setData] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,18 +12,18 @@ export function useStudents(uid: string | undefined, opts?: { status?: string })
     if (!uid) return;
     setLoading(true); setError(null);
     try {
-      const list = await container.repos.student.getAll(uid, opts?.status as any);
+      const list = await app.students.getAll(uid, opts?.status as any);
       setData(list);
     } catch (e: any) { setError(e?.message || 'Gagal memuat siswa'); }
     finally { setLoading(false); }
-  }, [uid, opts?.status]);
+  }, [app, uid, opts?.status]);
 
   useEffect(() => { fetch(); }, [fetch]);
 
   const search = useCallback(async (q: string) => {
     if (!uid) return [] as Student[];
-    return container.useCases.searchStudents(uid, q);
-  }, [uid]);
+    return app.students.search(uid, q);
+  }, [app, uid]);
 
   return { data, loading, error, reload: fetch, search };
 }

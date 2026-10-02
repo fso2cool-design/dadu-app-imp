@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { 
   ClassSchedule, 
   ClassScheduleItem, 
@@ -82,6 +82,7 @@ function getSortableTime(timeSlot?: string): number {
 
 export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -144,7 +145,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
     const loadSchedule = async () => {
       setLoading(true);
       try {
-        const data = await container.repos.classSchedule.getClassSchedule(
+        const data = await app.settings.getClassSchedule(
           user.uid,
           currentClass.id,
           activeAcademicYear.id,
@@ -366,7 +367,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         currentItems.push(newItem);
       }
 
-      const updated = await container.repos.classSchedule.saveClassSchedule(user.uid, {
+      const updated = await app.settings.saveClassSchedule(user.uid, {
         classId: currentClass.id,
         className: currentClass.name,
         academicYearId: activeAcademicYear.id,
@@ -392,7 +393,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
 
     try {
       const updatedItems = customSchedule.items.filter(i => i.id !== itemId);
-      const updated = await container.repos.classSchedule.saveClassSchedule(user.uid, {
+      const updated = await app.settings.saveClassSchedule(user.uid, {
         ...customSchedule,
         items: updatedItems,
       });

@@ -1,4 +1,5 @@
 import type { StudentRepository } from '../ports/studentRepository';
+import type { Student } from '../../types';
 import { buildStudentSearchTokens } from '../../domain/students/studentSearchTokens';
 
 export interface SearchStudentsInput {
@@ -9,25 +10,18 @@ export interface SearchStudentsInput {
 export async function searchStudentsUseCase(
   input: SearchStudentsInput,
   deps: { studentRepo: StudentRepository }
-) {
+): Promise<Student[]> {
   const q = input.query.trim();
   if (!q) return [];
-  // exact identifier first (nis/nisn), then token
-  // repo exposes searchByExactIdentifier and searchByNameToken via underlying service;
-  // we delegate via any to keep port minimal for now
-  
-  if (deps.studentRepo.searchByExactIdentifier) {
-    const exact = await deps.studentRepo.searchByExactIdentifier(input.uid, q);
-    if (exact && exact.length) return exact;
+
+  // 1. Exact identifier first (NIS / NISN)
+  const exact = await deps.studentRepo.searchByExactIdentifier(input.uid, q);
+  if (exact && exact.length > 0) {
+    return exact;
   }
-  if (deps.studentRepo.searchByNameToken) {
-    // build token to normalize
-    const tokens = buildStudentSearchTokens(q, '');
-    const tok = tokens[0] || q.toLowerCase();
-    return deps.studentRepo.searchByNameToken(input.uid, tok);
-  }
-  // fallback: get all and filter in memory (dev)
-  const all = await deps.studentRepo.getAll(input.uid);
-  const lower = q.toLowerCase();
-  return all.filter(s => s.fullName.toLowerCase().includes(lower) || s.nis?.toLowerCase().includes(lower) || s.nisn?.toLowerCase().includes(lower));
+
+  // 2. Token search for student name
+  const tokens = buildStudentSearchTokens(q, '');
+  const tok = tokens[0] || q.toLowerCase();
+  return deps.studentRepo.searchByNameToken(input.uid, tok);
 }

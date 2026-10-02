@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ArrowClockwise, CheckCircle, LinkSimple, UserCheck, X, WarningCircle, MagnifyingGlass } from '@phosphor-icons/react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import type { DiagnosticResult, IntegrityIssue } from '../../domain/diagnostics.types';
 import { ClassItem, AcademicYear, Student } from '../../types';
-const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn } = container.repos.relationshipRecovery as any;
+
 interface RelationshipRecoverySectionProps {
   uid: string;
   classes: ClassItem[];
@@ -19,6 +19,8 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
   userDisplayName,
   onRefreshStats
 }) => {
+  const app = useApplication();
+  const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn } = app.settings as any;
   const [auditResult, setAuditResult] = useState<DiagnosticResult | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [activeSeverityFilter, setActiveSeverityFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING'>('ALL');
@@ -46,7 +48,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
     try {
       setIsAuditing(true);
       setOperationSuccessMsg(null);
-      const result = await container.repos.diagnostics.runIntegrityAudit(uid);
+      const result = await app.settings.runIntegrityAudit(uid);
       setAuditResult(result);
     } catch (err: any) {
       console.error('Audit failed:', err);
@@ -81,7 +83,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setRelinkClassIssue(null);
 
       // Re-run audit to update issues list
-      const freshAudit = await container.repos.diagnostics.runIntegrityAudit(uid);
+      const freshAudit = await app.settings.runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {
@@ -148,7 +150,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setOperationSuccessMsg('Relasi transaksi siswa berhasil ditautkan kembali ke master siswa secara atomik!');
       setRelinkStudentIssue(null);
 
-      const freshAudit = await container.repos.diagnostics.runIntegrityAudit(uid);
+      const freshAudit = await app.settings.runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {

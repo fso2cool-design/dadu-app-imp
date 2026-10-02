@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord } from '../../types';
@@ -15,6 +15,7 @@ const homeroomMonthlyRecordsCache = new Map<string, DailyAttendanceRecord[]>();
 
 export const HomeroomMonthlyAttendancePage: React.FC = () => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -114,12 +115,12 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
       try {
         let enrs = cachedEnrs;
         if (!enrs) {
-          const rawEnrs = await container.repos.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
+          const rawEnrs = await app.enrollment.getByClass(user!.uid, activeAcademicYear!.id, currentClass!.id);
           enrs = rawEnrs.filter(e => e.status === 'ACTIVE');
           homeroomMonthlyRosterCache.set(rosterKey, enrs);
         }
 
-        const recs = await container.repos.homeroomAttendance.getMonthly(user!.uid, activeAcademicYear!.id, currentClass!.id, yearMonthPrefix);
+        const recs = await app.attendance.getMonthlyDaily(user!.uid, activeAcademicYear!.id, currentClass!.id, yearMonthPrefix);
         homeroomMonthlyRecordsCache.set(recordsKey, recs);
 
         if (isMounted) {
@@ -232,7 +233,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
     let schoolInfo: any = null;
     if (user) {
       try {
-        schoolInfo = await container.repos.settings.getSchoolSettings(user.uid);
+        schoolInfo = await app.settings.getSchoolSettings(user.uid);
       } catch (e) {}
     }
 

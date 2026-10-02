@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { ClassUsageSummary } from '../../domain/class.types';
@@ -8,10 +8,12 @@ import { Stack, Plus, Users, PencilSimple, Trash, Archive, ArrowCounterClockwise
 import { Modal } from '../../components/common/Modal';
 import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../context/ToastContext';
-const classesRepo = container.repos.class as any;
+
 
 export const ClassesPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
+  const classesRepo = app.master.classes as any;
   const { success: toastSuccess, error: toastError } = useToast();
   const { classes, activeAcademicYear, reloadWorkspaceData, triggerSyncFeedback } = useWorkspace();
 
@@ -110,14 +112,14 @@ export const ClassesPage: React.FC = () => {
       if (editingClass) {
         if (isEditingUsed) {
           // Locked edit: only allow updating classTeacherId
-          await container.repos.class.update(user.uid, editingClass.id, {
+          await app.master.classes.update(user.uid, editingClass.id, {
             classTeacherId: isHomeroom ? user.uid : '',
           });
           triggerSyncFeedback('saved', 'Metadata wali kelas berhasil diperbarui!');
           toastSuccess(`Metadata kelas "${editingClass.name}" berhasil diperbarui.`);
         } else {
           // Unused class: normal full edit
-          await container.repos.class.update(user.uid, editingClass.id, {
+          await app.master.classes.update(user.uid, editingClass.id, {
             name: name.trim(),
             gradeLevel: gradeLevel.trim(),
             major: major.trim(),
@@ -128,7 +130,7 @@ export const ClassesPage: React.FC = () => {
         }
       } else {
         // Create new class
-        await container.repos.class.create(user.uid, {
+        await app.master.classes.create(user.uid, {
           academicYearId: activeAcademicYear?.id || '',
           name: name.trim(),
           gradeLevel: gradeLevel.trim(),
@@ -197,7 +199,7 @@ export const ClassesPage: React.FC = () => {
     try {
       setActionLoading(true);
       triggerSyncFeedback('syncing', `Menghapus kelas ${deleteModalCls.name}...`);
-      await container.repos.class.delete(user.uid, deleteModalCls.id);
+      await app.master.classes.delete(user.uid, deleteModalCls.id);
       triggerSyncFeedback('saved', `Kelas ${deleteModalCls.name} berhasil dihapus permanen.`);
       toastSuccess(`Kelas ${deleteModalCls.name} berhasil dihapus permanen.`);
       await reloadWorkspaceData();

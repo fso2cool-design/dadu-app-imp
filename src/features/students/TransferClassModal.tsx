@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
 import { Enrollment } from '../../types';
 import { ArrowsLeftRight, WarningCircle } from '@phosphor-icons/react';
@@ -20,6 +20,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
   enrollment,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
 
   const availableClasses = classes.filter(
@@ -54,7 +55,7 @@ export const TransferClassModal: React.FC<TransferClassModalProps> = ({
       setErrorMessage(null);
       triggerSyncFeedback('syncing', 'Memproses mutasi kelas siswa...');
       const targetCls = classes.find(c => c.id === targetClassId);
-      await container.repos.enrollment.transfer(
+      await app.enrollment.transfer(
         user.uid, 
         enrollment.id, 
         targetClassId, 

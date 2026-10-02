@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PAPER } from '../../constants/print';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { Badge } from '../../components/common/Badge';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { Printer, CreditCard, FileText, ChartBar, Table, CalendarCheck, Medal, Users, Notepad, CheckCircle, Sliders, ArrowRight, FileCsv, Buildings, Download, Gear, Sparkle, GraduationCap } from '@phosphor-icons/react';
@@ -13,6 +13,7 @@ interface ReportCenterPageProps {
 
 export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { activeAcademicYear, activeSemester } = useWorkspace();
 
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
@@ -32,8 +33,8 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
     const fetchSettings = async () => {
       try {
         const [school, doc] = await Promise.all([
-          container.repos.settings.getSchoolSettings(user.uid),
-          container.repos.settings.getDocumentSettings(user.uid),
+          app.settings.getSchoolSettings(user.uid),
+          app.settings.getDocumentSettings(user.uid),
         ]);
         setSchoolSettings(school);
         if (doc) {
@@ -56,7 +57,7 @@ export const ReportCenterPage: React.FC<ReportCenterPageProps> = ({ onNavigate }
     if (!user) return;
     setSavingSettings(true);
     try {
-      await container.repos.settings.saveDocumentSettings(user.uid, docSettings);
+      await app.settings.saveDocumentSettings(user.uid, docSettings);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {

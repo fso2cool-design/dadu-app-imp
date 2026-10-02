@@ -66,6 +66,28 @@ describe('Firestore Users Service', () => {
   });
 
   describe('createUserProfile', () => {
+    it('returns existing user profile and never overwrites with setDoc if document already exists', async () => {
+      mockGetDoc.mockResolvedValueOnce({
+        exists: () => true,
+        id: 'user-existing',
+        data: () => ({
+          displayName: 'Guru Lama',
+          email: 'lama@sekolah.sch.id',
+          role: 'TEACHER',
+          isOnboarded: true,
+        }),
+      });
+
+      const profile = await createUserProfile('user-existing', {
+        displayName: 'Guru Timpa',
+        email: 'timpa@sekolah.sch.id',
+      });
+
+      expect(mockSetDoc).not.toHaveBeenCalled();
+      expect(profile.displayName).toBe('Guru Lama');
+      expect(profile.email).toBe('lama@sekolah.sch.id');
+    });
+
     it('creates standard TEACHER profile for normal email', async () => {
       mockGetDoc.mockResolvedValue({ exists: () => false });
       mockSetDoc.mockResolvedValueOnce(undefined);

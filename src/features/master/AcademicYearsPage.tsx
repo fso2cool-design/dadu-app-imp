@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { CalendarBlank, Plus, Check, Star, PencilSimple, Trash, Archive, ArrowCounterClockwise, Lock, WarningCircle } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -9,10 +9,12 @@ import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../context/ToastContext';
 import { AcademicYear } from '../../types';
 import type { AcademicYearUsageSummary } from '../../domain/academicYear.types';
-const ayRepo = container.repos.academicYear as any;
+
 
 export const AcademicYearsPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
+  const ayRepo = app.master.academicYears as any;
   const { success: toastSuccess, error: toastError } = useToast();
   const { academicYears, activeAcademicYear, reloadWorkspaceData, triggerSyncFeedback } = useWorkspace();
 

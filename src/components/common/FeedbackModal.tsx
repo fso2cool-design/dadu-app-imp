@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { useAuth } from '../../features/auth/AuthContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { FeedbackType } from '../../types';
 import { useToast } from '../../context/ToastContext';
 import { Bug, Lightbulb, Sparkle, Question, PaperPlane, CheckCircle, WarningCircle } from '@phosphor-icons/react';
@@ -18,6 +18,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   onSuccess,
 }) => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { success: toastSuccess, error: toastError } = useToast();
 
   const [type, setType] = useState<FeedbackType>('BUG');
@@ -32,7 +33,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
     setSubmitting(true);
     try {
-      await container.repos.feedback.create({
+      await app.feedback.create({
         userId: user.uid,
         userName: profile?.displayName || user.email || 'Guru',
         userEmail: user.email || '',

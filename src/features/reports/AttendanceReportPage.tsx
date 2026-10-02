@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
@@ -33,6 +33,7 @@ const homeroomReportCache = new Map<string, { enrollments: Enrollment[]; dailyRe
 
 export const AttendanceReportPage: React.FC = () => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -51,7 +52,7 @@ export const AttendanceReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    container.repos.settings.get(user.uid).then(setSchoolSettings).catch(console.error);
+    app.settings.getSettings(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
   
   // Subject Attendance State
@@ -90,14 +91,14 @@ export const AttendanceReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch meetings for this assignment
-        const mets = await container.repos.meeting.getAll(user.uid, { 
+        const mets = await app.meetings.getAll(user.uid, { 
           teachingAssignmentId: selectedAssignment.id,
           academicYearId: activeAcademicYear.id,
           semester: activeSemester
         });
 
         // 2. Fetch class enrollments
-        const enrs = await container.repos.enrollment.getByClass(
+        const enrs = await app.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           selectedAssignment.classId
@@ -105,13 +106,13 @@ export const AttendanceReportPage: React.FC = () => {
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 3. Fetch all attendance records for this assignment (both independent and meeting-linked)
-        const recs = await container.repos.attendance.getByAssignment(user.uid, selectedAssignment.id);
+        const recs = await app.attendance.getByAssignment(user.uid, selectedAssignment.id);
         
         // If there are legacy records queried via meetingIds that might not have assignmentId stamped, merge them
         let finalRecords = recs;
         if (mets.length > 0) {
           const mIds = mets.map(m => m.id);
-          const legacyRecs = await (container.repos.attendance as any).getByMeetingIds(user.uid, mIds);
+          const legacyRecs = await app.attendance.getByMeetingIds(user.uid, mIds);
           const map = new Map<string, AttendanceRecord>();
           legacyRecs.forEach(r => map.set(r.id, r));
           recs.forEach(r => map.set(r.id, r));
@@ -154,7 +155,7 @@ export const AttendanceReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch class enrollments
-        const enrs = await container.repos.enrollment.getByClass(
+        const enrs = await app.enrollment.getByClass(
           user.uid,
           activeAcademicYear.id,
           selectedClassId
@@ -162,7 +163,7 @@ export const AttendanceReportPage: React.FC = () => {
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 2. Fetch all daily records for this class within the active academic year
-        const recs = await (container.repos.homeroomAttendance as any).getAllForClass(user.uid, selectedClassId, activeAcademicYear.id);
+        const recs = await app.attendance.getAllDailyForClass(user.uid, selectedClassId, activeAcademicYear.id);
 
         homeroomReportCache.set(cacheKey, {
           enrollments: enrs,

@@ -10,6 +10,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { LoadingScreen } from './components/common/LoadingScreen';
 import { NotFoundPage } from './components/common/NotFoundPage';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { ApplicationProvider, useApplication } from './application/ApplicationContext';
 import { container } from './application/ports/container';
 import { resolvePathToRouteKey, resolveRoutePath } from './routes/paths';
 
@@ -40,6 +41,7 @@ function getPublicShareToken(pathname: string, searchParams: URLSearchParams): s
 function AuthenticatedApp() {
   const { user, profile, loading: authLoading } = useAuth();
   const { loading: workspaceLoading } = useWorkspace();
+  const app = useApplication();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -56,7 +58,7 @@ function AuthenticatedApp() {
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {
     if (isAdmin) {
-      container.repos.feedback.getUnreadCount()
+      app.feedback.getUnreadCount()
         .then(count => setAdminBadgeCount(count))
         .catch(err => console.warn('Unread feedback count check failed:', err));
     }

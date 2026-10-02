@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { DeduplicationScanResult, DeduplicationExecutionResult } from '../../domain/deduplication.types';
 
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 
 interface DeduplicateStudentsModalProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
   targetClassId,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { activeAcademicYear, triggerSyncFeedback } = useWorkspace();
 
   const [scanning, setScanning] = useState(false);
@@ -35,7 +36,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
       setScanning(true);
       setErrorMsg(null);
       setExecutionResult(null);
-      const res = await container.repos.deduplication.scanDuplicateStudents(user.uid, {
+      const res = await app.students.scanDuplicates(user.uid, {
         academicYearId: activeAcademicYear?.id,
         classId: targetClassId,
       });
@@ -65,7 +66,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
       setErrorMsg(null);
       triggerSyncFeedback('syncing', 'Membersihkan dan menggabungkan data duplikat di Firestore...');
 
-      const res = await container.repos.deduplication.executeZeroResidueDeduplication(user.uid, {
+      const res = await app.students.executeDeduplication(user.uid, {
         academicYearId: activeAcademicYear?.id,
         classId: targetClassId,
       });

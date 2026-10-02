@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
-import { container } from '../application/ports/container';
+import { useApplication } from '../application/ApplicationContext';
 import { DesignSystemKey, DesignSystemMode, DesignSystemTokens, DESIGN_SYSTEMS } from '../types';
 
 interface DesignSystemContextType {
@@ -20,6 +20,7 @@ const DEFAULT_SYSTEM: DesignSystemKey = 'minimalist';
 
 export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
+  const app = useApplication();
 
   const [activeSystem, setActiveSystem] = useState<DesignSystemKey>(DEFAULT_SYSTEM);
   const [mode, setModeState] = useState<DesignSystemMode>('light');
@@ -149,7 +150,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
       try {
         localStorage.setItem(`app_design_system_${user.uid}`, system);
       } catch {}
-      container.repos.user.updateDesignSystem(user.uid, system);
+      app.theme.updateDesignSystem(user.uid, system);
     }
   };
 
@@ -160,10 +161,10 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
           localStorage.setItem(`app_design_system_mode_${user.uid}`, next);
         } catch {}
-        container.repos.user.updateProfile(user.uid, { designSystemModePreference: next });
+        app.theme.updateModePreference(user.uid, next);
       }
     },
-    [user],
+    [user, app],
   );
 
   const setMode = (next: DesignSystemMode) => {

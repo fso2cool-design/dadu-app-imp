@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { TeachingAssignment, Meeting } from '../../types';
@@ -27,6 +27,7 @@ let cachedTeachingKey: string = '';
 
 export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { 
     teachingAssignments, 
     activeAcademicYear, 
@@ -59,8 +60,8 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
       
       // Batch fetch all meetings and all enrollments for active academic year in parallel (2 queries instead of 2 * N)
       const [allMeetings, allEnrollments] = await Promise.all([
-        container.repos.meeting.getAll(user.uid, { academicYearId: activeAcademicYear.id, semester: activeSemester }),
-        container.repos.enrollment.getByAcademicYear(user.uid, activeAcademicYear.id)
+        app.meetings.getAll(user.uid, { academicYearId: activeAcademicYear.id, semester: activeSemester }),
+        app.enrollment.getByAcademicYear(user.uid, activeAcademicYear.id)
       ]);
 
       // Index active student count by classId

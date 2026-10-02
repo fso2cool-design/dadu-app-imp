@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Briefcase, Plus, PencilSimple, Trash, CalendarBlank, Clock, MapPin, Stack, Archive, ArrowCounterClockwise, Lock, WarningCircle } from '@phosphor-icons/react';
@@ -8,12 +8,14 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
 import type { TeachingAssignmentUsageSummary } from '../../domain/teachingAssignment.types';
 import { TeachingAssignment } from '../../types';
-const taRepo = container.repos.teachingAssignment as any;
+
 
 const DAYS_OF_WEEK = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
 export const TeachingAssignmentsPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
+  const taRepo = app.master.teachingAssignments as any;
   const { success: toastSuccess, error: toastError } = useToast();
   const { 
     teachingAssignments, 

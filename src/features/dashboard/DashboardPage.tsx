@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { CheckSquare, CalendarCheck, Medal, CalendarDots, BookOpen, Users, ArrowRight, Clock, Sparkle, Stack, CalendarBlank, CheckCircle, WarningCircle, TrendUp, SquaresFour, List, FileCsv, Warning, Lightbulb, ArrowSquareOut } from '@phosphor-icons/react';
@@ -19,6 +19,7 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const { profile, user } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -57,12 +58,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       setLoadingStats(true);
       try {
         const [meetingData, enrollmentData, assessmentData] = await Promise.all([
-          container.repos.meeting.getAll(user.uid, {
+          app.meetings.getAll(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
-          (container.repos.enrollment as any).getByAcademicYear(user.uid, activeAcademicYear.id),
-          container.repos.assessment.getItems(user.uid, {
+          app.enrollment.getByAcademicYear(user.uid, activeAcademicYear.id),
+          app.grades.getItems(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
@@ -71,12 +72,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         let scoreData: Score[] = [];
         if (assessmentData.length > 0) {
           const itemIds = assessmentData.map(a => a.id);
-          scoreData = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
+          scoreData = await app.grades.getScoresByItemIds(user.uid, itemIds);
         }
 
         let dailySession: DailyAttendanceSession | null = null;
         if (homeroomClass) {
-          dailySession = await (container.repos.homeroomAttendance as any).getSession(user.uid, activeAcademicYear.id, homeroomClass.id, todayISO);
+          dailySession = await app.attendance.getDailySession(user.uid, activeAcademicYear.id, homeroomClass.id, todayISO);
         }
 
         if (isMounted) {

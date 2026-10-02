@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { 
   Enrollment, 
   Subject, 
@@ -23,6 +23,7 @@ interface StudentReportsPageProps {
 
 export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNavigate }) => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
   const { 
     activeAcademicYear, 
@@ -68,8 +69,8 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
     const loadSettings = async () => {
       try {
         const [sch, docS] = await Promise.all([
-          container.repos.settings.getSchoolSettings(user.uid),
-          container.repos.settings.getDocumentSettings(user.uid),
+          app.settings.getSchoolSettings(user.uid),
+          app.settings.getDocumentSettings(user.uid),
         ]);
         if (sch) setSchoolSettings(sch);
         if (docS) setDocSettings(docS);
@@ -86,17 +87,17 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
     setLoading(true);
     try {
       // 1. Subjects
-      const subs = await container.repos.subject.getAll(user.uid);
+      const subs = await app.master.subjects.getAll(user.uid);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
 
       // 2. Enrollments
-      const enrs = await container.repos.enrollment.getByClass(user.uid, activeAcademicYear.id, currentClassId);
+      const enrs = await app.enrollment.getByClass(user.uid, activeAcademicYear.id, currentClassId);
       enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
       setEnrollments(enrs);
 
       // 3. Assessment Items
-      const items = await container.repos.assessment.getItems(user.uid, {
+      const items = await app.grades.getItems(user.uid, {
         academicYearId: activeAcademicYear.id,
         classId: currentClassId,
         semester: activeSemester,
@@ -105,18 +106,18 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
 
       // 4. Scores
       if (items.length > 0) {
-        const scs = await container.repos.assessment.getScoresByItemIds(user.uid, items.map(it => it.id));
+        const scs = await app.grades.getScoresByItemIds(user.uid, items.map(it => it.id));
         setScores(scs);
       } else {
         setScores([]);
       }
 
       // 5. Daily Attendance
-      const attRecs = await container.repos.homeroomAttendance.getAllForClass(user.uid, currentClassId, activeAcademicYear.id);
+      const attRecs = await app.attendance.getAllDailyForClass(user.uid, currentClassId, activeAcademicYear.id);
       setAttendanceRecords(attRecs);
 
       // 6. Student Notes
-      const notes = await (container.repos.studentNote as any).getByClass(user.uid, activeAcademicYear.id, currentClassId);
+      const notes = await app.students.getStudentNotesByClass(user.uid, activeAcademicYear.id, currentClassId);
       setStudentNotes(notes);
 
       // 7. Homeroom Teacher
@@ -128,7 +129,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
             nip: profile.nip || '-',
           });
         } else {
-          const tProfile = await container.repos.user.getProfile(currentClassObj.classTeacherId);
+          const tProfile = await app.auth.getProfile(currentClassObj.classTeacherId);
           if (tProfile) {
             setHomeroomTeacher({
               name: tProfile.displayName || 'Wali Kelas',

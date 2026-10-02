@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
-const { create: createMeeting, update: updateMeeting, getAll: getMeetings } = container.repos.meeting;
+import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
 import { CalendarCheck, Clock, BookOpen, FileText, Sparkle, CheckCircle, WarningCircle, Bank } from '@phosphor-icons/react';
@@ -43,6 +42,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
   defaultAssignmentId,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { teachingAssignments, activeAcademicYear, activeSemester, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
 
   const [meetingType, setMeetingType] = useState<'CLASS' | 'MADRASAH_ACTIVITY'>('CLASS');
@@ -67,7 +67,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
     setAssignmentId(newAssignId);
     if (!user || meetingToEdit) return;
     try {
-      const existing = await getMeetings(user.uid, { teachingAssignmentId: newAssignId });
+      const existing = await app.meetings.getAll(user.uid, { teachingAssignmentId: newAssignId });
       const nextNum = existing.length > 0 
         ? Math.max(...existing.map(m => m.meetingNumber || 0)) + 1 
         : 1;
@@ -106,7 +106,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       setStatus('COMPLETED');
 
       if (initialAssignId && user) {
-        getMeetings(user.uid, { teachingAssignmentId: initialAssignId }).then(existing => {
+        app.meetings.getAll(user.uid, { teachingAssignmentId: initialAssignId }).then(existing => {
           const nextNum = existing.length > 0 
             ? Math.max(...existing.map(m => m.meetingNumber || 0)) + 1 
             : 1;
@@ -163,7 +163,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       const isActivity = meetingType === 'MADRASAH_ACTIVITY';
 
       if (meetingToEdit) {
-        await updateMeeting(user.uid, meetingToEdit.id, {
+        await app.meetings.update(user.uid, meetingToEdit.id, {
           teachingAssignmentId: assignmentId,
           classId: selectedAssignment.classId,
           subjectId: selectedAssignment.subjectId,
@@ -208,7 +208,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
         triggerSyncFeedback('saved', 'Jurnal pertemuan berhasil diperbarui!');
         onSuccess(updatedObj);
       } else {
-        const created = await createMeeting(user.uid, {
+        const created = await app.meetings.create(user.uid, {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester,
           teachingAssignmentId: assignmentId,

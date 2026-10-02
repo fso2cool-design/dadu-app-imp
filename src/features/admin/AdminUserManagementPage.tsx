@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import type { OrphanResidualItem, UserStorageStats } from '../../domain/user.types';
-const _user = (container.repos as any).user;
-const getAllUsers = _user.getAllUsers.bind(_user);
-const setAccountStatus = _user.setAccountStatus.bind(_user);
-const adminUpdateUserProfile = _user.adminUpdateProfile.bind(_user);
-const purgeEntireUserWorkspace = _user.purgeWorkspace.bind(_user);
-const purgeOrphanedResiduals = _user.purgeOrphans.bind(_user);
-const scanOrphanResiduals = _user.scanOrphans.bind(_user);
-const getUserStorageStats = _user.getStorageStats.bind(_user);
-const getUnreadFeedbackCount = (container.repos as any).feedback.getUnreadCount.bind((container.repos as any).feedback);
 import { AdminFeedbackTab } from './AdminFeedbackTab';
 import { EditUserModal } from './EditUserModal';
 import { UserProfile } from '../../types';
@@ -81,6 +72,15 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 }) => {
   const { user, profile, logout } = useAuth();
   const { success: toastSuccess, error: toastError } = useToast();
+  const app = useApplication();
+  const getAllUsers = app.admin.getAllUsers;
+  const setAccountStatus = app.admin.setAccountStatus;
+  const adminUpdateUserProfile = app.admin.adminUpdateProfile;
+  const purgeEntireUserWorkspace = app.admin.purgeWorkspace;
+  const purgeOrphanedResiduals = app.admin.purgeOrphans;
+  const scanOrphanResiduals = app.admin.scanOrphans;
+  const getUserStorageStats = app.admin.getStorageStats;
+  const getUnreadFeedbackCount = app.feedback.getUnreadCount;
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -125,7 +125,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
   const loadUnreadFeedbackCount = async () => {
     try {
-      const count = await getUnreadFeedbackCount();
+      const count = await app.feedback.getUnreadCount();
       setUnreadFeedbackCount(count);
     } catch (err) {
       console.warn('Failed to load feedback unread count:', err);
@@ -135,7 +135,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const loadAllUsers = async () => {
     setLoading(true);
     try {
-      const data = await getAllUsers();
+      const data = await app.admin.getAllUsers();
       setUsersList(data);
     } catch (err: any) {
       console.error('Error fetching users:', err);
@@ -154,7 +154,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
     setScanningOrphans(true);
     setSweepResult(null);
     try {
-      const found = await scanOrphanResiduals();
+      const found = await app.admin.scanOrphans();
       setDetectedOrphans(found);
       setHasScanned(true);
       if (found.length === 0) {
@@ -173,7 +173,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const handleSweepDetectedOrphan = async (targetUid: string) => {
     setSweepingResidual(true);
     try {
-      const count = await purgeOrphanedResiduals(targetUid);
+      const count = await app.admin.purgeOrphans(targetUid);
       setDetectedOrphans(prev => prev.filter(o => o.uid !== targetUid));
       showToast('success', `Berhasil menyapu ${count} dokumen residu dari UID: ${targetUid.substring(0, 10)}...`);
       setSweepResult({
@@ -195,7 +195,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
     let totalPurged = 0;
     try {
       for (const orphan of detectedOrphans) {
-        const count = await purgeOrphanedResiduals(orphan.uid);
+        const count = await app.admin.purgeOrphans(orphan.uid);
         totalPurged += count;
       }
       setDetectedOrphans([]);
@@ -223,7 +223,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
     setSweepingResidual(true);
     setSweepResult(null);
     try {
-      const count = await purgeOrphanedResiduals(trimmedUid);
+      const count = await app.admin.purgeOrphans(trimmedUid);
       setSweepResult({
         success: true,
         count,
@@ -247,7 +247,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const handleToggleStatus = async (targetUser: UserProfile) => {
     const newStatus = targetUser.accountStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
     try {
-      await setAccountStatus(targetUser.uid, newStatus);
+      await app.admin.setAccountStatus(targetUser.uid, newStatus);
       setUsersList(prev => prev.map(u => u.uid === targetUser.uid ? { ...u, accountStatus: newStatus } : u));
       showToast('success', `Status akun ${targetUser.displayName || targetUser.email} berhasil diubah menjadi ${newStatus === 'ACTIVE' ? 'Aktif' : 'Ditangguhkan (Suspend)'}.`);
     } catch (err: any) {
@@ -260,7 +260,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
     setInspectingUser(targetUser);
     setLoadingStats(true);
     try {
-      const stats = await getUserStorageStats(targetUser.uid);
+      const stats = await app.admin.getStorageStats(targetUser.uid);
       setUserStats(stats);
     } catch (err) {
       console.error('Error getting stats:', err);
@@ -278,7 +278,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
     setPurging(true);
     try {
-      const count = await purgeEntireUserWorkspace(purgeTarget.uid);
+      const count = await app.admin.purgeWorkspace(purgeTarget.uid);
       setPurgeSuccessCount(count);
       setUsersList(prev => prev.filter(u => u.uid !== purgeTarget.uid));
       showToast('success', `Berhasil menghapus total data akun ${purgeTarget.email}. Sebanyak ${count} dokumen telah dihapus dari Firestore.`);
@@ -297,7 +297,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
   const handleSaveUserProfile = async (targetUid: string, updatedData: Partial<UserProfile>) => {
     try {
-      await adminUpdateUserProfile(targetUid, updatedData);
+      await app.admin.adminUpdateProfile(targetUid, updatedData);
       setUsersList(prev => prev.map(u => u.uid === targetUid ? { ...u, ...updatedData } : u));
       showToast('success', 'Profil pengguna berhasil diperbarui.');
     } catch (err: any) {

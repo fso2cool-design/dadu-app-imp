@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import type { StudentUsageSummary } from '../../domain/student.types';
-import { container } from '../../application/ports/container';
-const { create: createStudent, update: updateStudent, checkUsage: checkStudentUsage } = container.repos.student as any;
-const { create: createEnrollment, update: updateEnrollment, transfer: transferStudentEnrollment } = container.repos.enrollment as any;
+import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
 import { Student, GenderType, StudentStatus, Enrollment, StudentCustomFieldDefinition } from '../../types';
 import { User, Phone, MapPin, BookOpen, WarningCircle, Lock, ShieldCheck, Sliders } from '@phosphor-icons/react';
@@ -31,6 +29,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
   customFields = [],
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
 
   const [formData, setFormData] = useState({
@@ -63,7 +62,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
 
   useEffect(() => {
     if (studentToEdit && user && isOpen) {
-      checkStudentUsage(user.uid, studentToEdit.id).then(usage => {
+      app.students.checkUsage(user.uid, studentToEdit.id).then(usage => {
         setStudentUsage(usage);
       }).catch(err => {
         console.error('Error checking student usage:', err);
@@ -144,14 +143,14 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
 
       if (studentToEdit) {
         // Update Student
-        await updateStudent(user.uid, studentToEdit.id, formData);
+        await app.students.update(user.uid, studentToEdit.id, formData);
 
         // Update or create enrollment if class selected
         if (existingEnrollment) {
           if (enrollClassId && enrollClassId !== existingEnrollment.classId) {
             // Perubahan kelas WAJIB menggunakan alur mutasi resmi
             const targetCls = classes.find(c => c.id === enrollClassId);
-            await transferStudentEnrollment(
+            await app.enrollment.transfer(
               user.uid,
               existingEnrollment.id,
               enrollClassId,
@@ -160,14 +159,14 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
               'Perubahan rombel melalui pembaruan profil siswa'
             );
           } else {
-            await updateEnrollment(user.uid, existingEnrollment.id, {
+            await app.enrollment.update(user.uid, existingEnrollment.id, {
               rollNumber: Number(rollNumber),
               status: formData.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
             });
           }
         } else if (enrollClassId && activeAcademicYear) {
           const targetCls = classes.find(c => c.id === enrollClassId);
-          await createEnrollment(user.uid, {
+          await app.enrollment.create(user.uid, {
             academicYearId: activeAcademicYear.id,
             classId: enrollClassId,
             studentId: studentToEdit.id,
@@ -180,12 +179,12 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         triggerSyncFeedback('saved', 'Data siswa berhasil diperbarui!');
       } else {
         // Create new student
-        const createdStudent = await createStudent(user.uid, formData);
+        const createdStudent = await app.students.create(user.uid, formData);
 
         // Enroll to class if class selected
         if (enrollClassId && activeAcademicYear) {
           const targetCls = classes.find(c => c.id === enrollClassId);
-          await createEnrollment(user.uid, {
+          await app.enrollment.create(user.uid, {
             academicYearId: activeAcademicYear.id,
             classId: enrollClassId,
             studentId: createdStudent.id,

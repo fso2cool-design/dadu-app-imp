@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-const { create: createSubject, update: updateSubject, archive: archiveSubject, unarchive: unarchiveSubject, canDelete: canDeleteSubject, delete: deleteSubject } = container.repos.subject as any;
+
 import { BookOpen, Plus, PencilSimple, Trash, Archive, ArrowCounterClockwise, WarningCircle, MagnifyingGlass, CheckCircle, Lock } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -12,6 +12,8 @@ import { Subject } from '../../types';
 
 export const SubjectsPage: React.FC = () => {
   const { user } = useAuth();
+  const app = useApplication();
+  const { create: createSubject, update: updateSubject, archive: archiveSubject, unarchive: unarchiveSubject, canDelete: canDeleteSubject, delete: deleteSubject } = app.master.subjects as any;
   const { success: toastSuccess, error: toastError } = useToast();
   const { subjects, reloadWorkspaceData, triggerSyncFeedback } = useWorkspace();
 
@@ -65,7 +67,7 @@ export const SubjectsPage: React.FC = () => {
       setLoading(true);
       if (editingSubject) {
         triggerSyncFeedback('syncing', 'Memperbarui data mata pelajaran...');
-        await container.repos.subject.update(user.uid, editingSubject.id, {
+        await app.master.subjects.update(user.uid, editingSubject.id, {
           code: trimmedCode,
           name: trimmedName,
         });
@@ -74,7 +76,7 @@ export const SubjectsPage: React.FC = () => {
         toastSuccess(`Mata pelajaran "${trimmedName}" berhasil diperbarui.`);
       } else {
         triggerSyncFeedback('syncing', 'Menyimpan mata pelajaran ke cloud...');
-        await container.repos.subject.create(user.uid, {
+        await app.master.subjects.create(user.uid, {
           code: trimmedCode,
           name: trimmedName,
           isActive: true,
@@ -122,7 +124,7 @@ export const SubjectsPage: React.FC = () => {
     try {
       setDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus mata pelajaran...');
-      await container.repos.subject.delete(user.uid, subjectToDelete.id);
+      await app.master.subjects.delete(user.uid, subjectToDelete.id);
       await reloadWorkspaceData();
       triggerSyncFeedback('saved', 'Mata pelajaran berhasil dihapus');
       toastSuccess(`Mata pelajaran "${subjectToDelete.name}" telah dihapus.`);

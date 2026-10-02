@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
-const { getAll: getMeetings, delete: deleteMeeting } = container.repos.meeting;
+import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
 import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
@@ -23,6 +22,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   onNavigate 
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { 
     teachingAssignments, 
     activeAcademicYear, 
@@ -68,7 +68,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       if (!silent && !hasCache) {
         setLoading(true);
       }
-      const data = await getMeetings(user.uid, {
+      const data = await app.meetings.getAll(user.uid, {
         academicYearId: activeAcademicYear.id,
         semester: activeSemester,
         teachingAssignmentId: selectedAssignmentId || undefined,
@@ -142,7 +142,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
     try {
       setIsDeleting(true);
       triggerSyncFeedback('syncing', 'Menghapus data pertemuan jurnal...');
-      await deleteMeeting(user.uid, meetingToDelete.id);
+      await app.meetings.delete(user.uid, meetingToDelete.id);
       setMeetings(prev => {
         const next = prev.filter(m => m.id !== meetingToDelete.id);
         const key = `${user.uid}_${activeAcademicYear?.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;

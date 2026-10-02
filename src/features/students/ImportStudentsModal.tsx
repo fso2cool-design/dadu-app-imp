@@ -2,7 +2,7 @@ import React, { useState, useRef, useMemo } from 'react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import type { ImportStudentItem } from '../../application/students/importStudents.usecase';
 import { Modal } from '../../components/common/Modal';
 import { Upload, FileCsv, Download, CheckCircle, Warning, X, Check, ArrowRight, Stack, Question, ArrowClockwise, Sparkle, ShieldCheck } from '@phosphor-icons/react';
@@ -53,6 +53,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
   customFields = [],
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { classes, activeAcademicYear, triggerSyncFeedback } = useWorkspace();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -142,7 +143,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         let existingNameMap = new Map<string, string>();
         if (user) {
           try {
-            const currentStudents = await container.repos.student.getAll(user.uid);
+            const currentStudents = await app.students.getAll(user.uid);
             currentStudents.forEach(s => {
               if (!s.isArchived) {
                 if (s.nisn && s.nisn.trim()) {
@@ -444,7 +445,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
         className: r.targetClassName || undefined,
       }));
 
-      const res = await container.useCases.importStudents({ uid: user.uid, items: studentsToImport as any, enrollmentConfig: { academicYearId: activeAcademicYear.id, academicYearLabel: activeAcademicYear.label } as any, shouldOverwrite: overwriteExisting });
+      const res = await app.students.import({ uid: user.uid, items: studentsToImport as any, enrollmentConfig: { academicYearId: activeAcademicYear.id, academicYearLabel: activeAcademicYear.label } as any, shouldOverwrite: overwriteExisting });
 
       const feedbackMsg = res.updatedCount > 0
         ? (overwriteExisting

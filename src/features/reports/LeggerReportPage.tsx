@@ -4,7 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { SkeletonTable } from '../../components/common/Skeleton';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 
 
 
@@ -54,6 +54,7 @@ interface StudentLeggerRow {
 
 export const LeggerReportPage: React.FC = () => {
   const { user, profile } = useAuth();
+  const app = useApplication();
   const { 
     activeAcademicYear, 
     activeSemester, 
@@ -98,9 +99,9 @@ export const LeggerReportPage: React.FC = () => {
     try {
       // 1. Fetch subjects & settings
       const [subs, sch, docS] = await Promise.all([
-        container.repos.subject.getAll(user.uid),
-        container.repos.settings.get(user.uid),
-        container.repos.settings.get(user.uid),
+        app.master.subjects.getAll(user.uid),
+        app.settings.getSettings(user.uid),
+        app.settings.getSettings(user.uid),
       ]);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
@@ -108,7 +109,7 @@ export const LeggerReportPage: React.FC = () => {
       if (docS) setDocSettings(docS as any);
 
       // 2. Fetch class enrollments
-      const enrs = await container.repos.enrollment.getByClass(
+      const enrs = await app.enrollment.getByClass(
         user.uid,
         activeAcademicYear.id,
         selectedClassId
@@ -117,7 +118,7 @@ export const LeggerReportPage: React.FC = () => {
       setEnrollments(enrs);
 
       // 3. Fetch all assessment items for this class & academic year & semester
-      const items = await container.repos.assessment.getItems(user.uid, {
+      const items = await app.grades.getItems(user.uid, {
         academicYearId: activeAcademicYear.id,
         classId: selectedClassId,
         semester: activeSemester,
@@ -127,18 +128,18 @@ export const LeggerReportPage: React.FC = () => {
       // 4. Fetch all scores for these assessment items
       if (items.length > 0) {
         const itemIds = items.map(it => it.id);
-        const scs = await (container.repos.assessment as any).getScoresByItemIds(user.uid, itemIds);
+        const scs = await app.grades.getScoresByItemIds(user.uid, itemIds);
         setScores(scs);
       } else {
         setScores([]);
       }
 
       // 5. Fetch all daily homeroom attendance records for this class
-      const attRecs = await (container.repos.homeroomAttendance as any).getAllForClass(user.uid, selectedClassId, activeAcademicYear.id);
+      const attRecs = await app.attendance.getAllDailyForClass(user.uid, selectedClassId, activeAcademicYear.id);
       setDailyAttendanceRecords(attRecs);
 
       // 6. Fetch student notes for this class
-      const notes = await (container.repos.studentNote as any).getByClass(user.uid, activeAcademicYear.id, selectedClassId);
+      const notes = await app.students.getStudentNotesByClass(user.uid, activeAcademicYear.id, selectedClassId);
       setStudentNotes(notes);
 
       // 7. Homeroom teacher lookup
@@ -150,7 +151,7 @@ export const LeggerReportPage: React.FC = () => {
             nip: profile.nip || '-',
           });
         } else {
-          const tProfile = await container.repos.user.getProfile(currentClass.classTeacherId);
+          const tProfile = await app.auth.getProfile(currentClass.classTeacherId);
           if (tProfile) {
             setHomeroomTeacher({
               name: tProfile.displayName || 'Wali Kelas',

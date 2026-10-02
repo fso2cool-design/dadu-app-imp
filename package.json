@@ -16,7 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "ci": "npm run lint && npm run type-check && npm test && npm run build",
+    "ci": "npm run lint && npm run type-check && npm run check:boundaries && npm test && npm run build",
     "check:boundaries": "depcruise src --config .dependency-cruiser.cjs"
   },
   "dependencies": {

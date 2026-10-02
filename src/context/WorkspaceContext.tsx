@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useAuth } from '../features/auth/AuthContext';
 import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../types';
-import { container } from '../application/ports/container';
+import { useApplication } from '../application/ApplicationContext';
 import { DEFAULT_ATTENDANCE_SETTINGS } from '../domain/defaults';
 import { checkIsHoliday as checkIsHolidayDomain } from '../domain/attendance/holiday';
 
@@ -44,6 +44,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
+  const app = useApplication();
 
   const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
   const [activeAcademicYear, setActiveAcademicYearState] = useState<AcademicYear | null>(null);
@@ -165,60 +166,16 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       setLoading(true);
       setSyncStatus('syncing');
       
-      const [yearsList, classesList, subjectsList, assignmentsList, prefs, attSettings] = await Promise.all([
-        container.repos.academicYear.getAll(user.uid),
-        container.repos.class.getAll(user.uid),
-        container.repos.subject.getAll(user.uid),
-        container.repos.teachingAssignment.getAll(user.uid),
-        container.repos.settings.getUserPreferences(user.uid),
-        container.repos.settings.getAttendanceSettings(user.uid),
-      ]);
-
-      setAcademicYears(yearsList);
-      setClasses(classesList);
-      setSubjects(subjectsList);
-      setAttendanceSettings(attSettings);
-      // Naturally sort teaching assignments (e.g. X-A < X-B < X-C < XII-A)
-      const sortedAssignments = [...assignmentsList].sort((a, b) => {
-        const nameA = a.className || '';
-        const nameB = b.className || '';
-        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
-      });
-      setTeachingAssignments(sortedAssignments);
-
-      // Determine active academic year
-      let currentActiveYear = yearsList.find(y => y.isActive) || yearsList[0] || null;
-      if (prefs?.defaultAcademicYearId) {
-        const found = yearsList.find(y => y.id === prefs.defaultAcademicYearId);
-        if (found) currentActiveYear = found;
-      }
-      setActiveAcademicYearState(currentActiveYear);
-
-      // Determine active semester
-      const sem = prefs?.defaultSemester || currentActiveYear?.currentSemester || profile?.defaultSemester || 'GANJIL';
-      setActiveSemesterState(sem);
-
-      // Determine default selected class (prefer active non-archived classes matching active academic year)
-      let initialClassId = '';
-      if (classesList.length > 0) {
-        const activeClasses = classesList.filter(
-          c => (!currentActiveYear || c.academicYearId === currentActiveYear.id) && !c.isArchived
-        );
-        const fallbackActive = classesList.filter(c => !c.isArchived);
-        const prefClass = activeClasses.find(c => c.id === prefs?.defaultClassId);
-        initialClassId = prefClass ? prefClass.id : (activeClasses[0]?.id || fallbackActive[0]?.id || classesList[0].id);
-        setSelectedClassId(initialClassId);
-      }
-
-      // Determine default selected assignment (prefer active unarchived matching active academic year)
-      if (sortedAssignments.length > 0) {
-        const activeAssignments = sortedAssignments.filter(
-          a => (!currentActiveYear || a.academicYearId === currentActiveYear.id) && !a.isArchived && a.isActive !== false
-        );
-        // Try matching with preference class first
-        const matchByClass = activeAssignments.find(a => a.classId === initialClassId);
-        setSelectedAssignment(matchByClass || activeAssignments[0] || sortedAssignments[0]);
-      }
+      const result = await app.workspace.loadWorkspace(user.uid, profile?.defaultSemester);
+      setAcademicYears(result.academicYears);
+      setClasses(result.classes);
+      setSubjects(result.subjects);
+      setAttendanceSettings(result.attendanceSettings);
+      setTeachingAssignments(result.teachingAssignments);
+      setActiveAcademicYearState(result.activeAcademicYear);
+      setActiveSemesterState(result.activeSemester);
+      setSelectedClassId(result.selectedClassId);
+      setSelectedAssignment(result.selectedAssignment);
 
       setSyncStatus('synced');
     } catch (error) {
@@ -237,7 +194,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const selectClassWithAutoAssignment = useCallback((classId: string) => {
     setSelectedClassId(classId);
     if (user) {
-      container.repos.settings.saveUserPreferences(user.uid, { defaultClassId: classId });
+      app.workspace.saveUserPreferences(user.uid, { defaultClassId: classId });
     }
 
     if (teachingAssignments.length > 0) {
@@ -256,21 +213,21 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
   const setActiveAcademicYear = async (year: AcademicYear) => {
     setActiveAcademicYearState(year);
     if (user) {
-      await container.repos.settings.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
+      await app.workspace.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
     }
   };
 
   const setActiveSemester = async (sem: SemesterType) => {
     setActiveSemesterState(sem);
     if (user) {
-      await container.repos.settings.saveUserPreferences(user.uid, { defaultSemester: sem });
+      await app.workspace.saveUserPreferences(user.uid, { defaultSemester: sem });
     }
   };
 
   const updateAttendanceSettings = async (newSettings: AttendanceSettings) => {
     setAttendanceSettings(newSettings);
     if (user) {
-      await container.repos.settings.saveAttendanceSettings(user.uid, newSettings);
+      await app.workspace.saveAttendanceSettings(user.uid, newSettings);
     }
   };
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import type { SaveAttendanceItem } from '../../domain/attendance.types';
-const { getByMeeting: getAttendanceRecordsByMeeting, saveMeetingAttendance } = container.repos.attendance;
+
 import { Modal } from '../../components/common/Modal';
 import { Meeting, AttendanceStatus, AttendanceRecord } from '../../types';
 import { CheckSquare, UserCheck, CheckCircle, WarningCircle, FloppyDisk, Sparkle, MagnifyingGlass, Users, Info } from '@phosphor-icons/react';
@@ -33,6 +33,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
   meeting,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { activeAcademicYear } = useWorkspace();
 
   const [rows, setRows] = useState<StudentAttendanceRow[]>([]);
@@ -52,14 +53,14 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
         setErrorMsg(null);
 
         // Fetch enrolled students of this class
-        const enrollments = await container.repos.enrollment.getByClass(
+        const enrollments = await app.enrollment.getByClass(
           user.uid, 
           meeting.academicYearId || activeAcademicYear.id, 
           meeting.classId
         );
 
         // Fetch existing attendance records for this meeting
-        const existingRecords = await getAttendanceRecordsByMeeting(user.uid, meeting.id);
+        const existingRecords = await app.attendance.getByMeeting(user.uid, meeting.id);
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
@@ -174,7 +175,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
         note: r.note.trim(),
       }));
 
-      await saveMeetingAttendance(user.uid, meeting.id, itemsToSave);
+      await app.attendance.saveMeetingAttendance(user.uid, meeting.id, itemsToSave);
 
       setSaveSuccessMsg('Presensi berhasil disimpan ke database!');
       setTimeout(() => {

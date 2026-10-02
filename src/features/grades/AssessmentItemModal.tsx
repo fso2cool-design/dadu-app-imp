@@ -3,8 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Modal } from '../../components/common/Modal';
 import { AssessmentItem, AssessmentCategory, TeachingAssignment } from '../../types';
-import { container } from '../../application/ports/container';
-const { createItem: createAssessmentItem, updateItem: updateAssessmentItem } = container.repos.assessment;
+import { useApplication } from '../../application/ApplicationContext';
 import { getTodayISO } from '../../utils/date';
 import { Medal, CalendarBlank, Percent, FileText, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 
@@ -103,6 +102,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
   onSuccess,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { triggerSyncFeedback, activeAcademicYear } = useWorkspace();
 
   const [name, setName] = useState('');
@@ -180,7 +180,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       triggerSyncFeedback('syncing', 'Menyimpan kolom penilaian ke cloud...');
 
       if (itemToEdit) {
-        await updateAssessmentItem(user.uid, itemToEdit.id, {
+        await app.grades.updateItem(user.uid, itemToEdit.id, {
           name: name.trim(),
           category,
           assessmentDate,
@@ -191,7 +191,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
         });
         triggerSyncFeedback('saved', 'Kolom penilaian berhasil diperbarui!');
       } else {
-        await createAssessmentItem(user.uid, {
+        await app.grades.createItem(user.uid, {
           academicYearId: assignment.academicYearId,
           semester: assignment.semester,
           teachingAssignmentId: assignment.id,

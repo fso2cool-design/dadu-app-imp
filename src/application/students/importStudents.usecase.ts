@@ -41,8 +41,7 @@ export interface ImportStudentsResult {
 
 /**
  * Application use-case: orchestrates student import via repositories and domain rules.
- * Currently delegates batch create to repository/batch logic; domain token generation is applied here.
- * Future: fully replace firestore/students atomicImport with this orchestration.
+ * Enriches search tokens and delegates atomic batch import to the student repository.
  */
 export async function importStudentsUseCase(
   input: ImportStudentsInput,
@@ -56,21 +55,15 @@ export async function importStudentsUseCase(
     searchTokens: buildStudentSearchTokens(it.fullName, it.parentName),
   }));
 
-  // Delegate to existing service via repo if available (keeps behavior stable)
-  
-  if (deps.studentRepo.atomicImport) {
-    return deps.studentRepo.atomicImport(uid, enriched as any, { ...(enrollmentConfig as any), overwriteExisting: !!shouldOverwrite });
-  }
-  if (deps.studentRepo.batchCreate) {
-    // fallback simple batch without enrollment
-    await deps.studentRepo.batchCreate(uid, enriched as any);
-    return { createdCount: enriched.length, updatedCount: 0, enrolledCount: 0 };
-  }
-  // last resort: create one by one
-  let created = 0;
-  for (const it of enriched) {
-    await deps.studentRepo.create(uid, it as any);
-    created++;
-  }
-  return { createdCount: created, updatedCount: 0, enrolledCount: 0 };
+  const res = await deps.studentRepo.atomicImport(
+    uid,
+    enriched as any,
+    enrollmentConfig ? { ...enrollmentConfig, overwriteExisting: !!shouldOverwrite } : undefined
+  );
+
+  return {
+    createdCount: res.createdCount,
+    updatedCount: res.updatedCount,
+    enrolledCount: res.enrolledCount,
+  };
 }

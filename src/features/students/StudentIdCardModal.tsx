@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, SchoolSettings } from '../../types';
-import { container } from '../../application/ports/container';
+import { useApplication } from '../../application/ApplicationContext';
 import { formatOfficialSignatureName } from '../../utils/formatOfficialName';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { Modal } from '../../components/common/Modal';
@@ -98,6 +98,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
   selectedEnrollment,
 }) => {
   const { user } = useAuth();
+  const app = useApplication();
   const { activeAcademicYear, activeSemester } = useWorkspace();
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
   
@@ -128,7 +129,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
     if (!user || !isOpen) return;
     const loadSchool = async () => {
       try {
-        const sch = await container.repos.settings.getSchoolSettings(user.uid);
+        const sch = await app.settings.getSchoolSettings(user.uid);
         if (sch) setSchoolSettings(sch as SchoolSettings);
       } catch (err) {
         console.error('Error loading school settings:', err);
