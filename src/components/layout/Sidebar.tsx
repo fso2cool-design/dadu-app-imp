@@ -228,7 +228,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const renderContent = (compact: boolean) => (
     <div className="flex flex-col h-full select-none" style={{ background: "var(--ds-surface)", color: "var(--ds-text)" }}>
-      <div className="paper-tape-strip" aria-hidden="true" />
       {/* Brand Header with Hover Toggle */}
       <div className={`relative flex items-center border-b transition-all ${
         compact ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3.5'
@@ -302,14 +301,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div key={gIdx} className="space-y-1">
             {group.groupTitle && (
               compact ? (
-                <div className="my-2 border-t mx-1 paper-group-divider" style={{ borderColor: "var(--ds-border)" }} />
+                <div className="my-2 border-t mx-1" style={{ borderColor: "var(--ds-border)" }} />
               ) : (
                 <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--ds-text-muted)" }}>
                   {group.groupTitle}
                 </div>
               )
             )}
-            {group.items.map((item, itemIdx) => {
+            {group.items.map((item) => {
               const Icon = item.icon;
               const hasSub = item.subItems && item.subItems.length > 0;
               const isExpanded = !compact && hasSub && Boolean(expandedGroups[item.id]);
@@ -325,21 +324,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => {
                           handleItemClick(item.id, hasSub);
                         }}
-                        className={`paper-sidebar-item relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                        className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
                           compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
                           isDirectParentActive || isGroupActive
                             ? 'text-accent-text font-bold'
                             : 'hover:text-slate-900 dark:hover:text-accent-text active:scale-[0.98]'
                         }`}
-                      style={{ '--tilt': ((gIdx * 6 + itemIdx) % 5) - 2 } as any}
                       >
                       {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
                       {(isDirectParentActive || isGroupActive) && (
                         <motion.div
                           layoutId="sidebar-active-parent-capsule"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border shadow-2xs paper-active-capsule"
+                          className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
                         >
                           <span
                             className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-accent-primary"
@@ -398,7 +396,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {/* Render Accordion Sub-items when expanded */}
                   {isExpanded && item.subItems && (
                     <div className="ml-5 pl-2 border-l space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150" style={{ borderColor: "var(--ds-border)" }}>
-                      {item.subItems.map((sub, subIdx) => {
+                      {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = isSubItemActive(sub.id);
 
@@ -407,19 +405,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             key={sub.id}
                             type="button"
                             onClick={(e) => handleSubItemClick(sub.id, e)}
-                            className={`paper-sidebar-item relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
+                            className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
                               isSubActive
                                 ? 'text-accent-text font-bold'
                                 : 'hover:text-slate-900 dark:hover:text-accent-text'
                             }`}
-                          style={{ '--tilt': ((subIdx * 2) % 3) - 1 } as any}
                           >
                             {/* Fluid Sliding Active Capsule for sub-menu item */}
                             {isSubActive && (
                               <motion.div
                                 layoutId="sidebar-active-subitem-capsule"
                                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                                className="pointer-events-none absolute inset-0 rounded-lg bg-accent-primary-soft border border-accent-primary-border shadow-2xs paper-active-capsule"
+                                className="pointer-events-none absolute inset-0 rounded-lg bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
                               >
                                 <span
                                   className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-accent-primary"
@@ -449,7 +446,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Workspace Footer: Clean Dadu Workspace label */}
       {!compact && (
-        <div className="p-3 border-t paper-sidebar-footer" style={{ borderColor: "var(--ds-border)" }}>
+        <div className="p-3 border-t" style={{ borderColor: "var(--ds-border)" }}>
           <div className="px-2 pt-0.5 text-[11px] font-semibold select-none" style={{ color: "var(--ds-text-muted)" }}>
             {APP_CONFIG.name}
           </div>

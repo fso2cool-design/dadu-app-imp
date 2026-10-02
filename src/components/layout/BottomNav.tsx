@@ -22,7 +22,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
   return (
     <div className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-lg border-t px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none safe-area-pb" style={{ background: "color-mix(in srgb, var(--ds-surface) 95%, transparent)", borderColor: "var(--ds-border)" }}>
-      <span className="paper-nav-tape" aria-hidden="true" />
       <div className="flex items-center justify-around max-w-lg mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -56,8 +55,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                   : 'hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              {isActive && (<span className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border paper-active-capsule" aria-hidden />)}
-              <span className="relative paper-sticker-icon" data-active={isActive ? "true" : "false"}><Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-accent-primary' : ''}`} /></span>
+              {isActive && (<span className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border" aria-hidden />)}
+              <span className="relative"><Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-accent-primary' : ''}`} /></span>
               <span className="text-[10px] font-medium mt-0.5">
                 {item.label}
               </span>
