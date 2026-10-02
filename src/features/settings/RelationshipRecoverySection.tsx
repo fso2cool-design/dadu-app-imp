@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, ArrowClockwise, CheckCircle, LinkSimple, UserCheck, X, WarningCircle, MagnifyingGlass } from '@phosphor-icons/react';
 import { container } from '../../application/ports/container';
-import type { DiagnosticResult, IntegrityIssue } from '../../services/firestore/diagnostics';
+import type { DiagnosticResult, IntegrityIssue } from '../../domain/diagnostics.types';
 import { ClassItem, AcademicYear, Student } from '../../types';
 const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn } = container.repos.relationshipRecovery as any;
 interface RelationshipRecoverySectionProps {

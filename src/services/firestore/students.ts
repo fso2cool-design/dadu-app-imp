@@ -1,3 +1,5 @@
+export type { StudentUsageSummary } from '../../domain/student.types';
+import type { StudentUsageSummary } from '../../domain/student.types';
 import { 
   collection, 
   doc, 
@@ -363,18 +365,6 @@ export async function createStudent(
   return { id: docRef.id, ...studentData } as Student;
 }
 
-export interface StudentUsageSummary {
-  isUsed: boolean;
-  canDelete: boolean;
-  reasons: string[];
-  counts: {
-    enrollments: number;
-    scores: number;
-    attendanceRecords: number;
-    dailyAttendanceRecords: number;
-    studentNotes: number;
-  };
-}
 
 export async function checkStudentUsage(uid: string, studentId: string): Promise<StudentUsageSummary> {
   const [enrSnap, scoreSnap, attSnap, dailyAttSnap, notesSnap] = await Promise.all([

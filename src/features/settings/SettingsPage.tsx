@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import type { DatabaseStatistics, DatabaseBackup, ResetSemesterScope, ResetSemesterSummary } from '../../services/firestore/backup';
+import type { DatabaseStatistics, DatabaseBackup, ResetSemesterScope, ResetSemesterSummary } from '../../domain/backup.types';
 import { container } from '../../application/ports/container';
 
 import { useWorkspace } from '../../context/WorkspaceContext';

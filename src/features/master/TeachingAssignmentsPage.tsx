@@ -6,7 +6,7 @@ import { Briefcase, Plus, PencilSimple, Trash, CalendarBlank, Clock, MapPin, Sta
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
-import type { TeachingAssignmentUsageSummary } from '../../services/firestore/teachingAssignments';
+import type { TeachingAssignmentUsageSummary } from '../../domain/teachingAssignment.types';
 import { TeachingAssignment } from '../../types';
 const taRepo = container.repos.teachingAssignment as any;
 

@@ -1,3 +1,5 @@
+export type { DiagnosticResult, IntegrityIssue } from '../../domain/diagnostics.types';
+import type { DiagnosticResult, IntegrityIssue } from '../../domain/diagnostics.types';
 import {
   collection,
   getDocs,
@@ -6,47 +8,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-export interface IntegrityIssue {
-  type: 
-    | 'ORPHAN_SCORE' 
-    | 'ORPHAN_ATTENDANCE' 
-    | 'ORPHAN_DAILY_ATTENDANCE' 
-    | 'ORPHAN_ENROLLMENT'
-    | 'ORPHAN_STUDENT_ENROLLMENT'
-    | 'ORPHAN_CLASS_ENROLLMENT'
-    | 'ORPHAN_CLASS'
-    | 'ORPHAN_MEETING' 
-    | 'ORPHAN_ASSESSMENT' 
-    | 'DUPLICATE_ACTIVE_ENROLLMENT' 
-    | 'DUPLICATE_NISN'
-    | 'INVALID_SCORE_RANGE' 
-    | 'ORPHAN_STUDENT_NOTE'
-    | 'ORPHAN_TEACHER_ATTENDANCE';
-  severity: 'CRITICAL' | 'WARNING' | 'INFO';
-  description: string;
-  documentId: string;
-  collectionName: string;
-  details?: any;
-}
 
-export interface DiagnosticResult {
-  timestamp: string;
-  totalIssues: number;
-  criticalCount: number;
-  warningsCount: number;
-  infoCount: number;
-  issues: IntegrityIssue[];
-  summary: {
-    totalStudents: number;
-    totalClasses: number;
-    totalEnrollments: number;
-    totalAssignments: number;
-    totalMeetings: number;
-    totalAttendanceRecords: number;
-    totalAssessmentItems: number;
-    totalScores: number;
-  };
-}
 
 /**
  * Perform a 100% read-only integrity diagnostic check on user workspace

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import type { StudentUsageSummary } from '../../services/firestore/students';
+import type { StudentUsageSummary } from '../../domain/student.types';
 import { container } from '../../application/ports/container';
 const { create: createStudent, update: updateStudent, checkUsage: checkStudentUsage } = container.repos.student as any;
 const { create: createEnrollment, update: updateEnrollment, transfer: transferStudentEnrollment } = container.repos.enrollment as any;

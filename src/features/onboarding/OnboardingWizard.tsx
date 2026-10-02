@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import type { OnboardingData } from '../../services/firestore/onboarding';
+import type { OnboardingData } from '../../domain/onboarding.types';
 import { container } from '../../application/ports/container';
 import { User, Buildings, CalendarBlank, Stack, BookOpen, Briefcase, CaretRight, CaretLeft, Check, Plus, Trash, Sparkle, WarningCircle, GraduationCap } from '@phosphor-icons/react';
 import { AppLogo } from '../../components/common/AppLogo';

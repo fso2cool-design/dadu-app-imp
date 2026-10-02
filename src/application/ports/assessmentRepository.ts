@@ -1,5 +1,5 @@
 import type { AssessmentItem, Score } from '../../types';
-import type { AssessmentFilterOptions, MatrixScoreInput } from '../../services/firestore/assessments';
+import type { AssessmentFilterOptions, MatrixScoreInput } from '../../domain/assessment.types';
 
 export interface AssessmentRepository {
   getItems(uid: string, options?: AssessmentFilterOptions): Promise<AssessmentItem[]>;

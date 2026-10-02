@@ -1,3 +1,5 @@
+export type { AssessmentFilterOptions, MatrixScoreInput } from '../../domain/assessment.types';
+import type { AssessmentFilterOptions, MatrixScoreInput } from '../../domain/assessment.types';
 import { 
   collection, 
   doc, 
@@ -20,13 +22,6 @@ import { trackSync } from '../../utils/syncEvents';
 /**
  * Opsi penyaringan untuk query butir penilaian (AssessmentItem).
  */
-export interface AssessmentFilterOptions {
-  academicYearId?: string;
-  semester?: SemesterType;
-  teachingAssignmentId?: string;
-  classId?: string;
-  subjectId?: string;
-}
 
 /**
  * Mengambil daftar butir penilaian (kolom nilai) berdasar filter akademik.
@@ -383,13 +378,6 @@ export async function saveScoresBatch(
   });
 }
 
-export interface MatrixScoreInput {
-  assessmentItemId: string;
-  studentId: string;
-  score: number | null;
-  note?: string;
-  isDeleted?: boolean;
-}
 
 /**
  * Save multiple scores across multiple assessment items (e.g. full spreadsheet grid save / paste)

@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 import { container } from '../../application/ports/container';
-import type { SaveAttendanceItem } from '../../services/firestore/attendance';
+import type { SaveAttendanceItem } from '../../domain/attendance.types';
 const { getByMeeting: getAttendanceRecordsByMeeting, getByMeetingIds: getAttendanceRecordsByMeetingIds, getByAssignment: getAttendanceRecordsByAssignment, getByDate: getAttendanceRecordsByDate, saveSubjectAttendance } = container.repos.attendance;
 import { MeetingFormModal } from './MeetingFormModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';

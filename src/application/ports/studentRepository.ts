@@ -1,7 +1,7 @@
 import type { Student, StudentPaginationOptions, PaginatedStudentsResult } from '../../types';
-import type { StudentUsageSummary } from '../../services/firestore/students';
+import type { StudentUsageSummary } from '../../domain/student.types';
 
-export type { StudentUsageSummary } from '../../services/firestore/students';
+export type { StudentUsageSummary } from '../../domain/student.types';
 
 export interface StudentSearchFilterOptions {
   status?: string;

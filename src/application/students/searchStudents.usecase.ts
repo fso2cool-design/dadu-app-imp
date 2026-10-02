@@ -15,16 +15,16 @@ export async function searchStudentsUseCase(
   // exact identifier first (nis/nisn), then token
   // repo exposes searchByExactIdentifier and searchByNameToken via underlying service;
   // we delegate via any to keep port minimal for now
-  const repo: any = deps.studentRepo;
-  if (repo.searchByExactIdentifier) {
-    const exact = await repo.searchByExactIdentifier(input.uid, q);
+  
+  if (deps.studentRepo.searchByExactIdentifier) {
+    const exact = await deps.studentRepo.searchByExactIdentifier(input.uid, q);
     if (exact && exact.length) return exact;
   }
-  if (repo.searchByNameToken) {
+  if (deps.studentRepo.searchByNameToken) {
     // build token to normalize
     const tokens = buildStudentSearchTokens(q, '');
     const tok = tokens[0] || q.toLowerCase();
-    return repo.searchByNameToken(input.uid, tok);
+    return deps.studentRepo.searchByNameToken(input.uid, tok);
   }
   // fallback: get all and filter in memory (dev)
   const all = await deps.studentRepo.getAll(input.uid);

@@ -57,13 +57,13 @@ export async function importStudentsUseCase(
   }));
 
   // Delegate to existing service via repo if available (keeps behavior stable)
-  const repo: any = deps.studentRepo;
-  if (repo.atomicImport) {
-    return repo.atomicImport(uid, enriched, enrollmentConfig, !!shouldOverwrite);
+  
+  if (deps.studentRepo.atomicImport) {
+    return deps.studentRepo.atomicImport(uid, enriched as any, { ...(enrollmentConfig as any), overwriteExisting: !!shouldOverwrite });
   }
-  if (repo.batchCreate) {
+  if (deps.studentRepo.batchCreate) {
     // fallback simple batch without enrollment
-    await repo.batchCreate(uid, enriched);
+    await deps.studentRepo.batchCreate(uid, enriched as any);
     return { createdCount: enriched.length, updatedCount: 0, enrolledCount: 0 };
   }
   // last resort: create one by one

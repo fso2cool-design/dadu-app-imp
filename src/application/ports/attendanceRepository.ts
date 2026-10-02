@@ -1,5 +1,5 @@
 import type { AttendanceRecord, AttendanceSummary, SemesterType } from '../../types';
-import type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../services/firestore/attendance';
+import type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
 
 export interface AttendanceRepository {
   saveSubjectAttendance(uid: string, payload: SaveSubjectAttendancePayload): Promise<AttendanceSummary>;

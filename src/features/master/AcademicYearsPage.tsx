@@ -8,7 +8,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { Badge } from '../../components/common/Badge';
 import { useToast } from '../../context/ToastContext';
 import { AcademicYear } from '../../types';
-import type { AcademicYearUsageSummary } from '../../services/firestore/academicYears';
+import type { AcademicYearUsageSummary } from '../../domain/academicYear.types';
 const ayRepo = container.repos.academicYear as any;
 
 export const AcademicYearsPage: React.FC = () => {

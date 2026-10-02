@@ -1,3 +1,5 @@
+export type { SaveDailyAttendanceItem } from '../../domain/homeroomAttendance.types';
+import type { SaveDailyAttendanceItem } from '../../domain/homeroomAttendance.types';
 import { 
   collection, 
   doc, 
@@ -14,15 +16,6 @@ import { db } from '../firebase/config';
 import { DailyAttendanceRecord, DailyAttendanceSession, AttendanceSummary, AttendanceStatus, GenderType } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
 
-export interface SaveDailyAttendanceItem {
-  id?: string;
-  studentId: string;
-  rollNumber?: number;
-  studentName?: string;
-  gender?: GenderType;
-  status: AttendanceStatus;
-  note?: string;
-}
 
 export async function getDailyAttendanceSession(
   uid: string,

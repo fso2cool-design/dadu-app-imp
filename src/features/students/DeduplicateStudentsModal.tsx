@@ -3,12 +3,8 @@ import { Users, Sparkle, CheckCircle, Warning, Trash, ArrowRight, ShieldCheck, A
 import { Modal } from '../../components/common/Modal';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { 
-  scanDuplicateStudents, 
-  executeZeroResidueDeduplication, 
-  DeduplicationScanResult,
-  DeduplicationExecutionResult 
-} from '../../infrastructure/firestore/repositories/misc.repository';
+import { DeduplicationScanResult, DeduplicationExecutionResult } from '../../domain/deduplication.types';
+
 import { container } from '../../application/ports/container';
 
 interface DeduplicateStudentsModalProps {
@@ -39,7 +35,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
       setScanning(true);
       setErrorMsg(null);
       setExecutionResult(null);
-      const res = await scanDuplicateStudents(user.uid, {
+      const res = await container.repos.deduplication.scanDuplicateStudents(user.uid, {
         academicYearId: activeAcademicYear?.id,
         classId: targetClassId,
       });
@@ -69,7 +65,7 @@ export const DeduplicateStudentsModal: React.FC<DeduplicateStudentsModalProps> =
       setErrorMsg(null);
       triggerSyncFeedback('syncing', 'Membersihkan dan menggabungkan data duplikat di Firestore...');
 
-      const res = await executeZeroResidueDeduplication(user.uid, {
+      const res = await container.repos.deduplication.executeZeroResidueDeduplication(user.uid, {
         academicYearId: activeAcademicYear?.id,
         classId: targetClassId,
       });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { container } from '../../application/ports/container';
-import type { OrphanResidualItem, UserStorageStats } from '../../services/firestore/users';
+import type { OrphanResidualItem, UserStorageStats } from '../../domain/user.types';
 const _user = (container.repos as any).user;
 const getAllUsers = _user.getAllUsers.bind(_user);
 const setAccountStatus = _user.setAccountStatus.bind(_user);

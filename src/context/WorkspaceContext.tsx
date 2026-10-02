@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useCa
 import { useAuth } from '../features/auth/AuthContext';
 import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings } from '../types';
 import { container } from '../application/ports/container';
-import { DEFAULT_ATTENDANCE_SETTINGS } from '../infrastructure/firestore/repositories/settings.repository';
+import { DEFAULT_ATTENDANCE_SETTINGS } from '../domain/defaults';
 import { checkIsHoliday as checkIsHolidayDomain } from '../domain/attendance/holiday';
 
 interface WorkspaceContextType {

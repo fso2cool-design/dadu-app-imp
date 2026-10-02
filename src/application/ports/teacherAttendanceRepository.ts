@@ -1,5 +1,5 @@
 import type { TeacherAttendanceRecord, TeachingAssignment, SemesterType, TeacherMonthlyAttendanceRecord } from '../../types';
-import type { SaveTeacherAttendancePayload } from '../../services/firestore/teacherAttendance';
+import type { SaveTeacherAttendancePayload } from '../../domain/teacherAttendance.types';
 export interface TeacherAttendanceRepository {
   getHomeroomAssignments(uid: string, academicYearId: string, semester: SemesterType, classId: string, includeArchived?: boolean): Promise<TeachingAssignment[]>;
   getForDate(uid: string, academicYearId: string, semester: SemesterType, classId: string, date: string): Promise<TeacherAttendanceRecord[]>;

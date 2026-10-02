@@ -1,3 +1,5 @@
+export type { OrphanResidualItem, UserStorageStats } from '../../domain/user.types';
+import type { OrphanResidualItem, UserStorageStats } from '../../domain/user.types';
 import { 
   doc, 
   getDoc, 
@@ -137,16 +139,6 @@ export async function adminUpdateUserProfile(
 }
 
 
-export interface UserStorageStats {
-  classesCount: number;
-  subjectsCount: number;
-  studentsCount: number;
-  assignmentsCount: number;
-  meetingsCount: number;
-  attendanceCount: number;
-  gradesCount: number;
-  totalDocuments: number;
-}
 
 export async function getUserStorageStats(targetUid: string): Promise<UserStorageStats> {
   let totalDocs = 1; // including the user doc if exists
@@ -300,11 +292,6 @@ export async function purgeOrphanedResiduals(targetUid: string): Promise<number>
   return purgeEntireUserWorkspace(targetUid);
 }
 
-export interface OrphanResidualItem {
-  uid: string;
-  detectedDocCount: number;
-  sampleCollections: string[];
-}
 
 /**
  * Auto-detect orphan residuals across Firestore workspaces.

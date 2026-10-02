@@ -1,3 +1,5 @@
+export type { DuplicateStudentGroup, DeduplicationScanResult, DeduplicationExecutionResult } from '../../domain/deduplication.types';
+import type { DuplicateStudentGroup, DeduplicationScanResult, DeduplicationExecutionResult } from '../../domain/deduplication.types';
 import {
   collection,
   doc,
@@ -14,31 +16,8 @@ import { Student, Enrollment } from '../../types';
 import { sanitizeExcelDate } from '../../utils/excelImportSanitizer';
 import { buildStudentSearchTokens } from './students';
 
-export interface DuplicateStudentGroup {
-  key: string;
-  matchType: 'NIS' | 'NISN' | 'NAME';
-  matchValue: string;
-  masterStudent: Student;
-  duplicateStudents: Student[];
-  totalRecords: number;
-}
 
-export interface DeduplicationScanResult {
-  hasDuplicates: boolean;
-  totalDuplicateStudents: number;
-  totalDuplicateEnrollments: number;
-  groups: DuplicateStudentGroup[];
-  orphanEnrollmentsCount: number;
-}
 
-export interface DeduplicationExecutionResult {
-  mergedStudentsCount: number;
-  deletedStudentsCount: number;
-  deletedEnrollmentsCount: number;
-  relinkedEnrollmentsCount: number;
-  relinkedAcademicRecordsCount: number;
-  details: string[];
-}
 
 /**
  * Menghitung skor kelengkapan biodata siswa untuk menentukan kandidat Master Record.

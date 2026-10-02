@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { container } from '../../application/ports/container';
-import type { SaveAttendanceItem } from '../../services/firestore/attendance';
+import type { SaveAttendanceItem } from '../../domain/attendance.types';
 const { getByMeeting: getAttendanceRecordsByMeeting, saveMeetingAttendance } = container.repos.attendance;
 import { Modal } from '../../components/common/Modal';
 import { Meeting, AttendanceStatus, AttendanceRecord } from '../../types';

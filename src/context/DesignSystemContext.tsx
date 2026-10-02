@@ -88,6 +88,11 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     root.style.setProperty('--ds-border', activeColors.border);
     root.style.setProperty('--ds-text', activeColors.text);
     root.style.setProperty('--ds-text-muted', activeColors.textMuted);
+    root.style.setProperty('--ds-focus', activeColors.focus);
+    root.style.setProperty('--ds-input', activeColors.input);
+    root.style.setProperty('--ds-accent-hover', activeColors.accentHover);
+    root.style.setProperty('--ds-accent-soft', activeColors.accentSoft);
+    root.style.setProperty('--ds-surface-muted', activeColors.surfaceMuted);
 
     root.style.setProperty('--ds-spacing-xs', `${tokens.spacing.xs}px`);
     root.style.setProperty('--ds-spacing-sm', `${tokens.spacing.sm}px`);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { container } from '../../application/ports/container';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import type { ClassUsageSummary } from '../../services/firestore/classes';
+import type { ClassUsageSummary } from '../../domain/class.types';
 import { ClassItem } from '../../types';
 import { Stack, Plus, Users, PencilSimple, Trash, Archive, ArrowCounterClockwise, Lock, Warning, Info, CheckCircle, Funnel } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';

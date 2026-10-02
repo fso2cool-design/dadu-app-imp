@@ -1,3 +1,5 @@
+export type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
+import type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
 import { 
   collection, 
   doc, 
@@ -14,27 +16,7 @@ import { AttendanceRecord, AttendanceSummary, AttendanceStatus, SemesterType } f
 import { updateMeetingAttendanceSummary } from './meetings';
 import { trackSync } from '../../utils/syncEvents';
 
-export interface SaveAttendanceItem {
-  id?: string;
-  studentId: string;
-  rollNumber?: number;
-  studentName?: string;
-  gender?: 'L' | 'P';
-  status: AttendanceStatus;
-  note?: string;
-}
 
-export interface SaveSubjectAttendancePayload {
-  academicYearId: string;
-  semester: SemesterType;
-  classId: string;
-  teachingAssignmentId: string;
-  subjectId?: string;
-  date: string; // YYYY-MM-DD
-  meetingId?: string | null;
-  meetingNumber?: number | null;
-  items: SaveAttendanceItem[];
-}
 
 /**
  * Generates a deterministic document ID for an attendance record to guarantee idempotency

@@ -4,7 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { Enrollment, DailyAttendanceRecord, AttendanceStatus, GenderType } from '../../types';
 import { getTodayISO, formatDateWithDay } from '../../utils/date';
 import { ATTENDANCE_STATUS_LIST, ATTENDANCE_STATUS_META } from '../../constants/attendance';
-import type { SaveDailyAttendanceItem } from '../../services/firestore/homeroomAttendance';
+import type { SaveDailyAttendanceItem } from '../../domain/homeroomAttendance.types';
 import { container } from '../../application/ports/container';
 import { CalendarDots, CalendarBlank, Check, CheckCircle, CaretLeft, CaretRight, Download, FloppyDisk, MagnifyingGlass, Users, WarningCircle, FileCsv, UserMinus } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';

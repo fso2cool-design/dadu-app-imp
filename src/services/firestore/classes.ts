@@ -1,3 +1,5 @@
+export type { ClassUsageSummary } from '../../domain/class.types';
+import type { ClassUsageSummary } from '../../domain/class.types';
 import { 
   collection, 
   doc, 
@@ -15,19 +17,6 @@ import {
 import { db } from '../firebase/config';
 import { ClassItem } from '../../types';
 
-export interface ClassUsageSummary {
-  isUsed: boolean;
-  canDelete: boolean;
-  reasons: string[];
-  counts: {
-    enrollments: number;
-    teachingAssignments: number;
-    meetings: number;
-    dailyAttendance: number;
-    assessmentItems: number;
-    studentNotes: number;
-  };
-}
 
 export async function getClasses(uid: string, academicYearId?: string): Promise<ClassItem[]> {
   const colRef = collection(db, 'users', uid, 'classes');

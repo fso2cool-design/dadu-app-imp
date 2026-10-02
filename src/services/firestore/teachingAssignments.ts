@@ -1,3 +1,5 @@
+export type { TeachingAssignmentUsageSummary } from '../../domain/teachingAssignment.types';
+import type { TeachingAssignmentUsageSummary } from '../../domain/teachingAssignment.types';
 import { 
   collection, 
   doc, 
@@ -13,17 +15,6 @@ import {
 import { db } from '../firebase/config';
 import { TeachingAssignment, SemesterType } from '../../types';
 
-export interface TeachingAssignmentUsageSummary {
-  isUsed: boolean;
-  canDelete: boolean;
-  reasons: string[];
-  counts: {
-    meetings: number;
-    attendanceRecords: number;
-    assessmentItems: number;
-    teacherAttendanceRecords: number;
-  };
-}
 
 export async function checkTeachingAssignmentUsage(
   uid: string, 

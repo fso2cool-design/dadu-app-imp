@@ -1,3 +1,5 @@
+export type { SaveTeacherAttendanceItem, SaveTeacherAttendancePayload } from '../../domain/teacherAttendance.types';
+import type { SaveTeacherAttendanceItem, SaveTeacherAttendancePayload } from '../../domain/teacherAttendance.types';
 import {
   collection,
   doc,
@@ -22,31 +24,7 @@ import {
 } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
 
-export interface SaveTeacherAttendanceItem {
-  teachingAssignmentId?: string; // Dapat kosong/manual jika di luar penugasan rutin
-  teacherId: string;
-  teacherName?: string;
-  subjectId: string;
-  subjectName?: string;
-  subjectCode?: string;
-  dayOfWeek?: number;
-  status: TeacherAttendanceStatus;
-  notes?: string;
-  isManualEntry?: boolean;
-  isSubstitute?: boolean;
-  substituteForTeacherName?: string;
-  entryType?: TeacherAttendanceEntryType;
-}
 
-export interface SaveTeacherAttendancePayload {
-  academicYearId: string;
-  academicYearLabel?: string;
-  semester: SemesterType;
-  classId: string;
-  className?: string;
-  date: string; // YYYY-MM-DD
-  items: SaveTeacherAttendanceItem[];
-}
 
 /**
  * Mengambil penugasan mengajar (Teaching Assignments) untuk kelas binaan

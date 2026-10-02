@@ -53,6 +53,11 @@ export interface DesignSystemColorTokens {
   border: string;
   text: string;
   textMuted: string;
+  focus: string;
+  input: string;
+  accentHover: string;
+  accentSoft: string;
+  surfaceMuted: string;
 }
 
 export interface DesignSystemTokens {
@@ -149,6 +154,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: '#292524',
         text: '#1C1917',
         textMuted: '#6B6259',
+        focus: '#FF5A36',
+        input: '#FFFDF9',
+        accentHover: '#E84E2C',
+        accentSoft: 'rgba(255,90,54,0.10)',
+        surfaceMuted: '#F5F0E4',
       },
       darkColors: {
         accent: '#FF5A36',
@@ -158,6 +168,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: '#FAF7EE',
         text: '#FAF7EE',
         textMuted: '#A8A29E',
+        focus: '#FF5A36',
+        input: '#292524',
+        accentHover: '#FF7B5E',
+        accentSoft: 'rgba(255,90,54,0.15)',
+        surfaceMuted: '#292524',
       },
       typography: {
         fontFamily: {
@@ -220,6 +235,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: '#EAEAEA',
         text: '#2F3437',
         textMuted: '#57534E',
+        focus: '#2F3437',
+        input: '#FFFFFF',
+        accentHover: '#1C1E21',
+        accentSoft: 'rgba(47,52,55,0.08)',
+        surfaceMuted: '#F0EFEC',
       },
       darkColors: {
         accent: '#E7E5E0',
@@ -229,6 +249,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: 'rgba(255,255,255,0.1)',
         text: '#F7F6F3',
         textMuted: '#A8A29E',
+        focus: '#E7E5E0',
+        input: '#2A2725',
+        accentHover: '#F5F3EE',
+        accentSoft: 'rgba(231,229,224,0.12)',
+        surfaceMuted: '#252220',
       },
       typography: {
         fontFamily: {
@@ -292,6 +317,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: '#E8E2D9',
         text: '#1C1917',
         textMuted: '#6B6560',
+        focus: '#1C1917',
+        input: '#FFFFFF',
+        accentHover: '#0A0908',
+        accentSoft: 'rgba(28,25,23,0.07)',
+        surfaceMuted: '#F5F2EB',
       },
       darkColors: {
         accent: '#F5F2EB',
@@ -301,6 +331,11 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         border: '#2A2A2A',
         text: '#F5F2EB',
         textMuted: '#A8A29E',
+        focus: '#F5F2EB',
+        input: '#111111',
+        accentHover: '#FFFDF9',
+        accentSoft: 'rgba(245,242,235,0.10)',
+        surfaceMuted: '#0A0A0A',
       },
       typography: {
         fontFamily: {

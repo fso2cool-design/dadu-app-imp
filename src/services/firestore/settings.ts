@@ -1,12 +1,11 @@
+import { DEFAULT_ATTENDANCE_SETTINGS } from '../../domain/defaults';
+export { DEFAULT_ATTENDANCE_SETTINGS };
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { SchoolSettings, DocumentSettings, UserPreferences, AttendanceSettings } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
 
-export const DEFAULT_ATTENDANCE_SETTINGS: AttendanceSettings = {
-  schoolDaysOption: 6, // Default 6 Hari (Senin - Sabtu) untuk Madrasah/Sekolah
-  holidays: [],
-};
+
 
 // In-memory caching for settings to avoid redundant Firestore reads
 const schoolSettingsCache = new Map<string, SchoolSettings | null>();
