@@ -42,7 +42,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
 
       {/* Health Indicators */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 paper-note-yellow">
           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
             <Database className="w-5 h-5" />
           </div>
@@ -55,7 +55,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 paper-note-blue">
           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
             <Pulse className="w-5 h-5" />
           </div>
@@ -67,7 +67,7 @@ export const StatsTab: React.FC<StatsTabProps> = ({
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center gap-3 paper-note-green">
           <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
             <HardDrive className="w-5 h-5" />
           </div>
@@ -85,35 +85,35 @@ export const StatsTab: React.FC<StatsTabProps> = ({
         <div className="space-y-3">
           <h4 className="font-bold text-xs text-slate-800">Rincian Dokumen per Koleksi</h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Tahun Ajaran</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.academicYearsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Rombel / Kelas</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.classesCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Mata Pelajaran</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.subjectsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Master Siswa</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.studentsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Plotting Mengajar</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.teachingAssignmentsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Sesi Pertemuan KBM</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.meetingsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Log Presensi Siswa</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.attendanceRecordsCount}</strong>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/70 paper-note-pink">
               <span className="text-slate-500 text-[11px] block">Butir Nilai & Skor</span>
               <strong className="text-sm font-bold text-slate-800">{dbStats.assessmentItemsCount + dbStats.scoresCount}</strong>
             </div>

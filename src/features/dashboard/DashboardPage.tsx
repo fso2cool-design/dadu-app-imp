@@ -759,7 +759,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             {pendingTasks.map((task) => (
               <div
                 key={task.id}
-                className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex items-center justify-between gap-3 shadow-2xs"
+                className={`p-3.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex items-center justify-between gap-3 shadow-2xs ${task.severity === "warning" ? "paper-note-yellow" : "paper-note-green"}`}
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">

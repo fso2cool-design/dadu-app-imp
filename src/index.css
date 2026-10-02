@@ -38,12 +38,12 @@
 
 /* Self-hosted fonts: Geist Sans (body), Newsreader (editorial display), Geist Mono (meta) */
 @font-face {
-  font-family: "Geist Sans";
+  font-family: "Geist";
   src: url("/fonts/geist-sans-400.woff2") format("woff2");
   font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: "Geist Sans";
+  font-family: "Geist";
   src: url("/fonts/geist-sans-700.woff2") format("woff2");
   font-weight: 700; font-style: normal; font-display: swap;
 }
@@ -176,11 +176,6 @@
   box-shadow: var(--ds-elevation-none, none) !important;
 }
 
-/* Pastel sticky-note utilities (paper-craft scrapbook) */
-.paper-note-yellow { background-color: var(--ds-note-yellow, #FEF3C7); color: var(--ds-text); }
-.paper-note-pink { background-color: var(--ds-note-pink, #FCE7F3); color: var(--ds-text); }
-.paper-note-blue { background-color: var(--ds-note-blue, #DBEAFE); color: var(--ds-text); }
-.paper-note-green { background-color: var(--ds-note-green, #D1FAE5); color: var(--ds-text); }
 
 /* Typography: body Geist Sans w/ system-ui fallback; editorial serif display */
 [data-design-system="paper-craft"],
@@ -286,11 +281,11 @@ body {
   color: var(--text-main) !important;
 }
 
-/* 4. Interactive Hover & Subtle Containers (all 3 systems) */
+/* 4. Subtle containers: tint of surface, NOT border color (was near-black in paper-craft) */
 [data-design-system="paper-craft"] .bg-slate-100,
 [data-design-system="minimalist"] .bg-slate-100,
 [data-design-system="atelier"] .bg-slate-100 {
-  background-color: var(--interactive-border) !important;
+  background-color: color-mix(in srgb, var(--ds-border) 8%, var(--ds-surface)) !important;
 }
 
 /* 5. Borders & Dividers (all 3 systems) */
@@ -383,6 +378,24 @@ body {
 [data-design-system="paper-craft"] { --accent-glow: rgba(255,229,0,0.4); }
 [data-design-system="minimalist"] { --accent-glow: rgba(0,122,255,0.3); }
 [data-design-system="atelier"] { --accent-glow: rgba(4,120,87,0.3); }
+
+/* Dark elevation overrides for paper-craft (make shadow visible on dark surface) */
+[data-design-system="paper-craft"].dark,.dark [data-design-system="paper-craft"] {
+  --ds-elevation-sm: 3px 3px 0px 0px rgba(0,0,0,0.4);
+  --ds-elevation-md: 5px 5px 0px 0px rgba(0,0,0,0.4);
+  --ds-elevation-lg: 8px 8px 0px 0px rgba(0,0,0,0.4);
+}
+/* Paper-craft sticky notes: pastel in light, hue-tinted paper in dark.
+   Scoped to paper-craft only; other systems keep their neutral coerced card bg.
+   Contrast (WCAG, computed 2026-10-02): ink #1C1917 vs pastels 14.3-15.7. */
+[data-design-system="paper-craft"] .paper-note-yellow { background-color: var(--ds-note-yellow, #FEF3C7) !important; color: var(--ds-text) !important; }
+[data-design-system="paper-craft"] .paper-note-pink { background-color: var(--ds-note-pink, #FCE7F3) !important; color: var(--ds-text) !important; }
+[data-design-system="paper-craft"] .paper-note-blue { background-color: var(--ds-note-blue, #DBEAFE) !important; color: var(--ds-text) !important; }
+[data-design-system="paper-craft"] .paper-note-green { background-color: var(--ds-note-green, #D1FAE5) !important; color: var(--ds-text) !important; }
+[data-design-system="paper-craft"].dark .paper-note-yellow { background-color: color-mix(in srgb, #FEF3C7 14%, var(--ds-surface)) !important; }
+[data-design-system="paper-craft"].dark .paper-note-pink { background-color: color-mix(in srgb, #FCE7F3 14%, var(--ds-surface)) !important; }
+[data-design-system="paper-craft"].dark .paper-note-blue { background-color: color-mix(in srgb, #DBEAFE 14%, var(--ds-surface)) !important; }
+[data-design-system="paper-craft"].dark .paper-note-green { background-color: color-mix(in srgb, #D1FAE5 14%, var(--ds-surface)) !important; }
 
 /* ==========================================================================
    Document / Paper Isolation Boundary

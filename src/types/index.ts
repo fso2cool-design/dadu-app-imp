@@ -139,7 +139,7 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     description: 'Scrapbook hangat ala X-C Hub: border tinta, hard shadow, sticky notes',
     tagline: 'Kertas \u0026 tinta, bayangan tajam',
     swatches: ['#FAF7EE','#1C1917','#FF5A36','#A8A29E'],
-    preview: { card: 'bg-[#FFFDF9] border-[#292524]', accent: 'bg-[#FF5A36]' },
+    preview: { card: 'bg-[var(--card-bg)] border-[var(--card-border)]', accent: 'bg-[var(--accent-primary)]' },
     tokens: {
       colors: {
         accent: '#FF5A36',
@@ -210,7 +210,7 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     description: 'Warm monochrome editorial: hairline border, judul serif besar, pastel lembut',
     tagline: 'Monokrom hangat, serif editorial',
     swatches: ['#F7F6F3','#2F3437','#E7E5E0','#57534E'],
-    preview: { card: 'bg-white border-[#EAEAEA]', accent: 'bg-[#2F3437]' },
+    preview: { card: 'bg-[var(--card-bg)] border-[var(--card-border)]', accent: 'bg-[var(--accent-primary)]' },
     tokens: {
       colors: {
         accent: '#2F3437',
@@ -282,7 +282,7 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     description: 'High-end soft: double-bezel nested card, squircle, tipografi display besar',
     tagline: 'Gelap pekat OLED, squircle lembut',
     swatches: ['#FDFBF7','#050505','#F5F2EB','#1C1917'],
-    preview: { card: 'bg-white border-[#E8E2D9]', accent: 'bg-[#1C1917]' },
+    preview: { card: 'bg-[var(--card-bg)] border-[var(--card-border)]', accent: 'bg-[var(--accent-primary)]' },
     tokens: {
       colors: {
         accent: '#1C1917',
