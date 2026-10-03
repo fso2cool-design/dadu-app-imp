@@ -12,18 +12,18 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100">Format & Tata Letak Dokumen Resmi</h3>
-        <p className="text-[11px] text-slate-400">Pengaturan ukuran kertas standar, tata letak kop surat, dan posisi titimangsa.</p>
+      <div className="border-b border-[var(--ds-border)] pb-3">
+        <h3 className="font-bold text-sm text-[var(--ds-text)]">Format & Tata Letak Dokumen Resmi</h3>
+        <p className="text-[11px] text-[var(--ds-text-muted)]">Pengaturan ukuran kertas standar, tata letak kop surat, dan posisi titimangsa.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Ukuran Kertas Standar</label>
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Ukuran Kertas Standar</label>
           <select
             value={documentData.paperSize}
             onChange={e => setDocumentData(d => ({ ...d, paperSize: e.target.value as any }))}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-slate-100"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-text)]"
           >
             <option value="A4">A4 (210 x 297 mm)</option>
             <option value="F4">F4 / Folio (215 x 330 mm)</option>
@@ -32,11 +32,11 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Orientasi Default</label>
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Orientasi Default</label>
           <select
             value={documentData.defaultOrientation}
             onChange={e => setDocumentData(d => ({ ...d, defaultOrientation: e.target.value as any }))}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-slate-100"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-text)]"
           >
             <option value="PORTRAIT">Tegak (Portrait)</option>
             <option value="LANDSCAPE">Mendatar (Landscape)</option>
@@ -44,44 +44,44 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Kota Titimangsa Tanda Tangan</label>
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Kota Titimangsa Tanda Tangan</label>
           <input
             type="text"
             value={documentData.city || ''}
             onChange={e => setDocumentData(d => ({ ...d, city: e.target.value }))}
             placeholder="Contoh: Bula / Surabaya"
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-slate-100"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs text-[var(--ds-text)]"
           />
         </div>
       </div>
 
       {/* Checkbox Toggles */}
-      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-3">
-        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Fitur Dokumen Cetak</span>
+      <div className="p-4 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] space-y-3">
+        <span className="text-xs font-bold text-[var(--ds-text)] block">Fitur Dokumen Cetak</span>
 
-        <label className="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+        <label className="flex items-center gap-3 text-xs text-[var(--ds-text)] cursor-pointer">
           <input
             type="checkbox"
             checked={documentData.headerEnabled}
             onChange={e => setDocumentData(d => ({ ...d, headerEnabled: e.target.checked }))}
-            className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500 dark:text-cyan-500 dark:focus:ring-cyan-500"
+            className="w-4 h-4 rounded border-[var(--ds-border)] accent-[var(--ds-accent)]"
           />
           <span>Sertakan Kop Surat Baku 4 Tingkat & Dual Logo (Kemenag & Madrasah)</span>
         </label>
 
-        <label className="flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+        <label className="flex items-center gap-3 text-xs text-[var(--ds-text)] cursor-pointer">
           <input
             type="checkbox"
             checked={documentData.signatureEnabled}
             onChange={e => setDocumentData(d => ({ ...d, signatureEnabled: e.target.checked }))}
-            className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500 dark:text-cyan-500 dark:focus:ring-cyan-500"
+            className="w-4 h-4 rounded border-[var(--ds-border)] accent-[var(--ds-accent)]"
           />
           <span>Sertakan Kolom Tanda Tangan Resmi (Guru & Kepala Madrasah)</span>
         </label>
       </div>
 
-      {/* Kop Surat Live Preview: Baku 4-Tier Standar Kemenag */}
-      <div className="border border-slate-300 dark:border-slate-700 rounded-2xl p-6 bg-white text-slate-900 shadow-xs space-y-3">
+      {/* Kop Surat Live Preview: Baku 4-Tier Standar Kemenag (Zona Cetak Terproteksi) */}
+      <div className="border border-[var(--ds-border)] rounded-2xl p-6 bg-white text-slate-900 shadow-xs space-y-3">
         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Pratinjau Kop Surat Baku (4 Tingkat + Dual Logo)</span>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold font-mono">Format Dinas Resmi</span>

@@ -154,10 +154,10 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
     >
       <div className="space-y-4">
         {/* Helper Banner */}
-        <div className="p-3.5 rounded-xl bg-orange-50/70 dark:bg-slate-800/80 border border-orange-200/60 dark:border-slate-700/60 flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-          <FileCsv className="w-4 h-4 text-orange-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-start gap-2.5 text-xs text-[var(--ds-text)]">
+          <FileCsv className="w-4 h-4 text-[var(--ds-accent)] shrink-0 mt-0.5" />
           <div className="leading-relaxed">
-            <strong className="text-slate-900 dark:text-slate-100">Fleksibel & Otomatis:</strong> Kolom yang Anda buat di sini akan otomatis muncul di form input siswa, profil detail, template Excel, serta dipetakan secara otomatis saat Anda melakukan <strong>Impor Data Siswa via Excel / CSV</strong>.
+            <strong className="text-[var(--ds-text)]">Fleksibel & Otomatis:</strong> Kolom yang Anda buat di sini akan otomatis muncul di form input siswa, profil detail, template Excel, serta dipetakan secara otomatis saat Anda melakukan <strong>Impor Data Siswa via Excel / CSV</strong>.
           </div>
         </div>
 
@@ -177,16 +177,16 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
 
         {/* Add or Edit Form */}
         {(isAddingNew || editingFieldId) && (
-          <form onSubmit={handleSaveField} className="p-4 rounded-xl border border-orange-200 dark:border-cyan-800 bg-orange-50/30 dark:bg-cyan-950/20 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-slate-700/70">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+          <form onSubmit={handleSaveField} className="p-4 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--ds-border)]">
+              <span className="text-xs font-bold text-[var(--ds-text)] flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
                 {editingFieldId ? 'Edit Kolom Kustom' : 'Tambah Kolom Kustom Baru'}
               </span>
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md"
+                className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] p-1 rounded-md cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -194,7 +194,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">
                   Nama Kolom / Label <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -203,18 +203,18 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Contoh: Nomor KIP / PIP"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">
                   Tipe Data
                 </label>
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as any)}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 cursor-pointer"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)] cursor-pointer"
                 >
                   <option value="TEXT">Teks Singkat / Bebas</option>
                   <option value="NUMBER">Angka / Numerik</option>
@@ -226,7 +226,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
 
             {type === 'SELECT' && (
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">
                   Opsi Pilihan (Pisahkan dengan koma)
                 </label>
                 <input
@@ -234,14 +234,14 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                   value={optionsStr}
                   onChange={e => setOptionsStr(e.target.value)}
                   placeholder="Contoh: A, B, AB, O"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)]"
                 />
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">
                   Keterangan Singkat (Opsional)
                 </label>
                 <input
@@ -249,17 +249,17 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="Contoh: Bantuan beasiswa siswa"
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)]"
                 />
               </div>
 
               <div className="pt-3">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[var(--ds-text)]">
                   <input
                     type="checkbox"
                     checked={showInTable}
                     onChange={e => setShowInTable(e.target.checked)}
-                    className="w-4 h-4 rounded text-orange-500 dark:text-cyan-500 focus:ring-orange-400"
+                    className="w-4 h-4 rounded accent-[var(--ds-accent)]"
                   />
                   <span>Tampilkan sebagai Kolom di Tabel Siswa</span>
                 </label>
@@ -270,7 +270,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 text-xs font-medium cursor-pointer"
+                className="px-3 py-1.5 rounded-lg border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-medium cursor-pointer"
               >
                 Batal
               </button>
@@ -286,9 +286,9 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
         )}
 
         {/* Existing Custom Fields List */}
-        <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900/50">
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+        <div className="border border-[var(--ds-border)] rounded-xl overflow-hidden bg-[var(--ds-surface)]">
+          <div className="p-3 bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border)] flex items-center justify-between">
+            <span className="text-xs font-bold text-[var(--ds-text)]">
               Daftar Kolom Kustom Aktif ({customFields.length})
             </span>
             {!isAddingNew && !editingFieldId && (
@@ -304,19 +304,19 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
           </div>
 
           {customFields.length === 0 ? (
-            <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="p-6 text-center text-xs text-[var(--ds-text-muted)]">
               Belum ada kolom kustom. Klik tombol "Tambah Kolom" di atas untuk menambahkan data seperti Nomor KIP, Asal Sekolah, atau Golongan Darah.
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+            <div className="divide-y divide-[var(--ds-border)]">
               {customFields.map((field) => (
-                <div key={field.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                <div key={field.id} className="p-3 flex items-center justify-between gap-3 hover:bg-[var(--ds-surface-muted)] transition-colors">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                      <span className="text-xs font-bold text-[var(--ds-text)]">
                         {field.name}
                       </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md font-mono bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]">
                         {field.type}
                       </span>
                       {field.showInTable && (
@@ -325,8 +325,8 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-3">
-                      <span>Kode: <code className="font-mono text-orange-600 dark:text-cyan-400">{field.key}</code></span>
+                    <div className="text-[11px] text-[var(--ds-text-muted)] mt-0.5 flex items-center gap-3">
+                      <span>Kode: <code className="font-mono text-[var(--ds-accent)]">{field.key}</code></span>
                       {field.description && <span>• {field.description}</span>}
                       {field.options && field.options.length > 0 && (
                         <span>• Opsi: {field.options.join(', ')}</span>
@@ -342,7 +342,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                       className={`p-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${
                         field.showInTable
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 hover:text-slate-800 dark:hover:text-slate-200'
+                          : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)] hover:text-[var(--ds-text)]'
                       }`}
                     >
                       <Table className="w-3.5 h-3.5" />
@@ -351,7 +351,7 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
                     <button
                       type="button"
                       onClick={() => handleStartEdit(field)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] cursor-pointer"
                       title="Edit kolom ini"
                     >
                       <PencilSimple className="w-3.5 h-3.5" />
@@ -372,11 +372,11 @@ export const ManageCustomFieldsModal: React.FC<ManageCustomFieldsModalProps> = (
           )}
         </div>
 
-        <div className="flex justify-end pt-3 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex justify-end pt-3 border-t border-[var(--ds-border)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold cursor-pointer"
+            className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
           >
             Selesai
           </button>

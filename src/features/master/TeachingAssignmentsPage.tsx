@@ -214,25 +214,25 @@ export const TeachingAssignmentsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-zinc-100 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Plotting & Jadwal Mengajar
           </h1>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Penugasan dan jadwal mengajar mingguan Anda untuk Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'}.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Tabs Filter */}
-          <div className="flex bg-slate-100 dark:bg-neutral-900 p-1 rounded-xl border border-slate-200 dark:border-neutral-800 text-xs">
+          <div className="flex bg-[var(--ds-surface-muted)] p-1 rounded-xl border border-[var(--ds-border)] text-xs">
             <button
               type="button"
               onClick={() => setFilterTab('ACTIVE')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
                 filterTab === 'ACTIVE'
-                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400'
+                  ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] shadow-xs'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Aktif ({teachingAssignments.filter(a => !a.isArchived && a.isActive !== false).length})
@@ -242,8 +242,8 @@ export const TeachingAssignmentsPage: React.FC = () => {
               onClick={() => setFilterTab('ARCHIVED')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
                 filterTab === 'ARCHIVED'
-                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400'
+                  ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] shadow-xs'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Arsip ({teachingAssignments.filter(a => a.isArchived || a.isActive === false).length})
@@ -253,8 +253,8 @@ export const TeachingAssignmentsPage: React.FC = () => {
               onClick={() => setFilterTab('ALL')}
               className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
                 filterTab === 'ALL'
-                  ? 'bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-xs'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-zinc-400'
+                  ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] shadow-xs'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Semua ({teachingAssignments.length})
@@ -272,14 +272,14 @@ export const TeachingAssignmentsPage: React.FC = () => {
       </div>
 
       {filteredAssignments.length === 0 ? (
-        <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-10 text-center">
+        <div className="bg-[var(--ds-surface)] border border-dashed border-[var(--ds-border)] rounded-3xl p-10 text-center">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mx-auto mb-3">
             <Stack className="w-6 h-6" />
           </div>
-          <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">
+          <h3 className="font-bold text-sm text-[var(--ds-text)]">
             {filterTab === 'ARCHIVED' ? 'Tidak ada penugasan diarsipkan' : 'Belum ada plotting pengajaran'}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1 max-w-sm mx-auto">
             {filterTab === 'ARCHIVED' 
               ? 'Penugasan yang telah diarsipkan akan muncul di sini.'
               : 'Klik tombol di atas untuk menambahkan mata pelajaran, kelas, dan jadwal mengajar mingguan Anda.'}
@@ -292,17 +292,17 @@ export const TeachingAssignmentsPage: React.FC = () => {
             return (
               <div
                 key={assign.id}
-                className={`p-5 rounded-2xl bg-white dark:bg-neutral-950 border shadow-2xs transition-all flex flex-col justify-between group ${
+                className={`p-5 rounded-2xl bg-[var(--ds-surface)] border shadow-2xs transition-all flex flex-col justify-between group ${
                   isArchived 
-                    ? 'border-dashed border-slate-300 dark:border-neutral-800 opacity-80' 
-                    : 'border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-emerald-800'
+                    ? 'border-dashed border-[var(--ds-border)] opacity-80' 
+                    : 'border-[var(--ds-border)] hover:border-emerald-300 dark:hover:border-emerald-800'
                 }`}
               >
                 <div>
                   <div className="flex items-start justify-between mb-3">
                     <span className={`px-2.5 py-1 rounded-lg border font-bold text-xs ${
                       isArchived
-                        ? 'bg-slate-100 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-zinc-400'
+                        ? 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
                         : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
                     }`}>
                       Kelas {assign.className}
@@ -313,35 +313,35 @@ export const TeachingAssignmentsPage: React.FC = () => {
                           Diarsipkan
                         </span>
                       )}
-                      <span className="text-[11px] font-mono font-bold text-slate-400 dark:text-zinc-400 bg-slate-100 dark:bg-neutral-900 px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded">
                         {assign.subjectCode || 'MAPEL'}
                       </span>
                     </div>
                   </div>
 
-                  <h3 className="font-bold text-base text-slate-800 dark:text-zinc-100">{assign.subjectName}</h3>
-                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                  <h3 className="font-bold text-base text-[var(--ds-text)]">{assign.subjectName}</h3>
+                  <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
                     Semester {assign.semester} • TP {activeAcademicYear?.label}
                   </p>
 
                   {/* Schedule info block */}
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800 space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2 text-slate-700 dark:text-zinc-300">
+                  <div className="mt-3.5 pt-3 border-t border-[var(--ds-border)] space-y-1.5 text-xs">
+                    <div className="flex items-center gap-2 text-[var(--ds-text)]">
                       <CalendarBlank className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <span className="font-semibold">
-                        {assign.dayOfWeek ? `Hari ${assign.dayOfWeek}` : <span className="text-slate-400 dark:text-zinc-500 italic font-normal">Hari belum diatur</span>}
+                        {assign.dayOfWeek ? `Hari ${assign.dayOfWeek}` : <span className="text-[var(--ds-text-muted)] italic font-normal">Hari belum diatur</span>}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-slate-700 dark:text-zinc-300">
+                    <div className="flex items-center gap-2 text-[var(--ds-text)]">
                       <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                       <span>
-                        {assign.timeSlot ? assign.timeSlot : <span className="text-slate-400 dark:text-zinc-500 italic">Jam belum diatur</span>}
+                        {assign.timeSlot ? assign.timeSlot : <span className="text-[var(--ds-text-muted)] italic">Jam belum diatur</span>}
                       </span>
                     </div>
 
                     {assign.room ? (
-                      <div className="flex items-center gap-2 text-slate-700 dark:text-zinc-300">
+                      <div className="flex items-center gap-2 text-[var(--ds-text)]">
                         <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         <span>{assign.room}</span>
                       </div>
@@ -349,8 +349,8 @@ export const TeachingAssignmentsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-                  <span className={`text-xs font-medium ${isArchived ? 'text-slate-400 dark:text-zinc-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                <div className="mt-4 pt-3 border-t border-[var(--ds-border)] flex items-center justify-between">
+                  <span className={`text-xs font-medium ${isArchived ? 'text-[var(--ds-text-muted)]' : 'text-emerald-600 dark:text-emerald-400'}`}>
                     Status: {isArchived ? 'Nonaktif / Arsip' : 'Aktif'}
                   </span>
                   <div className="flex items-center gap-1">
@@ -359,7 +359,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(assign)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                           title="Edit Jadwal & Penugasan"
                         >
                           <PencilSimple className="w-4 h-4" />
@@ -368,7 +368,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                           type="button"
                           disabled={archiving}
                           onClick={() => handleArchive(assign)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
                           title="Arsipkan Penugasan"
                         >
                           <Archive className="w-4 h-4" />
@@ -390,7 +390,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleRequestDelete(assign)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                       title="Hapus Penugasan"
                     >
                       <Trash className="w-4 h-4" />
@@ -424,7 +424,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5 flex items-center justify-between">
               <span>Pilih Kelas <span className="text-rose-500">*</span></span>
               {assignmentUsage?.isUsed && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal flex items-center gap-1">
@@ -436,7 +436,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
               value={selectedClassId}
               disabled={Boolean(assignmentUsage?.isUsed)}
               onChange={e => setSelectedClassId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-[var(--ds-surface-muted)]"
             >
               {classes
                 .filter(c => (c.academicYearId === activeAcademicYear?.id && !c.isArchived) || c.id === editingAssignment?.classId)
@@ -447,7 +447,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5 flex items-center justify-between">
               <span>Pilih Mata Pelajaran <span className="text-rose-500">*</span></span>
               {assignmentUsage?.isUsed && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal flex items-center gap-1">
@@ -459,7 +459,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
               value={selectedSubjectId}
               disabled={Boolean(assignmentUsage?.isUsed)}
               onChange={e => setSelectedSubjectId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-neutral-800"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-emerald-500 disabled:opacity-60 disabled:bg-[var(--ds-surface-muted)]"
             >
               {subjects.map(s => (
                 <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
@@ -468,21 +468,21 @@ export const TeachingAssignmentsPage: React.FC = () => {
           </div>
 
           {/* Schedule Configuration Group */}
-          <div className="p-3.5 bg-slate-50 dark:bg-neutral-900 rounded-2xl border border-slate-200/80 dark:border-neutral-800 space-y-3">
-            <h4 className="text-xs font-bold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
+          <div className="p-3.5 bg-[var(--ds-surface-muted)] rounded-2xl border border-[var(--ds-border)] space-y-3">
+            <h4 className="text-xs font-bold text-[var(--ds-text)] flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               Pengaturan Jadwal Mingguan (Opsional)
             </h4>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1">
+                <label className="block text-[11px] font-medium text-[var(--ds-text-muted)] mb-1">
                   Hari Mengajar
                 </label>
                 <select
                   value={dayOfWeek}
                   onChange={e => setDayOfWeek(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">-- Belum Diatur --</option>
                   {DAYS_OF_WEEK.map(d => (
@@ -492,7 +492,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1">
+                <label className="block text-[11px] font-medium text-[var(--ds-text-muted)] mb-1">
                   Jam / Sesi Mengajar
                 </label>
                 <input
@@ -500,13 +500,13 @@ export const TeachingAssignmentsPage: React.FC = () => {
                   placeholder="Contoh: 07:30 - 09:00"
                   value={timeSlot}
                   onChange={e => setTimeSlot(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-[var(--ds-text-muted)]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-slate-600 dark:text-zinc-400 mb-1">
+              <label className="block text-[11px] font-medium text-[var(--ds-text-muted)] mb-1">
                 Ruangan / Tempat (Opsional)
               </label>
               <input
@@ -514,22 +514,22 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 placeholder="Contoh: Ruang X-A / Lab Komputer"
                 value={room}
                 onChange={e => setRoom(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-800 dark:text-zinc-200 text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-emerald-500 placeholder:text-[var(--ds-text-muted)]"
               />
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 dark:bg-neutral-900 rounded-xl text-xs text-slate-500 dark:text-zinc-400 space-y-1">
+          <div className="p-3 bg-[var(--ds-surface-muted)] rounded-xl text-xs text-[var(--ds-text-muted)] space-y-1">
             <p><strong>Tahun Ajaran:</strong> {activeAcademicYear?.label}</p>
             <p><strong>Semester:</strong> {activeSemester}</p>
             <p><strong>Guru Pengampu:</strong> {user?.email}</p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-3 py-2 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-neutral-800 text-xs font-medium cursor-pointer"
+              className="px-3 py-2 rounded-xl text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-medium cursor-pointer"
             >
               Batal
             </button>
@@ -552,7 +552,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
         title="Hapus Penugasan Mengajar"
         message={
           <>
-            Apakah Anda yakin ingin menghapus tugas mengajar <strong className="font-semibold text-slate-800 dark:text-slate-100">&quot;{assignmentToDelete?.subjectName} - Kelas {assignmentToDelete?.className}&quot;</strong>?
+            Apakah Anda yakin ingin menghapus tugas mengajar <strong className="font-semibold text-[var(--ds-text)]">&quot;{assignmentToDelete?.subjectName} - Kelas {assignmentToDelete?.className}&quot;</strong>?
           </>
         }
         confirmLabel="Hapus Penugasan"
@@ -578,16 +578,16 @@ export const TeachingAssignmentsPage: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+          <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
             Menghapus penugasan ini akan merusak integritas data rekap jurnal KBM atau nilai siswa yang sudah tercatat.
             Sebagai alternatif yang aman, Anda disarankan untuk <strong>mengarsipkan</strong> penugasan ini sehingga tidak lagi muncul di menu transaksi aktif namun tetap aman di riwayat data.
           </p>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-neutral-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
             <button
               type="button"
               onClick={() => setDeleteBlockedModal(null)}
-              className="px-3 py-2 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-neutral-800 text-xs font-medium cursor-pointer"
+              className="px-3 py-2 rounded-xl text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-medium cursor-pointer"
             >
               Tutup
             </button>

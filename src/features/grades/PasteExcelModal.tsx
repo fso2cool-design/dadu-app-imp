@@ -106,18 +106,18 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
     >
       <div className="space-y-4 text-xs">
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex items-center gap-2">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 rounded-xl flex items-center gap-2">
             <WarningCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-xl text-emerald-900 leading-relaxed">
+        <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 rounded-xl text-emerald-900 dark:text-emerald-200 leading-relaxed">
           <p className="font-semibold mb-1 flex items-center gap-1.5">
-            <FileCsv className="w-4 h-4 text-emerald-600" />
+            <FileCsv className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Cara Praktis Paste Nilai:
           </p>
-          <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-emerald-800">
+          <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-emerald-800 dark:text-emerald-300">
             <li>Buka file Excel / Google Sheets daftar nilai Anda.</li>
             <li>Salin / Copy (Ctrl+C) 1 kolom nilai siswa yang urutannya sesuai nomor absen.</li>
             <li>Tempelkan / Paste (Ctrl+V) ke kotak teks di bawah ini.</li>
@@ -126,13 +126,13 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
 
         {/* Target assessment selector */}
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">
+          <label className="block font-semibold text-[var(--ds-text)] mb-1">
             Pilih Kolom Penilaian Tujuan <span className="text-rose-500">*</span>
           </label>
           <select
             value={selectedItemId}
             onChange={(e) => setSelectedItemId(e.target.value)}
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800 text-xs font-medium bg-white"
+            className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface)]"
           >
             {assessmentItems.map((item) => (
               <option key={item.id} value={item.id}>
@@ -144,7 +144,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
 
         {/* Paste textarea */}
         <div>
-          <label className="block font-semibold text-slate-700 mb-1">
+          <label className="block font-semibold text-[var(--ds-text)] mb-1">
             Area Tempel / Paste Text (Ctrl+V)
           </label>
           <textarea
@@ -152,7 +152,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             value={pastedText}
             onChange={(e) => setPastedText(e.target.value)}
             placeholder={`Contoh isi paste:\n85\n90\n78\n88\n95`}
-            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 text-slate-800"
+            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)] text-[var(--ds-text)] bg-[var(--ds-surface)]"
           />
         </div>
 
@@ -160,26 +160,26 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
         {parsedPreview.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-[var(--ds-text)]">
                 Pratinjau Pemetaan ({parsedPreview.length} baris terdeteksi):
               </span>
-              <span className="text-[11px] text-slate-400">Total {enrollments.length} siswa di kelas</span>
+              <span className="text-[11px] text-[var(--ds-text-muted)]">Total {enrollments.length} siswa di kelas</span>
             </div>
-            <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 space-y-1">
+            <div className="max-h-48 overflow-y-auto rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] p-2 space-y-1">
               {parsedPreview.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-white border border-slate-100 text-xs"
+                  className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-[var(--ds-surface)] border border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)] text-xs"
                 >
-                  <span className="text-slate-600 truncate max-w-[200px]">
-                    <strong className="text-slate-800 mr-1.5">#{idx + 1}</strong>
+                  <span className="text-[var(--ds-text-muted)] truncate max-w-[200px]">
+                    <strong className="text-[var(--ds-text)] mr-1.5">#{idx + 1}</strong>
                     {item.studentName}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-400 font-mono">Teks: "{item.rawText}"</span>
-                    <ArrowRight className="w-3 h-3 text-slate-300" />
+                    <span className="text-[10px] text-[var(--ds-text-muted)] font-mono">Teks: "{item.rawText}"</span>
+                    <ArrowRight className="w-3 h-3 text-[var(--ds-text-muted)] opacity-60" />
                     <span className={`font-mono font-bold px-2 py-0.5 rounded-md ${
-                      item.score !== null ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600'
+                      item.score !== null ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400'
                     }`}>
                       {item.score !== null ? item.score : 'Tidak Valid'}
                     </span>
@@ -191,11 +191,11 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-semibold cursor-pointer"
           >
             Batal
           </button>

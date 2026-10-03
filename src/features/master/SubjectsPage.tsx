@@ -193,11 +193,11 @@ export const SubjectsPage: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             Master Mata Pelajaran
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Pusat pengelolaan mata pelajaran kurikulum madrasah terintegrasi dengan plotting dan asesmen.
           </p>
         </div>
@@ -212,7 +212,7 @@ export const SubjectsPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs & MagnifyingGlass Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--ds-surface)] p-2.5 rounded-2xl border border-[var(--ds-border)] shadow-2xs">
         <div className="flex items-center gap-1 overflow-x-auto">
           <button
             type="button"
@@ -220,7 +220,7 @@ export const SubjectsPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === 'ACTIVE'
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             Aktif ({activeCount})
@@ -231,7 +231,7 @@ export const SubjectsPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === 'ARCHIVED'
                 ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             Diarsipkan ({archivedCount})
@@ -241,8 +241,8 @@ export const SubjectsPage: React.FC = () => {
             onClick={() => setFilterTab('ALL')}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === 'ALL'
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-[var(--ds-surface-muted)] text-[var(--ds-text)] border border-[var(--ds-border)]'
+                : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             Semua ({subjects.length})
@@ -250,25 +250,25 @@ export const SubjectsPage: React.FC = () => {
         </div>
 
         <div className="relative sm:w-64">
-          <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <MagnifyingGlass className="w-3.5 h-3.5 text-[var(--ds-text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari kode atau nama mapel..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[var(--ds-text)] placeholder:text-[var(--ds-text-muted)]"
           />
         </div>
       </div>
 
       {/* Grid of Subject Cards */}
       {filteredSubjects.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-10 text-center">
-          <BookOpen className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+        <div className="bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-2xl p-10 text-center">
+          <BookOpen className="w-10 h-10 text-[var(--ds-text-muted)] opacity-60 mx-auto mb-3" />
+          <h3 className="text-sm font-bold text-[var(--ds-text)]">
             {searchQuery ? 'Mata pelajaran tidak ditemukan' : 'Belum ada mata pelajaran'}
           </h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1 max-w-sm mx-auto">
             {searchQuery 
               ? `Tidak ada mata pelajaran yang cocok dengan kata kunci "${searchQuery}".`
               : 'Tambahkan mata pelajaran untuk memulai penyusunan plotting mengajar dan buku nilai.'}
@@ -290,10 +290,10 @@ export const SubjectsPage: React.FC = () => {
             return (
               <div
                 key={sub.id}
-                className={`p-5 rounded-2xl bg-white dark:bg-slate-900 border transition-all flex flex-col justify-between shadow-2xs hover:shadow-sm ${
+                className={`p-5 rounded-2xl bg-[var(--ds-surface)] border transition-all flex flex-col justify-between shadow-2xs hover:shadow-sm ${
                   isArchived
-                    ? 'border-slate-200/60 dark:border-slate-800/60 opacity-80'
-                    : 'border-slate-200/90 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700'
+                    ? 'border-[var(--ds-border)] opacity-80'
+                    : 'border-[var(--ds-border)] hover:border-emerald-300 dark:hover:border-emerald-700'
                 }`}
               >
                 <div>
@@ -310,13 +310,13 @@ export const SubjectsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 leading-snug">
+                  <h3 className="font-bold text-base text-[var(--ds-text)] leading-snug">
                     {sub.name}
                   </h3>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                <div className="mt-5 pt-3 border-t border-[var(--ds-border)] flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-[var(--ds-text-muted)] font-mono">
                     ID: {sub.id.slice(0, 6)}...
                   </span>
 
@@ -326,7 +326,7 @@ export const SubjectsPage: React.FC = () => {
                       type="button"
                       onClick={() => handleOpenEdit(sub)}
                       title="Ubah Mata Pelajaran"
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 transition-colors cursor-pointer"
                     >
                       <PencilSimple className="w-3.5 h-3.5" />
                     </button>
@@ -339,7 +339,7 @@ export const SubjectsPage: React.FC = () => {
                       className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                         isArchived 
                           ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60' 
-                          : 'text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60'
+                          : 'text-[var(--ds-text-muted)] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/60'
                       }`}
                     >
                       {isArchived ? (
@@ -353,7 +353,7 @@ export const SubjectsPage: React.FC = () => {
                       type="button"
                       onClick={() => handleRequestDelete(sub)}
                       title="Hapus Mata Pelajaran"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-colors cursor-pointer"
                     >
                       <Trash className="w-3.5 h-3.5" />
                     </button>
@@ -379,7 +379,7 @@ export const SubjectsPage: React.FC = () => {
       >
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
               Kode Mata Pelajaran <span className="text-rose-500">*</span>
             </label>
             <input
@@ -388,15 +388,15 @@ export const SubjectsPage: React.FC = () => {
               value={code}
               onChange={e => setCode(e.target.value)}
               placeholder="Contoh: ENG / MAT / BIO / PAI"
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs uppercase text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs uppercase text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-[11px] text-[var(--ds-text-muted)] mt-1">
               Kode singkat untuk penamaan jadwal & header rapor.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
               Nama Lengkap Mata Pelajaran <span className="text-rose-500">*</span>
             </label>
             <input
@@ -405,11 +405,11 @@ export const SubjectsPage: React.FC = () => {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Contoh: Bahasa Inggris Peminatan"
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs text-[var(--ds-text)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
             <button
               type="button"
               disabled={loading}
@@ -417,7 +417,7 @@ export const SubjectsPage: React.FC = () => {
                 setModalOpen(false);
                 setEditingSubject(null);
               }}
-              className="px-3 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium cursor-pointer"
+              className="px-3 py-2 rounded-xl text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-medium cursor-pointer"
             >
               Batal
             </button>
@@ -468,8 +468,8 @@ export const SubjectsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-800">
-            <span className="font-semibold text-slate-800 dark:text-slate-200 block mb-1">
+          <div className="p-3 bg-[var(--ds-surface-muted)] rounded-xl text-xs text-[var(--ds-text-muted)] border border-[var(--ds-border)]">
+            <span className="font-semibold text-[var(--ds-text)] block mb-1">
               Solusi Terbaik Berdasarkan Standar Data Madrasah:
             </span>
             Gunakan tombol <strong>Arsipkan</strong> untuk menyembunyikan mata pelajaran ini dari formulir pembuatan jadwal baru, tanpa merusak atau menghilangkan riwayat nilai rapor dan presensi siswa yang sudah tersimpan.
@@ -479,7 +479,7 @@ export const SubjectsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setDeleteBlockedModal(null)}
-              className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-semibold hover:bg-[var(--ds-surface)] border border-[var(--ds-border)] cursor-pointer"
             >
               Tutup
             </button>

@@ -173,7 +173,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
       title="Lembar Capaian & Rapor Sisipan Siswa"
       maxWidth="3xl"
     >
-      <div className="space-y-5 text-slate-800">
+      <div className="space-y-5 text-[var(--ds-text)]">
         {/* Scoped print styling */}
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -196,10 +196,10 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
         `}} />
 
         {/* Action Header Bar in Modal (no-print) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50/90 to-teal-50/70 border border-emerald-100 shadow-2xs no-print">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50/90 to-[var(--ds-surface-muted)] dark:from-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50 shadow-2xs no-print">
           <div>
             <span className="text-xs font-bold text-emerald-950 block">Rapor Sisipan / Laporan Perkembangan Siswa</span>
-            <p className="text-[11px] text-slate-600">Dapat dicetak langsung atau dikirimkan ke orang tua/wali melalui WhatsApp.</p>
+            <p className="text-[11px] text-[var(--ds-text-muted)]">Dapat dicetak langsung atau dikirimkan ke orang tua/wali melalui WhatsApp.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -219,7 +219,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
             <button
               type="button"
               onClick={handleCopyWA}
-              className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-[var(--ds-surface-muted)] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             >
               {copiedWA ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedWA ? 'Teks Tersalin!' : 'Salin Teks WA'}</span>
@@ -228,7 +228,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-1.5 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl btn-primary hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak Lembar Resmi</span>

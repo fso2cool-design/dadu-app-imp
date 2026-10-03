@@ -167,15 +167,15 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
   });
 
   return (
-    <div className="space-y-6 pt-4 border-t border-slate-200/80 dark:border-slate-800">
+    <div className="space-y-6 pt-4 border-t border-[var(--ds-border)]">
       {/* Header with Run Audit Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+          <h4 className="font-bold text-sm text-[var(--ds-text)] flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Audit Integritas Relasi & Pemulihan (Identity Governance)
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
             Mendeteksi dokumen orphan, relasi putus, dan duplikasi tanpa menghapus data histori akademik siswa.
           </p>
         </div>
@@ -202,10 +202,10 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       {auditResult && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase">Total Temuan</span>
-              <strong className="text-lg font-bold text-slate-800 dark:text-slate-200">{auditResult.totalIssues}</strong>
-              <span className="text-[11px] text-slate-500 block mt-0.5">Pemeriksaan 100% Read-only</span>
+            <div className="p-3.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)]">
+              <span className="text-[10px] text-[var(--ds-text-muted)] font-semibold block uppercase">Total Temuan</span>
+              <strong className="text-lg font-bold text-[var(--ds-text)]">{auditResult.totalIssues}</strong>
+              <span className="text-[11px] text-[var(--ds-text-muted)] block mt-0.5">Pemeriksaan 100% Read-only</span>
             </div>
 
             <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50">
@@ -229,14 +229,14 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+          <div className="flex items-center gap-2 border-b border-[var(--ds-border)] pb-2">
             <button
               type="button"
               onClick={() => setActiveSeverityFilter('ALL')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeSeverityFilter === 'ALL'
-                  ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
-                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                  ? 'bg-[var(--ds-text)] text-[var(--ds-surface)]'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Semua ({auditResult.totalIssues})
@@ -247,7 +247,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeSeverityFilter === 'CRITICAL'
                   ? 'bg-rose-600 text-white'
-                  : 'text-slate-500 hover:text-rose-600 dark:text-slate-400'
+                  : 'text-[var(--ds-text-muted)] hover:text-rose-600'
               }`}
             >
               Kritis ({auditResult.criticalCount})
@@ -258,7 +258,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 activeSeverityFilter === 'WARNING'
                   ? 'bg-amber-600 text-white'
-                  : 'text-slate-500 hover:text-amber-600 dark:text-slate-400'
+                  : 'text-[var(--ds-text-muted)] hover:text-amber-600'
               }`}
             >
               Peringatan ({auditResult.warningsCount})
@@ -294,11 +294,11 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                       }`}>
                         {issue.severity}
                       </span>
-                      <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="font-mono text-[11px] text-[var(--ds-text-muted)]">
                         {issue.collectionName} / {issue.documentId.slice(0, 8)}...
                       </span>
                     </div>
-                    <p className="font-medium text-slate-800 dark:text-slate-200">
+                    <p className="font-medium text-[var(--ds-text)]">
                       {issue.description}
                     </p>
                   </div>
@@ -338,31 +338,31 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
       {/* MODAL 1: RE-LINK KELAS */}
       {relinkClassIssue && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#11141f] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[var(--ds-surface-elevated)] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[var(--ds-border)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border)]">
+              <h4 className="font-bold text-sm text-[var(--ds-text)] flex items-center gap-2">
                 <LinkSimple className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 Pemulihan Relasi Kelas Penempatan (Re-Link)
               </h4>
               <button
                 type="button"
                 onClick={() => setRelinkClassIssue(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg cursor-pointer"
+                className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1">
-              <p className="font-bold text-slate-800 dark:text-slate-200">Informasi Penempatan Orphan:</p>
-              <p className="text-slate-600 dark:text-slate-400 font-mono">
+            <div className="p-3.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs space-y-1">
+              <p className="font-bold text-[var(--ds-text)]">Informasi Penempatan Orphan:</p>
+              <p className="text-[var(--ds-text-muted)] font-mono">
                 ID Dokumen: {relinkClassIssue.documentId}
               </p>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-[var(--ds-text-muted)]">
                 Tahun Ajaran: {academicYears.find(ay => ay.id === relinkClassIssue.details?.academicYearId)?.label || relinkClassIssue.details?.academicYearLabel || relinkClassIssue.details?.academicYearId}
               </p>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-[var(--ds-text-muted)]">
                 Nama Kelas Sebelumnya: {relinkClassIssue.details?.className || '-'}
               </p>
             </div>
@@ -376,13 +376,13 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[var(--ds-text)] mb-1">
                   Pilih Kelas Tujuan yang Valid <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={selectedTargetClassId}
                   onChange={e => setSelectedTargetClassId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-medium cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs font-medium cursor-pointer"
                 >
                   <option value="">-- Pilih Rombel / Kelas --</option>
                   {classes
@@ -393,13 +393,13 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                       </option>
                     ))}
                 </select>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-[var(--ds-text-muted)] mt-1">
                   Hanya kelas aktif di Tahun Ajaran yang sama yang dapat dipilih (Sesuai tata kelola Dadu).
                 </p>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[var(--ds-text)] mb-1">
                   Alasan Re-Link / Pemulihan
                 </label>
                 <input
@@ -407,17 +407,17 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                   value={relinkReason}
                   onChange={e => setRelinkReason(e.target.value)}
                   placeholder="Contoh: Pemulihan kelas setelah reorganisasi rombel"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-medium"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs font-medium"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setRelinkClassIssue(null)}
                 disabled={isRelinkingClass}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold hover:bg-[var(--ds-surface-muted)] cursor-pointer disabled:opacity-50"
               >
                 Batal
               </button>
@@ -436,28 +436,28 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
       {/* MODAL 2: RE-LINK SISWA (VIA NISN) */}
       {relinkStudentIssue && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white dark:bg-[#11141f] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-[var(--ds-surface-elevated)] rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[var(--ds-border)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--ds-border)]">
+              <h4 className="font-bold text-sm text-[var(--ds-text)] flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                 Pemulihan Relasi Siswa (Identity Recovery via NISN)
               </h4>
               <button
                 type="button"
                 onClick={() => setRelinkStudentIssue(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg cursor-pointer"
+                className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1">
-              <p className="font-bold text-slate-800 dark:text-slate-200">Dokumen Transaksi Orphan:</p>
-              <p className="text-slate-600 dark:text-slate-400 font-mono">
+            <div className="p-3.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs space-y-1">
+              <p className="font-bold text-[var(--ds-text)]">Dokumen Transaksi Orphan:</p>
+              <p className="text-[var(--ds-text-muted)] font-mono">
                 Koleksi: {relinkStudentIssue.collectionName} / ID: {relinkStudentIssue.documentId}
               </p>
-              <p className="text-slate-600 dark:text-slate-400 font-mono">
+              <p className="text-[var(--ds-text-muted)] font-mono">
                 ID Siswa Tidak Ditemukan: {relinkStudentIssue.details?.studentId || '-'}
               </p>
             </div>
@@ -471,7 +471,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[var(--ds-text)] mb-1">
                   Cari Master Siswa Berdasarkan NISN Persis <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex gap-2">
@@ -480,7 +480,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                     value={nisnSearchQuery}
                     onChange={e => setNisnSearchQuery(e.target.value)}
                     placeholder="Masukkan NISN 10 digit siswa..."
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-mono"
+                    className="flex-1 px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] font-mono"
                   />
                   <button
                     type="button"
@@ -492,14 +492,14 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                     <span>{isSearchingNisn ? 'Mencari...' : 'Cari'}</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-[var(--ds-text-muted)] mt-1">
                   Sesuai prinsip Student Identity Governance, pencocokan otomatis fuzzy nama dilarang untuk mencegah salah kait data.
                 </p>
               </div>
 
               {candidateStudents.length > 0 && (
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-semibold text-[var(--ds-text)] mb-1">
                     Verifikasi Kandidat Siswa Ditemukan ({candidateStudents.length}):
                   </label>
                   <div className="space-y-1.5 max-h-40 overflow-y-auto">
@@ -509,12 +509,12 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                         className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
                           selectedCandidateStudentId === cand.id
                             ? 'bg-cyan-50 dark:bg-cyan-950/40 border-cyan-500 text-cyan-900 dark:text-cyan-100 font-semibold'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                            : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text)]'
                         }`}
                       >
                         <div className="space-y-0.5">
                           <p className="font-bold">{cand.fullName}</p>
-                          <p className="text-[11px] text-slate-400 font-mono">
+                          <p className="text-[11px] text-[var(--ds-text-muted)] font-mono">
                             ID: {cand.id} | NISN: {cand.nisn} | NIS: {cand.nis || '-'}
                           </p>
                         </div>
@@ -533,7 +533,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
               )}
 
               <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-semibold text-[var(--ds-text)] mb-1">
                   Alasan Re-Link
                 </label>
                 <input
@@ -541,17 +541,17 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
                   value={studentRelinkReason}
                   onChange={e => setStudentRelinkReason(e.target.value)}
                   placeholder="Contoh: Menautkan kembali nilai ke master siswa dengan NISN cocok"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 font-medium"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] font-medium"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setRelinkStudentIssue(null)}
                 disabled={isRelinkingStudent}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold hover:bg-[var(--ds-surface-muted)] cursor-pointer disabled:opacity-50"
               >
                 Batal
               </button>

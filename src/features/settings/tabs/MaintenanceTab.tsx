@@ -32,12 +32,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="border-b border-slate-100 pb-3">
-        <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+      <div className="border-b border-[var(--ds-border)] pb-3">
+        <h3 className="font-bold text-sm text-[var(--ds-text)] flex items-center gap-2">
           <Trash className="w-4 h-4 text-rose-600" />
           Pemeliharaan & Pembersihan Data Semester (Semantic Reset)
         </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">
+        <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">
           Fitur proteksi bergradasi untuk membersihkan data transaksional (jurnal KBM, absensi, dan nilai) pada pergantian semester secara aman dan terukur tanpa menghapus data master (siswa, kelas, mata pelajaran).
         </p>
       </div>
@@ -78,7 +78,7 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
 
         {/* 1. Target Academic Year */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
             1. Pilih Tahun Ajaran Sasaran:
           </label>
           <select
@@ -87,7 +87,7 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
               setResetAcademicYearId(e.target.value);
               setResetPreview(null);
             }}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium bg-white focus:ring-2 focus:ring-rose-400 focus:outline-none"
+            className="w-full px-3.5 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-medium bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-rose-400 focus:outline-none"
           >
             {academicYears.map(ay => (
               <option key={ay.id} value={ay.id}>
@@ -108,7 +108,7 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
 
         {/* 2. Target Semester Filter */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
             2. Pilih Semester yang Dibersihkan:
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -118,10 +118,10 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
               className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
                 resetSemester === 'ALL'
                   ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--ds-surface)] text-[var(--ds-text)] border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)]'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${resetSemester === 'ALL' ? 'bg-white' : 'bg-rose-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${resetSemester === 'ALL' ? 'bg-[var(--ds-surface)]' : 'bg-rose-400'}`} />
               <span>Semua Semester (1 & 2)</span>
             </button>
 
@@ -131,10 +131,10 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
               className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
                 resetSemester === '1'
                   ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--ds-surface)] text-[var(--ds-text)] border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)]'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${resetSemester === '1' ? 'bg-white' : 'bg-rose-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${resetSemester === '1' ? 'bg-[var(--ds-surface)]' : 'bg-rose-400'}`} />
               <span>Semester 1 (Ganjil)</span>
             </button>
 
@@ -144,10 +144,10 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
               className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all text-left flex items-center gap-2 ${
                 resetSemester === '2'
                   ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  : 'bg-[var(--ds-surface)] text-[var(--ds-text)] border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)]'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${resetSemester === '2' ? 'bg-white' : 'bg-rose-400'}`} />
+              <span className={`w-2 h-2 rounded-full ${resetSemester === '2' ? 'bg-[var(--ds-surface)]' : 'bg-rose-400'}`} />
               <span>Semester 2 (Genap)</span>
             </button>
           </div>
@@ -155,11 +155,11 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
 
         {/* 3. Granular Scope Checkboxes */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
             3. Tentukan Cakupan Koleksi Data yang Dihapus:
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.meetingsAndAttendance}
@@ -170,12 +170,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Jurnal KBM & Absensi Mapel</span>
-                <span className="text-[10px] text-slate-500">Pertemuan agenda guru dan presensi pertemuan per mapel.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Jurnal KBM & Absensi Mapel</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Pertemuan agenda guru dan presensi pertemuan per mapel.</span>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.assessmentsAndScores}
@@ -186,12 +186,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Penilaian & Nilai Siswa</span>
-                <span className="text-[10px] text-slate-500">Daftar butir asesmen formatif/sumatif serta skor nilai siswa.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Penilaian & Nilai Siswa</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Daftar butir asesmen formatif/sumatif serta skor nilai siswa.</span>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.dailyAttendance}
@@ -202,12 +202,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Presensi Harian Wali Kelas</span>
-                <span className="text-[10px] text-slate-500">Sesi harian kelas dan rekam kehadiran siswa oleh wali kelas.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Presensi Harian Wali Kelas</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Sesi harian kelas dan rekam kehadiran siswa oleh wali kelas.</span>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.teacherAttendance}
@@ -218,12 +218,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Presensi Mandiri Guru (Opsional)</span>
-                <span className="text-[10px] text-slate-500">Rekam presensi kedatangan guru dan log bulanan.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Presensi Mandiri Guru (Opsional)</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Rekam presensi kedatangan guru dan log bulanan.</span>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.classSchedules}
@@ -234,12 +234,12 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Jadwal Pelajaran Kelas (Opsional)</span>
-                <span className="text-[10px] text-slate-500">Alokasi jadwal KBM mingguan pada semester terpilih.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Jadwal Pelajaran Kelas (Opsional)</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Alokasi jadwal KBM mingguan pada semester terpilih.</span>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
+            <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-[var(--ds-surface)] border border-rose-100 hover:border-rose-300 cursor-pointer transition-colors">
               <input
                 type="checkbox"
                 checked={resetScope.studentNotes}
@@ -250,8 +250,8 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
                 className="mt-0.5 rounded text-rose-600 focus:ring-rose-500"
               />
               <div>
-                <span className="text-xs font-semibold text-slate-800 block">Catatan Perkembangan Siswa</span>
-                <span className="text-[10px] text-slate-500">Catatan khusus BK dan karakter siswa pada semester ini.</span>
+                <span className="text-xs font-semibold text-[var(--ds-text)] block">Catatan Perkembangan Siswa</span>
+                <span className="text-[10px] text-[var(--ds-text-muted)]">Catatan khusus BK dan karakter siswa pada semester ini.</span>
               </div>
             </label>
           </div>
@@ -260,41 +260,41 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
         {/* 4. Pre-Flight Preview Button & Display */}
         <div className="pt-1 border-t border-rose-100">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold text-slate-700">4. Pratinjau Dokumen Terdampak (Dry Run):</span>
+            <span className="text-xs font-semibold text-[var(--ds-text)]">4. Pratinjau Dokumen Terdampak (Dry Run):</span>
             <button
               type="button"
               onClick={onPreviewReset}
               disabled={isPreviewLoading || !resetAcademicYearId}
-              className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Eye className="w-3.5 h-3.5 text-slate-500" />
+              <Eye className="w-3.5 h-3.5 text-[var(--ds-text-muted)]" />
               <span>{isPreviewLoading ? 'Menghitung Dokumen...' : 'Hitung Dokumen Terdampak'}</span>
             </button>
           </div>
 
           {resetPreview && (
-            <div className="mt-3 p-3.5 rounded-xl bg-white border border-rose-200 text-xs space-y-2">
+            <div className="mt-3 p-3.5 rounded-xl bg-[var(--ds-surface)] border border-rose-200 text-xs space-y-2">
               <div className="flex items-center justify-between font-bold text-rose-950 pb-2 border-b border-rose-100">
                 <span>Total Dokumen yang Akan Dihapus:</span>
                 <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-xs font-mono font-bold">
                   {resetPreview.totalDeleted} Dokumen
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-600">
-                <div>Pertemuan KBM: <strong className="text-slate-800">{resetPreview.meetings}</strong></div>
-                <div>Presensi Mapel: <strong className="text-slate-800">{resetPreview.attendanceRecords}</strong></div>
-                <div>Butir Penilaian: <strong className="text-slate-800">{resetPreview.assessmentItems}</strong></div>
-                <div>Nilai Siswa: <strong className="text-slate-800">{resetPreview.scores}</strong></div>
-                <div>Sesi Presensi Harian: <strong className="text-slate-800">{resetPreview.dailyAttendanceSessions}</strong></div>
-                <div>Rekam Presensi Harian: <strong className="text-slate-800">{resetPreview.dailyAttendanceRecords}</strong></div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-[var(--ds-text-muted)]">
+                <div>Pertemuan KBM: <strong className="text-[var(--ds-text)]">{resetPreview.meetings}</strong></div>
+                <div>Presensi Mapel: <strong className="text-[var(--ds-text)]">{resetPreview.attendanceRecords}</strong></div>
+                <div>Butir Penilaian: <strong className="text-[var(--ds-text)]">{resetPreview.assessmentItems}</strong></div>
+                <div>Nilai Siswa: <strong className="text-[var(--ds-text)]">{resetPreview.scores}</strong></div>
+                <div>Sesi Presensi Harian: <strong className="text-[var(--ds-text)]">{resetPreview.dailyAttendanceSessions}</strong></div>
+                <div>Rekam Presensi Harian: <strong className="text-[var(--ds-text)]">{resetPreview.dailyAttendanceRecords}</strong></div>
                 {resetScope.teacherAttendance && (
-                  <div>Presensi Guru: <strong className="text-slate-800">{resetPreview.teacherAttendanceRecords + resetPreview.teacherMonthlyAttendance}</strong></div>
+                  <div>Presensi Guru: <strong className="text-[var(--ds-text)]">{resetPreview.teacherAttendanceRecords + resetPreview.teacherMonthlyAttendance}</strong></div>
                 )}
                 {resetScope.classSchedules && (
-                  <div>Jadwal Kelas: <strong className="text-slate-800">{resetPreview.classSchedules}</strong></div>
+                  <div>Jadwal Kelas: <strong className="text-[var(--ds-text)]">{resetPreview.classSchedules}</strong></div>
                 )}
                 {resetScope.studentNotes && (
-                  <div>Catatan Siswa: <strong className="text-slate-800">{resetPreview.studentNotes}</strong></div>
+                  <div>Catatan Siswa: <strong className="text-[var(--ds-text)]">{resetPreview.studentNotes}</strong></div>
                 )}
               </div>
             </div>
@@ -303,7 +303,7 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
 
         {/* 5. Confirmation Input */}
         <div className="pt-1 border-t border-rose-100">
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">
             5. Ketik <code className="px-1.5 py-0.5 bg-rose-100 text-rose-800 rounded font-mono font-bold">RESET DATA</code> untuk konfirmasi eksekusi:
           </label>
           <input
@@ -311,7 +311,7 @@ export const MaintenanceTab: React.FC<MaintenanceTabProps> = ({
             value={confirmResetText}
             onChange={e => setConfirmResetText(e.target.value)}
             placeholder="Ketik persis: RESET DATA"
-            className="w-full px-3.5 py-2 rounded-xl border border-rose-300 text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
+            className="w-full px-3.5 py-2 rounded-xl border border-rose-300 text-xs font-mono font-bold bg-[var(--ds-surface)] text-[var(--ds-text)] focus:ring-2 focus:ring-rose-500 focus:outline-none"
           />
         </div>
 
