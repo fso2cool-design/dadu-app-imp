@@ -328,8 +328,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
                           isDirectParentActive || isGroupActive
-                            ? 'text-accent-text font-bold'
-                            : 'hover:text-slate-900 dark:hover:text-accent-text active:scale-[0.98]'
+                            ? 'text-[var(--ds-accent)] font-bold'
+                            : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] active:scale-[0.98]'
                         }`}
                       >
                       {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
@@ -337,10 +337,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <motion.div
                           layoutId="sidebar-active-parent-capsule"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          className="pointer-events-none absolute inset-0 rounded-xl bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
+                          className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] shadow-2xs"
                         >
                           <span
-                            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-accent-primary"
+                            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-[var(--ds-accent)]"
                           />
                         </motion.div>
                       )}
@@ -348,8 +348,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
                         <Icon className={`w-4 h-4 shrink-0 transition-colors ${
                           isDirectParentActive 
-                            ? 'text-accent-primary' 
-                            : 'text-slate-500 dark:text-slate-400'
+                            ? 'text-[var(--ds-accent)]' 
+                            : 'text-[var(--ds-text-muted)]'
                         }`} />
                         {!compact && (
                           <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
@@ -387,7 +387,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </span>
 
                       {compact && item.badgeCount && item.badgeCount > 0 ? (
-                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-slate-50 dark:border-slate-900 z-20" />
+                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-[var(--ds-surface)] z-20" />
                       ) : null}
                     </button>
                   </Tooltip>
@@ -407,8 +407,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             onClick={(e) => handleSubItemClick(sub.id, e)}
                             className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
                               isSubActive
-                                ? 'text-accent-text font-bold'
-                                : 'hover:text-slate-900 dark:hover:text-accent-text'
+                                ? 'text-[var(--ds-accent)] font-bold'
+                                : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                             }`}
                           >
                             {/* Fluid Sliding Active Capsule for sub-menu item */}
@@ -416,10 +416,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               <motion.div
                                 layoutId="sidebar-active-subitem-capsule"
                                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                                className="pointer-events-none absolute inset-0 rounded-lg bg-accent-primary-soft border border-accent-primary-border shadow-2xs"
+                                className="pointer-events-none absolute inset-0 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] shadow-2xs"
                               >
                                 <span
-                                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-accent-primary"
+                                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-[var(--ds-accent)]"
                                 />
                               </motion.div>
                             )}
@@ -427,8 +427,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
                               <SubIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
                                 isSubActive 
-                                  ? 'text-accent-primary' 
-                                  : 'text-slate-500 dark:text-slate-500'
+                                  ? 'text-[var(--ds-accent)]' 
+                                  : 'text-[var(--ds-text-muted)]'
                               }`} />
                               <span className="truncate flex-1">{sub.label}</span>
                             </span>
@@ -468,7 +468,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div 
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
           <div className="fixed inset-y-0 left-0 max-w-xs w-full shadow-2xl z-50 animate-in slide-in-from-left duration-200">

@@ -245,7 +245,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
         {assignment && (
           <div className="p-2.5 bg-accent-primary-soft border border-accent-primary-border rounded-xl text-accent-text flex items-center justify-between">
             <span className="font-semibold">{assignment.subjectName}</span>
-            <span className="text-[11px] px-2 py-0.5 rounded-md bg-white dark:bg-[#141722] font-medium text-accent-text border border-accent-primary-border">
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--ds-surface-elevated)] font-medium text-[var(--ds-accent)] border border-[var(--ds-border)]">
               Kelas {assignment.className}
             </span>
           </div>
@@ -263,7 +263,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Contoh: Sumatif Bab 1 (Teks Eksplanasi) atau STS Ganjil"
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+            className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface-muted)] disabled:opacity-60"
           />
         </div>
 
@@ -277,7 +277,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               value={category}
               disabled={isArchivedYear}
               onChange={(e) => handleCategoryChange(e.target.value as AssessmentCategory)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface-muted)] disabled:opacity-60 cursor-pointer"
             >
               <optgroup label="── Asesmen Sumatif (Rapor) ──">
                 {CATEGORY_OPTIONS.filter(o => o.group === 'SUMMATIVE').map((opt) => (
@@ -318,7 +318,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               disabled={isArchivedYear}
               value={assessmentDate}
               onChange={(e) => setAssessmentDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface-muted)] disabled:opacity-60"
             />
           </div>
         </div>
@@ -338,7 +338,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               value={weight}
               onChange={(e) => setWeight(Math.max(0, Number(e.target.value)))}
               placeholder="Contoh: 35"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface-muted)] disabled:opacity-60"
             />
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Digunakan pada formula Rata-rata Berbobot</p>
           </div>
@@ -356,14 +356,14 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
               value={maxScore}
               onChange={(e) => setMaxScore(Math.max(1, Math.min(100, Number(e.target.value) || 100)))}
               placeholder="100"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 text-slate-800 dark:text-slate-200 text-xs font-medium bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface-muted)] disabled:opacity-60"
             />
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Standar skala nilai madrasah: 100</p>
           </div>
         </div>
 
         {/* Include in Final Score Toggle */}
-        <div className="p-3 bg-slate-50 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] rounded-xl flex items-center justify-between">
+        <div className="p-3 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl flex items-center justify-between">
           <div>
             <span className="font-semibold text-slate-800 dark:text-slate-200 block">Hitung ke Nilai Akhir (Rapor)</span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -394,16 +394,16 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Contoh: TP 1.1 Menganalisis struktur teks eksplanasi dan kaidah kebahasaan"
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] focus:outline-hidden focus:ring-2 focus:ring-accent-primary text-slate-800 dark:text-slate-200 text-xs bg-white dark:bg-[#0c0e15] disabled:opacity-60"
+            className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-[var(--ds-text)] text-xs bg-[var(--ds-surface-muted)] disabled:opacity-60"
           />
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-[#232838]">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-xs font-semibold cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] text-xs font-semibold cursor-pointer"
           >
             Batal
           </button>

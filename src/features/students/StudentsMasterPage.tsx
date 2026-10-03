@@ -556,7 +556,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
             className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             title="Kelola kolom kustom tambahan siswa (KIP/PIP, No Registrasi, Asal Sekolah, dsb)"
           >
-            <Sliders className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400" /> Kolom Kustom {customFields.length > 0 ? `(${customFields.length})` : ''}
+            <Sliders className="w-3.5 h-3.5 text-[var(--ds-accent)]" /> Kolom Kustom {customFields.length > 0 ? `(${customFields.length})` : ''}
           </button>
 
           <button
@@ -636,7 +636,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs">
           <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Total Siswa</span>
           <div className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{totalCount}</div>
           <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block">
@@ -648,7 +648,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </span>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs">
           <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Laki-laki (L)</span>
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{maleCount}</div>
           <span className="text-[11px] text-blue-500 dark:text-blue-400 mt-0.5 block">
@@ -656,7 +656,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </span>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs">
           <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Perempuan (P)</span>
           <div className="text-2xl font-bold text-pink-600 dark:text-pink-400 mt-1">{femaleCount}</div>
           <span className="text-[11px] text-pink-500 dark:text-pink-400 mt-0.5 block">
@@ -664,7 +664,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
           </span>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs">
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs">
           <span className="text-xs text-slate-600 dark:text-slate-400 font-medium block">Siswa Aktif</span>
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{activeCount}</div>
           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 block">Status Belajar Aktif</span>
@@ -672,7 +672,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       </div>
 
       {/* Main Funnel & View Controls Bar */}
-      <div className="bg-white dark:bg-[#141722] border border-slate-200/80 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-4">
+      <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Tabs View Mode */}
           <div className="flex items-center gap-1 p-1 bg-slate-200/80 dark:bg-slate-800/90 rounded-xl w-fit">
@@ -812,7 +812,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       </div>
 
       {/* Main Table Content */}
-      <div className="bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl shadow-2xs overflow-hidden">
+      <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-4">
             <SkeletonTable rows={8} columns={6} />

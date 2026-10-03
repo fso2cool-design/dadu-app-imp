@@ -400,25 +400,25 @@ export const AttendanceReportPage: React.FC = () => {
       {/* Top Header & Mode Toggle */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <ChartBar className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+            <ChartBar className="w-5 h-5 text-[var(--ds-accent)]" />
             Laporan Rekapitulasi Presensi
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Rekap kehadiran siswa per mata pelajaran & kelas dengan format siap cetak dan ekspor Excel.
           </p>
         </div>
 
         {/* Mode Switcher & Share Link Action */}
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          <div className="bg-slate-100 dark:bg-[#0c0e15] p-1 rounded-xl flex items-center border border-slate-200/80 dark:border-[#232838] transition-colors">
+          <div className="bg-[var(--ds-surface-muted)] p-1 rounded-xl flex items-center border border-[var(--ds-border)] transition-colors">
             <button
               type="button"
               onClick={() => setReportMode('SUBJECT')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 reportMode === 'SUBJECT'
-                  ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-accent)] shadow-2xs font-bold'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)]'
               }`}
             >
               <CalendarCheck className="w-3.5 h-3.5" />
@@ -429,8 +429,8 @@ export const AttendanceReportPage: React.FC = () => {
               onClick={() => setReportMode('HOMEROOM')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 reportMode === 'HOMEROOM'
-                  ? 'bg-white dark:bg-[#141722] text-orange-700 dark:text-cyan-400 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-accent)] shadow-2xs font-bold'
+                  : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)]'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -451,18 +451,18 @@ export const AttendanceReportPage: React.FC = () => {
       </div>
 
       {/* Funnel Selector Bar (Hidden on Print) */}
-      <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
+      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {reportMode === 'SUBJECT' ? (
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Pilih Mapel & Kelas:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Mapel & Kelas:</label>
               <select
                 value={selectedAssignment?.id || ''}
                 onChange={(e) => {
                   const asg = teachingAssignments.find(a => a.id === e.target.value);
                   if (asg) setSelectedAssignment(asg);
                 }}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
                 {teachingAssignments.map(asg => (
                   <option key={asg.id} value={asg.id}>
@@ -473,11 +473,11 @@ export const AttendanceReportPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Pilih Rombongan Belajar:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Rombongan Belajar:</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>
@@ -496,19 +496,19 @@ export const AttendanceReportPage: React.FC = () => {
               placeholder="Cari siswa atau NIS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 bg-slate-50 dark:bg-[#0c0e15] transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] bg-[var(--ds-surface-muted)] transition-all"
             />
           </div>
         </div>
 
         {/* Statistical Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100 dark:border-[#232838]">
-          <div className="p-2.5 rounded-xl bg-orange-50/60 dark:bg-cyan-950/40 border border-orange-200/60 dark:border-cyan-500/40 flex items-center justify-between">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[var(--ds-border)]">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-cyan-400 block">Rata-rata Kehadiran</span>
-              <span className="text-lg font-black text-orange-950 dark:text-cyan-200">{stats.avgPercentage}%</span>
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Rata-rata Kehadiran</span>
+              <span className="text-lg font-black text-[var(--ds-accent)]">{stats.avgPercentage}%</span>
             </div>
-            <Percent className="w-6 h-6 text-orange-400 dark:text-cyan-400" />
+            <Percent className="w-6 h-6 text-[var(--ds-accent)]" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-500/40 flex items-center justify-between">
@@ -527,10 +527,10 @@ export const AttendanceReportPage: React.FC = () => {
             <Warning className="w-6 h-6 text-rose-400" />
           </div>
 
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] flex items-center justify-between">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 block">Akumulasi H / S / I / A</span>
-              <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Akumulasi H / S / I / A</span>
+              <span className="text-xs font-mono font-bold text-[var(--ds-text)]">
                 <strong className="text-emerald-700 dark:text-emerald-400">{stats.totalP}</strong> / <strong className="text-amber-700 dark:text-amber-400">{stats.totalS}</strong> / <strong className="text-sky-700 dark:text-sky-400">{stats.totalI}</strong> / <strong className="text-rose-700 dark:text-rose-400">{stats.totalA}</strong>
               </span>
             </div>

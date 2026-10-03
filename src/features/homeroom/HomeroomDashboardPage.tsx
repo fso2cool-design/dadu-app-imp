@@ -166,7 +166,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
   return (
     <div className="space-y-6">
       {/* Header & Class Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -209,7 +209,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       </div>
 
       {!currentClass ? (
-        <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-8 sm:p-12 rounded-3xl border border-[var(--ds-border)] text-center shadow-xs">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
             <UserMinus className="w-8 h-8" />
           </div>
@@ -241,7 +241,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
           {/* Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Siswa */}
-            <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Siswa Rombel</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -259,7 +259,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
             </div>
 
             {/* Presensi Hari Ini */}
-            <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Presensi Hari Ini</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -286,7 +286,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
             </div>
 
             {/* Perlu Perhatian / Watchlist */}
-            <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Perlu Perhatian</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -307,7 +307,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
             </div>
 
             {/* Catatan Pembinaan */}
-            <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Catatan Pembinaan</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -327,7 +327,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
           {/* Main Content: Watchlist & Roster Summary */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left 2 Cols: Student Roster & Attendance Status */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
+            <div className="lg:col-span-2 bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Daftar Kehadiran Siswa Kelas</h3>
@@ -431,7 +431,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
             {/* Right 1 Col: Recent Student Notes & Watchlist */}
             <div className="space-y-6">
               {/* Watchlist Panel */}
-              <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+              <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <ShieldWarning className="w-4 h-4 text-rose-600 dark:text-rose-400" />
@@ -475,7 +475,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
               </div>
 
               {/* Recent Notes Panel */}
-              <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+              <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Notepad className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -515,10 +515,10 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
               </div>
 
               {/* Quick Class Schedule Card */}
-              <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+              <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-orange-600 dark:text-cyan-400" />
+                    <Clock className="w-4 h-4 text-[var(--ds-accent)]" />
                     <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Jadwal Pelajaran Kelas</h3>
                   </div>
                 </div>
@@ -528,7 +528,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                 <button
                   type="button"
                   onClick={() => onNavigate('homeroom-class-schedule')}
-                  className="w-full py-2 px-3 rounded-xl bg-orange-50 dark:bg-cyan-950/40 hover:bg-orange-100 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 border border-orange-200 dark:border-cyan-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  className="w-full py-2 px-3 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] border border-[var(--ds-border)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <span>Buka Roster & Cetak Jadwal</span>
                   <ArrowRight className="w-3.5 h-3.5" />

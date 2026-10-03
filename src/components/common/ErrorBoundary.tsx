@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+﻿import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Warning, ArrowClockwise, House, CaretDown, CaretUp } from '@phosphor-icons/react';
 
 interface ErrorBoundaryProps {
@@ -78,20 +78,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return (
       <div
         className={`flex items-center justify-center p-4 select-none ${
-          isRoot ? 'min-h-screen bg-slate-50 dark:bg-[#0c0e15]' : 'min-h-[400px] w-full'
+          isRoot ? 'min-h-screen bg-[var(--ds-surface)]' : 'min-h-[400px] w-full'
         }`}
         role="alert"
       >
-        <div className="max-w-md w-full bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5 transition-all">
+        <div className="max-w-md w-full bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5 transition-all">
           <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
             <Warning className="w-7 h-7" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h2 className="text-lg font-bold text-[var(--ds-text)] tracking-tight">
               {fallbackTitle}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
               {fallbackMessage}
             </p>
           </div>
@@ -100,7 +100,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <button
               type="button"
               onClick={this.handleReset}
-              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-[var(--ds-accent)] hover:bg-[var(--ds-accent-hover)] text-[var(--ds-accent-fg)] text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
             >
               <ArrowClockwise className="w-3.5 h-3.5" />
               Coba Lagi
@@ -109,7 +109,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <button
               type="button"
               onClick={this.handleGoHome}
-              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <House className="w-3.5 h-3.5" />
               Ke Dashboard
@@ -117,21 +117,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           </div>
 
           {error && (
-            <div className="pt-2 text-left border-t border-slate-100 dark:border-[#232838]">
+            <div className="pt-2 text-left border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={this.toggleDetails}
-                className="w-full flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 font-medium py-1 transition-colors"
+                className="w-full flex items-center justify-between text-[11px] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] font-medium py-1 transition-colors"
               >
                 <span>Informasi Diagnostik Error</span>
                 {showDetails ? <CaretUp className="w-3.5 h-3.5" /> : <CaretDown className="w-3.5 h-3.5" />}
               </button>
 
               {showDetails && (
-                <div className="mt-2 p-3 rounded-xl bg-slate-900 text-slate-200 text-[10px] font-mono overflow-x-auto max-h-40 leading-relaxed">
+                <div className="mt-2 p-3 rounded-xl bg-[var(--ds-surface-muted)] text-[var(--ds-text)] border border-[var(--ds-border)] text-[10px] font-mono overflow-x-auto max-h-40 leading-relaxed">
                   <div className="font-bold text-rose-400">{error.name}: {error.message}</div>
                   {errorInfo?.componentStack && (
-                    <pre className="mt-1 text-slate-400 whitespace-pre-wrap">{errorInfo.componentStack}</pre>
+                    <pre className="mt-1 text-[var(--ds-text-muted)] whitespace-pre-wrap">{errorInfo.componentStack}</pre>
                   )}
                 </div>
               )}

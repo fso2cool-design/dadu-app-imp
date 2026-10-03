@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { CheckCircle, WarningCircle, Warning, Info, X } from '@phosphor-icons/react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -111,12 +111,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <div
                 className={`flex items-start gap-3 p-3.5 rounded-2xl shadow-xl border backdrop-blur-md transition-all ${
                   t.type === 'success'
-                    ? 'bg-slate-900/95 dark:bg-[#141722]/95 border-emerald-500/40 text-slate-100 shadow-emerald-950/20'
+                    ? 'bg-[var(--ds-surface-elevated)] border-emerald-500/40 text-[var(--ds-text)] shadow-emerald-950/10'
                     : t.type === 'error'
-                    ? 'bg-slate-900/95 dark:bg-[#141722]/95 border-rose-500/50 text-slate-100 shadow-rose-950/20'
+                    ? 'bg-[var(--ds-surface-elevated)] border-rose-500/50 text-[var(--ds-text)] shadow-rose-950/10'
                     : t.type === 'warning'
-                    ? 'bg-slate-900/95 dark:bg-[#141722]/95 border-amber-500/50 text-slate-100 shadow-amber-950/20'
-                    : 'bg-slate-900/95 dark:bg-[#141722]/95 border-sky-500/40 text-slate-100 shadow-sky-950/20'
+                    ? 'bg-[var(--ds-surface-elevated)] border-amber-500/50 text-[var(--ds-text)] shadow-amber-950/10'
+                    : 'bg-[var(--ds-surface-elevated)] border-sky-500/40 text-[var(--ds-text)] shadow-sky-950/10'
                 }`}
               >
                 {/* Icon */}
@@ -130,11 +130,11 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 {/* Content */}
                 <div className="flex-1 min-w-0 pr-1">
                   {t.title && (
-                    <h5 className="font-bold text-xs tracking-tight text-white mb-0.5">
+                    <h5 className="font-bold text-xs tracking-tight text-[var(--ds-text)] mb-0.5">
                       {t.title}
                     </h5>
                   )}
-                  <p className="text-xs text-slate-300 dark:text-zinc-300 leading-relaxed break-words font-medium">
+                  <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed break-words font-medium">
                     {t.message}
                   </p>
                 </div>
@@ -143,7 +143,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 <button
                   type="button"
                   onClick={() => dismiss(t.id)}
-                  className="shrink-0 p-1 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                  className="shrink-0 p-1 text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] rounded-lg hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                   aria-label="Tutup notifikasi"
                 >
                   <X className="w-3.5 h-3.5" />

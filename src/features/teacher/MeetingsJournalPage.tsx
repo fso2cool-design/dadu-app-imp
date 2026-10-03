@@ -223,7 +223,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       )}
 
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-6 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--ds-surface-elevated)] p-6 rounded-2xl border border-[var(--ds-border)] shadow-xs transition-colors">
         <div>
           <div className="flex items-center gap-2.5">
             <span className="p-2.5 rounded-xl bg-accent-primary-soft text-accent-text border border-accent-primary-border">
@@ -243,7 +243,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             id="btn-export-journal-excel"
             onClick={handleExportExcel}
             disabled={filteredMeetings.length === 0}
-            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#0c0e15] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
           >
             <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Export Excel (.xlsx)
@@ -267,7 +267,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
       {/* Snapshot KPI Digest */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-2xs flex items-center justify-between">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
               {currentAssignment ? `Kelas ${currentAssignment.className}` : 'Semua Rombel'}
@@ -276,12 +276,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               {aggregateStats.completedMeetings} <span className="text-xs font-normal text-slate-400">Pertemuan Terlaksana</span>
             </div>
           </div>
-          <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-cyan-950/50 border border-orange-100 dark:border-cyan-500/30 text-orange-600 dark:text-cyan-400 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-accent)] flex items-center justify-center font-bold">
             <BookOpen className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-2xs flex items-center justify-between">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
               Rata-rata Presensi
@@ -295,7 +295,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
           </div>
         </div>
 
-        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-2xs flex items-center justify-between">
+        <div className="col-span-2 sm:col-span-1 bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
               Mata Pelajaran
@@ -313,7 +313,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                     setSelectedAssignment(currentAssignment);
                     onNavigate?.('attendance-subject', { assignmentId: currentAssignment.id });
                   }}
-                  className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-semibold transition-all cursor-pointer"
+                  className="px-2 py-1.5 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] text-[11px] font-semibold transition-all cursor-pointer"
                   title="Buka Presensi Rombel Ini"
                 >
                   Presensi
@@ -336,7 +336,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       </div>
 
       {/* Funnel and MagnifyingGlass Bar */}
-      <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between transition-colors">
+      <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between transition-colors">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Assignment Selector */}
           <div className="w-full sm:w-64">
@@ -350,7 +350,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                 const found = teachingAssignments.find(ta => ta.id === val);
                 if (found) setSelectedAssignment(found);
               }}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               <option value="">Semua Rombel & Mapel ({teachingAssignments.length})</option>
               {teachingAssignments.map(ta => (
@@ -368,7 +368,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               id="select-status-journal"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-[#0c0e15] focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               <option value="ALL">Semua Status</option>
               <option value="COMPLETED">Terlaksana</option>
@@ -388,7 +388,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Cari materi pokok / topik..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-200 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-[var(--ds-focus)]"
           />
         </div>
       </div>
@@ -397,7 +397,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       {loading ? (
         <SkeletonMeetingList count={3} />
       ) : filteredMeetings.length === 0 ? (
-        <div className="bg-white dark:bg-[#141722] p-12 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-12 text-center rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <CalendarCheck className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Agenda Pertemuan</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
@@ -424,7 +424,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
             return (
               <div
                 key={meeting.id}
-                className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs hover:border-accent-primary-border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
+                className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs hover:border-[var(--ds-accent)] transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group"
               >
                 {/* Left: Meeting Info */}
                 <div className="space-y-1.5 max-w-2xl">
@@ -437,7 +437,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         {meeting.activityCategory || 'Kegiatan Madrasah'}
                       </span>
                     )}
-                    <span className="font-bold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#0c0e15] border border-slate-200/60 dark:border-[#232838] px-2 py-0.5 rounded-md">
+                    <span className="font-bold text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded-md">
                       Kelas {meeting.className} • {meeting.subjectName}
                     </span>
                     <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
@@ -471,11 +471,11 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                 </div>
 
                 {/* Right: Attendance Summary & Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#232838]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-[var(--ds-border)]">
                   {/* Attendance badge */}
                   <div className={`px-3 py-2 rounded-xl border text-right min-w-[140px] ${
                     hasAttendance 
-                      ? 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200/80 dark:border-[#232838]' 
+                      ? 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)]' 
                       : meeting.meetingType === 'MADRASAH_ACTIVITY'
                       ? 'bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/20'
                       : 'bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/30'
@@ -489,7 +489,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                           {att!.dispensation ? <span className="text-violet-600 dark:text-violet-400">• {att!.dispensation} D</span> : null}
                           {att!.absent > 0 && <span className="text-rose-600 dark:text-rose-400">• {att!.absent} A</span>}
                         </div>
-                        <div className="text-[10px] text-orange-600 dark:text-cyan-400 font-semibold mt-0.5">
+                        <div className="text-[10px] text-[var(--ds-accent)] font-semibold mt-0.5">
                           {att!.presentPercentage}% Kehadiran
                         </div>
                       </div>
@@ -513,7 +513,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         setMeetingForAttendance(meeting);
                         setIsAttendanceModalOpen(true);
                       }}
-                      className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                      className="px-3 py-2 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] border border-[var(--ds-border)] text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
                       title={isArchivedYear ? 'Lihat Rekap Presensi (Read-Only)' : 'Input / Pencil Presensi'}
                     >
                       <CheckSquare className="w-3.5 h-3.5" />
@@ -526,7 +526,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                         setMeetingToEdit(meeting);
                         setIsFormModalOpen(true);
                       }}
-                      className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="p-2 rounded-xl hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       title={isArchivedYear ? 'Arsip historis terkunci (read-only)' : 'Pencil Jurnal Pertemuan'}
                     >
                       <Pencil className="w-4 h-4" />
@@ -551,7 +551,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
       {/* Delete Confirmation Modal */}
       {meetingToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-[#141722] rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-100 dark:border-[#232838] space-y-4">
+          <div className="bg-[var(--ds-surface-elevated)] rounded-2xl max-w-md w-full p-6 shadow-xl border border-[var(--ds-border)] space-y-4">
             <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
               <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-100 dark:border-rose-500/30">
                 <Trash className="w-5 h-5" />
@@ -584,7 +584,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               <button
                 type="button"
                 onClick={() => setMeetingToDelete(null)}
-                className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-xs font-medium cursor-pointer"
+                className="px-4 py-2 rounded-xl text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] text-xs font-medium cursor-pointer"
               >
                 Batal
               </button>

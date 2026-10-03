@@ -14,6 +14,7 @@ import { AuthProvider } from '../features/auth/AuthContext';
 import { DESIGN_SYSTEMS } from '../types';
 import type { ApplicationOperations } from '../application/types';
 import type { DesignSystemKey, DesignSystemMode } from '../types';
+import { buildPreviewVars } from '../features/settings/tabs/showcaseTokens';
 
 vi.mock('firebase/auth', () => ({
   onAuthStateChanged: vi.fn((_auth, callback) => {
@@ -266,6 +267,26 @@ describe('DesignSystemContext & Theme Architecture', () => {
         );
       }).toThrow('useDesignSystem must be used within a DesignSystemProvider');
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Showcase CSS Variables Parity', () => {
+    combinations.forEach(({ system, mode }) => {
+      it(`injects variables into root matching buildPreviewVars for ${system}/${mode}`, () => {
+        renderProviders();
+
+        act(() => {
+          contextValue.setSystem(system);
+          contextValue.setMode(mode);
+        });
+
+        const root = document.documentElement;
+        const expectedVars = buildPreviewVars(system, mode);
+
+        for (const [key, value] of Object.entries(expectedVars)) {
+          expect(root.style.getPropertyValue(key), key).toBe(value);
+        }
+      });
     });
   });
 });

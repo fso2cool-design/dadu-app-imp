@@ -393,7 +393,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsHolidayModalOpen(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-[#0c0e15] hover:bg-slate-100 dark:hover:bg-[#1b1f2e] rounded-lg border border-slate-300 dark:border-[#232838] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-border)] transition-colors cursor-pointer"
             title="Atur Sistem 5/6 Hari Belajar & Tanggal Libur Madrasah"
           >
             <CalendarBlank className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
@@ -415,7 +415,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
       </div>
 
       {!currentClass ? (
-        <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-8 sm:p-12 rounded-3xl border border-[var(--ds-border)] text-center shadow-xs">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
             <UserMinus className="w-8 h-8" />
           </div>
@@ -522,10 +522,10 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
 
                   return (
                     <tr key={enr.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group">
-                      <td className="py-2 px-2 text-center font-medium text-slate-500 sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#0c0e15] dark:group-hover:bg-[#141722] border-r border-slate-200 dark:border-slate-800">
+                      <td className="py-2 px-2 text-center font-medium text-slate-500 sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] border-r border-[var(--ds-border)]">
                         {enr.rollNumber}
                       </td>
-                      <td className="py-2 px-3 font-semibold text-slate-900 dark:text-slate-100 sticky left-8 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#0c0e15] dark:group-hover:bg-[#141722] border-r border-slate-200 dark:border-slate-800 truncate max-w-[180px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]">
+                      <td className="py-2 px-3 font-semibold text-slate-900 dark:text-slate-100 sticky left-8 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] border-r border-[var(--ds-border)] truncate max-w-[180px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]">
                         {enr.student?.fullName || '-'}
                       </td>
                       <td className="py-2 px-1.5 text-center border-r border-slate-200">

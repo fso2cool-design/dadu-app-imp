@@ -456,9 +456,9 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
       {/* ========================================================= */}
       <div className="print:hidden space-y-4">
         {/* Banner Title */}
-        <div className="bg-white dark:bg-[#141722] rounded-2xl p-5 border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-[var(--ds-surface-elevated)] rounded-2xl p-5 border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center justify-center shadow-xs">
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
@@ -486,7 +486,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={handleReloadFromMaster}
-              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+              className="px-3 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-[var(--ds-accent-soft)] flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
               title="Muat ulang daftar guru dari Master Penugasan jika ada baris yang terhapus"
             >
               <ArrowClockwise className="w-3.5 h-3.5 text-slate-500" />
@@ -505,7 +505,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={handleExportExcel}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#1e2434] border border-slate-200 dark:border-[#2b334a] text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#283146] flex items-center gap-1.5 cursor-pointer transition-all"
+              className="px-3.5 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-[var(--ds-accent-soft)] flex items-center gap-1.5 cursor-pointer transition-all"
             >
               <FileCsv className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>Ekspor Excel</span>
@@ -523,7 +523,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white dark:bg-[#141722] rounded-2xl p-4 border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] rounded-2xl p-4 border border-[var(--ds-border)] shadow-xs">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 text-xs">
             {/* Pilih Kelas */}
             <div>
@@ -533,7 +533,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] font-semibold focus:outline-none"
               >
                 {(classes || []).map((c) => (
                   <option key={c.id} value={c.id}>
@@ -548,7 +548,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">
                 Tahun Ajaran
               </label>
-              <div className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-100/70 dark:bg-[#181d2a]/70 text-slate-700 dark:text-slate-300 font-semibold">
+              <div className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-slate-700 dark:text-slate-300 font-semibold">
                 {activeAcademicYear?.label || '2026/2027'}
               </div>
             </div>
@@ -561,7 +561,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value as SemesterType)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] font-semibold focus:outline-none"
               >
                 <option value="GANJIL">Ganjil</option>
                 <option value="GENAP">Genap</option>
@@ -576,7 +576,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/50 dark:bg-orange-950/20 text-orange-900 dark:text-orange-200 font-bold focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] font-bold focus:outline-none"
               >
                 {MONTH_NAMES.map((m, idx) => (
                   <option key={idx} value={idx + 1}>
@@ -595,7 +595,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                 type="number"
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value) || now.getFullYear())}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 font-semibold focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] font-semibold focus:outline-none"
               />
             </div>
           </div>
@@ -603,7 +603,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
         {/* 2. STATS OVERVIEW CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Total Guru Mapel</span>
               <Users className="w-4 h-4 text-blue-500" />
@@ -613,7 +613,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Target Pertemuan</span>
               <CalendarDots className="w-4 h-4 text-violet-500" />
@@ -623,7 +623,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ketercapaian Kelas</span>
               <Percent className="w-4 h-4 text-emerald-500" />
@@ -638,7 +638,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+          <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase text-slate-500 tracking-wider">Ada Ketidakhadiran</span>
               <WarningCircle className="w-4 h-4 text-amber-500" />
@@ -653,9 +653,9 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
         </div>
 
         {/* 3. FLOATING / TOP SAVE STATUS BAR */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-orange-50/70 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/40">
-          <div className="flex items-center gap-2 text-xs text-orange-900 dark:text-orange-200">
-            <BookOpen className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)]">
+          <div className="flex items-center gap-2 text-xs text-[var(--ds-text)]">
+            <BookOpen className="w-4 h-4 text-[var(--ds-accent)] shrink-0" />
             <span>
               <strong>Tips Wali Kelas:</strong> Buka buku fisik jurnal kelas. Cek total hadir guru di bulan{' '}
               <strong>{MONTH_NAMES[selectedMonth - 1]} {selectedYear}</strong>. Ketik angka kehadiran atau catatan izin/sakit langsung di tabel bawah ini.
@@ -672,7 +672,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-[var(--ds-accent)] hover:opacity-90 disabled:opacity-50 text-[var(--ds-accent-fg)] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <FloppyDisk className="w-4 h-4" />
               <span>{saving ? 'Menyimpan...' : 'Simpan Rekapitulasi Bulan Ini'}</span>
@@ -689,7 +689,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari nama guru atau mata pelajaran..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#141722] text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-xs text-[var(--ds-text)] placeholder-slate-400 focus:outline-none"
             />
           </div>
           <span className="text-xs text-slate-500">
@@ -701,10 +701,10 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
       {/* ========================================================= */}
       {/* 4. MAIN TABLE (Screen View)                               */}
       {/* ========================================================= */}
-      <div className="print:hidden bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
+      <div className="print:hidden bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mb-2"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--ds-accent)] mb-2"></div>
             <p className="text-xs">Memuat data rekapitulasi kehadiran guru kelas...</p>
           </div>
         ) : items.length === 0 ? (
@@ -719,7 +719,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 cursor-pointer inline-flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] text-xs font-bold hover:opacity-90 cursor-pointer inline-flex items-center gap-1.5"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Tambah Guru / Inval Manual</span>
@@ -729,7 +729,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-[#181d2a] border-b border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                <tr className="bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border)] text-slate-600 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider">
                   <th className="p-3 w-12 text-center">No</th>
                   <th className="p-3 min-w-[220px]">Mata Pelajaran & Guru Pengampu</th>
                   <th className="p-3 w-28 text-center" title="Target tatap muka atau jumlah pertemuan dalam bulan ini">
@@ -747,7 +747,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                   <th className="p-3 w-16 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-[#232838]">
+              <tbody className="divide-y divide-[var(--ds-border)]">
                 {filteredItems.map((item, idx) => {
                   const target = item.targetMeetings || 0;
                   const effectivePresent = (item.hadir || 0) + (item.dinas || 0);
@@ -758,7 +758,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-slate-50/70 dark:hover:bg-[#181d2a]/50 transition-colors ${
+                      className={`hover:bg-[var(--ds-accent-soft)]/50 transition-colors ${
                         item.isSubstitute
                           ? 'bg-violet-50/20 dark:bg-violet-950/10'
                           : item.isManual
@@ -777,7 +777,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                               {item.subjectName}
                             </span>
                             {item.subjectCode && (
-                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#1f2536] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-[#282e42]">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[var(--ds-surface-muted)] text-slate-600 dark:text-slate-400 border border-[var(--ds-border)]">
                                 {item.subjectCode}
                               </span>
                             )}
@@ -800,7 +800,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                               value={item.teacherName}
                               onChange={(e) => handleUpdateField(item.id, 'teacherName', e.target.value)}
                               placeholder="Ketik nama guru pengampu..."
-                              className="w-full px-2 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 hover:bg-white focus:bg-white dark:bg-[#181d2a] dark:hover:bg-[#1f2536] dark:focus:bg-[#181d2a] rounded-lg border border-slate-200 dark:border-[#282e42] focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-colors"
+                              className="w-full px-2 py-1 text-xs font-medium text-slate-900 dark:text-slate-100 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] focus:bg-[var(--ds-surface-elevated)] rounded-lg border border-[var(--ds-border)] focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-colors"
                               title="Klik untuk mengubah nama guru pengampu"
                             />
                           </div>
@@ -819,7 +819,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleUpdateField(item.id, 'targetMeetings', Math.max(1, target - 1))}
-                            className="w-5 h-5 rounded hover:bg-slate-200 dark:hover:bg-[#283146] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
+                            className="w-5 h-5 rounded hover:bg-[var(--ds-accent-soft)] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
                           >
                             -
                           </button>
@@ -829,12 +829,12 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             max="30"
                             value={target}
                             onChange={(e) => handleUpdateField(item.id, 'targetMeetings', e.target.value)}
-                            className="w-10 text-center font-bold py-1 rounded-md border border-slate-200 dark:border-[#2b334a] bg-white dark:bg-[#181d2a] text-slate-900 dark:text-slate-100 focus:outline-none"
+                            className="w-10 text-center font-bold py-1 rounded-md border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] focus:outline-none"
                           />
                           <button
                             type="button"
                             onClick={() => handleUpdateField(item.id, 'targetMeetings', target + 1)}
-                            className="w-5 h-5 rounded hover:bg-slate-200 dark:hover:bg-[#283146] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
+                            className="w-5 h-5 rounded hover:bg-[var(--ds-accent-soft)] text-slate-500 font-bold flex items-center justify-center cursor-pointer"
                           >
                             +
                           </button>
@@ -863,7 +863,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
                             item.sakit > 0
                               ? 'border-amber-400 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300'
-                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                              : 'border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-300'
                           }`}
                         />
                       </td>
@@ -878,7 +878,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
                             item.izin > 0
                               ? 'border-blue-400 dark:border-blue-700 bg-blue-50 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300'
-                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                              : 'border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-300'
                           }`}
                         />
                       </td>
@@ -893,7 +893,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
                             item.alpa > 0
                               ? 'border-rose-400 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-300'
-                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                              : 'border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-300'
                           }`}
                         />
                       </td>
@@ -908,7 +908,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                           className={`w-14 text-center font-bold py-1.5 rounded-lg border focus:outline-none ${
                             item.dinas > 0
                               ? 'border-violet-400 dark:border-violet-700 bg-violet-50 dark:bg-violet-950/30 text-violet-800 dark:text-violet-300'
-                              : 'border-slate-200 dark:border-[#282e42] bg-white dark:bg-[#181d2a] text-slate-700 dark:text-slate-300'
+                              : 'border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-slate-700 dark:text-slate-300'
                           }`}
                         />
                       </td>
@@ -936,10 +936,10 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             value={item.notes}
                             onChange={(e) => handleUpdateField(item.id, 'notes', e.target.value)}
                             placeholder="Catatan jurnal fisik (cth: Tgl 14 sakit, ada surat tugas/dokter)..."
-                            className={`w-full px-3 py-1.5 rounded-lg border text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-[#181d2a] focus:outline-none ${
+                            className={`w-full px-3 py-1.5 rounded-lg border text-xs text-slate-900 dark:text-slate-100 bg-[var(--ds-surface-elevated)] focus:outline-none ${
                               missingNotesPrompt
                                 ? 'border-amber-400 dark:border-amber-600 ring-1 ring-amber-400/40 bg-amber-50/20'
-                                : 'border-slate-200 dark:border-[#282e42]'
+                                : 'border-[var(--ds-border)]'
                             }`}
                           />
 
@@ -962,7 +962,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                                 key={preset}
                                 type="button"
                                 onClick={() => handleAppendNotePreset(item.id, preset)}
-                                className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#202738] hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-colors cursor-pointer"
+                                className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-colors cursor-pointer"
                               >
                                 + {preset}
                               </button>
@@ -978,7 +978,7 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
                             type="button"
                             onClick={() => handleResetRow(item.id)}
                             title="Reset baris ini ke Hadir Penuh"
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#283146] text-slate-400 hover:text-slate-600 cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-[var(--ds-accent-soft)] text-slate-400 hover:text-slate-600 cursor-pointer"
                           >
                             <ArrowCounterClockwise className="w-3.5 h-3.5" />
                           </button>

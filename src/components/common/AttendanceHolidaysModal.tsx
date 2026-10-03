@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { AttendanceSettings, CustomHoliday, SchoolDaysOption } from '../../types';
 import { useToast } from '../../context/ToastContext';
-import { CalendarBlank, Plus, Trash, CheckCircle, WarningCircle, CalendarDots, Clock, Sparkle, Check, FloppyDisk, Info } from '@phosphor-icons/react';
+import { CalendarBlank, Plus, Trash, CalendarDots, Clock, Check, FloppyDisk, Info, WarningCircle } from '@phosphor-icons/react';
 
 interface AttendanceHolidaysModalProps {
   isOpen: boolean;
@@ -131,23 +131,23 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
       onClose={onClose}
       title="Pengaturan Hari Belajar & Kalender Libur"
       subtitle="Atur hari efektif belajar mingguan (5 vs 6 hari) serta jadwal hari libur kustom madrasah"
-      icon={<CalendarBlank className="w-5 h-5 text-orange-500 dark:text-cyan-400" />}
+      icon={<CalendarBlank className="w-5 h-5 text-[var(--ds-accent)]" />}
       maxWidth="max-w-2xl"
     >
       <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
         {/* SECTION 1: 5-Day vs 6-Day School */}
-        <div className="bg-slate-50 dark:bg-[#0c0e15] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#232838] space-y-3">
+        <div className="bg-[var(--ds-surface-muted)] p-4 sm:p-5 rounded-2xl border border-[var(--ds-border)] space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-text)] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[var(--ds-accent)]" />
               Sistem Hari Belajar Mingguan
             </span>
-            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 font-bold border border-orange-200 dark:border-cyan-800">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] font-bold border border-[var(--ds-border)]">
               {schoolDaysOption === 6 ? '6 Hari Belajar' : '5 Hari Belajar'}
             </span>
           </div>
 
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[var(--ds-text-muted)]">
             Tentukan apakah madrasah memberlakukan 6 hari sekolah (Senin–Sabtu) atau 5 hari sekolah (Senin–Jumat).
           </p>
 
@@ -157,26 +157,26 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
               onClick={() => setSchoolDaysOption(6)}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
                 schoolDaysOption === 6
-                  ? 'border-accent-primary bg-white dark:bg-[#141722] shadow-sm'
-                  : 'border-slate-200 dark:border-[#232838] bg-white/60 dark:bg-[#141722]/50 hover:border-slate-300'
+                  ? 'border-[var(--ds-accent)] bg-[var(--ds-surface-elevated)] shadow-sm'
+                  : 'border-[var(--ds-border)] bg-[color-mix(in_srgb,var(--ds-surface-elevated)_60%,transparent)] hover:border-[var(--ds-accent)]'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-[var(--ds-text)] flex items-center gap-1.5">
                     6 Hari (Senin – Sabtu)
                   </span>
                   {schoolDaysOption === 6 && (
-                    <span className="w-5 h-5 rounded-full bg-accent-primary text-accent-primary-text flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] flex items-center justify-center">
                       <Check className="w-3.5 h-3.5" />
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-[var(--ds-text-muted)] leading-relaxed">
                   Hari Sabtu tetap dihitung sebagai <strong>hari belajar aktif</strong>. Hanya hari Minggu yang libur akhir pekan.
                 </p>
               </div>
-              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-[#232838]">
+              <div className="mt-2.5 pt-2 border-t border-[var(--ds-border)]">
                 <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
                   ★ Rekomendasi Standar Madrasah & Pesantren
                 </span>
@@ -188,27 +188,27 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
               onClick={() => setSchoolDaysOption(5)}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
                 schoolDaysOption === 5
-                  ? 'border-accent-primary bg-white dark:bg-[#141722] shadow-sm'
-                  : 'border-slate-200 dark:border-[#232838] bg-white/60 dark:bg-[#141722]/50 hover:border-slate-300'
+                  ? 'border-[var(--ds-accent)] bg-[var(--ds-surface-elevated)] shadow-sm'
+                  : 'border-[var(--ds-border)] bg-[color-mix(in_srgb,var(--ds-surface-elevated)_60%,transparent)] hover:border-[var(--ds-accent)]'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-[var(--ds-text)] flex items-center gap-1.5">
                     5 Hari (Senin – Jumat)
                   </span>
                   {schoolDaysOption === 5 && (
-                    <span className="w-5 h-5 rounded-full bg-accent-primary text-accent-primary-text flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] flex items-center justify-center">
                       <Check className="w-3.5 h-3.5" />
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-[var(--ds-text-muted)] leading-relaxed">
                   Hari <strong>Sabtu dan Minggu</strong> otomatis diperlakukan sebagai hari libur akhir pekan.
                 </p>
               </div>
-              <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-[#232838]">
-                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+              <div className="mt-2.5 pt-2 border-t border-[var(--ds-border)]">
+                <span className="text-[10px] font-semibold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded-md">
                   Sekolah Sistem Full Day (Senin-Jumat)
                 </span>
               </div>
@@ -219,20 +219,20 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
         {/* SECTION 2: Custom Holidays Manager */}
         <div className="space-y-4">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <CalendarDots className="w-4 h-4 text-accent-text" />
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--ds-text)] flex items-center gap-2">
+              <CalendarDots className="w-4 h-4 text-[var(--ds-accent)]" />
               Daftar Hari Libur Kustom Madrasah & Nasional
             </span>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
               Tambahkan tanggal libur khusus (seperti Hari Santri, Libur Awal Ramadhan, Hari Guru, atau kegiatan jeda semester).
             </p>
           </div>
 
           {/* Form to add custom holiday */}
-          <form onSubmit={handleAddHoliday} className="bg-slate-50 dark:bg-[#0c0e15] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] space-y-3">
+          <form onSubmit={handleAddHoliday} className="bg-[var(--ds-surface-muted)] p-4 rounded-2xl border border-[var(--ds-border)] space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Tambah Hari Libur Baru</span>
-              <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
+              <span className="text-xs font-bold text-[var(--ds-text)]">Tambah Hari Libur Baru</span>
+              <label className="flex items-center gap-1.5 text-xs text-[var(--ds-text-muted)] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isRange}
@@ -240,7 +240,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     setIsRange(e.target.checked);
                     if (!e.target.checked) setNewEndDate(newStartDate);
                   }}
-                  className="rounded-sm text-orange-500 dark:text-cyan-500 focus:ring-orange-500 cursor-pointer"
+                  className="rounded-sm accent-[var(--ds-accent)] cursor-pointer"
                 />
                 <span>Rentang beberapa hari</span>
               </label>
@@ -248,7 +248,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                <label className="block text-[11px] font-semibold text-[var(--ds-text-muted)] mb-1">
                   {isRange ? 'Tanggal Mulai Libur' : 'Tanggal Libur'}
                 </label>
                 <input
@@ -256,13 +256,13 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                   value={newStartDate}
                   onChange={(e) => handleStartDateChange(e.target.value)}
                   required
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 font-medium focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] font-medium focus:ring-2 focus:ring-[var(--ds-accent)]"
                 />
               </div>
 
               {isRange && (
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                  <label className="block text-[11px] font-semibold text-[var(--ds-text-muted)] mb-1">
                     Tanggal Selesai Libur
                   </label>
                   <input
@@ -271,14 +271,14 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     min={newStartDate}
                     onChange={(e) => setNewEndDate(e.target.value)}
                     required
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 font-medium focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] font-medium focus:ring-2 focus:ring-[var(--ds-accent)]"
                   />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
+              <label className="block text-[11px] font-semibold text-[var(--ds-text-muted)] mb-1">
                 Keterangan / Deskripsi Libur
               </label>
               <input
@@ -286,13 +286,13 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="Contoh: Hari Santri Nasional, Libur Awal Ramadhan 1448 H..."
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-accent-primary"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:ring-2 focus:ring-[var(--ds-accent)]"
               />
             </div>
 
             {/* Suggestions Chips */}
             <div>
-              <span className="block text-[10px] text-slate-400 dark:text-slate-500 mb-1.5">
+              <span className="block text-[10px] text-[var(--ds-text-muted)] mb-1.5">
                 Contoh Cepat (Klik untuk memilih):
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -301,7 +301,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                     key={preset}
                     type="button"
                     onClick={() => setNewDescription(preset)}
-                    className="text-[10px] px-2 py-1 rounded-lg bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] text-slate-700 dark:text-slate-300 hover:border-orange-400 dark:hover:border-cyan-400 hover:text-orange-600 dark:hover:text-cyan-400 transition-colors cursor-pointer"
+                    className="text-[10px] px-2 py-1 rounded-lg bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[var(--ds-text)] hover:border-[var(--ds-accent)] hover:text-[var(--ds-accent)] transition-colors cursor-pointer"
                   >
                     + {preset}
                   </button>
@@ -319,7 +319,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] text-xs font-bold rounded-xl flex items-center gap-1.5 transition-opacity cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Tambahkan ke Kalender</span>
@@ -329,7 +329,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
 
           {/* List of Custom Holidays */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+            <div className="flex items-center justify-between text-xs font-bold text-[var(--ds-text)]">
               <span>Daftar Hari Libur Terdaftar ({holidays.length})</span>
               {holidays.length > 0 && (
                 <button
@@ -343,10 +343,10 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
             </div>
 
             {holidays.length === 0 ? (
-              <div className="p-6 rounded-xl border border-dashed border-slate-200 dark:border-[#232838] text-center text-slate-400 text-xs bg-slate-50/50 dark:bg-[#0c0e15]/40">
-                <CalendarDots className="w-6 h-6 mx-auto mb-1.5 text-slate-300 dark:text-slate-600" />
+              <div className="p-6 rounded-xl border border-dashed border-[var(--ds-border)] text-center text-[var(--ds-text-muted)] text-xs bg-[var(--ds-surface-muted)]">
+                <CalendarDots className="w-6 h-6 mx-auto mb-1.5 text-[var(--ds-text-muted)]" />
                 <p>Belum ada hari libur kustom yang ditambahkan.</p>
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">
                   Tambahkan jadwal libur di atas untuk menandai tanggal non-efektif di modul presensi guru dan wali kelas.
                 </p>
               </div>
@@ -357,17 +357,17 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                   return (
                     <div
                       key={h.id}
-                      className="p-2.5 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] flex items-center justify-between gap-3 text-xs shadow-2xs"
+                      className="p-2.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] flex items-center justify-between gap-3 text-xs shadow-2xs"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/40 flex items-center justify-center shrink-0">
                           <CalendarBlank className="w-3.5 h-3.5" />
                         </span>
                         <div className="min-w-0">
-                          <p className="font-bold text-slate-800 dark:text-slate-200 truncate">
+                          <p className="font-bold text-[var(--ds-text)] truncate">
                             {h.description}
                           </p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          <p className="text-[10px] text-[var(--ds-text-muted)]">
                             {isSingleDay
                               ? formatDateIndo(h.startDate)
                               : `${formatDateIndo(h.startDate)} s.d. ${formatDateIndo(h.endDate)}`}
@@ -378,7 +378,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
                       <button
                         type="button"
                         onClick={() => handleRemoveHoliday(h.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
+                        className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
                         title="Hapus hari libur ini"
                       >
                         <Trash className="w-4 h-4" />
@@ -400,12 +400,12 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#232838]">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--ds-border)]">
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)] rounded-xl transition-colors cursor-pointer"
           >
             Batal
           </button>

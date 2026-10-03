@@ -145,13 +145,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const getArrowClasses = () => {
     switch (position) {
       case 'top':
-        return 'top-full left-1/2 -translate-x-1/2 -mt-1 border-t-slate-900 dark:border-t-[#141722] border-x-transparent border-b-transparent border-4';
+        return 'top-full left-1/2 -translate-x-1/2 -mt-1 border-t-[var(--ds-surface-elevated)] border-x-transparent border-b-transparent border-4';
       case 'bottom':
-        return 'bottom-full left-1/2 -translate-x-1/2 -mb-1 border-b-slate-900 dark:border-b-[#141722] border-x-transparent border-t-transparent border-4';
+        return 'bottom-full left-1/2 -translate-x-1/2 -mb-1 border-b-[var(--ds-surface-elevated)] border-x-transparent border-t-transparent border-4';
       case 'left':
-        return 'left-full top-1/2 -translate-y-1/2 -ml-1 border-l-slate-900 dark:border-l-[#141722] border-y-transparent border-r-transparent border-4';
+        return 'left-full top-1/2 -translate-y-1/2 -ml-1 border-l-[var(--ds-surface-elevated)] border-y-transparent border-r-transparent border-4';
       case 'right':
-        return 'right-full top-1/2 -translate-y-1/2 -mr-1 border-r-slate-900 dark:border-r-[#141722] border-y-transparent border-l-transparent border-4';
+        return 'right-full top-1/2 -translate-y-1/2 -mr-1 border-r-[var(--ds-surface-elevated)] border-y-transparent border-l-transparent border-4';
     }
   };
 
@@ -170,11 +170,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
               className={`fixed z-9999 pointer-events-none ${getTransformOrigin()} select-none animate-in fade-in zoom-in-95 duration-150`}
             >
               <div
-                className={`relative px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-slate-900/95 dark:bg-[#141722]/95 backdrop-blur-md shadow-xl border border-slate-700/70 dark:border-emerald-500/40 flex items-center gap-1.5 whitespace-nowrap ${className}`}
+                className={`relative px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--ds-text)] bg-[var(--ds-surface-elevated)] shadow-[var(--ds-elevation-md)] border border-[var(--ds-border)] flex items-center gap-1.5 whitespace-nowrap ${className}`}
               >
                 <span>{content}</span>
                 {shortcut && (
-                  <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-white/10 dark:bg-emerald-950/60 text-slate-300 dark:text-emerald-300 border border-white/10 dark:border-emerald-500/30">
+                  <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]">
                     {shortcut}
                   </kbd>
                 )}

@@ -57,6 +57,7 @@ export const ROUTE_PATH_MAP: Record<string, string> = {
   'settings-stats': '/settings/stats',
   'settings-preferences': '/settings/preferences',
   'settings-maintenance': '/settings/maintenance',
+  'settings-showcase': '/settings/showcase',
 
   // System & Administration
   admin: '/admin',
@@ -112,6 +113,7 @@ export function resolvePathToRouteKey(pathname: string): string {
   if (cleanPath === '/settings/stats') return 'settings-stats';
   if (cleanPath === '/settings/preferences') return 'settings-preferences';
   if (cleanPath === '/settings/maintenance') return 'settings-maintenance';
+  if (cleanPath === '/settings/showcase') return 'settings-showcase';
 
   // Standalone
   if (cleanPath === '/admin') return 'admin';

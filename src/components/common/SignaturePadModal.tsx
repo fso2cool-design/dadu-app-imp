@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { X, PenNib, ArrowCounterClockwise, Trash, Check, Upload, Image as ImageIcon, Sparkle, Info } from '@phosphor-icons/react';
+import { X, PenNib, ArrowCounterClockwise, Trash, Check, Upload, Info } from '@phosphor-icons/react';
 
 interface SignaturePadModalProps {
   isOpen: boolean;
@@ -14,14 +14,13 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  initialSignatureUrl,
   title = 'Tanda Tangan Digital',
   subtitle = 'Goreskan tanda tangan langsung atau unggah file gambar tanda tangan transparan',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
-  const [penColor, setPenColor] = useState('#0f172a'); // Black or blue
+  const [penColor, setPenColor] = useState('#0f172a'); // Physical ink color default
   const [penWidth, setPenWidth] = useState(3);
   const [activeTab, setActiveTab] = useState<'draw' | 'upload'>('draw');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -184,37 +183,37 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-[var(--ds-surface-elevated)] rounded-3xl border border-[var(--ds-border)] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 border-b border-[var(--ds-border)] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center justify-center">
               <PenNib className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-800">{title}</h3>
-              <p className="text-[11px] text-slate-400">{subtitle}</p>
+              <h3 className="font-bold text-sm text-[var(--ds-text)]">{title}</h3>
+              <p className="text-[11px] text-[var(--ds-text-muted)]">{subtitle}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-xl text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Selection */}
-        <div className="flex border-b border-slate-100 px-5 pt-3 gap-3 bg-slate-50/50">
+        <div className="flex border-b border-[var(--ds-border)] px-5 pt-3 gap-3 bg-[var(--ds-surface-muted)]">
           <button
             type="button"
             onClick={() => setActiveTab('draw')}
-            className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all ${
+            className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'draw'
-                ? 'border-emerald-600 text-emerald-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[var(--ds-accent)] text-[var(--ds-accent)]'
+                : 'border-transparent text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             <PenNib className="w-3.5 h-3.5" />
@@ -224,10 +223,10 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('upload')}
-            className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all ${
+            className={`pb-2.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'upload'
-                ? 'border-emerald-600 text-emerald-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'border-[var(--ds-accent)] text-[var(--ds-accent)]'
+                : 'border-transparent text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             <Upload className="w-3.5 h-3.5" />
@@ -241,9 +240,9 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
             <div className="space-y-3">
               {/* Canvas Controls */}
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                {/* Pen Colors */}
+                {/* Pen Colors (Physical Ink Palette Scope Locked) */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-slate-500 font-medium mr-1">Warna Tinta:</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] font-medium mr-1">Warna Tinta:</span>
                   {[
                     { color: '#0f172a', label: 'Hitam' },
                     { color: '#1e3a8a', label: 'Biru Tua' },
@@ -254,8 +253,8 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                       type="button"
                       onClick={() => setPenColor(c.color)}
                       style={{ backgroundColor: c.color }}
-                      className={`w-6 h-6 rounded-full border-2 transition-transform ${
-                        penColor === c.color ? 'scale-110 border-emerald-500 shadow-xs' : 'border-white'
+                      className={`w-6 h-6 rounded-full border-2 transition-transform cursor-pointer ${
+                        penColor === c.color ? 'scale-110 border-[var(--ds-accent)] shadow-xs' : 'border-transparent'
                       }`}
                       title={c.label}
                     />
@@ -264,16 +263,16 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
                 {/* Pen Width */}
                 <div className="flex items-center gap-1">
-                  <span className="text-[11px] text-slate-500 font-medium mr-1">Tebal:</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] font-medium mr-1">Tebal:</span>
                   {[2, 3, 4].map(w => (
                     <button
                       key={w}
                       type="button"
                       onClick={() => setPenWidth(w)}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-colors cursor-pointer ${
                         penWidth === w 
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-700' 
-                          : 'bg-white border-slate-200 text-slate-600'
+                          ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-accent)]' 
+                          : 'bg-[var(--ds-surface-elevated)] border-[var(--ds-border)] text-[var(--ds-text)]'
                       }`}
                     >
                       {w === 2 ? 'Halus' : w === 3 ? 'Sedang' : 'Tebal'}
@@ -287,7 +286,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                     type="button"
                     onClick={undoLastStroke}
                     disabled={history.length === 0}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 cursor-pointer"
+                    className="p-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)] disabled:opacity-30 cursor-pointer transition-colors"
                     title="Undo goresan"
                   >
                     <ArrowCounterClockwise className="w-3.5 h-3.5" />
@@ -295,7 +294,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                   <button
                     type="button"
                     onClick={clearCanvas}
-                    className="p-1.5 rounded-lg border border-slate-200 text-rose-600 hover:bg-rose-50 cursor-pointer"
+                    className="p-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
                     title="Hapus semua"
                   >
                     <Trash className="w-3.5 h-3.5" />
@@ -303,8 +302,8 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                 </div>
               </div>
 
-              {/* Drawing Pad Canvas Area */}
-              <div className="relative border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50/50 overflow-hidden touch-none h-48 flex items-center justify-center cursor-crosshair">
+              {/* Drawing Pad Canvas Area (Scope Locked) */}
+              <div className="relative border-2 border-dashed border-[var(--ds-border)] rounded-2xl bg-white overflow-hidden touch-none h-48 flex items-center justify-center cursor-crosshair">
                 <canvas
                   ref={canvasRef}
                   onMouseDown={startDrawing}
@@ -318,22 +317,22 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                 />
 
                 {!hasDrawn && (
-                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-400 text-xs">
-                    <PenNib className="w-6 h-6 mb-1 text-slate-300 animate-pulse" />
+                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-neutral-400 text-xs">
+                    <PenNib className="w-6 h-6 mb-1 text-neutral-300 animate-pulse" />
                     <span>Goreskan tanda tangan Anda di area ini</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">(Gunakan mouse, trackpad, atau layar sentuh)</span>
+                    <span className="text-[10px] text-neutral-400 mt-0.5">(Gunakan mouse, trackpad, atau layar sentuh)</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                <Info className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--ds-text-muted)]">
+                <Info className="w-3.5 h-3.5 text-[var(--ds-accent)] shrink-0" />
                 <span>Tanda tangan disimpan dengan latar belakang transparan beresolusi tinggi.</span>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="border-2 border-dashed border-[var(--ds-border)] rounded-2xl p-6 text-center bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] transition-colors">
                 <input
                   type="file"
                   id="signature-file-upload"
@@ -345,33 +344,33 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
                   htmlFor="signature-file-upload"
                   className="cursor-pointer flex flex-col items-center justify-center space-y-2"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center justify-center">
                     <Upload className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-emerald-600">Klik untuk memilih file gambar</span>
-                    <p className="text-[11px] text-slate-400 mt-0.5">PNG, JPG atau WebP (Disarankan PNG transparan)</p>
+                    <span className="text-xs font-bold text-[var(--ds-accent)]">Klik untuk memilih file gambar</span>
+                    <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">PNG, JPG atau WebP (Disarankan PNG transparan)</p>
                   </div>
                 </label>
               </div>
 
               {uploadedImage && (
-                <div className="p-3 bg-white border border-slate-200 rounded-2xl flex items-center justify-between">
+                <div className="p-3 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <img
                       src={uploadedImage}
                       alt="Uploaded Preview"
-                      className="w-16 h-12 object-contain bg-slate-100 rounded-lg border border-slate-200"
+                      className="w-16 h-12 object-contain bg-[var(--ds-surface-muted)] rounded-lg border border-[var(--ds-border)]"
                     />
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block">Pratinjau Gambar</span>
-                      <span className="text-[10px] text-emerald-600 font-semibold">Siap digunakan</span>
+                      <span className="text-xs font-bold text-[var(--ds-text)] block">Pratinjau Gambar</span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Siap digunakan</span>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setUploadedImage(null)}
-                    className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs"
+                    className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg text-xs cursor-pointer transition-colors"
                   >
                     Hapus
                   </button>
@@ -382,11 +381,11 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="p-4 border-t border-[var(--ds-border)] flex items-center justify-between bg-[var(--ds-surface-muted)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-100 transition-colors"
+            className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text-muted)] text-xs font-semibold hover:bg-[var(--ds-surface-elevated)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
           >
             Batal
           </button>

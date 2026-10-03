@@ -437,21 +437,21 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     >
       <div className="space-y-6">
         {/* PRINT CONFIGURATION TOOLBAR (NO PRINT) */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 no-print text-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] space-y-4 no-print text-xs">
           {/* Header & Orientation */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--ds-border)]">
             <div className="flex items-center gap-2">
-              <GearFine className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Pengaturan Format & Kustomisasi Kolom</span>
+              <GearFine className="w-4 h-4 text-[var(--ds-accent)]" />
+              <span className="font-bold text-[var(--ds-text)] text-sm">Pengaturan Format & Kustomisasi Kolom</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Orientasi Kertas:</span>
-              <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-0.5">
+              <span className="text-[var(--ds-text-muted)] font-medium">Orientasi Kertas:</span>
+              <div className="inline-flex rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] p-0.5">
                 <button
                   type="button"
                   onClick={() => setOrientation('portrait')}
                   className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition ${
-                    orientation === 'portrait' ? 'btn-primary text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                    orientation === 'portrait' ? 'btn-primary shadow-xs' :  'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                   }`}
                 >
                   Portrait (Tegak)
@@ -460,7 +460,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   type="button"
                   onClick={() => setOrientation('landscape')}
                   className={`px-2.5 py-1 rounded-md text-xs font-semibold cursor-pointer transition ${
-                    orientation === 'landscape' ? 'btn-primary text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                    orientation === 'landscape' ? 'btn-primary shadow-xs' :  'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                   }`}
                 >
                   Landscape (Melebar)
@@ -473,7 +473,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                <span className="text-[var(--ds-text)] font-semibold flex items-center gap-1.5 text-xs">
                   <Sparkle className="w-3.5 h-3.5 text-amber-500" />
                   Template Cepat (Preset Awal):
                 </span>
@@ -488,7 +488,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   </span>
                 )}
                 {!appliedPreset && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]">
                     Kustom / Bebas
                   </span>
                 )}
@@ -497,14 +497,14 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 <button
                   type="button"
                   onClick={() => applyPreset('all')}
-                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer transition"
+                  className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-[11px] font-medium cursor-pointer transition"
                 >
                   Centang Semua
                 </button>
                 <button
                   type="button"
                   onClick={() => applyPreset('none')}
-                  className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-[11px] font-medium cursor-pointer transition"
+                  className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-[11px] font-medium cursor-pointer transition"
                 >
                   Kosongkan Semua
                 </button>
@@ -525,13 +525,13 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                       isExact
                         ? 'btn-primary text-white shadow-xs border border-transparent'
                         : isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-cyan-300 border border-indigo-300 dark:border-indigo-700'
-                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200'
+                        ? 'bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-accent)]'
+                        : 'bg-[var(--ds-surface)] border border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)]'
                     }`}
                   >
                     <span>{PRESET_LABELS[key]}</span>
                     {isExact && (
-                      <span className="text-[9px] bg-white/20 px-1.5 py-0.2 rounded-full font-bold">
+                      <span className="text-[9px] bg-[color-mix(in_srgb,currentColor_20%,transparent)] px-1.5 py-0.2 rounded-full font-bold">
                         Preset
                       </span>
                     )}
@@ -544,21 +544,21 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                 );
               })}
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-[var(--ds-text-muted)]">
               💡 Template berfungsi sebagai preset cepat. Setelah template dipilih, Anda bebas mencentang atau menghapus centang setiap kolom secara mandiri.
             </p>
           </div>
 
           {/* Column Toggles Grid */}
-          <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div className="space-y-2 pt-2 border-t border-[var(--ds-border)]">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[var(--ds-text)] uppercase tracking-wider">
                 Centang Kolom Yang Ingin Ditampilkan ({activeColumns.length} dipilih):
               </span>
               <button
                 type="button"
                 onClick={() => setShowAddCustom(!showAddCustom)}
-                className="px-2.5 py-1 rounded-lg btn-primary hover:opacity-90 text-white font-semibold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                className="px-2.5 py-1 rounded-lg btn-primary hover:opacity-90 font-semibold text-[11px] flex items-center gap-1 cursor-pointer transition shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Tambah Kolom Manual</span>
@@ -576,14 +576,14 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                     onClick={() => toggleColumn(col.key)}
                     className={`flex items-center gap-2 p-2 rounded-xl border text-left cursor-pointer select-none transition ${
                       isChecked
-                        ? 'bg-indigo-50/80 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700 text-indigo-950 dark:text-cyan-200 font-medium'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-750'
+                        ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-text)] font-medium'
+                        : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)]'
                     }`}
                   >
                     {isChecked ? (
-                      <CheckSquare className="w-4 h-4 text-indigo-600 dark:text-cyan-400 shrink-0" />
+                      <CheckSquare className="w-4 h-4 text-[var(--ds-accent)] shrink-0" />
                     ) : (
-                      <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                      <Square className="w-4 h-4 text-[var(--ds-text-muted)] shrink-0" />
                     )}
                     <span className="truncate text-xs">{col.label}</span>
                   </button>
@@ -594,7 +594,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             {/* Custom User-Defined Columns (if any) */}
             {customColumns.length > 0 && (
               <div className="pt-2">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+                <span className="text-[10px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block mb-1.5">
                   Kolom Tambahan Manual Anda:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -606,7 +606,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                         className={`flex items-center justify-between p-2 rounded-xl border transition ${
                           isChecked
                             ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 font-medium'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                            : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
                         }`}
                       >
                         <button 
@@ -617,11 +617,11 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                           {isChecked ? (
                             <CheckSquare className="w-4 h-4 text-amber-600 shrink-0" />
                           ) : (
-                            <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                            <Square className="w-4 h-4 text-[var(--ds-text-muted)] shrink-0" />
                           )}
                           <div className="truncate">
                             <span className="truncate block font-semibold text-xs">{col.label}</span>
-                            <span className="text-[10px] text-slate-400 block">
+                            <span className="text-[10px] text-[var(--ds-text-muted)] block">
                               {col.contentType === 'dots' ? 'Garis Titik-titik' : col.contentType === 'text' ? `Teks: "${col.customText || '-'}"` : 'Kolom Kosong'}
                             </span>
                           </div>
@@ -629,7 +629,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                         <button
                           type="button"
                           onClick={() => handleDeleteCustomColumn(col.id)}
-                          className="p-1 text-slate-400 hover:text-rose-600 transition cursor-pointer shrink-0"
+                          className="p-1 text-[var(--ds-text-muted)] hover:text-rose-600 transition cursor-pointer shrink-0"
                           title="Hapus Kolom Kustom"
                         >
                           <Trash className="w-3.5 h-3.5" />
@@ -643,36 +643,36 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
 
             {/* Add Custom Column Drawer/Card */}
             {showAddCustom && (
-              <div className="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 mt-2 space-y-3">
+              <div className="p-3.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-accent)] mt-2 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                  <span className="font-bold text-[var(--ds-text)] text-xs">
                     Tambah Kolom Manual Baru
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowAddCustom(false)}
-                    className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Nama Header Kolom *</label>
+                    <label className="block text-[10px] font-semibold text-[var(--ds-text)] mb-0.5">Nama Header Kolom *</label>
                     <input
                       type="text"
                       placeholder="Contoh: Ukuran Seragam / Status PIP"
                       value={newColTitle}
                       onChange={e => setNewColTitle(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Jenis Isian Kolom</label>
+                    <label className="block text-[10px] font-semibold text-[var(--ds-text)] mb-0.5">Jenis Isian Kolom</label>
                     <select
                       value={newColType}
                       onChange={e => setNewColType(e.target.value as any)}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs"
                     >
                       <option value="empty">Kolom Kosong (Tulis Tangan)</option>
                       <option value="dots">Garis Titik-Titik (............)</option>
@@ -682,24 +682,24 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   <div>
                     {newColType === 'text' ? (
                       <>
-                        <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Teks Isian Default</label>
+                        <label className="block text-[10px] font-semibold text-[var(--ds-text)] mb-0.5">Teks Isian Default</label>
                         <input
                           type="text"
                           placeholder="Misal: Sudah / Belum"
                           value={newColText}
                           onChange={e => setNewColText(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs"
                         />
                       </>
                     ) : (
                       <>
-                        <label className="block text-[10px] font-semibold text-slate-700 dark:text-slate-300 mb-0.5">Perkiraan Lebar Kolom</label>
+                        <label className="block text-[10px] font-semibold text-[var(--ds-text)] mb-0.5">Perkiraan Lebar Kolom</label>
                         <input
                           type="text"
                           placeholder="Contoh: 90px atau 120px"
                           value={newColWidth}
                           onChange={e => setNewColWidth(e.target.value)}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs"
                         />
                       </>
                     )}
@@ -709,7 +709,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                   <button
                     type="button"
                     onClick={() => setShowAddCustom(false)}
-                    className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                    className="px-3 py-1 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold cursor-pointer"
                   >
                     Batal
                   </button>
@@ -717,7 +717,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                     type="button"
                     onClick={() => handleAddCustomColumn()}
                     disabled={!newColTitle.trim()}
-                    className="px-3 py-1 rounded-lg btn-primary hover:opacity-90 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer"
+                    className="px-3 py-1 rounded-lg btn-primary hover:opacity-90 disabled:opacity-50 text-xs font-semibold cursor-pointer"
                   >
                     Simpan & Pasang Kolom
                   </button>
@@ -727,33 +727,33 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           </div>
 
           {/* Reorder Columns Section */}
-          <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="space-y-2 pt-3 border-t border-[var(--ds-border)]">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />
+              <span className="text-[11px] font-bold text-[var(--ds-text)] uppercase tracking-wider flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
                 Urutan Kolom Cetak ({activeColumns.length} Kolom Terpilih - Geser Posisi):
               </span>
               <button
                 type="button"
                 onClick={resetOrderToDefault}
-                className="text-[11px] text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                className="text-[11px] text-[var(--ds-accent)] hover:underline flex items-center gap-1 cursor-pointer font-medium"
               >
                 <ArrowCounterClockwise className="w-3 h-3" />
                 Reset Urutan Bawaan
               </button>
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] text-[var(--ds-text-muted)]">
               Gunakan tombol panah (◀ / ▶) pada kolom di bawah ini untuk mengatur urutan posisi tabel dari kiri ke kanan:
             </p>
 
-            <div className="flex flex-wrap gap-1.5 p-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 p-2 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border)] max-h-40 overflow-y-auto">
               {activeColumns.map((col, idx) => (
                 <div
                   key={col.id}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-lg text-xs font-medium text-[var(--ds-text)] shadow-2xs"
                 >
-                  <span className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 text-[10px] font-bold flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-[var(--ds-surface)] text-[var(--ds-text-muted)] text-[10px] font-bold flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
                   <span className="font-semibold">{col.label}</span>
@@ -767,7 +767,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                       type="button"
                       onClick={() => moveColumn(col.id, 'prev')}
                       disabled={idx === 0}
-                      className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-25 cursor-pointer text-slate-600 dark:text-slate-300"
+                      className="p-1 rounded hover:bg-[var(--ds-surface-muted)] disabled:opacity-25 cursor-pointer text-[var(--ds-text-muted)]"
                       title="Geser ke kiri / sebelumnya"
                     >
                       <ArrowLeft className="w-3 h-3" />
@@ -776,7 +776,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
                       type="button"
                       onClick={() => moveColumn(col.id, 'next')}
                       disabled={idx === activeColumns.length - 1}
-                      className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-25 cursor-pointer text-slate-600 dark:text-slate-300"
+                      className="p-1 rounded hover:bg-[var(--ds-surface-muted)] disabled:opacity-25 cursor-pointer text-[var(--ds-text-muted)]"
                       title="Geser ke kanan / setelahnya"
                     >
                       <ArrowRight className="w-3 h-3" />
@@ -788,42 +788,42 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           </div>
 
           {/* Extra options */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[var(--ds-border)]">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul Dokumen</label>
+              <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">Judul Dokumen</label>
               <input
                 type="text"
                 value={docTitle}
                 onChange={e => setDocTitle(e.target.value)}
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-text)]"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">Subjudul / Keterangan Tambahan</label>
+              <label className="block text-[11px] font-semibold text-[var(--ds-text)] mb-1">Subjudul / Keterangan Tambahan</label>
               <input
                 type="text"
                 value={docSubtitle}
                 onChange={e => setDocSubtitle(e.target.value)}
                 placeholder="Contoh: Semester Ganjil - Tahun Ajaran 2026/2027"
-                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200"
+                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs text-[var(--ds-text)]"
               />
             </div>
             <div className="flex items-center gap-4 sm:pt-5">
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[var(--ds-text)] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showKop}
                   onChange={e => setShowKop(e.target.checked)}
-                  className="rounded border-slate-300 text-indigo-600"
+                  className="rounded border-[var(--ds-border)] text-[var(--ds-accent)] focus:ring-[var(--ds-accent)]"
                 />
                 <span>Kop Madrasah</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[var(--ds-text)] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showSignatures}
                   onChange={e => setShowSignatures(e.target.checked)}
-                  className="rounded border-slate-300 text-indigo-600"
+                  className="rounded border-[var(--ds-border)] text-[var(--ds-accent)] focus:ring-[var(--ds-accent)]"
                 />
                 <span>Tanda Tangan</span>
               </label>
@@ -845,22 +845,22 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
           )}
 
           {/* Action Print Button */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <span className="text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--ds-border)]">
+            <span className="text-[var(--ds-text-muted)]">
               Total Siap Cetak: <strong>{studentsList.length} Siswa</strong> ({activeColumns.length} Kolom terpilih)
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-semibold cursor-pointer"
               >
                 Tutup
               </button>
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-4 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-semibold flex items-center gap-2 shadow-xs cursor-pointer transition"
+                className="px-4 py-2 rounded-xl btn-primary hover:opacity-90 text-xs font-semibold flex items-center gap-2 shadow-xs cursor-pointer transition"
               >
                 <Printer className="w-4 h-4" />
                 <span>Cetak Lembar Dokumen (Print / PDF)</span>

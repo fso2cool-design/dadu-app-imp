@@ -26,7 +26,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
 }) => {
   return (
     <div 
-      className={`flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-[#141722] border border-slate-200 dark:border-[#232838] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${className}`}
+      className={`flex items-center gap-1.5 p-1 rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${className}`}
       role="tablist"
     >
       {tabs.map((tab) => {
@@ -40,18 +40,18 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
-            className={`flex items-center gap-2 rounded-xl font-semibold transition-all duration-150 whitespace-nowrap cursor-pointer select-none ${
+            className={`flex items-center gap-2 rounded-[var(--ds-radius-md)] font-semibold transition-all duration-150 whitespace-nowrap cursor-pointer select-none ${
               size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-4 py-2 text-xs sm:text-sm'
             } ${
               isActive
-                ? 'bg-white dark:bg-[#0c0e15] text-orange-600 dark:text-cyan-400 shadow-xs dark:shadow-[0_0_12px_rgba(6,182,212,0.25)] border border-slate-200/80 dark:border-cyan-500/50 font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-white/60 dark:hover:bg-[#1b1f2e] border border-transparent'
+                ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] shadow-[var(--ds-elevation-sm)] border border-[var(--ds-border)] font-bold'
+                : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] border border-transparent'
             }`}
           >
             {Icon && (
               <Icon 
                 className={`shrink-0 ${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} ${
-                  isActive ? 'text-orange-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'
+                  isActive ? 'text-[var(--ds-accent)]' : 'text-[var(--ds-text-muted)]'
                 }`} 
               />
             )}
@@ -60,8 +60,8 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                   isActive
-                    ? 'bg-orange-50 dark:bg-cyan-950 text-orange-700 dark:text-cyan-300 border border-orange-200 dark:border-cyan-500/50'
-                    : 'bg-slate-200/70 dark:bg-[#232838] text-slate-600 dark:text-slate-400'
+                    ? 'bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-accent)]/30'
+                    : 'bg-[var(--ds-surface)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
               >
                 {tab.badge}

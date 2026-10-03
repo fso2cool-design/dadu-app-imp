@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { Stack, CalendarCheck, CheckSquare, Medal, Users, ChartBar, FileCsv, Notepad, Printer } from '@phosphor-icons/react';
 import { Badge } from './Badge';
@@ -134,27 +134,27 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
       <div>
         <div className="flex items-center gap-2 mb-1">
           <Badge variant="success" size="sm">{item.phase}</Badge>
-          <span className="text-xs text-slate-400">• Konteks: {activeAcademicYear?.label || '2026/2027'} ({activeSemester})</span>
+          <span className="text-xs text-[var(--ds-text-muted)]">• Konteks: {activeAcademicYear?.label || '2026/2027'} ({activeSemester})</span>
         </div>
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <Icon className="w-5 h-5 text-emerald-600" />
+        <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+          <Icon className="w-5 h-5 text-[var(--ds-accent)]" />
           {item.title}
         </h1>
-        <p className="text-xs text-slate-500 mt-1">{item.subtitle}</p>
+        <p className="text-xs text-[var(--ds-text-muted)] mt-1">{item.subtitle}</p>
       </div>
 
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-8 shadow-2xs text-center max-w-xl mx-auto my-8">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+      <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-8 shadow-2xs text-center max-w-xl mx-auto my-8">
+        <div className="w-14 h-14 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center justify-center mx-auto mb-4">
           <Icon className="w-7 h-7" />
         </div>
-        <h3 className="font-bold text-base text-slate-800">{item.title}</h3>
-        <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+        <h3 className="font-bold text-base text-[var(--ds-text)]">{item.title}</h3>
+        <p className="text-xs text-[var(--ds-text-muted)] mt-2 leading-relaxed">
           {item.desc}
         </p>
 
-        <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 my-5 text-left border border-slate-100">
-          <p className="font-semibold text-slate-700 mb-1">Pondasi Phase 1 Aktif:</p>
-          <p className="text-[11px] text-slate-500">
+        <div className="p-3 bg-[var(--ds-surface-muted)] rounded-xl text-xs text-[var(--ds-text)] my-5 text-left border border-[var(--ds-border)]">
+          <p className="font-semibold text-[var(--ds-text)] mb-1">Pondasi Phase 1 Aktif:</p>
+          <p className="text-[11px] text-[var(--ds-text-muted)]">
             • Database Firestore terisolasi per user (/users/{'{uid}'}/...)<br />
             • Autentikasi email/password aktif & terproteksi<br />
             • Context Selector tahun ajaran, kelas, dan mapel berjalan otomatis
@@ -164,7 +164,7 @@ export const PhaseShellPage: React.FC<PhaseShellPageProps> = ({ route, onNavigat
         <button
           type="button"
           onClick={() => onNavigate('dashboard')}
-          className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-colors"
+          className="px-4 py-2 rounded-xl bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] text-xs font-semibold hover:bg-[var(--ds-accent-hover)] transition-colors cursor-pointer"
         >
           ← Kembali ke Dashboard
         </button>

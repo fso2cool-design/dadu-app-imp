@@ -185,12 +185,12 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   // State 1: Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center text-orange-600 animate-pulse mb-3">
+      <div className="min-h-screen bg-[var(--ds-surface-muted)] flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-2xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-center text-[var(--ds-accent)] animate-pulse mb-3">
           <ShareNetwork className="w-6 h-6" />
         </div>
-        <p className="text-xs font-semibold text-slate-700">Menghubungkan ke Laporan Resmi...</p>
-        <p className="text-[11px] text-slate-400 mt-0.5">Memvalidasi token akses publik</p>
+        <p className="text-xs font-semibold text-[var(--ds-text)]">Menghubungkan ke Laporan Resmi...</p>
+        <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">Memvalidasi token akses publik</p>
       </div>
     );
   }
@@ -198,19 +198,19 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   // State 2: Error or Not Found / Expired
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-md space-y-4">
+      <div className="min-h-screen bg-[var(--ds-surface-muted)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-6 text-center shadow-md space-y-4">
           <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 mx-auto flex items-center justify-center text-2xl font-bold">
             <WarningCircle className="w-7 h-7" />
           </div>
-          <h2 className="text-base font-bold text-slate-800">Tautan Laporan Tidak Tersedia</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
+          <h2 className="text-base font-bold text-[var(--ds-text)]">Tautan Laporan Tidak Tersedia</h2>
+          <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
             {error || 'Laporan tidak ditemukan. Pastikan alamat tautan lengkap dan belum melewati batas waktu kadaluarsa.'}
           </p>
           <div className="pt-2">
             <a
               href="/"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 rounded-xl text-xs font-semibold transition-colors"
             >
               Menuju Halaman Masuk
             </a>
@@ -223,14 +223,14 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   // State 3: Passcode Required
   if (!passcodeUnlocked) {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4">
-        <div className="max-w-sm w-full bg-white border border-slate-200/90 rounded-3xl p-6 text-center shadow-lg space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 mx-auto flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--ds-surface-muted)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-sm w-full bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-6 text-center shadow-lg space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-accent)] mx-auto flex items-center justify-center">
             <Lock className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Laporan Dilindungi Kode Akses</h2>
-            <p className="text-[11px] text-slate-500 mt-1">
+            <h2 className="text-sm font-bold text-[var(--ds-text)]">Laporan Dilindungi Kode Akses</h2>
+            <p className="text-[11px] text-[var(--ds-text-muted)] mt-1">
               Pembuat laporan ({report.userName}) telah melindungi dokumen ini dengan kode sandi / passcode.
             </p>
           </div>
@@ -249,7 +249,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
                 className={`w-full px-4 py-2.5 text-center text-sm font-bold tracking-widest rounded-xl border ${
                   passcodeError 
                     ? 'border-rose-400 bg-rose-50 text-rose-900' 
-                    : 'border-slate-200 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500'
+                    : 'border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-focus)]'
                 } focus:outline-hidden transition-all`}
                 autoFocus
               />
@@ -263,7 +263,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
             <button
               type="submit"
               disabled={isDecrypting}
-              className="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {isDecrypting ? (
                 <>
@@ -276,7 +276,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
             </button>
           </form>
 
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-[var(--ds-text-muted)]">
             Hubungi pengampu terkait jika Anda belum menerima kode sandi.
           </p>
         </div>
@@ -287,16 +287,16 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   // State 4: Unlocked & Viewing Document
   if (!report.payload) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 text-center shadow-md space-y-3">
+      <div className="min-h-screen bg-[var(--ds-surface-muted)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-6 text-center shadow-md space-y-3">
           <WarningCircle className="w-8 h-8 text-rose-500 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800">Dokumen Belum Terbuka</h3>
-          <p className="text-xs text-slate-500">
+          <h3 className="text-sm font-bold text-[var(--ds-text)]">Dokumen Belum Terbuka</h3>
+          <p className="text-xs text-[var(--ds-text-muted)]">
             Silakan masukkan kode akses resmi untuk mendekripsi isi laporan ini.
           </p>
           <button
             onClick={() => setPasscodeUnlocked(false)}
-            className="px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold"
+            className="px-4 py-2 bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] rounded-xl text-xs font-bold"
           >
             Masukkan Kode Akses
           </button>
@@ -308,24 +308,24 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
   const { payload, reportType } = report;
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 font-sans pb-16">
+    <div className="min-h-screen bg-[var(--ds-surface-muted)] text-[var(--ds-text)] font-sans pb-16">
       {/* Top Floating Control Bar (Hidden on Print) */}
-      <header className="no-print sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+      <header className="no-print sticky top-0 z-30 bg-[color-mix(in_srgb,var(--ds-surface-elevated)_95%,transparent)] backdrop-blur-md border-b border-[var(--ds-border)] shadow-2xs">
         <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] flex items-center justify-center shadow-xs">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900 leading-tight">
+                <span className="text-xs font-bold text-[var(--ds-text)] leading-tight">
                   {payload.title}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                   <CheckCircle className="w-3 h-3" /> Terverifikasi
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[11px] text-[var(--ds-text-muted)]">
                 {payload.schoolName} • Diterbitkan oleh: <strong>{payload.teacherName}</strong>
               </p>
             </div>
@@ -335,7 +335,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
             <button
               type="button"
               onClick={handleExportExcel}
-              className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
             >
               <FileCsv className="w-3.5 h-3.5 text-emerald-600" />
               <span>Ekspor Excel</span>
@@ -344,7 +344,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
+              className="px-4 py-1.5 rounded-xl bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer transition-all"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Cetak / PDF</span>

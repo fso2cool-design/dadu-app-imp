@@ -38,7 +38,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
     >
       <div className="space-y-5">
         {/* Header Hero Card */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/80 to-slate-50 dark:from-emerald-950/40 dark:to-slate-900/60 border border-emerald-100 dark:border-emerald-900/50 flex items-start justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/80 to-[var(--ds-surface-muted)] dark:from-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/50 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg text-white shadow-xs ${
               student.gender === 'L' ? 'bg-emerald-600' : 'bg-pink-600'
@@ -47,12 +47,12 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">{student.fullName}</h3>
+                <h3 className="font-bold text-base text-[var(--ds-text)]">{student.fullName}</h3>
                 <Badge variant={student.gender === 'L' ? 'blue' : 'purple'} size="sm">
                   {student.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-mono">
+              <div className="flex items-center gap-2 text-xs text-[var(--ds-text-muted)] mt-0.5 font-mono">
                 <span>NIS: <strong>{student.nis || '-'}</strong></span>
                 <span>•</span>
                 <span>NISN: <strong>{student.nisn || '-'}</strong></span>
@@ -66,17 +66,17 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </div>
 
         {/* Enrollment Quick Info */}
-        <div className="p-3.5 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-xl grid grid-cols-2 gap-3 text-xs">
+        <div className="p-3.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl grid grid-cols-2 gap-3 text-xs">
           <div>
-            <span className="text-slate-500 dark:text-slate-400 text-[11px] block font-medium">Penempatan Kelas:</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1 mt-0.5">
-              <GraduationCap className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span className="text-[var(--ds-text-muted)] text-[11px] block font-medium">Penempatan Kelas:</span>
+            <span className="font-bold text-[var(--ds-text)] flex items-center gap-1 mt-0.5">
+              <GraduationCap className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
               {enrollment ? `Kelas ${enrollment.className || 'Aktif'}` : 'Belum Ditempatkan'}
             </span>
           </div>
           <div>
-            <span className="text-slate-500 dark:text-slate-400 text-[11px] block font-medium">Nomor Absen:</span>
-            <span className="font-bold text-indigo-700 dark:text-indigo-400 font-mono mt-0.5 block">
+            <span className="text-[var(--ds-text-muted)] text-[11px] block font-medium">Nomor Absen:</span>
+            <span className="font-bold text-[var(--ds-accent)] font-mono mt-0.5 block">
               {enrollment?.rollNumber ? `#${enrollment.rollNumber}` : '-'}
             </span>
           </div>
@@ -84,12 +84,12 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="space-y-3 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40">
-            <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-1">
-              <CalendarBlank className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <div className="space-y-3 p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)]">
+            <h4 className="font-bold text-[var(--ds-text)] flex items-center gap-1.5 border-b border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)] pb-1">
+              <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
               Biodata & Kelahiran
             </h4>
-            <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
+            <div className="space-y-1.5 text-[var(--ds-text)]">
               <p><strong>Tempat Lahir:</strong> {student.birthPlace || '-'}</p>
               <p><strong>Tanggal Lahir:</strong> {student.birthDate || '-'}</p>
               <p><strong>Agama:</strong> {student.religion || 'Islam'}</p>
@@ -97,12 +97,12 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
             </div>
           </div>
 
-          <div className="space-y-3 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/40">
-            <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-1">
-              <Phone className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <div className="space-y-3 p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)]">
+            <h4 className="font-bold text-[var(--ds-text)] flex items-center gap-1.5 border-b border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)] pb-1">
+              <Phone className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
               Orang Tua & Kontak
             </h4>
-            <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
+            <div className="space-y-1.5 text-[var(--ds-text)]">
               <p><strong>Nama Ortu/Wali:</strong> {student.parentName || '-'}</p>
               <p className="flex items-center justify-between">
                 <span><strong>No. WhatsApp Ortu:</strong> {student.parentPhone || '-'}</span>
@@ -124,23 +124,23 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </div>
 
         {/* Data Kependudukan (NIK Siswa, NIK Ibu, NKK) */}
-        <div className="p-3.5 bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs space-y-2">
-          <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 border-b border-slate-200/60 dark:border-slate-800 pb-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+        <div className="p-3.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-xs space-y-2">
+          <h4 className="font-bold text-[var(--ds-text)] flex items-center gap-1.5 border-b border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)] pb-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
             Data Kependudukan (EMIS / Dapodik)
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-slate-700 dark:text-slate-300">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[var(--ds-text)]">
             <div>
-              <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-medium">NIK Siswa:</span>
-              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{student.nikSiswa || '-'}</span>
+              <span className="text-[var(--ds-text-muted)] text-[10px] block font-medium">NIK Siswa:</span>
+              <span className="font-mono font-semibold text-[var(--ds-text)]">{student.nikSiswa || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-medium">NIK Ibu Kandung:</span>
-              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{student.nikIbu || '-'}</span>
+              <span className="text-[var(--ds-text-muted)] text-[10px] block font-medium">NIK Ibu Kandung:</span>
+              <span className="font-mono font-semibold text-[var(--ds-text)]">{student.nikIbu || '-'}</span>
             </div>
             <div>
-              <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-medium">Nomor KK (NKK):</span>
-              <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{student.nkk || '-'}</span>
+              <span className="text-[var(--ds-text-muted)] text-[10px] block font-medium">Nomor KK (NKK):</span>
+              <span className="font-mono font-semibold text-[var(--ds-text)]">{student.nkk || '-'}</span>
             </div>
           </div>
         </div>
@@ -148,18 +148,18 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         {/* Data Kolom Kustom Dinamis */}
         {((customFields && customFields.length > 0) || (student.customAttributes && Object.keys(student.customAttributes).length > 0)) && (
           <div className="p-3.5 bg-orange-50/50 dark:bg-amber-950/30 border border-orange-200/70 dark:border-amber-900/50 rounded-xl text-xs space-y-2">
-            <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 border-b border-orange-200/60 dark:border-amber-900/40 pb-1">
+            <h4 className="font-bold text-[var(--ds-text)] flex items-center gap-1.5 border-b border-orange-200/60 dark:border-amber-900/40 pb-1">
               <Sliders className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               Informasi Tambahan / Kolom Kustom
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-slate-700 dark:text-slate-300">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[var(--ds-text)]">
               {/* Render field from definition */}
               {customFields.map((field) => {
                 const val = student.customAttributes?.[field.key] ?? student.customAttributes?.[field.name];
                 return (
                   <div key={field.id}>
-                    <span className="text-slate-500 dark:text-slate-400 text-[10px] block font-medium">{field.name}:</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{val || '-'}</span>
+                    <span className="text-[var(--ds-text-muted)] text-[10px] block font-medium">{field.name}:</span>
+                    <span className="font-semibold text-[var(--ds-text)]">{val || '-'}</span>
                   </div>
                 );
               })}
@@ -169,8 +169,8 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 .filter(([k]) => !customFields.some(f => f.key === k || f.name === k))
                 .map(([extraKey, extraVal]) => (
                   <div key={extraKey}>
-                    <span className="text-slate-500 dark:text-slate-400 text-[10px] block capitalize font-medium">{extraKey}:</span>
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{String(extraVal) || '-'}</span>
+                    <span className="text-[var(--ds-text-muted)] text-[10px] block capitalize font-medium">{extraKey}:</span>
+                    <span className="font-semibold text-[var(--ds-text)]">{String(extraVal) || '-'}</span>
                   </div>
                 ))}
             </div>
@@ -191,7 +191,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           <div className="p-3 bg-accent-primary-soft border border-accent-primary-border rounded-xl flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-[11px] font-bold text-accent-text block">Administrasi & Identitas Siswa</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">Lihat kartu pelajar digital atau kirim laporan perkembangan ke wali murid.</span>
+              <span className="text-[10px] text-[var(--ds-text-muted)]">Lihat kartu pelajar digital atau kirim laporan perkembangan ke wali murid.</span>
             </div>
             <div className="flex items-center gap-2">
               {onPrintExamCard && (
@@ -201,7 +201,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                     onClose();
                     onPrintExamCard(enrollment);
                   }}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-accent-primary-border text-accent-text hover:bg-accent-primary-soft text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg bg-[var(--ds-surface)] border border-accent-primary-border text-accent-text hover:bg-accent-primary-soft text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Kartu Pelajar</span>
@@ -224,7 +224,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex justify-between items-center pt-3 border-t border-[var(--ds-border)]">
           {onEdit ? (
             <button
               type="button"
@@ -232,7 +232,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                 onClose();
                 onEdit(student);
               }}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-[var(--ds-border)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-semibold transition-colors cursor-pointer"
             >
               Edit Data Siswa
             </button>
@@ -241,7 +241,7 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors cursor-pointer"
+            className="btn-primary px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
           >
             Tutup
           </button>

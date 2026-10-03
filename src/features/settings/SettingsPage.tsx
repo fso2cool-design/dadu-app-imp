@@ -21,6 +21,7 @@ import {
   CheckCircle,
   WarningCircle,
   CircleNotch,
+  Palette,
 } from '@phosphor-icons/react';
 
 // Sub-components per tab
@@ -34,10 +35,11 @@ import type { TabType, ProfileFormData } from './tabs/types';
 // Lazy-loaded heavy tabs (jarang diakses pada alur kerja KBM harian)
 const BackupTab = lazy(() => import('./tabs/BackupTab').then(m => ({ default: m.BackupTab })));
 const MaintenanceTab = lazy(() => import('./tabs/MaintenanceTab').then(m => ({ default: m.MaintenanceTab })));
+const ShowcaseTab = lazy(() => import('./tabs/ShowcaseTab').then(m => ({ default: m.ShowcaseTab })));
 
 const TabLoadingFallback = () => (
   <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
-    <CircleNotch className="w-6 h-6 animate-spin text-orange-500 dark:text-cyan-400" />
+    <CircleNotch className="w-6 h-6 animate-spin text-[var(--ds-accent)]" />
     <span className="text-xs font-medium">Memuat modul pengaturan...</span>
   </div>
 );
@@ -152,7 +154,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   useEffect(() => {
     if (initialTab) {
       const cleanTab = initialTab.replace('settings-', '') as TabType;
-      if (['profile', 'school', 'document', 'preferences', 'backup', 'stats', 'maintenance'].includes(cleanTab)) {
+      if (['profile', 'school', 'document', 'preferences', 'backup', 'stats', 'maintenance', 'showcase'].includes(cleanTab)) {
         setActiveTab(cleanTab);
       }
     }
@@ -629,6 +631,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     { id: 'stats', label: 'Kesehatan Database', icon: Pulse },
     { id: 'preferences', label: 'Preferensi', icon: Sliders },
     { id: 'maintenance', label: 'Pemeliharaan', icon: Trash },
+    { id: 'showcase', label: 'Design System', icon: Palette, badge: 'Pratinjau' },
   ];
 
   return (
@@ -637,7 +640,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <Sliders className="w-5 h-5 text-orange-500 dark:text-cyan-400" />
+            <Sliders className="w-5 h-5 text-[var(--ds-accent)]" />
             Pengaturan & Profil Guru
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -647,7 +650,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       </div>
 
       {/* Tabs Navigation Bar */}
-      <div className="flex border-b border-slate-200 dark:border-[#232838] overflow-x-auto gap-2 scrollbar-none">
+      <div className="flex border-b border-[var(--ds-border)] overflow-x-auto gap-2 scrollbar-none">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -659,11 +662,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               onClick={() => handleTabClick(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 isActive
-                  ? 'border-orange-500 dark:border-cyan-400 text-orange-600 dark:text-cyan-400 bg-orange-50/50 dark:bg-cyan-950/40'
+                  ? 'border-[var(--ds-accent)] text-[var(--ds-accent)] bg-[var(--ds-accent-soft)]'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-orange-500 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-[var(--ds-accent)]' : 'text-slate-400 dark:text-slate-500'}`} />
               <span>{tab.label}</span>
               {isDirty && (
                 <span className="w-2 h-2 rounded-full bg-amber-500" title="Ada perubahan belum disimpan" />
@@ -814,6 +817,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
               onSuccess={toastSuccess}
               onError={toastError}
             />
+          </Suspense>
+        )}
+
+        {activeTab === 'showcase' && (
+          <Suspense fallback={<TabLoadingFallback />}>
+            <ShowcaseTab />
           </Suspense>
         )}
       </div>

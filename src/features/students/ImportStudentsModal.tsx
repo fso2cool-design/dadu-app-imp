@@ -598,7 +598,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
               <div className="flex items-center gap-2 flex-wrap">
                 <FileCsv className="w-4 h-4 text-indigo-600" />
                 <span className="text-xs font-semibold text-indigo-900 dark:text-indigo-200">{fileName}</span>
-                <span className="text-[11px] bg-white dark:bg-[#141722] text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-bold border border-indigo-200 dark:border-indigo-800">
+                <span className="text-[11px] bg-[var(--ds-surface-elevated)] text-[var(--ds-accent)] px-2 py-0.5 rounded-full font-bold border border-[var(--ds-border)]">
                   {parsedRows.length} Baris Siswa
                 </span>
                 {enrolledSummary.classes.map(([cName, cnt]) => (
@@ -707,7 +707,7 @@ export const ImportStudentsModal: React.FC<ImportStudentsModalProps> = ({
             </div>
 
             {/* Preview Table */}
-            <div className="max-h-72 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-[#141722]">
+            <div className="max-h-72 overflow-y-auto border border-[var(--ds-border)] rounded-xl bg-[var(--ds-surface-elevated)]">
               <table className="w-full text-left text-xs border-collapse">
                 <thead className="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 sticky top-0 font-semibold border-b border-slate-200 dark:border-slate-800 z-10">
                   <tr>

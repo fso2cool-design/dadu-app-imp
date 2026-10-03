@@ -506,11 +506,11 @@ export const LeggerReportPage: React.FC = () => {
       {/* Page Header */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <Table className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+            <Table className="w-5 h-5 text-[var(--ds-accent)]" />
             Legger Nilai Akademik Rombel
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Rekapitulasi nilai terpadu seluruh mata pelajaran, total nilai, rata-rata rapor, ranking kelas, dan cetak lembar rapor siswa.
           </p>
         </div>
@@ -540,16 +540,16 @@ export const LeggerReportPage: React.FC = () => {
       </div>
 
       {/* Control & Funnel Bar (Hidden on Print) */}
-      <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
+      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             {/* Class Selector */}
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Pilih Kelas:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Kelas:</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>
@@ -561,11 +561,11 @@ export const LeggerReportPage: React.FC = () => {
 
             {/* Status Funnel */}
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Status:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Status:</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden cursor-pointer"
               >
                 <option value="ACTIVE">Hanya Siswa Aktif</option>
                 <option value="ALL">Semua Siswa</option>
@@ -574,11 +574,11 @@ export const LeggerReportPage: React.FC = () => {
 
             {/* Sort Selector */}
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Urutkan:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Urutkan:</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden cursor-pointer"
               >
                 <option value="ROLL_NUMBER">Nomor Absen Siswa</option>
                 <option value="RANK">Peringkat / Ranking</option>
@@ -591,8 +591,8 @@ export const LeggerReportPage: React.FC = () => {
               onClick={() => setShowAttendanceColumns(prev => !prev)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
                 showAttendanceColumns
-                  ? 'bg-orange-50 dark:bg-cyan-950/50 text-orange-700 dark:text-cyan-300 border-orange-300 dark:border-cyan-500/50 shadow-2xs'
-                  : 'bg-slate-50 dark:bg-[#0c0e15] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#232838]'
+                  ? 'bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] shadow-2xs'
+                  : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
               }`}
             >
               <CalendarCheck className="w-3.5 h-3.5" />
@@ -604,9 +604,9 @@ export const LeggerReportPage: React.FC = () => {
               type="button"
               onClick={() => fetchClassLeggerData()}
               title="Perbarui data legger & presensi"
-              className="p-1.5 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 border border-slate-200 dark:border-[#232838] bg-slate-50 dark:bg-[#0c0e15] transition-all cursor-pointer"
+              className="p-1.5 rounded-xl text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] transition-all cursor-pointer"
             >
-              <ArrowClockwise className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-orange-600 dark:text-cyan-400' : ''}`} />
+              <ArrowClockwise className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[var(--ds-accent)]' : ''}`} />
             </button>
           </div>
 
@@ -618,19 +618,19 @@ export const LeggerReportPage: React.FC = () => {
               placeholder="Cari nama atau NIS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 bg-slate-50 dark:bg-[#0c0e15] transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] bg-[var(--ds-surface-muted)] transition-all"
             />
           </div>
         </div>
 
         {/* Statistical KPI Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100 dark:border-[#232838]">
-          <div className="p-2.5 rounded-xl bg-orange-50/60 dark:bg-cyan-950/40 border border-orange-200/60 dark:border-cyan-500/40 flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-[var(--ds-border)]">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-orange-700 dark:text-cyan-400 block">Rata-rata Rombel</span>
-              <span className="text-lg font-black text-orange-950 dark:text-cyan-200">{classStats.overallAvg}</span>
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Rata-rata Rombel</span>
+              <span className="text-lg font-black text-[var(--ds-accent)]">{classStats.overallAvg}</span>
             </div>
-            <TrendUp className="w-6 h-6 text-orange-400 dark:text-cyan-400" />
+            <TrendUp className="w-6 h-6 text-[var(--ds-accent)]" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-500/40 flex items-center justify-between">
@@ -642,11 +642,11 @@ export const LeggerReportPage: React.FC = () => {
             <Trophy className="w-6 h-6 text-amber-500" />
           </div>
 
-          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] flex items-center justify-between">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 block">Total Siswa Terdaftar</span>
-              <span className="text-lg font-black text-slate-900 dark:text-slate-100">
-                {filteredRows.length} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">Siswa</span>
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Total Siswa Terdaftar</span>
+              <span className="text-lg font-black text-[var(--ds-text)]">
+                {filteredRows.length} <span className="text-xs font-normal text-[var(--ds-text-muted)]">Siswa</span>
               </span>
             </div>
             <Users className="w-6 h-6 text-slate-400" />
@@ -810,7 +810,7 @@ export const LeggerReportPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenStudentRapor(r.enrollmentId)}
-                          className="px-2 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/40 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 text-[10px] font-bold flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer shadow-2xs"
+                          className="px-2 py-1 rounded-lg bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] text-[10px] font-bold flex items-center justify-center gap-1 mx-auto transition-all cursor-pointer shadow-2xs"
                           title="Lihat dan cetak lembar rapor siswa ini"
                         >
                           <FileText className="w-3 h-3" />

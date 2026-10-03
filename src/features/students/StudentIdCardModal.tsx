@@ -176,7 +176,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
       title="Kartu Pelajar Siswa (Virtual Student ID)"
       maxWidth="4xl"
     >
-      <div className="space-y-5 text-slate-800 dark:text-slate-100">
+      <div className="space-y-5 text-[var(--ds-text)]">
         {/* Custom Print Styling untuk Lembar Cetak A4 */}
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
@@ -202,17 +202,17 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
         `}} />
 
         {/* Toolbar & Filter Bar (no-print) */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-slate-50 dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-[#161a26] border border-emerald-100 dark:border-emerald-900/50 shadow-2xs space-y-3 no-print">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-[var(--ds-surface-muted)] dark:from-emerald-950/40 dark:via-teal-950/20 dark:to-[var(--ds-surface-elevated)] border border-emerald-200/60 dark:border-emerald-900/50 shadow-2xs space-y-3 no-print">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Tab Navigasi Tampilan */}
-            <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#121622] rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div className="flex items-center gap-1.5 p-1 bg-[var(--ds-surface)] rounded-xl border border-[var(--ds-border)] shadow-2xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('VIRTUAL')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'VIRTUAL'
                     ? 'btn-primary shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                 }`}
               >
                 <Sparkle className="w-3.5 h-3.5" />
@@ -225,7 +225,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'PRINT_SHEET'
                     ? 'btn-primary shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                 }`}
               >
                 <CreditCard className="w-3.5 h-3.5" />
@@ -238,7 +238,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
               <button
                 type="button"
                 onClick={() => setTargetMode(targetMode === 'SINGLE' ? 'ALL' : 'SINGLE')}
-                className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-2xs"
+                className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold hover:bg-[var(--ds-surface-muted)] transition-all cursor-pointer shadow-2xs"
               >
                 {targetMode === 'SINGLE'
                   ? `Siswa Terpilih: ${currentStudent?.fullName?.split(' ')[0] || '1 Siswa'}`
@@ -259,7 +259,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
           {/* Opsi Tampilan Fitur Tambahan */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-emerald-100/80 dark:border-emerald-900/40 text-xs">
             <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[var(--ds-text)] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showQrCode}
@@ -269,7 +269,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 <span>QR Code / Kode Akses</span>
               </label>
 
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[var(--ds-text)] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showBirthday}
@@ -279,7 +279,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 <span>Info Tanggal Lahir (Ultah)</span>
               </label>
 
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none">
+              <label className="flex items-center gap-1.5 cursor-pointer text-[var(--ds-text)] font-medium select-none">
                 <input
                   type="checkbox"
                   checked={showSignature}
@@ -290,24 +290,24 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
               </label>
 
               <div className="flex items-center gap-1.5 pl-2 sm:border-l border-emerald-200/80 dark:border-emerald-900/60">
-                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Tgl Terbit:</span>
+                <span className="text-[11px] font-semibold text-[var(--ds-text-muted)]">Tgl Terbit:</span>
                 <input
                   type="date"
                   value={issueDate}
                   onChange={e => setIssueDate(e.target.value)}
-                  className="px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-[#121622] text-xs font-semibold text-slate-800 dark:text-slate-100 shadow-2xs focus:ring-2 focus:ring-emerald-500"
+                  className="px-2 py-0.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-semibold text-[var(--ds-text)] shadow-2xs focus:ring-2 focus:ring-[var(--ds-accent)]"
                 />
               </div>
             </div>
 
             {/* Stepper Siswa (Jika mode virtual/single) */}
             {enrollments.length > 1 && (
-              <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5 font-mono text-[11px] text-[var(--ds-text-muted)]">
                 <button
                   type="button"
                   onClick={handlePrevStudent}
                   disabled={currentIndex === 0}
-                  className="p-1 rounded-lg bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:cursor-not-allowed"
+                  className="p-1 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border)] disabled:opacity-40 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] cursor-pointer disabled:cursor-not-allowed"
                   title="Siswa Sebelumnya"
                 >
                   <CaretLeft className="w-3.5 h-3.5" />
@@ -317,7 +317,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                   type="button"
                   onClick={handleNextStudent}
                   disabled={currentIndex === enrollments.length - 1}
-                  className="p-1 rounded-lg bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer disabled:cursor-not-allowed"
+                  className="p-1 rounded-lg bg-[var(--ds-surface)] border border-[var(--ds-border)] disabled:opacity-40 hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] cursor-pointer disabled:cursor-not-allowed"
                   title="Siswa Selanjutnya"
                 >
                   <CaretRight className="w-3.5 h-3.5" />
@@ -479,12 +479,12 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
                 </div>
 
                 {/* Petunjuk Ekosistem Masa Depan */}
-                <p className="text-center text-[11px] text-slate-500 dark:text-slate-400 mt-3 font-medium">
+                <p className="text-center text-[11px] text-[var(--ds-text-muted)] mt-3 font-medium">
                   💡 Kode akses & QR di atas siap dipakai siswa untuk masuk ke aplikasi to-do list, reminder ultah, atau game edukasi web tanpa memerlukan registrasi terpisah.
                 </p>
               </div>
             ) : (
-              <div className="py-12 text-center text-slate-400">
+              <div className="py-12 text-center text-[var(--ds-text-muted)]">
                 Pilih siswa terlebih dahulu untuk melihat kartu pelajar digital.
               </div>
             )}
@@ -498,7 +498,7 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3">
             {targetStudents.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+              <div className="col-span-full py-12 text-center text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] rounded-2xl border border-dashed border-[var(--ds-border)]">
                 Tidak ada data siswa terpilih untuk dicetak kartu pelajar.
               </div>
             ) : (

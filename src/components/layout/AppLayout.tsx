@@ -78,7 +78,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f1f5f9] dark:bg-[#0C0E15] text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen flex bg-[var(--ds-surface)] text-[var(--ds-text)] transition-colors">
       {/* Sidebar (Desktop Persistent / Mobile Drawer) */}
       <Sidebar
         currentRoute={currentRoute}

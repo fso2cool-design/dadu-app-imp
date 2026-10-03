@@ -1,7 +1,6 @@
 import React from 'react';
 import { AppLogo } from './AppLogo';
 import { APP_CONFIG } from '../../constants/app';
-import { useOptionalAppTheme } from '../../context/ThemeContext';
 
 interface LoadingScreenProps {
   message?: string;
@@ -14,74 +13,47 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   subtitle = `${APP_CONFIG.tagline} • ${APP_CONFIG.description}`,
   fullScreen = true
 }) => {
-  const themeContext = useOptionalAppTheme();
-  const isDark = themeContext 
-    ? themeContext.isDark 
-    : (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
-
   return (
     <div className={`${fullScreen ? 'min-h-screen' : 'py-16 min-h-[400px]'} flex flex-col items-center justify-center px-4 select-none transition-colors duration-300 relative ${
-      isDark ? (fullScreen ? 'bg-[#0E1017] text-slate-100' : 'bg-transparent text-slate-100') : (fullScreen ? 'bg-slate-50 text-slate-800' : 'bg-transparent text-slate-800')
+      fullScreen ? 'bg-[var(--ds-surface)] text-[var(--ds-text)]' : 'bg-transparent text-[var(--ds-text)]'
     }`}>
       {/* Background ambient radial glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center" aria-hidden="true">
-        <div className={`w-96 h-96 rounded-full blur-3xl opacity-40 ${
-          isDark 
-            ? 'bg-gradient-to-tr from-emerald-500/10 via-teal-500/10 to-slate-500/10' 
-            : 'bg-gradient-to-tr from-emerald-500/15 via-teal-500/10 to-slate-200/20'
-        }`} />
+        <div className="w-96 h-96 rounded-full blur-3xl opacity-30 bg-[radial-gradient(circle,var(--ds-accent)_0%,transparent_70%)]" />
       </div>
 
-      <div className={`relative flex flex-col items-center gap-5 p-8 sm:p-10 rounded-3xl backdrop-blur-xl shadow-2xl border max-w-sm w-full text-center transition-all duration-300 ${
-        isDark 
-          ? 'bg-[#141722]/90 border-slate-800/80 shadow-black/40' 
-          : 'bg-white/95 border-slate-200/80 shadow-slate-300/50'
-      }`}>
+      <div className="relative flex flex-col items-center gap-5 p-8 sm:p-10 rounded-3xl backdrop-blur-xl shadow-2xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] max-w-sm w-full text-center transition-all duration-300 shadow-black/5">
         {/* Embossed circular logo badge with ambient glow */}
-        <div className={`relative p-4 rounded-3xl border shadow-inner flex items-center justify-center transition-colors ${
-          isDark 
-            ? 'bg-gradient-to-b from-[#1e2333] to-[#131724] border-slate-700/60 shadow-black/40' 
-            : 'bg-gradient-to-b from-slate-50/90 to-white border-slate-200/80 shadow-sm'
-        }`}>
+        <div className="relative p-4 rounded-3xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] shadow-inner flex items-center justify-center transition-colors">
           <AppLogo size={64} variant="mark" animated={true} />
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center justify-center gap-2">
-            <h3 className={`font-extrabold text-xl tracking-tight font-serif ${
-              isDark ? 'text-white' : 'text-slate-900'
-            }`}>
+            <h3 className="font-extrabold text-xl tracking-tight font-serif text-[var(--ds-text)]">
               {APP_CONFIG.shortName}
             </h3>
-            <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-              isDark 
-                ? 'bg-emerald-950/80 text-emerald-400 border-emerald-700/60' 
-                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            }`}>
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-[var(--ds-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)]">
               {APP_CONFIG.versionDisplay}
             </span>
           </div>
-          <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className="text-xs font-medium text-[var(--ds-text-muted)]">
             {subtitle}
           </p>
         </div>
 
         {/* Animated Loading Bar & Status */}
         <div className="w-full mt-3 space-y-2.5">
-          <div className={`w-full h-1.5 rounded-full overflow-hidden relative border ${
-            isDark 
-              ? 'bg-slate-800/80 border-slate-700/30' 
-              : 'bg-slate-100 border-slate-200/80'
-          }`}>
+          <div className="w-full h-1.5 rounded-full overflow-hidden relative border border-[var(--ds-border)] bg-[var(--ds-surface-muted)]">
             <div 
-              className="absolute top-0 bottom-0 left-0 rounded-full w-1/2 bg-accent-primary" 
+              className="absolute top-0 bottom-0 left-0 rounded-full w-1/2 bg-[var(--ds-accent)]" 
               style={{
                 animation: 'loadingSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite'
               }}
             />
           </div>
-          <p className="text-xs font-medium flex items-center justify-center gap-2 text-accent-text">
-            <span className="w-2 h-2 rounded-full animate-ping bg-accent-primary" />
+          <p className="text-xs font-medium flex items-center justify-center gap-2 text-[var(--ds-accent)]">
+            <span className="w-2 h-2 rounded-full animate-ping bg-[var(--ds-accent)]" />
             {message}
           </p>
         </div>
@@ -97,5 +69,3 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     </div>
   );
 };
-
-

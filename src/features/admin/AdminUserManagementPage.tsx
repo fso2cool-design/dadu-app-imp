@@ -325,21 +325,21 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
   const suspendedCount = usersList.filter(u => u.accountStatus === 'SUSPENDED').length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--ds-surface-muted)] text-[var(--ds-text)] flex flex-col font-sans">
       {/* Top Navbar */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-3.5 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
+      <header className="border-b border-[var(--ds-border)] bg-[color-mix(in_srgb,var(--ds-surface-elevated)_95%,transparent)] backdrop-blur-md px-3.5 sm:px-8 py-3 sm:py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/30 shrink-0">
             <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">Panel Admin</h1>
+              <h1 className="text-sm sm:text-base font-bold text-[var(--ds-text)] tracking-tight truncate">Panel Admin</h1>
               <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
                 ADMINISTRATOR
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate hidden sm:block">
+            <p className="text-[11px] text-[var(--ds-text-muted)] truncate hidden sm:block">
               Pengelolaan Akun Pengguna & Efisiensi Kuota Database Firestore
             </p>
           </div>
@@ -351,7 +351,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               type="button"
               onClick={onSwitchToTeacherApp}
               title="Buka Mode Guru (Workspace)"
-              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold border border-[var(--ds-border)] transition-all cursor-pointer"
             >
               <GraduationCap className="w-4 h-4 text-emerald-400" />
               <span className="hidden sm:inline">Buka Mode Guru</span>
@@ -373,14 +373,14 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-8 space-y-6 pb-20">
         {/* Admin Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3 overflow-x-auto [scrollbar-width:none]">
+        <div className="flex items-center gap-2 border-b border-[var(--ds-border)] pb-3 overflow-x-auto [scrollbar-width:none]">
           <button
             type="button"
             onClick={() => setActiveAdminTab('USERS')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeAdminTab === 'USERS'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] shadow-xs'
+                : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)]'
             }`}
           >
             <Users className="w-4 h-4" />
@@ -392,8 +392,8 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             onClick={() => setActiveAdminTab('FEEDBACK')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer relative whitespace-nowrap shrink-0 ${
               activeAdminTab === 'FEEDBACK'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] shadow-xs'
+                : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)]'
             }`}
           >
             <Chat className="w-4 h-4" />
@@ -412,53 +412,53 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           <>
             {/* Database Quota Information Banner */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4.5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Total Akun Terdaftar</span>
-                  <span className="text-2xl font-black text-white">{totalUsers}</span>
-                  <span className="text-[11px] text-slate-500 block">di database Firestore</span>
+                  <span className="text-xs font-semibold text-[var(--ds-text-muted)] block">Total Akun Terdaftar</span>
+                  <span className="text-2xl font-black text-[var(--ds-text)]">{totalUsers}</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] block">di database Firestore</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4.5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <UserCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Akun Aktif (Active)</span>
+                  <span className="text-xs font-semibold text-[var(--ds-text-muted)] block">Akun Aktif (Active)</span>
                   <span className="text-2xl font-black text-emerald-400">{activeCount}</span>
-                  <span className="text-[11px] text-slate-500 block">Dapat login & input data</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] block">Dapat login & input data</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
+              <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4.5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                   <UserMinus className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Akun Ditangguhkan</span>
+                  <span className="text-xs font-semibold text-[var(--ds-text-muted)] block">Akun Ditangguhkan</span>
                   <span className="text-2xl font-black text-amber-400">{suspendedCount}</span>
-                  <span className="text-[11px] text-slate-500 block">Akses masuk diblokir</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] block">Akses masuk diblokir</span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4.5 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+              <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4.5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-center text-[var(--ds-accent)] shrink-0">
                   <HardDrive className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 block">Optimasi Kuota DB</span>
-                  <span className="text-sm font-bold text-cyan-300">Spark Free Tier</span>
-                  <span className="text-[11px] text-slate-400 block">Gunakan Purge untuk bersihkan sampah</span>
+                  <span className="text-xs font-semibold text-[var(--ds-text-muted)] block">Optimasi Kuota DB</span>
+                  <span className="text-sm font-bold text-[var(--ds-accent)]">Spark Free Tier</span>
+                  <span className="text-[11px] text-[var(--ds-text-muted)] block">Gunakan Purge untuk bersihkan sampah</span>
                 </div>
               </div>
             </div>
 
             {/* Action & Filter Toolbar */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
+            <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4">
               <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
                 <div className="relative flex-1 min-w-[200px]">
                   <MagnifyingGlass className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -467,7 +467,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari nama guru, email, atau NIP..."
-                    className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-medium text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500 transition-colors"
+                    className="w-full pl-9.5 pr-4 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs font-medium text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-hidden focus:border-[var(--ds-focus)] transition-colors"
                   />
                 </div>
 
@@ -475,7 +475,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-emerald-500 cursor-pointer"
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] focus:outline-hidden focus:border-[var(--ds-focus)] cursor-pointer"
                   >
                     <option value="ALL">Semua Status</option>
                     <option value="ACTIVE">Hanya Aktif</option>
@@ -485,7 +485,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-slate-300 focus:outline-hidden focus:border-emerald-500 cursor-pointer"
+                    className="flex-1 sm:flex-none px-3 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] focus:outline-hidden focus:border-[var(--ds-focus)] cursor-pointer"
                   >
                     <option value="ALL">Semua Peran</option>
                     <option value="ADMIN">Hanya Admin</option>
@@ -513,7 +513,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   type="button"
                   onClick={loadAllUsers}
                   disabled={loading}
-                  className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+                  className="px-3.5 py-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold flex items-center gap-1.5 border border-[var(--ds-border)] transition-colors cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <ArrowClockwise className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
@@ -522,15 +522,15 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
 
         {/* Users Table */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="sm:hidden px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-            <span className="font-semibold text-slate-300">Daftar Akun ({filteredUsers.length})</span>
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl overflow-hidden shadow-xs">
+          <div className="sm:hidden px-4 py-2.5 bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border)] flex items-center justify-between text-[11px] text-[var(--ds-text-muted)]">
+            <span className="font-semibold text-[var(--ds-text)]">Daftar Akun ({filteredUsers.length})</span>
             <span className="text-emerald-400 font-medium">Geser ke kanan →</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[780px] text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+                <tr className="border-b border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] font-semibold uppercase tracking-wider text-[11px]">
                   <th className="py-3.5 px-4">Nama Guru / Staf</th>
                   <th className="py-3.5 px-4">Email & NIP</th>
                   <th className="py-3.5 px-4">Peran (Role)</th>
@@ -540,10 +540,10 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   <th className="py-3.5 px-4 text-right">Tindakan Admin</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80">
+              <tbody className="divide-y divide-[var(--ds-border)]">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <td colSpan={7} className="py-12 text-center text-[var(--ds-text-muted)]">
                       <div className="inline-flex items-center gap-2">
                         <ArrowClockwise className="w-4 h-4 animate-spin text-emerald-400" />
                         <span>Memuat data pengguna dari Firestore...</span>
@@ -552,7 +552,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <td colSpan={7} className="py-12 text-center text-[var(--ds-text-muted)]">
                       <p className="text-xs mb-2">Tidak ada akun pengguna yang cocok dengan kriteria filter/pencarian.</p>
                       {(searchQuery || statusFilter !== 'ALL' || roleFilter !== 'ALL') && (
                         <button
@@ -562,7 +562,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             setStatusFilter('ALL');
                             setRoleFilter('ALL');
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-medium border border-slate-700 transition-colors"
+                          className="px-3 py-1.5 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-emerald-600 dark:text-emerald-300 text-xs font-medium border border-[var(--ds-border)] transition-colors"
                         >
                           Reset Pencarian & Filter
                         </button>
@@ -577,24 +577,24 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                     const isProtected = isSelf || isSuper;
 
                     return (
-                      <tr key={u.uid} className="hover:bg-slate-800/40 transition-colors">
+                      <tr key={u.uid} className="hover:bg-[var(--ds-accent-soft)]/50 transition-colors">
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-emerald-400 shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-center justify-center font-bold text-emerald-400 shrink-0">
                               {(u.displayName || u.email || 'G').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <span className="font-bold text-white block">
+                              <span className="font-bold text-[var(--ds-text)] block">
                                 {u.displayName || 'Nama Belum Diisi'}
                                 {isSelf && <span className="ml-1.5 text-[10px] text-emerald-400 font-semibold">(Akun Anda)</span>}
                               </span>
-                              <span className="text-[11px] text-slate-400 font-mono">UID: {u.uid.slice(0, 8)}...</span>
+                              <span className="text-[11px] text-[var(--ds-text-muted)] font-mono">UID: {u.uid.slice(0, 8)}...</span>
                             </div>
                           </div>
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <span className="text-slate-300 font-medium block">{u.email}</span>
+                          <span className="text-[var(--ds-text)] font-medium block">{u.email}</span>
                           <span className="text-[11px] text-slate-500 font-mono">NIP: {u.nip || '-'}</span>
                         </td>
 
@@ -605,7 +605,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                               <span>Admin</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-semibold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-text)] border border-[var(--ds-border)] text-[11px] font-semibold">
                               <GraduationCap className="w-3 h-3 text-emerald-400" />
                               <span>Guru</span>
                             </span>
@@ -625,18 +625,18 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
                         <td className="py-3.5 px-4 text-center">
                           {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[10px] font-semibold">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)] text-[10px] font-semibold">
                               <Shield className="w-3 h-3 text-emerald-400 shrink-0" />
                               <span>Administrator</span>
                             </span>
                           ) : u.lastLoginAt ? (
                             <div className="flex flex-col items-center justify-center gap-0.5">
-                              <span className="text-white font-semibold text-[11px] inline-flex items-center gap-1">
-                                <Clock className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <span className="text-[var(--ds-text)] font-semibold text-[11px] inline-flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-[var(--ds-text-muted)] shrink-0" />
                                 <span>{formatLastLoginDate(u.lastLoginAt)}</span>
                               </span>
                               {formatRelativeTime(u.lastLoginAt) && (
-                                <span className="text-[10px] text-slate-400 font-medium">
+                                <span className="text-[10px] text-[var(--ds-text-muted)] font-medium">
                                   ({formatRelativeTime(u.lastLoginAt)})
                                 </span>
                               )}
@@ -653,9 +653,9 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                           <button
                             type="button"
                             onClick={() => handleInspectStorage(u)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium border border-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-[11px] font-medium border border-[var(--ds-border)] inline-flex items-center gap-1 transition-colors cursor-pointer"
                           >
-                            <Database className="w-3 h-3 text-cyan-400" />
+                            <Database className="w-3 h-3 text-[var(--ds-accent)]" />
                             <span>Cek Dokumen</span>
                           </button>
                         </td>
@@ -706,7 +706,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                             )}
 
                             {isProtected && (
-                              <span className="text-[11px] text-slate-500 italic">
+                              <span className="text-[11px] text-[var(--ds-text-muted)] italic">
                                 {isSelf ? 'Akun Anda' : 'Akun Utama'}
                               </span>
                             )}
@@ -746,37 +746,37 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Rombel / Kelas</span>
-                    <span className="font-bold text-slate-900">{userStats.classesCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Rombel / Kelas</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.classesCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Mata Pelajaran</span>
-                    <span className="font-bold text-slate-900">{userStats.subjectsCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Mata Pelajaran</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.subjectsCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Master Siswa</span>
-                    <span className="font-bold text-slate-900">{userStats.studentsCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Master Siswa</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.studentsCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Penugasan KBM</span>
-                    <span className="font-bold text-slate-900">{userStats.assignmentsCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Penugasan KBM</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.assignmentsCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Jurnal & Pertemuan</span>
-                    <span className="font-bold text-slate-900">{userStats.meetingsCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Jurnal & Pertemuan</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.meetingsCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between">
-                    <span className="text-slate-600">Rekap Presensi</span>
-                    <span className="font-bold text-slate-900">{userStats.attendanceCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between">
+                    <span className="text-[var(--ds-text-muted)]">Rekap Presensi</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.attendanceCount}</span>
                   </div>
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex justify-between col-span-2">
-                    <span className="text-slate-600">Asesmen & Nilai Siswa</span>
-                    <span className="font-bold text-slate-900">{userStats.gradesCount}</span>
+                  <div className="p-2.5 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)] flex justify-between col-span-2">
+                    <span className="text-[var(--ds-text-muted)]">Asesmen & Nilai Siswa</span>
+                    <span className="font-bold text-[var(--ds-text)]">{userStats.gradesCount}</span>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-500 italic mt-2">
+                <p className="text-[11px] text-[var(--ds-text-muted)] italic mt-2">
                   Data di atas adalah estimasi dokumen Firestore yang terpakai oleh pengguna ini.
                 </p>
               </div>
@@ -814,7 +814,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-[var(--ds-text)]">
                 Ketik <span className="font-mono text-rose-600 bg-rose-50 px-1 py-0.5 rounded">HAPUS</span> atau email pengguna untuk konfirmasi:
               </label>
               <input
@@ -823,11 +823,11 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                 onChange={(e) => setPurgeConfirmText(e.target.value)}
                 placeholder="Ketik HAPUS..."
                 disabled={purging}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-hidden focus:border-rose-500"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-xs font-semibold text-[var(--ds-text)] focus:outline-hidden focus:border-rose-500"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => {
@@ -835,7 +835,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   setPurgeConfirmText('');
                 }}
                 disabled={purging}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] text-xs font-semibold cursor-pointer"
               >
                 Batal
               </button>
@@ -888,14 +888,14 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
 
             {/* AUTO SCAN SECTION */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div className="p-4 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-[var(--ds-text)] flex items-center gap-1.5">
                     <MagnifyingGlass className="w-3.5 h-3.5 text-amber-600" />
                     Deteksi Otomatis Dokumen Yatim
                   </h4>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[var(--ds-text-muted)]">
                     Pindai seluruh sub-koleksi untuk mencari ID akun yang sudah terhapus
                   </p>
                 </div>
@@ -959,17 +959,17 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
                   <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
                     {detectedOrphans.map(item => (
-                      <div key={item.uid} className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2.5 shadow-2xs">
+                      <div key={item.uid} className="p-3 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-xl flex items-center justify-between gap-2.5 shadow-2xs">
                         <div className="min-w-0">
-                          <div className="font-mono text-xs font-bold text-slate-800 truncate">
+                          <div className="font-mono text-xs font-bold text-[var(--ds-text)] truncate">
                             UID: <span className="text-emerald-600">{item.uid}</span>
                           </div>
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <div className="text-[11px] text-[var(--ds-text-muted)] flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
                               ~{item.detectedDocCount} dokumen terdeteksi
                             </span>
-                            <span className="text-slate-400">di koleksi:</span>
-                            <span className="font-mono text-slate-600 font-medium">
+                            <span className="text-[var(--ds-text-muted)]">di koleksi:</span>
+                            <span className="font-mono text-[var(--ds-text-muted)] font-medium">
                               {item.sampleCollections.join(', ')}
                             </span>
                           </div>
@@ -990,8 +990,8 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
             </div>
 
             {/* MANUAL UID SECTION */}
-            <div className="pt-2 border-t border-slate-200 space-y-2">
-              <label className="block text-xs font-bold text-slate-700">
+            <div className="pt-2 border-t border-[var(--ds-border)] space-y-2">
+              <label className="block text-xs font-bold text-[var(--ds-text)]">
                 Atau Masukkan UID Manual (Opsional):
               </label>
               <div className="flex gap-2">
@@ -1001,13 +1001,13 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   onChange={(e) => setResidualUidInput(e.target.value)}
                   placeholder="Contoh: E4iMZEZoZTWuOy11SxLq8Qw..."
                   disabled={sweepingResidual || sweepingAll}
-                  className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-semibold text-slate-900 focus:outline-hidden focus:border-amber-500"
+                  className="flex-1 px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-xs font-mono font-semibold text-[var(--ds-text)] focus:outline-hidden focus:border-[var(--ds-focus)]"
                 />
                 <button
                   type="button"
                   onClick={handleSweepResidualByUid}
                   disabled={sweepingResidual || sweepingAll || !residualUidInput.trim()}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] text-xs font-bold flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
                 >
                   {sweepingResidual ? (
                     <>
@@ -1034,7 +1034,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => {
@@ -1043,7 +1043,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   setSweepResult(null);
                 }}
                 disabled={sweepingResidual || sweepingAll || scanningOrphans}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] text-xs font-semibold cursor-pointer"
               >
                 Tutup
               </button>

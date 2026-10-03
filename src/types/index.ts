@@ -58,6 +58,15 @@ export interface DesignSystemColorTokens {
   accentHover: string;
   accentSoft: string;
   surfaceMuted: string;
+  /** Status semantics. Each fg is verified >= 4.5:1 on its own bg. */
+  successBg: string;
+  successFg: string;
+  warningBg: string;
+  warningFg: string;
+  dangerBg: string;
+  dangerFg: string;
+  infoBg: string;
+  infoFg: string;
 }
 
 export interface DesignSystemTokens {
@@ -136,6 +145,10 @@ export interface DesignSystemOption {
 // Pastel note pairs (paper-craft sticky notes): red #9F2F2D/#FDEBEC 6.66,
 //   blue #1F6C9F/#E1F3FE 4.98, green #346538/#EDF3EC 6.08,
 //   yellow #956400/#FBF3DB 4.62. All >= 4.5.
+// Status tokens (fg on own bg, computed 2026-10-03): paper-craft light 6.24-6.81,
+//   dark 8.20-10.20; shadcn light 4.79-6.16, dark 9.22-11.12; neo-brutalism ink
+//   on pastel blocks 11.06-16.37 (both modes). Neo dangerFg is #000 in dark mode:
+//   never use it as bare text/stroke on dark surfaces - pair with dangerBg.
 
 export const DESIGN_SYSTEMS: DesignSystemOption[] = [
   {
@@ -159,6 +172,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#E84E2C',
         accentSoft: 'rgba(255,90,54,0.10)',
         surfaceMuted: '#F5F0E4',
+        successBg: '#EDF3EC',
+        successFg: '#2F5D33',
+        warningBg: '#FBF3DB',
+        warningFg: '#7A5200',
+        dangerBg: '#FDEBEC',
+        dangerFg: '#9F2F2D',
+        infoBg: '#E1F3FE',
+        infoFg: '#1A5A85',
       },
       darkColors: {
         accent: '#FF5A36',
@@ -173,6 +194,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#FF7B5E',
         accentSoft: 'rgba(255,90,54,0.15)',
         surfaceMuted: '#292524',
+        successBg: '#1E2E20',
+        successFg: '#86EFAC',
+        warningBg: '#33270F',
+        warningFg: '#FCD34D',
+        dangerBg: '#3B1A1A',
+        dangerFg: '#FCA5A5',
+        infoBg: '#132A3A',
+        infoFg: '#7DD3FC',
       },
       typography: {
         fontFamily: {
@@ -240,6 +269,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#27272A',
         accentSoft: 'rgba(24,24,27,0.06)',
         surfaceMuted: '#F4F4F5',
+        successBg: '#F0FDF4',
+        successFg: '#15803D',
+        warningBg: '#FFFBEB',
+        warningFg: '#B45309',
+        dangerBg: '#FEF2F2',
+        dangerFg: '#B91C1C',
+        infoBg: '#EFF6FF',
+        infoFg: '#1D4ED8',
       },
       darkColors: {
         accent: '#FAFAFA',
@@ -254,6 +291,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#F4F4F5',
         accentSoft: 'rgba(250,250,250,0.10)',
         surfaceMuted: '#18181B',
+        successBg: '#052E16',
+        successFg: '#86EFAC',
+        warningBg: '#2D1F05',
+        warningFg: '#FCD34D',
+        dangerBg: '#2A0F0F',
+        dangerFg: '#FCA5A5',
+        infoBg: '#0C1E3A',
+        infoFg: '#93C5FD',
       },
       typography: {
         fontFamily: {
@@ -321,6 +366,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#E6CF00',
         accentSoft: 'rgba(255,229,0,0.25)',
         surfaceMuted: '#F4F0E4',
+        successBg: '#A7F3D0',
+        successFg: '#000000',
+        warningBg: '#FDBA74',
+        warningFg: '#000000',
+        dangerBg: '#FCA5A5',
+        dangerFg: '#000000',
+        infoBg: '#93C5FD',
+        infoFg: '#000000',
       },
       darkColors: {
         accent: '#FFE500',
@@ -335,6 +388,14 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
         accentHover: '#FFED4B',
         accentSoft: 'rgba(255,229,0,0.20)',
         surfaceMuted: '#18181B',
+        successBg: '#A7F3D0',
+        successFg: '#000000',
+        warningBg: '#FDBA74',
+        warningFg: '#000000',
+        dangerBg: '#FCA5A5',
+        dangerFg: '#000000',
+        infoBg: '#93C5FD',
+        infoFg: '#000000',
       },
       typography: {
         fontFamily: {

@@ -68,6 +68,7 @@ describe('Route Paths & Mapping Utilities', () => {
       expect(resolvePathToRouteKey('/settings/stats')).toBe('settings-stats');
       expect(resolvePathToRouteKey('/settings/preferences')).toBe('settings-preferences');
       expect(resolvePathToRouteKey('/settings/maintenance')).toBe('settings-maintenance');
+      expect(resolvePathToRouteKey('/settings/showcase')).toBe('settings-showcase');
     });
 
     it('resolves standalone paths and fallback route keys', () => {

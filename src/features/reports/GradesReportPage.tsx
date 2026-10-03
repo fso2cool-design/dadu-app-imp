@@ -266,29 +266,29 @@ export const GradesReportPage: React.FC = () => {
       {/* Page Header */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-            <Medal className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+            <Medal className="w-5 h-5 text-[var(--ds-accent)]" />
             Laporan Daftar Nilai Akademik
           </h1>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Format resmi rekap nilai mata pelajaran per semester, rincian komponen asesmen, dan kalkulasi otomatis.
           </p>
         </div>
       </div>
 
       {/* Control & Funnel Bar (Hidden on Print) */}
-      <div className="no-print bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600">Pilih Mapel & Kelas:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Mapel & Kelas:</label>
               <select
                 value={selectedAssignment?.id || ''}
                 onChange={(e) => {
                   const asg = teachingAssignments.find(a => a.id === e.target.value);
                   if (asg) setSelectedAssignment(asg);
                 }}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500"
+                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] focus:outline-none focus:border-[var(--ds-accent)]"
               >
                 {teachingAssignments.map(asg => (
                   <option key={asg.id} value={asg.id}>
@@ -299,23 +299,23 @@ export const GradesReportPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600">Ambang KKTP:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Ambang KKTP:</label>
               <input
                 type="number"
                 min={50}
                 max={95}
                 value={kkmThreshold}
                 onChange={(e) => setKkmThreshold(Number(e.target.value) || 75)}
-                className="w-16 px-2 py-1.5 rounded-xl border border-slate-200 text-xs text-center font-bold text-slate-800 bg-slate-50"
+                className="w-16 px-2 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-center font-bold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] focus:outline-none focus:border-[var(--ds-accent)]"
               />
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-600">Formula:</label>
+              <label className="text-xs font-semibold text-[var(--ds-text)]">Formula:</label>
               <select
                 value={calcFormula}
                 onChange={(e) => setCalcFormula(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-slate-50"
+                className="px-2.5 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] focus:outline-none focus:border-[var(--ds-accent)]"
               >
                 <option value="WEIGHTED">Rata-rata Berbobot (%)</option>
                 <option value="SIMPLE">Rata-rata Sederhana</option>
@@ -331,19 +331,19 @@ export const GradesReportPage: React.FC = () => {
               placeholder="Cari siswa atau NIS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-accent)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] transition-all"
             />
           </div>
         </div>
 
         {/* Statistical Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
-          <div className="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[var(--ds-border)]">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-indigo-700 block">Rata-rata Kelas</span>
-              <span className="text-lg font-black text-indigo-950">{stats.avgScore}</span>
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Rata-rata Kelas</span>
+              <span className="text-lg font-black text-[var(--ds-accent)]">{stats.avgScore}</span>
             </div>
-            <TrendUp className="w-6 h-6 text-indigo-400" />
+            <TrendUp className="w-6 h-6 text-[var(--ds-accent)]" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
@@ -362,10 +362,10 @@ export const GradesReportPage: React.FC = () => {
             <WarningCircle className="w-6 h-6 text-rose-400" />
           </div>
 
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-600 block">Tertinggi / Terendah</span>
-              <span className="text-xs font-mono font-bold text-slate-800">
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Tertinggi / Terendah</span>
+              <span className="text-xs font-mono font-bold text-[var(--ds-text)]">
                 <strong className="text-emerald-700">{stats.highest}</strong> / <strong className="text-rose-700">{stats.lowest}</strong>
               </span>
             </div>

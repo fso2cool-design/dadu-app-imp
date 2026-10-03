@@ -346,21 +346,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {/* 1. 🚀 TEACHING COCKPIT HERO (Lini Waktu & Fokus Mengajar Guru) */}
-      <div className="rounded-3xl border border-slate-200/90 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-xs">
+      <div className="rounded-3xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] shadow-xs">
         <div className="p-5 sm:p-7 space-y-6">
           {/* Header Row: Greeting & Context Status */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 mb-2">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[11px] font-semibold text-[var(--ds-text-muted)] mb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 <span>Ruang Kerja Pendidik</span>
                 <span className="text-slate-300 dark:text-neutral-700">•</span>
                 <span>{formatDateWithDay(todayISO)}</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-black text-[var(--ds-text)] tracking-tight">
                 {greetingTime}, {teacherName}
               </h1>
-              <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-zinc-400 mt-1">
+              <p className="text-xs sm:text-sm font-medium text-[var(--ds-text-muted)] mt-1">
                 Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'} • {teachingAssignments.length} Kelas Diampu
               </p>
             </div>
@@ -372,7 +372,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   className={`px-3.5 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-2 shadow-2xs ${
                     todayProgress.isAllDone
                       ? 'bg-emerald-50 border-emerald-200/90 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-300'
-                      : 'bg-slate-50 border-slate-200/90 text-slate-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-zinc-300'
+                      : 'bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)]'
                   }`}
                 >
                   {todayProgress.isAllDone ? (
@@ -409,19 +409,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider">
                     Fokus Mengajar Jam Ini
                   </span>
-                  <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                  <span className="text-xs font-semibold text-[var(--ds-text-muted)]">
                     {todayProgress.nextPendingItem.assignment.timeSlot || 'Hari Ini'}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-100">
+                  <h3 className="text-base sm:text-lg font-black text-[var(--ds-text)]">
                     Kelas {todayProgress.nextPendingItem.assignment.className}
                   </h3>
-                  <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-zinc-400">
+                  <span className="text-xs sm:text-sm font-bold text-[var(--ds-text-muted)]">
                     • {todayProgress.nextPendingItem.assignment.subjectName}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-zinc-400">
+                <p className="text-xs text-[var(--ds-text-muted)]">
                   {!todayProgress.nextPendingItem.hasAttendance
                     ? 'Presensi tatap muka siswa belum dicatat untuk sesi ini.'
                     : 'Presensi tuntas. Jurnal materi kegiatan mengajar belum ditulis.'}
@@ -453,7 +453,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <button
                   type="button"
                   onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'meetings')}
-                  className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300 dark:hover:border-neutral-700 text-xs font-semibold transition-all cursor-pointer"
+                  className="px-3.5 py-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-border-strong)] text-xs font-semibold transition-all cursor-pointer"
                 >
                   Detail Sesi
                 </button>
@@ -477,9 +477,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           ) : null}
 
           {/* Integrated Quick Action Bar */}
-          <div className="pt-2 border-t border-slate-100 dark:border-neutral-800/80">
+          <div className="pt-2 border-t border-[var(--ds-border)]">
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkle className="w-3.5 h-3.5 text-amber-500" />
                 Pintasan Administrasi
               </span>
@@ -489,16 +489,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => onNavigate('attendance-subject')}
-                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+                className="p-3.5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-border-strong)] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <CheckSquare className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
+                  <span className="text-xs font-bold text-[var(--ds-text)] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
                     + Presensi Sesi
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                  <span className="text-[10px] font-medium text-[var(--ds-text-muted)] block truncate">
                     Kehadiran tatap muka
                   </span>
                 </div>
@@ -507,16 +507,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => onNavigate('meetings')}
-                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+                className="p-3.5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-border-strong)] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <CalendarCheck className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
+                  <span className="text-xs font-bold text-[var(--ds-text)] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block truncate">
                     + Jurnal Mengajar
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                  <span className="text-[10px] font-medium text-[var(--ds-text-muted)] block truncate">
                     Materi & kegiatan
                   </span>
                 </div>
@@ -525,16 +525,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => onNavigate('grades')}
-                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-amber-300 dark:hover:border-amber-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+                className="p-3.5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-border-strong)] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
               >
                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                   <Medal className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
+                  <span className="text-xs font-bold text-[var(--ds-text)] group-hover:text-amber-600 dark:group-hover:text-amber-400 block truncate">
                     + Input Nilai
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                  <span className="text-[10px] font-medium text-[var(--ds-text-muted)] block truncate">
                     Formatif & sumatif
                   </span>
                 </div>
@@ -543,7 +543,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => onNavigate('homeroom-attendance-daily')}
-                className="relative p-3.5 rounded-2xl bg-slate-50/70 dark:bg-neutral-900/80 border border-slate-200/70 dark:border-neutral-800/80 hover:border-sky-300 dark:hover:border-sky-500/50 hover:bg-white dark:hover:bg-neutral-900 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
+                className="relative p-3.5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] hover:border-[var(--ds-border-strong)] shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-98 transition-all flex items-center gap-3 group cursor-pointer text-left"
               >
                 {isHomeroomPending && (
                   <span className="absolute top-2 right-2 flex h-2 w-2">
@@ -555,10 +555,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <CalendarDots className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 block truncate">
+                  <span className="text-xs font-bold text-[var(--ds-text)] group-hover:text-sky-600 dark:group-hover:text-sky-400 block truncate">
                     Presensi Harian
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-zinc-400 block truncate">
+                  <span className="text-[10px] font-medium text-[var(--ds-text-muted)] block truncate">
                     Buku absensi harian
                   </span>
                 </div>
@@ -569,17 +569,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 3. 📅 JADWAL HARI INI */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+              <h2 className="text-sm font-bold text-[var(--ds-text)]">
                 Jadwal Hari Ini ({todayDayName})
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">
+              <p className="text-[11px] font-medium text-[var(--ds-text-muted)]">
                 Status presensi dan jurnal tatap muka kelas hari ini
               </p>
             </div>
@@ -600,15 +600,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <Skeleton className="h-16 w-full rounded-2xl" />
           </div>
         ) : todayScheduleItems.length === 0 ? (
-          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200/70 dark:border-neutral-800 flex items-start sm:items-center gap-3.5">
+          <div className="p-5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-start sm:items-center gap-3.5">
             <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-100 dark:border-teal-800/50 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
               <CheckCircle className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+              <h4 className="text-xs font-bold text-[var(--ds-text)]">
                 Tidak Ada Jadwal Mengajar Hari Ini
               </h4>
-              <p className="text-[11px] font-medium text-slate-600 dark:text-zinc-400 mt-0.5">
+              <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5">
                 Bebas jam tatap muka hari ini. Anda dapat fokus menyelesaikan administrasi, rekap nilai, dan kelengkapan jurnal mengajar.
               </p>
             </div>
@@ -622,15 +622,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 dark:bg-neutral-900/90 border border-slate-200/80 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-neutral-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:border-[var(--ds-border-strong)] transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs"
                 >
                   {/* Left info: Time, Class, Subject */}
                   <div className="flex items-center gap-3">
-                    <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-center shrink-0">
-                      <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-500 block uppercase">
+                    <div className="px-2.5 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-center shrink-0">
+                      <span className="text-[10px] font-bold text-[var(--ds-text-muted)] block uppercase">
                         Jam
                       </span>
-                      <span className="text-xs font-black text-slate-800 dark:text-zinc-200">
+                      <span className="text-xs font-black text-[var(--ds-text)]">
                         {assign.timeSlot || 'Sesi'}
                       </span>
                     </div>
@@ -640,11 +640,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         <span className="px-2 py-0.5 rounded-md bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
                           Kelas {assign.className}
                         </span>
-                        <h4 className="font-bold text-xs text-slate-800 dark:text-zinc-100">
+                        <h4 className="font-bold text-xs text-[var(--ds-text)]">
                           {assign.subjectName}
                         </h4>
                       </div>
-                      <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 mt-0.5">
+                      <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5">
                         {assign.room ? `Ruang: ${assign.room}` : `${item.totalStudents} Siswa Terdaftar`}
                       </p>
                     </div>
@@ -671,11 +671,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     )}
 
                     {item.hasJournal ? (
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-200/60 dark:bg-neutral-800 text-slate-700 dark:text-zinc-300 text-[11px] font-medium truncate max-w-[200px]" title={item.topic}>
+                      <span className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-[11px] font-medium truncate max-w-[200px]" title={item.topic}>
                         ✓ Jurnal: {item.topic}
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-200/40 dark:bg-neutral-800 text-slate-400 dark:text-zinc-500 text-[11px] italic">
+                      <span className="px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] text-[11px] italic">
                         Jurnal belum ada
                       </span>
                     )}
@@ -695,7 +695,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       <button
                         type="button"
                         onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                        className="px-3 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-semibold transition-all cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold transition-all cursor-pointer"
                       >
                         Lihat Presensi
                       </button>
@@ -704,7 +704,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'meetings')}
-                      className="px-3 py-1.5 rounded-xl bg-white dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-slate-700 dark:text-zinc-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-semibold transition-all cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold transition-all cursor-pointer"
                     >
                       {item.hasJournal ? 'Edit Jurnal' : '+ Jurnal'}
                     </button>
@@ -717,23 +717,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 4. 💡 REKOMENDASI & PERLU DIKERJAKAN (Smart Workflow Reminders) */}
-      <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-3.5">
+      <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-5 sm:p-6 shadow-xs space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-100 dark:border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <Lightbulb className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+              <h2 className="text-sm font-bold text-[var(--ds-text)]">
                 Rekomendasi & Perlu Dikerjakan
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-zinc-400">
+              <p className="text-[11px] font-medium text-[var(--ds-text-muted)]">
                 Pengingat cerdas kelengkapan administrasi dan penilaian
               </p>
             </div>
           </div>
 
-          <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-500">
+          <span className="text-[11px] font-semibold text-[var(--ds-text-muted)]">
             {pendingTasks.length} Catatan
           </span>
         </div>
@@ -760,7 +760,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             {pendingTasks.map((task) => (
               <div
                 key={task.id}
-                className={`p-3.5 rounded-2xl bg-slate-50/90 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 transition-all flex items-center justify-between gap-3 shadow-2xs ${task.severity === "warning" ? "paper-note-yellow" : "paper-note-green"}`}
+                className={`p-3.5 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:border-[var(--ds-border-strong)] transition-all flex items-center justify-between gap-3 shadow-2xs ${task.severity === "warning" ? "paper-note-yellow" : "paper-note-green"}`}
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -769,11 +769,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     ) : (
                       <WarningCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
                     )}
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-zinc-200 truncate">
+                    <h4 className="text-xs font-bold text-[var(--ds-text)] truncate">
                       {task.title}
                     </h4>
                   </div>
-                  <p className="text-[11px] font-medium text-slate-600 dark:text-zinc-400 mt-0.5 truncate">
+                  <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5 truncate">
                     {task.desc}
                   </p>
                 </div>
@@ -789,7 +789,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       onNavigate('homeroom-attendance-daily');
                     }
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300/90 dark:border-neutral-800 hover:border-slate-400 dark:bg-neutral-950 dark:hover:bg-emerald-600 text-slate-800 dark:text-zinc-300 hover:text-emerald-700 dark:hover:text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
+                  className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs"
                 >
                   {task.actionLabel}
                 </button>
@@ -801,10 +801,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
       {/* 5. 👨🏫 WALI KELAS (Conditional Render: Only when teacher is a homeroom teacher) */}
       {homeroomClass && (
-        <div className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-3xl p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-3xl p-5 sm:p-6 shadow-2xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-neutral-900 border border-purple-100 dark:border-neutral-800 flex items-center justify-center text-purple-600 dark:text-purple-400">
+              <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-100 dark:border-purple-800/50 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <Users className="w-5 h-5" />
               </div>
               <div>
@@ -812,11 +812,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   <span className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold text-[10px] uppercase tracking-wider">
                     Wali Kelas
                   </span>
-                  <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-100">
+                  <h2 className="text-sm font-bold text-[var(--ds-text)]">
                     Kelas {homeroomClass.name}
                   </h2>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">
                   Rekap kehadiran dan pembinaan siswa binaan Anda hari ini
                 </p>
               </div>
@@ -833,7 +833,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => onNavigate('homeroom-dashboard')}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-neutral-900 hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] text-xs font-semibold transition-all cursor-pointer"
               >
                 Dashboard Wali
               </button>
@@ -841,24 +841,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Attendance live pill breakdown */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="p-4 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <div>
-                <span className="text-[10px] text-slate-400 dark:text-zinc-500 uppercase font-bold block">
+                <span className="text-[10px] text-[var(--ds-text-muted)] uppercase font-bold block">
                   Total Siswa
                 </span>
-                <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                <span className="font-bold text-[var(--ds-text)] text-sm">
                   {studentCountMap.get(homeroomClass.id) || 0} Siswa
                 </span>
               </div>
 
               {homeroomDailySession ? (
                 <>
-                  <div className="border-l border-slate-200 dark:border-neutral-800 pl-4">
+                  <div className="border-l border-[var(--ds-border)] pl-4">
                     <span className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-bold block">
                       Hadir
                     </span>
-                    <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                    <span className="font-bold text-[var(--ds-text)] text-sm">
                       {homeroomDailySession.summary?.present ?? homeroomDailySession.totalPresent ?? 0}
                     </span>
                   </div>
@@ -867,7 +867,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <span className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-bold block">
                       Sakit
                     </span>
-                    <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                    <span className="font-bold text-[var(--ds-text)] text-sm">
                       {homeroomDailySession.summary?.sick ?? homeroomDailySession.totalSick ?? 0}
                     </span>
                   </div>
@@ -876,7 +876,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <span className="text-[10px] text-blue-600 dark:text-blue-400 uppercase font-bold block">
                       Izin
                     </span>
-                    <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                    <span className="font-bold text-[var(--ds-text)] text-sm">
                       {homeroomDailySession.summary?.permitted ?? homeroomDailySession.totalPermit ?? 0}
                     </span>
                   </div>
@@ -885,13 +885,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <span className="text-[10px] text-rose-600 dark:text-rose-400 uppercase font-bold block">
                       Alfa
                     </span>
-                    <span className="font-bold text-slate-800 dark:text-zinc-200 text-sm">
+                    <span className="font-bold text-[var(--ds-text)] text-sm">
                       {homeroomDailySession.summary?.absent ?? homeroomDailySession.totalAbsent ?? 0}
                     </span>
                   </div>
                 </>
               ) : (
-                <div className="border-l border-slate-200 dark:border-neutral-800 pl-4 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
+                <div className="border-l border-[var(--ds-border)] pl-4 flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
                   <WarningCircle className="w-4 h-4" />
                   <span>Presensi harian hari ini belum diinput</span>
                 </div>
@@ -911,7 +911,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
       {/* 6. 📚 PENGAJARAN SAYA (Semua Rombel & Mapel yang Diampu) */}
       <div className="space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 p-2.5 sm:p-3 rounded-2xl shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] p-2.5 sm:p-3 rounded-2xl shadow-2xs">
           {/* Left: Grade Level Tabs or Section Title */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             {gradeTabs.length > 2 ? (
@@ -924,7 +924,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             ) : (
               <div className="flex items-center gap-2 pl-2">
                 <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 uppercase tracking-wider">
+                <span className="text-xs font-bold text-[var(--ds-text)] uppercase tracking-wider">
                   Pengajaran Saya ({filteredAssignments.length} Kelas)
                 </span>
               </div>
@@ -932,15 +932,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Right: View Mode Toggle & Manage Link */}
-          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-neutral-800">
-            <div className="flex items-center p-1 bg-slate-100 dark:bg-neutral-900 rounded-xl border border-slate-200/80 dark:border-neutral-800">
+          <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[var(--ds-border)]">
+            <div className="flex items-center p-1 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setViewMode('LIST')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'LIST'
-                    ? 'bg-white dark:bg-neutral-950 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
-                    : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                    ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-accent)] shadow-2xs font-bold'
+                    : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                 }`}
                 title="Tampilan Baris Kompak (Efisien & Rapi)"
               >
@@ -953,8 +953,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 onClick={() => setViewMode('GRID')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   viewMode === 'GRID'
-                    ? 'bg-white dark:bg-neutral-950 text-emerald-600 dark:text-emerald-400 shadow-2xs font-bold'
-                    : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                    ? 'bg-[var(--ds-surface-elevated)] text-[var(--ds-accent)] shadow-2xs font-bold'
+                    : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                 }`}
                 title="Tampilan Kartu Grid"
               >
@@ -977,12 +977,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         {loadingStats ? (
           <SkeletonCardGrid count={3} />
         ) : filteredAssignments.length === 0 ? (
-          <div className="bg-white dark:bg-neutral-950 border border-dashed border-slate-200 dark:border-neutral-800 rounded-3xl p-8 sm:p-10 text-center">
+          <div className="bg-[var(--ds-surface-elevated)] border border-dashed border-[var(--ds-border)] rounded-3xl p-8 sm:p-10 text-center">
             <div className="w-12 h-12 rounded-2xl bg-accent-primary-soft border border-accent-primary-border flex items-center justify-center text-accent-text mx-auto mb-3">
               <Stack className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-sm text-slate-800 dark:text-zinc-200">Tidak ada data kelas</h3>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-sm mx-auto">
+            <h3 className="font-bold text-sm text-[var(--ds-text)]">Tidak ada data kelas</h3>
+            <p className="text-xs text-[var(--ds-text-muted)] mt-1 max-w-sm mx-auto">
               Tambahkan plotting mata pelajaran dan rombel kelas yang Anda ampu melalui Master Pengajaran.
             </p>
             <button
@@ -1003,22 +1003,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 hover:border-emerald-300 dark:hover:border-neutral-700 rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 group"
+                  className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] hover:border-[var(--ds-border-strong)] rounded-2xl p-3 sm:p-3.5 shadow-2xs hover:shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 group"
                 >
                   {/* Class & Subject Identity */}
                   <div className="flex items-center gap-3 min-w-[210px]">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 flex flex-col items-center justify-center shrink-0 group-hover:border-emerald-300 dark:group-hover:border-emerald-500/40 transition-colors">
-                      <span className="text-[9px] font-mono font-bold text-slate-500 dark:text-zinc-500">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex flex-col items-center justify-center shrink-0 group-hover:border-emerald-300 dark:group-hover:border-emerald-500/40 transition-colors">
+                      <span className="text-[9px] font-mono font-bold text-[var(--ds-text-muted)]">
                         {assign.subjectCode || 'MAPEL'}
                       </span>
-                      <span className="text-xs font-black text-slate-900 dark:text-zinc-100">
+                      <span className="text-xs font-black text-[var(--ds-text)]">
                         {assign.className}
                       </span>
                     </div>
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-900 dark:text-zinc-100 text-sm">
+                        <h4 className="font-bold text-[var(--ds-text)] text-sm">
                           Kelas {assign.className}
                         </h4>
                         {typeof rawCount === 'number' && rawCount > 0 ? (
@@ -1027,29 +1027,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                           </span>
                         ) : null}
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
+                      <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
                         {assign.subjectName}
                       </p>
                     </div>
                   </div>
 
                   {/* Progress & Live Metrics */}
-                  <div className="flex items-center gap-4 sm:gap-6 text-xs border-y md:border-y-0 md:border-x border-slate-100 dark:border-neutral-800/80 py-1.5 md:py-0 md:px-4">
+                  <div className="flex items-center gap-4 sm:gap-6 text-xs border-y md:border-y-0 md:border-x border-[var(--ds-border)] py-1.5 md:py-0 md:px-4">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block">
                         Terlaksana
                       </span>
-                      <span className="font-bold text-slate-800 dark:text-zinc-200 inline-flex items-center gap-1.5 mt-0.5 text-xs">
+                      <span className="font-bold text-[var(--ds-text)] inline-flex items-center gap-1.5 mt-0.5 text-xs">
                         <CheckCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
                         {metrics.totalMeetings} Pertemuan
                       </span>
                     </div>
 
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block">
                         Kehadiran Rata-rata
                       </span>
-                      <span className="font-bold text-slate-800 dark:text-zinc-200 inline-flex items-center gap-1.5 mt-0.5 text-xs">
+                      <span className="font-bold text-[var(--ds-text)] inline-flex items-center gap-1.5 mt-0.5 text-xs">
                         <TrendUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         {metrics.avgAttendance > 0 ? `${metrics.avgAttendance}%` : 'Belum Ada'}
                       </span>
@@ -1061,7 +1061,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/80 dark:hover:text-emerald-300 text-emerald-700 dark:text-emerald-400 text-xs font-semibold transition-all cursor-pointer border border-emerald-100/80 dark:border-neutral-800"
+                      className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 text-xs font-semibold transition-all cursor-pointer border border-emerald-200/80 dark:border-emerald-800/60"
                       title="Input / Lihat Presensi Kelas Ini"
                     >
                       Presensi
@@ -1070,7 +1070,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'meetings')}
-                      className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/80 dark:hover:text-emerald-300 text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer border border-slate-200/80 dark:border-neutral-800"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold transition-all cursor-pointer border border-[var(--ds-border)]"
                       title="Buka Jurnal Mengajar Kelas Ini"
                     >
                       Jurnal
@@ -1079,7 +1079,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'grades')}
-                      className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-neutral-900 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-950/80 dark:hover:text-amber-300 text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-all cursor-pointer border border-slate-200/80 dark:border-neutral-800"
+                      className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold transition-all cursor-pointer border border-[var(--ds-border)]"
                       title="Buku Nilai Kelas Ini"
                     >
                       Nilai
@@ -1099,7 +1099,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               return (
                 <div
                   key={assign.id}
-                  className="bg-white dark:bg-neutral-950 border border-slate-200/90 dark:border-neutral-800 rounded-2xl p-4 shadow-2xs hover:border-emerald-300 dark:hover:border-neutral-700 hover:shadow-xs transition-all flex flex-col justify-between"
+                  className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs hover:border-[var(--ds-border-strong)] hover:shadow-xs transition-all flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -1107,48 +1107,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         Kelas {assign.className}
                       </span>
                       {typeof rawCount === 'number' && rawCount > 0 ? (
-                        <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 px-2 py-0.5 rounded">
+                        <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded">
                           {rawCount} Siswa
                         </span>
                       ) : null}
                     </div>
 
-                    <h4 className="font-bold text-slate-900 dark:text-zinc-100 text-sm leading-tight">
+                    <h4 className="font-bold text-[var(--ds-text)] text-sm leading-tight">
                       {assign.subjectName}
                     </h4>
                     
                     {/* Metric pills */}
-                    <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-slate-100 dark:border-neutral-800/80 text-[11px]">
-                      <div className="bg-slate-50 dark:bg-neutral-900/80 p-2 rounded-xl border border-slate-200/60 dark:border-neutral-800">
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold block">Pertemuan</span>
-                        <span className="font-bold text-slate-800 dark:text-zinc-200">{metrics.totalMeetings} Sesi</span>
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-[var(--ds-border)] text-[11px]">
+                      <div className="bg-[var(--ds-surface-muted)] p-2 rounded-xl border border-[var(--ds-border)]">
+                        <span className="text-[10px] text-[var(--ds-text-muted)] font-semibold block">Pertemuan</span>
+                        <span className="font-bold text-[var(--ds-text)]">{metrics.totalMeetings} Sesi</span>
                       </div>
-                      <div className="bg-slate-50 dark:bg-neutral-900/80 p-2 rounded-xl border border-slate-200/60 dark:border-neutral-800">
-                        <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-semibold block">Rata Kehadiran</span>
-                        <span className="font-bold text-slate-800 dark:text-zinc-200">{metrics.avgAttendance > 0 ? `${metrics.avgAttendance}%` : '-'}</span>
+                      <div className="bg-[var(--ds-surface-muted)] p-2 rounded-xl border border-[var(--ds-border)]">
+                        <span className="text-[10px] text-[var(--ds-text-muted)] font-semibold block">Rata Kehadiran</span>
+                        <span className="font-bold text-[var(--ds-text)]">{metrics.avgAttendance > 0 ? `${metrics.avgAttendance}%` : '-'}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-neutral-800/80 flex items-center justify-between gap-2">
+                  <div className="mt-3.5 pt-3 border-t border-[var(--ds-border)] flex items-center justify-between gap-2">
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
-                      className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/60 dark:hover:text-emerald-400 text-emerald-700 dark:text-zinc-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-emerald-100/60 dark:border-neutral-800"
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-emerald-200/80 dark:border-emerald-800/60"
                     >
                       Presensi
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'meetings')}
-                      className="flex-1 py-1.5 px-2 rounded-lg bg-slate-50 dark:bg-neutral-900 hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-950/50 dark:hover:text-emerald-400 text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-slate-200/60 dark:border-neutral-800"
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold transition-colors text-center cursor-pointer border border-[var(--ds-border)]"
                     >
                       Jurnal
                     </button>
                     <button
                       type="button"
                       onClick={() => handleOpenAssignment(assign, 'grades')}
-                      className="flex-1 py-1.5 px-2 rounded-lg bg-slate-50 dark:bg-neutral-900 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-950/50 dark:hover:text-amber-400 text-slate-700 dark:text-zinc-300 text-xs font-semibold transition-colors text-center cursor-pointer border border-slate-200/60 dark:border-neutral-800"
+                      className="flex-1 py-1.5 px-2 rounded-lg bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] text-xs font-semibold transition-colors text-center cursor-pointer border border-[var(--ds-border)]"
                     >
                       Nilai
                     </button>

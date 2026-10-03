@@ -1,7 +1,7 @@
 import type { SchoolSettings, DocumentSettings, UserPreferences, AcademicYear, AttendanceSettings } from '../../../types';
 import type { DatabaseStatistics, DatabaseBackup, ResetSemesterScope, ResetSemesterSummary } from '../../../services/firestore/backup';
 
-export type TabType = 'profile' | 'school' | 'document' | 'preferences' | 'backup' | 'stats' | 'maintenance';
+export type TabType = 'profile' | 'school' | 'document' | 'preferences' | 'backup' | 'stats' | 'maintenance' | 'showcase';
 
 export interface ProfileFormData {
   displayName: string;

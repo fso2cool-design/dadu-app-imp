@@ -224,7 +224,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         )}
 
         {/* Form Section Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-[#232838] gap-2 pb-1">
+        <div className="flex border-b border-[var(--ds-border)] gap-2 pb-1">
           <button
             type="button"
             onClick={() => setActiveTab('IDENTITY')}
@@ -303,7 +303,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 value={formData.fullName}
                 onChange={e => setFormData(f => ({ ...f, fullName: e.target.value }))}
                 placeholder="Contoh: Muhammad Farhan"
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 font-medium"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs focus:ring-2 focus:ring-[var(--ds-focus)] font-medium"
               />
             </div>
 
@@ -315,7 +315,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.nis}
                   onChange={e => setFormData(f => ({ ...f, nis: e.target.value }))}
                   placeholder="20261001"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                 />
               </div>
               <div>
@@ -325,7 +325,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.nisn}
                   onChange={e => setFormData(f => ({ ...f, nisn: e.target.value }))}
                   placeholder="0081234567"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                 />
               </div>
               <div>
@@ -333,7 +333,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 <select
                   value={formData.gender}
                   onChange={e => setFormData(f => ({ ...f, gender: e.target.value as GenderType }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs cursor-pointer"
                 >
                   <option value="L">Laki-laki (L)</option>
                   <option value="P">Perempuan (P)</option>
@@ -349,7 +349,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.birthPlace}
                   onChange={e => setFormData(f => ({ ...f, birthPlace: e.target.value }))}
                   placeholder="Kota Kelahiran"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
               <div>
@@ -358,7 +358,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   type="date"
                   value={formData.birthDate}
                   onChange={e => setFormData(f => ({ ...f, birthDate: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
             </div>
@@ -383,7 +383,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                       setFormData(f => ({ ...f, nikSiswa: val }));
                     }}
                     placeholder="16 Digit NIK Siswa"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                   />
                 </div>
                 <div>
@@ -397,7 +397,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                       setFormData(f => ({ ...f, nikIbu: val }));
                     }}
                     placeholder="16 Digit NIK Ibu"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                   />
                 </div>
                 <div>
@@ -411,7 +411,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                       setFormData(f => ({ ...f, nkk: val }));
                     }}
                     placeholder="16 Digit Nomor KK"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                   />
                 </div>
               </div>
@@ -441,7 +441,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   disabled={Boolean(existingEnrollment)}
                   value={enrollClassId}
                   onChange={e => setEnrollClassId(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-medium cursor-pointer ${
+                  className={`w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-medium cursor-pointer ${
                     existingEnrollment ? 'opacity-70 bg-slate-100 dark:bg-neutral-900 cursor-not-allowed' : ''
                   }`}
                 >
@@ -462,7 +462,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   min={1}
                   value={rollNumber}
                   onChange={e => setRollNumber(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono font-semibold"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono font-semibold"
                 />
               </div>
             </div>
@@ -472,7 +472,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
               <select
                 value={formData.status}
                 onChange={e => setFormData(f => ({ ...f, status: e.target.value as StudentStatus }))}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-semibold cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-semibold cursor-pointer"
               >
                 <option value="ACTIVE">Aktif (Belajar Aktif)</option>
                 <option value="INACTIVE">Nonaktif / Cuti</option>
@@ -494,7 +494,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.parentName}
                   onChange={e => setFormData(f => ({ ...f, parentName: e.target.value }))}
                   placeholder="Nama Bapak / Ibu"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
               <div>
@@ -504,7 +504,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.parentPhone}
                   onChange={e => setFormData(f => ({ ...f, parentPhone: e.target.value }))}
                   placeholder="0812..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
             </div>
@@ -517,7 +517,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.phone}
                   onChange={e => setFormData(f => ({ ...f, phone: e.target.value }))}
                   placeholder="08..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
               <div>
@@ -527,7 +527,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   value={formData.email}
                   onChange={e => setFormData(f => ({ ...f, email: e.target.value }))}
                   placeholder="siswa@sekolah.sch.id"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                 />
               </div>
             </div>
@@ -539,7 +539,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 value={formData.address}
                 onChange={e => setFormData(f => ({ ...f, address: e.target.value }))}
                 placeholder="Jl..."
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
               />
             </div>
           </div>
@@ -585,7 +585,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                               },
                             }));
                           }}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs cursor-pointer"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs cursor-pointer"
                         >
                           <option value="">-- Pilih {field.name} --</option>
                           {field.options?.map((opt) => (
@@ -608,7 +608,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                               },
                             }));
                           }}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                         />
                       ) : field.type === 'NUMBER' ? (
                         <input
@@ -625,7 +625,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                             }));
                           }}
                           placeholder={`Masukkan ${field.name}`}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs font-mono"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-mono"
                         />
                       ) : (
                         <input
@@ -642,7 +642,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                             }));
                           }}
                           placeholder={`Masukkan ${field.name}`}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs"
                         />
                       )}
                     </div>
@@ -654,11 +654,11 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         )}
 
         {/* Footer actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-[#232838]">
+        <div className="flex justify-end gap-2 pt-4 border-t border-[var(--ds-border)]">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-xs font-medium cursor-pointer"
+            className="px-4 py-2 rounded-xl text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] text-xs font-medium cursor-pointer"
           >
             Batal
           </button>

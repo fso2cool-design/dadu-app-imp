@@ -94,6 +94,14 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     root.style.setProperty('--ds-accent-hover', activeColors.accentHover);
     root.style.setProperty('--ds-accent-soft', activeColors.accentSoft);
     root.style.setProperty('--ds-surface-muted', activeColors.surfaceMuted);
+    root.style.setProperty('--ds-success-bg', activeColors.successBg);
+    root.style.setProperty('--ds-success-fg', activeColors.successFg);
+    root.style.setProperty('--ds-warning-bg', activeColors.warningBg);
+    root.style.setProperty('--ds-warning-fg', activeColors.warningFg);
+    root.style.setProperty('--ds-danger-bg', activeColors.dangerBg);
+    root.style.setProperty('--ds-danger-fg', activeColors.dangerFg);
+    root.style.setProperty('--ds-info-bg', activeColors.infoBg);
+    root.style.setProperty('--ds-info-fg', activeColors.infoFg);
 
     root.style.setProperty('--ds-spacing-xs', `${tokens.spacing.xs}px`);
     root.style.setProperty('--ds-spacing-sm', `${tokens.spacing.sm}px`);

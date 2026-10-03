@@ -72,17 +72,17 @@ export const Modal: React.FC<ModalProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className={`relative w-full ${maxWidthClass} transform overflow-hidden rounded-2xl bg-white dark:bg-[#141722] p-5 sm:p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-[#232838] my-8`}
+              className={`relative w-full ${maxWidthClass} transform overflow-hidden rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface-elevated)] p-5 sm:p-6 text-left shadow-[var(--ds-elevation-lg)] transition-all border border-[var(--ds-border)] text-[var(--ds-text)] my-8`}
             >
-              <div className="flex items-start justify-between border-b border-slate-100 dark:border-[#232838] pb-3.5 mb-4">
+              <div className="flex items-start justify-between border-b border-[var(--ds-border)] pb-3.5 mb-4">
                 <div className="pr-4 min-w-0 flex items-start gap-3">
                   {icon && <div className="shrink-0 mt-0.5">{icon}</div>}
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                    <h3 className="text-base sm:text-lg font-bold text-[var(--ds-text)] tracking-tight">
                       {title}
                     </h3>
                     {subtitle && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+                      <p className="text-xs text-[var(--ds-text-muted)] mt-0.5 font-normal">
                         {subtitle}
                       </p>
                     )}
@@ -91,7 +91,7 @@ export const Modal: React.FC<ModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+                  className="rounded-[var(--ds-radius-md)] p-1.5 text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] transition-colors cursor-pointer shrink-0"
                   aria-label="Tutup modal"
                 >
                   <X className="w-5 h-5" />

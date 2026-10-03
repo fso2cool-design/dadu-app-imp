@@ -261,6 +261,53 @@
   border: 1px solid var(--accent-primary-border);
 }
 
+/* Status semantic utilities (opt-in; fed by --ds-*-bg/fg from DesignSystemContext) */
+.bg-status-success { background-color: var(--ds-success-bg); }
+.text-status-success { color: var(--ds-success-fg); }
+.bg-status-warning { background-color: var(--ds-warning-bg); }
+.text-status-warning { color: var(--ds-warning-fg); }
+.bg-status-danger { background-color: var(--ds-danger-bg); }
+.text-status-danger { color: var(--ds-danger-fg); }
+.bg-status-info { background-color: var(--ds-info-bg); }
+.text-status-info { color: var(--ds-info-fg); }
+
+/* UI primitives (src/components/ui). The doubled class outranks the legacy
+   "[data-design-system] input:focus" bridge below, but only for .ds-ui-control,
+   so existing inputs keep their current behaviour. Focus uses --ds-text, not
+   --ds-focus: paper-craft light #FF5A36 on #FAF7EE is 2.90:1 (fails 3:1). */
+.ds-ui-control.ds-ui-control:focus-visible {
+  border-color: var(--ds-focus) !important;
+  box-shadow: none !important;
+  outline: 2px solid var(--ds-text) !important;
+  outline-offset: 2px;
+}
+.ds-ui-control.ds-ui-control:focus:not(:focus-visible) {
+  box-shadow: none !important;
+}
+/* Error: danger-fg stroke + danger-bg halo. At least one of the two clears 3:1
+   in every system/mode (neo dark: #000 stroke is dark-on-dark, halo carries it). */
+.ds-ui-control.ds-ui-control[aria-invalid="true"] {
+  border-color: var(--ds-danger-fg) !important;
+  box-shadow: 0 0 0 3px var(--ds-danger-bg) !important;
+}
+
+/* Theme assets (opt-in, decorative only) */
+.ds-texture-paper {
+  background-image: url('/textures/paper-texture.svg');
+  background-size: 120px 120px;
+  background-repeat: repeat;
+}
+.ds-hazard-bar {
+  height: 8px;
+  background-image: url('/textures/hazard-stripes.svg');
+  background-size: 16px 16px;
+  background-repeat: repeat-x;
+}
+@media print {
+  .ds-texture-paper { background-image: none !important; }
+  .ds-hazard-bar { display: none !important; }
+}
+
 /* Base Body Application */
 body {
   background-color: var(--app-bg);

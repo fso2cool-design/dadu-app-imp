@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
-import { useAppTheme } from '../../context/ThemeContext';
 import { MagnifyingGlass, Stack, CalendarCheck, CheckSquare, Medal, Users, ChartBar, FileCsv, Notepad, Printer, BookOpen, ArrowRight, User, GraduationCap, Buildings, Database, Sliders, X } from '@phosphor-icons/react';
 
 interface GlobalSearchModalProps {
@@ -25,7 +24,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   onNavigate,
 }) => {
   const { classes, teachingAssignments, setSelectedAssignment } = useWorkspace();
-  const { activeTheme, isDark } = useAppTheme();
 
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -130,14 +128,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4 bg-slate-900/60 dark:bg-black/80 backdrop-blur-xs animate-in fade-in duration-100">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-100">
       <div 
-        className="bg-white dark:bg-[#141722] rounded-3xl border border-slate-200/90 dark:border-[#232838] shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[80vh]"
+        className="bg-[var(--ds-surface-elevated)] rounded-3xl border border-[var(--ds-border)] shadow-2xl max-w-xl w-full overflow-hidden flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* MagnifyingGlass Bar Input */}
-        <div className="p-4 border-b border-slate-100 dark:border-[#232838] flex items-center gap-3">
-          <MagnifyingGlass className="w-5 h-5 text-orange-500 dark:text-cyan-400 shrink-0" />
+        <div className="p-4 border-b border-[var(--ds-border)] flex items-center gap-3">
+          <MagnifyingGlass className="w-5 h-5 text-[var(--ds-accent)] shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -148,14 +146,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Cari menu, kelas, mapel, siswa, laporan, atau pengaturan... (Ketik kata kunci)"
-            className="w-full text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden bg-transparent"
+            className="w-full text-xs font-semibold text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-hidden bg-transparent"
           />
           <div className="flex items-center gap-1.5 shrink-0">
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838] text-[10px] font-mono text-slate-500 dark:text-slate-400">ESC</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[10px] font-mono text-[var(--ds-text-muted)]">ESC</kbd>
             <button
               type="button"
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] cursor-pointer"
+              className="p-1 rounded-lg text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] cursor-pointer transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -163,10 +161,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="p-2 overflow-y-auto flex-1 divide-y divide-slate-50 dark:divide-[#1b1f2e]">
+        <div className="p-2 overflow-y-auto flex-1 divide-y divide-[var(--ds-border)]">
           {filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
-              Tidak ditemukan hasil untuk <span className="font-semibold text-slate-600 dark:text-slate-300">"{query}"</span>
+            <div className="p-8 text-center text-[var(--ds-text-muted)] text-xs">
+              Tidak ditemukan hasil untuk <span className="font-semibold text-[var(--ds-text)]">"{query}"</span>
             </div>
           ) : (
             filteredItems.map((item, index) => {
@@ -179,36 +177,36 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-colors ${
                     isSelected 
-                      ? 'bg-orange-50/80 dark:bg-cyan-950/50 text-orange-950 dark:text-cyan-200' 
-                      : 'hover:bg-slate-50 dark:hover:bg-[#1b1f2e]/60 text-slate-700 dark:text-slate-300'
+                      ? 'bg-[var(--ds-accent-soft)] text-[var(--ds-accent)]' 
+                      : 'hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)]'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                       isSelected 
-                        ? 'bg-orange-500 dark:bg-cyan-500 text-white dark:text-slate-950 shadow-xs' 
-                        : 'bg-slate-100 dark:bg-[#0c0e15] text-slate-500 dark:text-slate-400 border border-transparent dark:border-[#232838]'
+                        ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] shadow-xs' 
+                        : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                     }`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold truncate">{item.title}</span>
+                        <span className="text-xs font-bold truncate text-[var(--ds-text)]">{item.title}</span>
                         <span className={`text-[9px] px-1.5 py-0.2 rounded-md font-bold uppercase tracking-wider ${
                           item.category === 'KELAS' ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/30' :
                           item.category === 'LAPORAN' ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/30' :
-                          item.category === 'PENGATURAN' ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300' :
-                          'bg-orange-100 dark:bg-cyan-950/80 text-orange-800 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/30'
+                          item.category === 'PENGATURAN' ? 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]' :
+                          'bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)]'
                         }`}>
                           {item.category}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.subtitle}</p>
+                      <p className="text-[11px] text-[var(--ds-text-muted)] truncate">{item.subtitle}</p>
                     </div>
                   </div>
 
                   <ArrowRight className={`w-4 h-4 shrink-0 transition-opacity ${
-                    isSelected ? 'opacity-100 text-orange-600 dark:text-cyan-400' : 'opacity-0'
+                    isSelected ? 'opacity-100 text-[var(--ds-accent)]' : 'opacity-0'
                   }`} />
                 </div>
               );
@@ -217,15 +215,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         </div>
 
         {/* Modal Footer / Shortcuts Help */}
-        <div className="p-3 border-t border-slate-100 dark:border-[#232838] bg-slate-50/80 dark:bg-[#0c0e15]/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+        <div className="p-3 border-t border-[var(--ds-border)] bg-[var(--ds-surface-muted)] flex items-center justify-between text-[11px] text-[var(--ds-text-muted)]">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] text-[9px] font-mono">↑</kbd>
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] text-[9px] font-mono">↓</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[9px] font-mono">↑</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[9px] font-mono">↓</kbd>
               <span>Navigasi</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] text-[9px] font-mono">↵</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[9px] font-mono">↵</kbd>
               <span>Buka</span>
             </span>
           </div>

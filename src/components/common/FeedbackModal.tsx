@@ -4,7 +4,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { FeedbackType } from '../../types';
 import { useToast } from '../../context/ToastContext';
-import { Bug, Lightbulb, Sparkle, Question, PaperPlane, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { Bug, Lightbulb, Sparkle, Question, PaperPlane, CheckCircle } from '@phosphor-icons/react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -114,34 +114,34 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
           <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
             <CheckCircle className="w-8 h-8" />
           </div>
-          <h4 className="text-base font-bold text-slate-800 dark:text-white">
+          <h4 className="text-base font-bold text-[var(--ds-text)]">
             Masukan Berhasil Terkirim!
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+          <p className="text-xs text-[var(--ds-text-muted)] max-w-sm mx-auto leading-relaxed">
             Terima kasih atas partisipasi Anda. Laporan ini telah diteruskan ke Administrator dan akan segera ditinjau.
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* User info bar */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between text-slate-600 dark:text-slate-300">
+          <div className="p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs flex items-center justify-between text-[var(--ds-text)]">
             <div>
-              <span className="text-[10px] text-slate-400 block">Pengirim:</span>
-              <span className="font-semibold text-slate-800 dark:text-white">
+              <span className="text-[10px] text-[var(--ds-text-muted)] block">Pengirim:</span>
+              <span className="font-semibold text-[var(--ds-text)]">
                 {profile?.displayName || 'Guru'}
               </span>
-              <span className="text-slate-400 ml-1.5 font-mono text-[11px]">
+              <span className="text-[var(--ds-text-muted)] ml-1.5 font-mono text-[11px]">
                 ({user?.email})
               </span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-md bg-accent-primary-soft text-accent-text font-bold border border-accent-primary-border">
+            <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] font-bold border border-[var(--ds-border)]">
               Terverifikasi
             </span>
           </div>
 
           {/* Feedback Category */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-2">
               Kategori Masukan / Laporan
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -155,14 +155,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                     onClick={() => setType(cat.type)}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
                       isSelected
-                        ? `${cat.color} ring-2 ring-accent-primary font-medium shadow-xs`
-                        : 'bg-white dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700'
+                        ? `${cat.color} ring-2 ring-[var(--ds-accent)] font-medium shadow-xs`
+                        : 'bg-[var(--ds-surface-elevated)] border-[var(--ds-border)] text-[var(--ds-text)] hover:border-[var(--ds-accent)]'
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0 mt-0.5" />
                     <div className="min-w-0">
                       <div className="text-xs font-bold truncate">{cat.label}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-tight mt-0.5">
+                      <div className="text-[10px] text-[var(--ds-text-muted)] line-clamp-1 leading-tight mt-0.5">
                         {cat.desc}
                       </div>
                     </div>
@@ -174,7 +174,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1">
               Judul Masukan / Masalah <span className="text-rose-500">*</span>
             </label>
             <input
@@ -183,13 +183,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Contoh: Tombol simpan nilai tidak merespon di kelas X-A"
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-xs text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)]"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1">
               Deskripsi Lengkap <span className="text-rose-500">*</span>
             </label>
             <textarea
@@ -198,17 +198,17 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Jelaskan kendala atau usulan Anda dengan jelas..."
-              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none leading-relaxed"
+              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-xs text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)] resize-none leading-relaxed"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-[var(--ds-border)]">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[var(--ds-text-muted)] hover:bg-[var(--ds-surface-muted)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
             >
               Batal
             </button>

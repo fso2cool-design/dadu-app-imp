@@ -84,7 +84,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block uppercase tracking-wider flex items-center gap-2">
-              <CalendarBlank className="w-4 h-4 text-orange-500 dark:text-cyan-400" />
+              <CalendarBlank className="w-4 h-4 text-[var(--ds-accent)]" />
               Sistem Hari Belajar & Kalender Libur Madrasah
             </span>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -94,21 +94,21 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
           <button
             type="button"
             onClick={() => setIsHolidayModalOpen(true)}
-            className="px-4 py-2 bg-white dark:bg-[#141722] hover:bg-slate-100 dark:hover:bg-[#1c2130] border border-slate-300 dark:border-[#232838] text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold shadow-2xs flex items-center gap-2 transition-colors cursor-pointer shrink-0"
+            className="px-4 py-2 bg-[var(--ds-surface-elevated)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-xl text-xs font-bold shadow-2xs flex items-center gap-2 transition-colors cursor-pointer shrink-0"
           >
-            <CalendarBlank className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+            <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
             <span>Kelola Kalender & Libur</span>
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <div className="p-3 bg-white dark:bg-[#141722] rounded-xl border border-slate-200/70 dark:border-[#232838]">
+          <div className="p-3 bg-[var(--ds-surface-elevated)] rounded-xl border border-[var(--ds-border)]">
             <span className="text-[10px] text-slate-400 block font-semibold uppercase">Sistem Belajar Mingguan</span>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
               {attendanceSettings.schoolDaysOption === 6 ? '6 Hari (Senin – Sabtu Aktif KBM)' : '5 Hari (Senin – Jumat Aktif, Sabtu Libur)'}
             </p>
           </div>
-          <div className="p-3 bg-white dark:bg-[#141722] rounded-xl border border-slate-200/70 dark:border-[#232838]">
+          <div className="p-3 bg-[var(--ds-surface-elevated)] rounded-xl border border-[var(--ds-border)]">
             <span className="text-[10px] text-slate-400 block font-semibold uppercase">Hari Libur Kustom Terdaftar</span>
             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
               {attendanceSettings.holidays?.length || 0} Tanggal / Agenda Libur Khusus
@@ -376,11 +376,11 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkle className="w-4 h-4 text-emerald-600 dark:text-cyan-400" />
+              <Sparkle className="w-4 h-4 text-[var(--ds-accent)]" />
               <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                 Versi Aplikasi: {APP_CONFIG.versionDisplay}
               </span>
-              <span className="text-[10px] bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-cyan-300 px-2 py-0.5 rounded-md font-semibold border border-emerald-100 dark:border-slate-700">
+              <span className="text-[10px] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] px-2 py-0.5 rounded-md font-semibold border border-[var(--ds-border)]">
                 Rilis {APP_CHANGELOGS[0]?.releaseDate || APP_CONFIG.releaseDate}
               </span>
             </div>
@@ -391,7 +391,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
           <button
             type="button"
             onClick={() => setIsChangeLogModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-emerald-700 dark:text-cyan-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-emerald-200/80 dark:border-slate-700"
+            className="px-3.5 py-2 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-[var(--ds-border)]"
           >
             <Sparkle className="w-3.5 h-3.5" />
             <span>Lihat Catatan Rilis</span>

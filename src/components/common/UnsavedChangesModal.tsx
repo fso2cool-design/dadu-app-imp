@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Warning, FloppyDisk, Trash, X, CircleNotch } from '@phosphor-icons/react';
 
 export interface UnsavedChangesModalProps {
@@ -49,9 +49,9 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
   const displayDescription = message || description || defaultDescription;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-md bg-white dark:bg-[#141722] rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-[#232838] space-y-5 animate-in zoom-in-95 duration-150 text-slate-900 dark:text-slate-100"
+        className="w-full max-w-md bg-[var(--ds-surface-elevated)] rounded-3xl p-6 shadow-2xl border border-[var(--ds-border)] space-y-5 animate-in zoom-in-95 duration-150 text-[var(--ds-text)]"
         role="dialog"
         aria-modal="true"
       >
@@ -61,10 +61,10 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
             <Warning className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+            <h3 className="text-base font-extrabold tracking-tight text-[var(--ds-text)]">
               {title}
             </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+            <p className="text-xs text-[var(--ds-text-muted)] mt-1 leading-relaxed">
               {displayDescription}
             </p>
           </div>
@@ -73,7 +73,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
               type="button"
               onClick={handleCancel}
               disabled={isSaving}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition-colors cursor-pointer"
+              className="text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] p-1 rounded-lg transition-colors cursor-pointer"
               aria-label="Tutup dialog"
             >
               <X className="w-5 h-5" />
@@ -121,7 +121,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
               type="button"
               onClick={handleCancel}
               disabled={isSaving}
-              className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
             >
               {cancelButtonText}
             </button>

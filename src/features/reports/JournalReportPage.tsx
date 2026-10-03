@@ -164,11 +164,11 @@ export const JournalReportPage: React.FC = () => {
       {/* Header */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-            <CalendarCheck className="w-5 h-5 text-indigo-600 dark:text-red-400" />
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-[var(--ds-accent)]" />
             Laporan Jurnal Agenda Mengajar
           </h1>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Dokumen resmi rekapitulasi pelaksanaan pembelajaran (KBM), materi, dan absensi per semester.
           </p>
         </div>
@@ -187,17 +187,17 @@ export const JournalReportPage: React.FC = () => {
       </div>
 
       {/* Control & Filter Bar (Hidden on Print) */}
-      <div className="no-print bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-slate-600">Pilih Mapel & Kelas:</label>
+            <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Mapel & Kelas:</label>
             <select
               value={selectedAssignment?.id || ''}
               onChange={(e) => {
                 const asg = teachingAssignments.find(a => a.id === e.target.value);
                 if (asg) setSelectedAssignment(asg);
               }}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500"
+              className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] focus:outline-none focus:border-[var(--ds-accent)]"
             >
               {teachingAssignments.map(asg => (
                 <option key={asg.id} value={asg.id}>
@@ -215,19 +215,19 @@ export const JournalReportPage: React.FC = () => {
               placeholder="Cari materi atau topik..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-none focus:border-[var(--ds-accent)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] transition-all"
             />
           </div>
         </div>
 
         {/* Statistical Overview */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
-          <div className="p-2.5 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-[var(--ds-border)]">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-teal-700 block">Pertemuan Terselenggara</span>
-              <span className="text-lg font-black text-teal-950">{meetings.length} <span className="text-xs font-normal text-teal-700">Sesi</span></span>
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Pertemuan Terselenggara</span>
+              <span className="text-lg font-black text-[var(--ds-accent)]">{meetings.length} <span className="text-xs font-normal text-[var(--ds-text-muted)]">Sesi</span></span>
             </div>
-            <CalendarBlank className="w-6 h-6 text-teal-500" />
+            <CalendarBlank className="w-6 h-6 text-[var(--ds-accent)]" />
           </div>
 
           <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
@@ -240,10 +240,10 @@ export const JournalReportPage: React.FC = () => {
             <CheckCircle className="w-6 h-6 text-emerald-400" />
           </div>
 
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between col-span-2 sm:col-span-1">
+          <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] flex items-center justify-between col-span-2 sm:col-span-1">
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-600 block">Rata-rata Kehadiran KBM</span>
-              <span className="text-lg font-black text-slate-900">
+              <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Rata-rata Kehadiran KBM</span>
+              <span className="text-lg font-black text-[var(--ds-text)]">
                 {meetings.length > 0
                   ? Math.round(meetings.reduce((a, m) => a + (m.attendanceSummary?.presentPercentage || 0), 0) / meetings.length)
                   : 0}%

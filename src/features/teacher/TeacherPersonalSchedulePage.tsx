@@ -182,15 +182,15 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#141722] p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface-elevated)] p-5 sm:p-6 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-lg bg-orange-50 dark:bg-cyan-950/70 text-orange-600 dark:text-cyan-400 border border-orange-200/50 dark:border-cyan-500/30 text-[11px] font-bold uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-lg bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] text-[11px] font-bold uppercase tracking-wider">
               Tahun {activeAcademicYear?.label || '-'} • Semester {activeSemester}
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight mt-1.5 flex items-center gap-2">
-            <CalendarDots className="w-6 h-6 text-orange-500 dark:text-cyan-400" />
+            <CalendarDots className="w-6 h-6 text-[var(--ds-accent)]" />
             <span>Jadwal Mengajar Saya</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -224,7 +224,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-accent-primary-soft border border-accent-primary-border flex items-center justify-center text-accent-text shrink-0">
             <Clock className="w-5 h-5" />
           </div>
@@ -234,7 +234,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500 shrink-0">
             <Stack className="w-5 h-5" />
           </div>
@@ -246,7 +246,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-3.5">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
@@ -260,14 +260,14 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
       </div>
 
       {/* Funnel Hari */}
-      <div className="bg-white dark:bg-[#141722] p-2 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
+      <div className="bg-[var(--ds-surface-elevated)] p-2 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
         <button
           type="button"
           onClick={() => setSelectedDayFilter('ALL')}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             selectedDayFilter === 'ALL'
               ? 'btn-primary shadow-xs'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]'
+              : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)]'
           }`}
         >
           Semua Hari ({scheduledSlots.length})
@@ -284,7 +284,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                 isActive
                   ? 'btn-primary shadow-xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]'
+                  : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)]'
               }`}
             >
               <span>{day.label}</span>
@@ -302,7 +302,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
 
       {/* Grid Tampilan Jadwal Mingguan */}
       {scheduledSlots.length === 0 ? (
-        <div className="bg-white dark:bg-[#141722] p-12 text-center rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-12 text-center rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <CalendarDots className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">Belum Ada Jadwal Pelajaran Ditetapkan</h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
@@ -326,12 +326,12 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
             return (
               <div 
                 key={day.key}
-                className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden flex flex-col"
+                className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden flex flex-col"
               >
                 {/* Header Hari */}
-                <div className="px-4 py-3 bg-slate-50 dark:bg-[#0c0e15] border-b border-slate-200 dark:border-[#232838] flex items-center justify-between">
+                <div className="px-4 py-3 bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border)] flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-cyan-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--ds-accent)]" />
                     <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">
                       {day.label}
                     </h3>
@@ -351,7 +351,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
                     daySlots.map(slot => (
                       <div 
                         key={slot.id}
-                        className="p-3 rounded-xl bg-slate-50/70 dark:bg-[#0c0e15] border border-slate-200/80 dark:border-[#232838] hover:border-accent-primary-border transition-all"
+                        className="p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:border-[var(--ds-accent)] transition-all"
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-text font-mono bg-accent-primary-soft px-2 py-0.5 rounded-md">

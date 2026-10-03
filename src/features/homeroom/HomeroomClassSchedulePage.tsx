@@ -450,7 +450,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
@@ -477,7 +477,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
               id="select-homeroom-class-schedule"
               value={selectedClassId || ''}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="px-3 py-2 bg-slate-50 dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838] text-xs font-semibold rounded-xl text-slate-800 dark:text-slate-200 cursor-pointer"
+              className="px-3 py-2 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs font-semibold rounded-xl text-[var(--ds-text)] cursor-pointer"
             >
               {availableClasses.map(c => (
                 <option key={c.id} value={c.id}>
@@ -492,7 +492,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
             type="button"
             id="btn-toggle-view-schedule"
             onClick={() => setActiveView(activeView === 'matrix' ? 'print' : 'matrix')}
-            className="px-3.5 py-2 bg-white dark:bg-[#0c0e15] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-200 dark:border-[#232838] shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-3.5 py-2 bg-[var(--ds-surface-elevated)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] text-[var(--ds-text)] rounded-xl text-xs font-semibold border border-[var(--ds-border)] shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             {activeView === 'matrix' ? (
               <>
@@ -537,7 +537,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
       {/* Summary KPI Cards & Informativeness Notice */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Mapel di Kelas Ini */}
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Total Mapel Diplot
           </p>
@@ -553,7 +553,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         </div>
 
         {/* Mapel Terjadwal */}
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Sesi KBM Terjadwal
           </p>
@@ -569,7 +569,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         </div>
 
         {/* Status Belum Terjadwal */}
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Belum Diatur Jadwalnya
           </p>
@@ -585,7 +585,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         </div>
 
         {/* Wali Kelas & Info Kelas */}
-        <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs">
           <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Wali Kelas Rombel
           </p>
@@ -708,10 +708,10 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
             return (
               <div 
                 key={d.key} 
-                className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden flex flex-col transition-all hover:border-slate-300 dark:hover:border-slate-700"
+                className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden flex flex-col transition-all hover:border-[var(--ds-accent)]"
               >
                 {/* Day Header */}
-                <div className="px-4 py-3 bg-slate-50 dark:bg-[#0c0e15] border-b border-slate-200 dark:border-[#232838] flex items-center justify-between">
+                <div className="px-4 py-3 bg-[var(--ds-surface-muted)] border-b border-[var(--ds-border)] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                     <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 uppercase tracking-wide">
@@ -726,7 +726,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                   <button
                     type="button"
                     onClick={() => handleOpenAddCustom(d.key)}
-                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-[#1b1f2e] text-slate-500 dark:text-slate-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] text-slate-500 dark:text-slate-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                     title={`Tambah kegiatan rutin/khusus hari ${d.label} (Upacara, Literasi, dll)`}
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -765,11 +765,11 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                       {dayItems.map(item => (
                         <div
                           key={item.id}
-                          className="p-2.5 rounded-xl border border-slate-100 dark:border-[#1d2232] bg-slate-50/70 dark:bg-[#0c0e15]/60 hover:bg-slate-50 dark:hover:bg-[#141722] transition-colors flex items-start justify-between gap-3 group"
+                          className="p-2.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] transition-colors flex items-start justify-between gap-3 group"
                         >
                           <div className="flex items-start gap-2.5 min-w-0">
                             {/* Period badge */}
-                            <div className="shrink-0 text-center w-8 py-1 rounded-lg bg-white dark:bg-[#1b1f2e] border border-slate-200 dark:border-[#232838] shadow-2xs">
+                            <div className="shrink-0 text-center w-8 py-1 rounded-lg bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] shadow-2xs">
                               <span className="block text-[9px] text-slate-400 uppercase leading-none font-semibold">JAM</span>
                               <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
                                 #{item.period}
@@ -782,7 +782,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                                   {item.subjectName}
                                 </h3>
                                 {item.timeSlot && (
-                                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-white dark:bg-[#181c2a] border border-slate-200 dark:border-[#232838] px-1.5 py-0.2 rounded font-medium">
+                                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] px-1.5 py-0.2 rounded font-medium">
                                     {item.timeSlot}
                                   </span>
                                 )}
@@ -816,7 +816,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditCustom(item)}
-                                className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-[#1b1f2e] transition-colors cursor-pointer"
+                                className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
                                 title="Edit kegiatan"
                               >
                                 <PencilLine className="w-3.5 h-3.5" />
@@ -864,7 +864,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                 <select
                   value={formDay}
                   onChange={(e) => setFormDay(e.target.value as ClassScheduleDay)}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-semibold"
+                  className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] font-semibold"
                 >
                   {DAYS_OF_WEEK.map(d => (
                     <option key={d.key} value={d.key}>{d.label}</option>
@@ -882,7 +882,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                   max={12}
                   value={formPeriod}
                   onChange={(e) => setFormPeriod(Number(e.target.value))}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-mono font-bold"
+                  className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] font-mono font-bold"
                   required
                 />
               </div>
@@ -899,7 +899,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                 value={formTimeSlot}
                 onChange={(e) => setFormTimeSlot(e.target.value)}
                 placeholder="e.g. 07.00 - 07.45"
-                className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-mono"
+                className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] font-mono"
               />
               <datalist id="time-slot-presets">
                 {DEFAULT_TIME_SLOTS.map((s, idx) => (
@@ -918,7 +918,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                 value={formSubjectName}
                 onChange={(e) => setFormSubjectName(e.target.value)}
                 placeholder="e.g. Upacara Bendera, Pembinaan Wali Kelas, Literasi Pagi..."
-                className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-bold"
+                className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] font-bold"
                 required
               />
             </div>
@@ -933,7 +933,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                 value={formTeacherName}
                 onChange={(e) => setFormTeacherName(e.target.value)}
                 placeholder="e.g. Wali Kelas / Petugas Piket"
-                className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200 font-medium"
+                className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] font-medium"
               />
             </div>
 
@@ -947,16 +947,16 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                 value={formRoomOrNotes}
                 onChange={(e) => setFormRoomOrNotes(e.target.value)}
                 placeholder="e.g. Lapangan Utama / Ruang Kelas"
-                className="w-full p-2.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-xl text-slate-800 dark:text-slate-200"
+                className="w-full p-2.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)]"
               />
             </div>
 
             {/* Action buttons */}
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-200 dark:border-[#232838]">
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 dark:border-[#232838] rounded-xl font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
+                className="px-4 py-2 border border-[var(--ds-border)] rounded-xl font-semibold text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] cursor-pointer"
               >
                 Batal
               </button>

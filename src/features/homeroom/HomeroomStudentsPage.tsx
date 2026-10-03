@@ -337,7 +337,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -401,7 +401,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       </div>
 
       {!currentClass ? (
-        <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
+        <div className="bg-[var(--ds-surface-elevated)] p-8 sm:p-12 rounded-3xl border border-[var(--ds-border)] text-center shadow-xs">
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-900/50">
             <UserMinus className="w-8 h-8" />
           </div>
@@ -431,7 +431,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       ) : (
         <>
           {/* Funnel & MagnifyingGlass Bar */}
-          <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
               {/* Class Select */}
               <div className="flex items-center gap-2">
@@ -443,7 +443,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                     const val = e.target.value;
                     setSelectedClassId(val === 'NONE' ? '' : val);
                   }}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-lg focus:ring-2 focus:ring-[var(--ds-focus)]"
                 >
                   <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
                   {availableClasses.map(c => (
@@ -455,7 +455,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               </div>
 
               {/* Gender Funnel */}
-              <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900 p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+              <div className="flex items-center gap-1.5 bg-[var(--ds-surface-muted)] p-1 rounded-lg border border-[var(--ds-border)] text-xs">
                 <button
                   type="button"
                   onClick={() => setGenderFilter('ALL')}
@@ -505,7 +505,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
           {loading ? (
             <SkeletonTable rows={8} columns={7} />
           ) : (
-            <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden">
+            <div className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                 <thead className="bg-slate-100/90 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-semibold border-b border-slate-200 dark:border-slate-800">

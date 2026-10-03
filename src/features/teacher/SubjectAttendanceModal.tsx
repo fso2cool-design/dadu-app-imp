@@ -239,7 +239,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
 
         {/* Counter Summary Bar */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
-          <div className="p-2 rounded-xl bg-white dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838]">
+          <div className="p-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)]">
             <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Total Siswa</span>
             <span className="font-bold text-slate-800 dark:text-slate-100 text-base">{stats.total}</span>
           </div>
@@ -355,7 +355,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
                             className={`w-7 h-7 rounded-lg text-xs font-bold transition-all disabled:opacity-80 disabled:cursor-not-allowed ${
                               row.status === 'SICK'
                                 ? 'bg-amber-500 text-slate-950 font-black shadow-2xs'
-                                : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-amber-700 dark:hover:text-amber-300'
+                                : 'text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)]'
                             }`}
                             title="Sakit"
                           >

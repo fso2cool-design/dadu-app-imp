@@ -341,22 +341,22 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
       {/* Top Header */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+          <h1 className="text-xl font-bold text-[var(--ds-text)] tracking-tight flex items-center gap-2">
+            <GraduationCap className="w-5 h-5 text-[var(--ds-accent)]" />
             Cetak Rapor & Lembar Hasil Belajar Siswa
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs text-[var(--ds-text-muted)] mt-1">
             Format resmi Laporan Capaian Hasil Belajar Siswa (Rapor Semester & Rapor Sisipan STS) lengkap dengan Kop Dinas 4-Tingkat dan tanda tangan digital.
           </p>
         </div>
       </div>
 
       {/* Control & Selection Bar (Hidden on Print) */}
-      <div className="no-print bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] rounded-2xl p-4 shadow-2xs space-y-3">
+      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
           {/* Class Select */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block">
               Pilih Kelas / Rombel:
             </label>
             <select
@@ -365,7 +365,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
                 setCurrentClassId(e.target.value);
                 setSelectedClassId(e.target.value);
               }}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               {classes.map(c => (
                 <option key={c.id} value={c.id}>
@@ -377,13 +377,13 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
 
           {/* Student Select */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block">
               Pilih Peserta Didik:
             </label>
             <select
               value={selectedStudentId}
               onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               <option value="ALL">📋 Cetak Semua Siswa (Batch Rombel - {enrollments.length} Siswa)</option>
               {enrollments.map(enr => (
@@ -396,13 +396,13 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
 
           {/* Report Type */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
+            <label className="text-[11px] font-bold text-[var(--ds-text-muted)] uppercase tracking-wider block">
               Format Dokumen:
             </label>
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value as any)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               <option value="RAPOR_SEMESTER">Rapor Semester Lengkap</option>
               <option value="RAPOR_SISIPAN_STS">Rapor Sisipan / STS</option>
@@ -437,7 +437,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
         </div>
 
         {/* Toggles Row */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-[#232838]/60 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--ds-border)] text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -445,7 +445,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               className={`px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showRank 
                   ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-600/50 text-amber-900 dark:text-amber-300' 
-                  : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
+                  : 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
@@ -457,8 +457,8 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowKop(!showKop)}
               className={`px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showKop 
-                  ? 'bg-accent-primary-soft border-accent-primary-border text-accent-text' 
-                  : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
+                  ? 'bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-accent)]' 
+                  : 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
               }`}
             >
               <Buildings className="w-3.5 h-3.5" />
@@ -470,8 +470,8 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowSignatures(!showSignatures)}
               className={`px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showSignatures 
-                  ? 'bg-accent-primary-soft border-accent-primary-border text-accent-text' 
-                  : 'bg-slate-50 dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-500'
+                  ? 'bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-accent)]' 
+                  : 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
               }`}
             >
               <CheckCircle className="w-3.5 h-3.5" />
@@ -488,7 +488,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
       {/* Loading state */}
       {loading && (
         <div className="p-12 text-center text-slate-500">
-          <div className="w-8 h-8 border-3 border-orange-500 dark:border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="w-8 h-8 border-3 border-[var(--ds-accent)] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-xs font-semibold">Menghitung akumulasi nilai dan menyusun dokumen rapor...</p>
         </div>
       )}

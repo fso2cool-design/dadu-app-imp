@@ -109,13 +109,13 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
     >
       <div className="space-y-4">
         {/* Top Control Toolbar (Hidden on Print) */}
-        <div className="no-print bg-slate-50 dark:bg-[#141722] p-3.5 rounded-2xl border border-slate-200 dark:border-[#232838] flex flex-wrap items-center justify-between gap-3">
+        <div className="no-print bg-[var(--ds-surface-elevated)] p-3.5 rounded-2xl border border-[var(--ds-border)] flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {/* Report Type Selector */}
             <select
               value={reportType}
               onChange={(e) => setReportType(e.target.value as any)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-bold text-slate-800 dark:text-slate-200 bg-white dark:bg-[#0c0e15] focus:outline-hidden cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-bold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden cursor-pointer"
             >
               <option value="RAPOR_SEMESTER">Rapor Semester Lengkap</option>
               <option value="RAPOR_SISIPAN_STS">Rapor Sisipan / STS</option>
@@ -128,7 +128,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showRank 
                   ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300' 
-                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
+                  : 'bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text-muted)]'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
@@ -141,8 +141,8 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
               onClick={() => setShowKop(!showKop)}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 showKop 
-                  ? 'bg-orange-50 dark:bg-cyan-950/50 border-orange-200 dark:border-cyan-500/40 text-orange-700 dark:text-cyan-300' 
-                  : 'bg-white dark:bg-[#0c0e15] border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400'
+                  ? 'bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-accent)]' 
+                  : 'bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text-muted)]'
               }`}
             >
               <Buildings className="w-3.5 h-3.5" />

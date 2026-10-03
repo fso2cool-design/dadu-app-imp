@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { Sparkle, CalendarBlank, CheckCircle, ArrowRight } from '@phosphor-icons/react';
 import { LATEST_CHANGELOG, CHANGELOG_STORAGE_KEY } from '../../constants/changelog';
@@ -58,15 +58,15 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
           {LATEST_CHANGELOG.highlights.map((cat, idx) => (
             <div
               key={idx}
-              className="p-3.5 rounded-xl border bg-white dark:bg-slate-900 transition-colors" style={{ borderColor: "var(--ds-border)" } as any}
+              className="p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] transition-colors"
             >
-              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-[var(--ds-text)] mb-2 flex items-center gap-1.5">
                 <span className="w-1.5 h-3.5 rounded-full inline-block" style={{ background: "var(--ds-accent)" }} />
                 {cat.category}
               </h4>
               <ul className="space-y-1.5">
                 {cat.items.map((item, iIdx) => (
-                  <li key={iIdx} className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-2 leading-relaxed">
+                  <li key={iIdx} className="text-xs text-[var(--ds-text-muted)] flex items-start gap-2 leading-relaxed">
                     <CheckCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: "var(--ds-accent)" }} />
                     <span>{item}</span>
                   </li>
@@ -77,15 +77,15 @@ export const ChangeLogModal: React.FC<ChangeLogModalProps> = ({
         </div>
 
         {/* Footer with Checkbox & Action */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="pt-3 border-t border-[var(--ds-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={dontShowAgain}
               onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 cursor-pointer" style={{ accentColor: "var(--ds-accent)" } as any}
+              className="w-4 h-4 rounded border-[var(--ds-border)] cursor-pointer" style={{ accentColor: "var(--ds-accent)" } as any}
             />
-            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+            <span className="text-xs text-[var(--ds-text-muted)] font-medium">
               Jangan tampilkan lagi untuk versi ini
             </span>
           </label>

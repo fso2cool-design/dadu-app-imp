@@ -273,7 +273,7 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
   };
 
   const categoryLabels: Record<string, { label: string; bg: string; text: string }> = {
-    BEHAVIOR: { label: 'Perilaku & Karakter', bg: 'bg-orange-50 border-orange-200', text: 'text-orange-700' },
+    BEHAVIOR: { label: 'Perilaku & Karakter', bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/40', text: 'text-amber-800 dark:text-amber-300' },
     ACADEMIC: { label: 'Akademik & Belajar', bg: 'bg-blue-50 border-blue-200', text: 'text-blue-700' },
     ATTENDANCE: { label: 'Presensi & Disiplin', bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700' },
     ACHIEVEMENT: { label: 'Prestasi & Apresiasi', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
@@ -431,8 +431,8 @@ export const HomeroomNotesPage: React.FC<HomeroomNotesPageProps> = ({
       </div>
 
       {!currentClass ? (
-        <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-4 border border-purple-100 dark:border-purple-900/50">
+        <div className="bg-[var(--ds-surface-elevated)] p-8 sm:p-12 rounded-3xl border border-[var(--ds-border)] text-center shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto mb-4 border border-purple-100 dark:border-purple-900/50">
             <UserMinus className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">

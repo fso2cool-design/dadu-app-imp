@@ -161,49 +161,49 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
     <div className="space-y-6">
       {/* Top Stat Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <Chat className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Total Masukan</div>
-            <div className="text-xl font-black text-white">{feedbacks.length}</div>
+            <div className="text-xs text-[var(--ds-text-muted)] font-medium">Total Masukan</div>
+            <div className="text-xl font-black text-[var(--ds-text)]">{feedbacks.length}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
             <WarningCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Perlu Ditinjau (Baru)</div>
+            <div className="text-xs text-[var(--ds-text-muted)] font-medium">Perlu Ditinjau (Baru)</div>
             <div className="text-xl font-black text-rose-400">{countNew}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Sedang Diproses</div>
+            <div className="text-xs text-[var(--ds-text-muted)] font-medium">Sedang Diproses</div>
             <div className="text-xl font-black text-amber-400">{countInProgress}</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5">
+        <div className="p-4 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs text-slate-400 font-medium">Telah Selesai</div>
+            <div className="text-xs text-[var(--ds-text-muted)] font-medium">Telah Selesai</div>
             <div className="text-xl font-black text-emerald-400">{countResolved}</div>
           </div>
         </div>
       </div>
 
       {/* Funnel and MagnifyingGlass Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="p-4 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
           <MagnifyingGlass className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -211,18 +211,18 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari judul, guru, email, atau isi..."
-            className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)]"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Status Funnel */}
-          <div className="flex items-center rounded-xl bg-slate-800 p-1 border border-slate-700 text-xs">
+          <div className="flex items-center rounded-xl bg-[var(--ds-surface-muted)] p-1 border border-[var(--ds-border)] text-xs">
             <button
               type="button"
               onClick={() => setStatusFilter('ALL')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'ALL' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'ALL' ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] shadow-xs' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Semua ({feedbacks.length})
@@ -231,7 +231,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               type="button"
               onClick={() => setStatusFilter('NEW')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'NEW' ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'NEW' ? 'bg-rose-600 text-white shadow-xs' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Baru ({countNew})
@@ -240,7 +240,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               type="button"
               onClick={() => setStatusFilter('IN_PROGRESS')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'IN_PROGRESS' ? 'bg-amber-500 text-slate-950 font-bold shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'IN_PROGRESS' ? 'bg-amber-500 text-slate-950 font-bold shadow-xs' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Diproses
@@ -249,7 +249,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               type="button"
               onClick={() => setStatusFilter('RESOLVED')}
               className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                statusFilter === 'RESOLVED' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                statusFilter === 'RESOLVED' ? 'bg-emerald-600 text-white shadow-xs' : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
               Selesai
@@ -260,7 +260,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             type="button"
             onClick={fetchFeedbacks}
             disabled={loading}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] transition-colors cursor-pointer"
             title="Muat Ulang"
           >
             <ArrowClockwise className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
@@ -270,17 +270,17 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
 
       {/* Feedbacks List */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400 space-y-3">
+        <div className="p-12 text-center text-[var(--ds-text-muted)] space-y-3">
           <ArrowClockwise className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
           <p className="text-xs">Memuat laporan feedback...</p>
         </div>
       ) : filteredFeedbacks.length === 0 ? (
-        <div className="p-12 text-center rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
+        <div className="p-12 text-center rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--ds-surface-elevated)] text-[var(--ds-text-muted)] mx-auto flex items-center justify-center">
             <CheckCircle className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-white">Tidak Ada Laporan Masukan</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          <h3 className="text-sm font-bold text-[var(--ds-text)]">Tidak Ada Laporan Masukan</h3>
+          <p className="text-xs text-[var(--ds-text-muted)] max-w-sm mx-auto">
             {searchQuery || statusFilter !== 'ALL'
               ? 'Tidak ada feedback yang cocok dengan filter atau kata kunci pencarian saat ini.'
               : 'Belum ada guru yang mengirimkan laporan kendala atau usulan fitur.'}
@@ -306,8 +306,8 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                 key={item.id}
                 className={`p-5 rounded-2xl border transition-all ${
                   item.status === 'NEW'
-                    ? 'bg-slate-900/95 border-rose-500/40 ring-1 ring-rose-500/20 shadow-lg'
-                    : 'bg-slate-900/70 border-slate-800/80 hover:border-slate-700'
+                    ? 'bg-[var(--ds-surface-elevated)] border-rose-500/40 ring-1 ring-rose-500/20 shadow-lg'
+                    : 'bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] hover:border-[var(--ds-border-strong)]'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
@@ -317,7 +317,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                       {meta.label}
                     </span>
                     {getStatusBadge(item.status)}
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <span className="text-xs text-[var(--ds-text-muted)] flex items-center gap-1">
                       <Clock className="w-3 h-3 text-slate-500" />
                       {formattedDate}
                     </span>
@@ -338,7 +338,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                       <button
                         type="button"
                         onClick={() => handleUpdateStatus(item, 'RESOLVED')}
-                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] transition-colors cursor-pointer"
                       >
                         Tandai Selesai
                       </button>
@@ -349,14 +349,14 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                         setSelectedFeedback(item);
                         setReplyText(item.adminReply || '');
                       }}
-                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] transition-colors cursor-pointer"
                     >
                       {item.adminReply ? 'Edit Catatan' : '+ Catatan Admin'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setFeedbackToDelete(item)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                       title="Hapus Feedback Permanen"
                     >
                       <Trash className="w-4 h-4" />
@@ -365,18 +365,18 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                 </div>
 
                 {/* Title and Content */}
-                <h4 className="text-sm font-bold text-white mb-1.5">
+                <h4 className="text-sm font-bold text-[var(--ds-text)] mb-1.5">
                   {item.title}
                 </h4>
-                <p className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed mb-3.5 bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+                <p className="text-xs text-[var(--ds-text)] whitespace-pre-wrap leading-relaxed mb-3.5 bg-[var(--ds-surface-muted)] p-3 rounded-xl border border-[var(--ds-border)]">
                   {item.description}
                 </p>
 
                 {/* Sender Info Footer */}
-                <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/70 pt-2.5 gap-2">
+                <div className="flex flex-wrap items-center justify-between text-[11px] text-[var(--ds-text-muted)] border-t border-[var(--ds-border)] pt-2.5 gap-2">
                   <div className="flex items-center gap-1.5">
                     <span className="text-slate-500">Pengirim:</span>
-                    <span className="font-semibold text-slate-200">{item.userName}</span>
+                    <span className="font-semibold text-[var(--ds-text)]">{item.userName}</span>
                     <span className="text-slate-500">({item.userEmail})</span>
                   </div>
 
@@ -396,8 +396,8 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
       {/* Admin Notes & Reply Modal */}
       {selectedFeedback && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
-            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className="bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <h4 className="text-sm font-bold text-[var(--ds-text)] flex items-center gap-2">
               <Chat className="w-4 h-4 text-emerald-400" />
               Catatan / Balasan Admin untuk "{selectedFeedback.title}"
             </h4>
@@ -406,14 +406,14 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Tuliskan catatan perbaikan atau balasan yang sudah dilakukan..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-xs text-[var(--ds-text)] placeholder-[var(--ds-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)]"
             />
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setSelectedFeedback(null)}
                 disabled={updating}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)]"
               >
                 Batal
               </button>
@@ -421,7 +421,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                 type="button"
                 disabled={updating}
                 onClick={() => handleUpdateStatus(selectedFeedback, selectedFeedback.status, replyText.trim())}
-                className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 cursor-pointer"
+                className="px-4 py-1.5 rounded-xl text-xs font-bold bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 cursor-pointer"
               >
                 {updating ? 'Menyimpan...' : 'Simpan Catatan'}
               </button>
@@ -448,17 +448,17 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
                   Hapus permanen dari database Firestore?
                 </p>
                 <p className="text-rose-700 dark:text-rose-300/80 leading-relaxed">
-                  Laporan dengan judul <strong className="text-rose-950 dark:text-white">"{feedbackToDelete.title}"</strong> dari <strong className="text-rose-950 dark:text-white">{feedbackToDelete.userName || feedbackToDelete.userEmail}</strong> akan dihapus dan tidak dapat dikembalikan.
+                  Laporan dengan judul <strong className="text-rose-950 dark:text-rose-200">"{feedbackToDelete.title}"</strong> dari <strong className="text-rose-950 dark:text-rose-200">{feedbackToDelete.userName || feedbackToDelete.userEmail}</strong> akan dihapus dan tidak dapat dikembalikan.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--ds-border)]">
               <button
                 type="button"
                 onClick={() => setFeedbackToDelete(null)}
                 disabled={deleting}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] border border-[var(--ds-border)] transition-colors cursor-pointer"
               >
                 Batal
               </button>

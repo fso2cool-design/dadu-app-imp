@@ -747,7 +747,7 @@ export const GradesPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
-            <Medal className="w-5 h-5 text-orange-600 dark:text-cyan-400" />
+            <Medal className="w-5 h-5 text-[var(--ds-accent)]" />
             Nilai Akademik & Penilaian
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -855,7 +855,7 @@ export const GradesPage: React.FC = () => {
       <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs transition-colors">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-cyan-950/60 text-orange-600 dark:text-cyan-400 border border-orange-200 dark:border-cyan-500/40 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] flex items-center justify-center font-bold">
               <Stack className="w-5 h-5" />
             </div>
             <div>
@@ -919,7 +919,7 @@ export const GradesPage: React.FC = () => {
                 max={100}
                 value={passingGrade}
                 onChange={(e) => setPassingGrade(Number(e.target.value) || 75)}
-                className="w-12 font-mono font-bold text-orange-700 dark:text-cyan-400 bg-white dark:bg-[var(--ds-surface-elevated)] px-1.5 py-0.5 rounded border border-slate-200 dark:border-[var(--ds-border)] text-center"
+                className="w-12 font-mono font-bold text-[var(--ds-accent)] bg-[var(--ds-surface-elevated)] px-1.5 py-0.5 rounded border border-[var(--ds-border)] text-center"
               />
             </div>
           </div>
@@ -1092,9 +1092,9 @@ export const GradesPage: React.FC = () => {
                 setPasteTargetItem(assessmentItems[0]);
                 setIsPasteModalOpen(true);
               }}
-              className="px-2.5 py-1.5 rounded-xl border border-orange-200 dark:border-cyan-500/40 bg-orange-50/70 dark:bg-cyan-950/40 hover:bg-orange-100 dark:hover:bg-cyan-900/60 text-orange-700 dark:text-cyan-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <FileCsv className="w-3.5 h-3.5 text-orange-600 dark:text-cyan-400" />
+              <FileCsv className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
               <span>Paste Excel</span>
             </button>
           )}
@@ -1138,7 +1138,7 @@ export const GradesPage: React.FC = () => {
                         className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[var(--ds-border)] group/col relative"
                       >
                         <div className="flex flex-col items-center justify-center">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-300 border border-orange-200/50 dark:border-cyan-500/40 uppercase tracking-tight mb-0.5">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] uppercase tracking-tight mb-0.5">
                             {item.category}
                           </span>
                           <span className="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 text-xs" title={item.name}>
@@ -1235,7 +1235,7 @@ export const GradesPage: React.FC = () => {
               </thead>
 
               {/* Table Body */}
-              <tbody className="divide-y divide-slate-100 dark:divide-[#232838]">
+              <tbody className="divide-y divide-[var(--ds-border)]">
                 {displayedEnrollments.map((enr, index) => {
                   const calc = studentCalculations[enr.studentId];
                   const isBelowPassing = calc ? !calc.isPassed && calc.filledCount > 0 : false;
@@ -1246,12 +1246,12 @@ export const GradesPage: React.FC = () => {
                       className="hover:bg-slate-50/70 dark:hover:bg-[var(--ds-surface-elevated)] transition-colors group"
                     >
                       {/* Sticky Roll Number */}
-                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[var(--ds-surface-elevated)] dark:group-hover:bg-[#1b1f2e] px-3 py-2 text-center font-mono font-semibold text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-[var(--ds-border)]">
+                      <td className="sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-3 py-2 text-center font-mono font-semibold text-[var(--ds-text-muted)] border-r border-[var(--ds-border)]">
                         {enr.rollNumber || index + 1}
                       </td>
 
                       {/* Sticky Student Name & NIS */}
-                      <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[var(--ds-surface-elevated)] dark:group-hover:bg-[#1b1f2e] px-4 py-2 border-r border-slate-200 dark:border-[var(--ds-border)]">
+                      <td className="sticky left-12 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-4 py-2 border-r border-[var(--ds-border)]">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
                             {enr.student?.fullName || 'Nama Siswa'}
@@ -1335,14 +1335,14 @@ export const GradesPage: React.FC = () => {
                       <td className="border-r border-slate-100 dark:border-[var(--ds-border)]"></td>
 
                       {/* Final Score Calculated Value */}
-                      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-orange-50/30 dark:bg-cyan-950/20">
-                        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-orange-950 dark:text-cyan-300'}>
+                      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-[var(--ds-accent-soft)]/40">
+                        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--ds-accent)] font-bold'}>
                           {calc?.finalScore || 0}
                         </span>
                       </td>
 
                       {/* Predicate */}
-                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-orange-50/30 dark:bg-cyan-950/20">
+                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/40">
                         <span
                           className={`inline-block w-6 py-0.5 rounded-md font-bold text-xs font-mono ${
                             calc?.predicate === 'A'
@@ -1359,7 +1359,7 @@ export const GradesPage: React.FC = () => {
                       </td>
 
                       {/* Status Ketuntasan */}
-                      <td className="px-3 py-2 text-center bg-orange-50/30 dark:bg-cyan-950/20">
+                      <td className="px-3 py-2 text-center bg-[var(--ds-accent-soft)]/40">
                         {calc && calc.filledCount > 0 ? (
                           calc.isIncomplete ? (
                             <div className="flex flex-col items-center gap-0.5">

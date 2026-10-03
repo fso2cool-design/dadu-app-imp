@@ -168,14 +168,14 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
     >
       <div className="space-y-4 text-xs">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-[#232838]">
+        <div className="flex border-b border-[var(--ds-border)]">
           <button
             type="button"
             onClick={() => setActiveTab('create')}
             className={`flex items-center gap-1.5 px-4 py-2.5 font-bold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'create'
-                ? 'border-orange-600 dark:border-cyan-500 text-orange-600 dark:text-cyan-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-[var(--ds-accent)] text-[var(--ds-accent)]'
+                : 'border-transparent text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             <PlusCircle className="w-4 h-4" />
@@ -186,14 +186,14 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
             onClick={() => setActiveTab('list')}
             className={`flex items-center gap-1.5 px-4 py-2.5 font-bold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'list'
-                ? 'border-orange-600 dark:border-cyan-500 text-orange-600 dark:text-cyan-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-[var(--ds-accent)] text-[var(--ds-accent)]'
+                : 'border-transparent text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
             }`}
           >
             <List className="w-4 h-4" />
             <span>Kelola Tautan Berbagi</span>
             {userReports.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-[#1b1f2e] text-[10px] text-slate-600 dark:text-slate-300">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[var(--ds-surface-muted)] text-[10px] text-[var(--ds-text-muted)]">
                 {userReports.length}
               </span>
             )}
@@ -203,20 +203,20 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
         {activeTab === 'create' ? (
           !createdReport ? (
             <form onSubmit={handleGenerateLink} className="space-y-4">
-              <div className="p-3 bg-orange-50/70 dark:bg-cyan-950/40 border border-orange-200/80 dark:border-cyan-500/40 rounded-xl text-orange-950 dark:text-cyan-200 flex items-start gap-2.5">
-                <ShieldCheck className="w-5 h-5 text-orange-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+              <div className="p-3 bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] rounded-xl text-[var(--ds-text)] flex items-start gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-[var(--ds-accent)] shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-xs text-orange-900 dark:text-cyan-300">
+                  <p className="font-semibold text-xs text-[var(--ds-accent)]">
                     Akses Read-Only Resmi & Aman
                   </p>
-                  <p className="text-[11px] text-orange-800/90 dark:text-cyan-400/80 leading-relaxed">
+                  <p className="text-[11px] text-[var(--ds-text-muted)] leading-relaxed">
                     Pimpinan madrasah, pengawas Kemenag, atau komite dapat langsung melihat rekapitulasi data resmi ini tanpa perlu login akun.
                   </p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-[var(--ds-text)] font-semibold mb-1">
                   Judul Laporan Resmi
                 </label>
                 <input
@@ -224,12 +224,12 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-[var(--ds-text)] font-semibold mb-1">
                   Catatan Pengantar (Opsional)
                 </label>
                 <textarea
@@ -237,20 +237,20 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Contoh: Laporan rekapitulasi kehadiran semester ganjil untuk evaluasi mingguan pimpinan..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-orange-500 text-xs"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 flex items-center gap-1.5">
+                  <label className="block text-[var(--ds-text)] font-semibold mb-1 flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-slate-500" />
                     Masa Berlaku Tautan
                   </label>
                   <select
                     value={expiresInDays}
                     onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#141722] text-slate-800 dark:text-slate-200 text-xs font-medium cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-medium cursor-pointer"
                   >
                     <option value={7}>7 Hari (1 Minggu)</option>
                     <option value={30}>30 Hari (1 Bulan)</option>
@@ -260,7 +260,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 flex items-center gap-1.5">
+                  <label className="block text-[var(--ds-text)] font-semibold mb-1 flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-slate-500" />
                     Perlindungan Sandi (PIN)
                   </label>
@@ -270,9 +270,9 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                       id="chk-passcode"
                       checked={usePasscode}
                       onChange={(e) => setUsePasscode(e.target.checked)}
-                      className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      className="w-4 h-4 rounded text-[var(--ds-accent)] focus:ring-[var(--ds-focus)] cursor-pointer"
                     />
-                    <label htmlFor="chk-passcode" className="text-[11px] text-slate-600 dark:text-slate-400 cursor-pointer">
+                    <label htmlFor="chk-passcode" className="text-[11px] text-[var(--ds-text-muted)] cursor-pointer">
                       Enkripsi Klien (Zero-Knowledge)
                     </label>
                   </div>
@@ -284,9 +284,9 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                         placeholder="Contoh: 123456"
                         value={passcode}
                         onChange={(e) => setPasscode(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-xl border border-orange-300 dark:border-cyan-500/50 bg-orange-50/50 dark:bg-cyan-950/20 text-xs font-mono font-bold text-center tracking-widest text-orange-950 dark:text-cyan-200"
+                        className="w-full px-3 py-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)] text-xs font-mono font-bold text-center tracking-widest text-[var(--ds-accent)]"
                       />
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[10px] text-[var(--ds-text-muted)]">
                         Data dienkripsi via AES-GCM 256-bit. PIN tidak pernah disimpan di database.
                       </p>
                     </div>
@@ -294,11 +294,11 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-[#232838]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold cursor-pointer"
                 >
                   Batal
                 </button>
@@ -328,7 +328,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
 
               {/* Link & Copy Box */}
               <div className="space-y-1.5">
-                <label className="text-slate-700 dark:text-slate-300 font-semibold block">
+                <label className="text-[var(--ds-text)] font-semibold block">
                   Tautan Akses Publik:
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -336,7 +336,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                     type="text"
                     readOnly
                     value={publicShareUrl}
-                    className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] bg-slate-50 dark:bg-[#0c0e15] font-mono text-[11px] text-slate-800 dark:text-slate-200"
+                    className="flex-1 px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] font-mono text-[11px] text-[var(--ds-text)]"
                   />
                   <button
                     type="button"
@@ -350,20 +350,20 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
               </div>
 
               {/* Details Strip */}
-              <div className="p-3 bg-slate-50 dark:bg-[#141722] border border-slate-200 dark:border-[#232838] rounded-xl space-y-1.5 text-[11px]">
-                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+              <div className="p-3 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-xl space-y-1.5 text-[11px]">
+                <div className="flex items-center justify-between text-[var(--ds-text-muted)]">
                   <span>Token Akses:</span>
-                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{createdReport.id}</span>
+                  <span className="font-mono font-bold text-[var(--ds-text)]">{createdReport.id}</span>
                 </div>
                 {createdReport.passcode && (
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center justify-between text-[var(--ds-text-muted)]">
                     <span>Kode Sandi (PIN):</span>
                     <span className="font-mono font-bold text-accent-text">{createdReport.passcode}</span>
                   </div>
                 )}
-                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                <div className="flex items-center justify-between text-[var(--ds-text-muted)]">
                   <span>Masa Berlaku:</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                  <span className="font-medium text-[var(--ds-text)]">
                     {createdReport.expiresAt ? new Date(createdReport.expiresAt.toMillis ? createdReport.expiresAt.toMillis() : createdReport.expiresAt).toLocaleDateString('id-ID') : 'Selamanya'}
                   </span>
                 </div>
@@ -383,7 +383,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   href={publicShareUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 dark:border-[#232838] hover:bg-slate-50 dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] font-semibold flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <ArrowSquareOut className="w-3.5 h-3.5" />
                   <span>Buka Pratinjau</span>
@@ -395,7 +395,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                     setCreatedReport(null);
                     setActiveTab('list');
                   }}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-700 dark:text-slate-300 font-semibold cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-[var(--ds-text)] font-semibold cursor-pointer"
                 >
                   Kelola Tautan
                 </button>
@@ -407,18 +407,18 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
           <div className="space-y-3">
             {loadingList ? (
               <div className="py-8 text-center text-slate-400 space-y-2">
-                <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                <div className="w-6 h-6 border-2 border-[var(--ds-accent)] border-t-transparent rounded-full animate-spin mx-auto" />
                 <p>Memuat daftar tautan berbagi...</p>
               </div>
             ) : userReports.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 space-y-2 bg-slate-50 dark:bg-[#141722] rounded-2xl border border-dashed border-slate-200 dark:border-[#232838]">
+              <div className="py-8 text-center text-[var(--ds-text-muted)] space-y-2 bg-[var(--ds-surface-muted)] rounded-2xl border border-dashed border-[var(--ds-border)]">
                 <ShareNetwork className="w-8 h-8 mx-auto opacity-40 text-slate-500" />
-                <p className="font-semibold text-xs text-slate-600 dark:text-slate-300">Belum Ada Tautan Berbagi</p>
+                <p className="font-semibold text-xs text-[var(--ds-text)]">Belum Ada Tautan Berbagi</p>
                 <p className="text-[11px]">Anda belum pernah membuat tautan publik untuk dibagikan.</p>
                 <button
                   type="button"
                   onClick={() => setActiveTab('create')}
-                  className="mt-2 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs"
+                  className="mt-2 px-3 py-1.5 rounded-xl bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] font-bold text-xs"
                 >
                   Buat Tautan Pertama
                 </button>
@@ -433,19 +433,19 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                   return (
                     <div
                       key={rep.id}
-                      className="p-3 bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] rounded-xl space-y-2 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                      className="p-3 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-xl space-y-2 shadow-2xs hover:border-[var(--ds-border-strong)] transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="space-y-0.5">
-                          <h4 className="font-bold text-slate-800 dark:text-slate-100 text-xs">
+                          <h4 className="font-bold text-[var(--ds-text)] text-xs">
                             {rep.title}
                           </h4>
                           <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                            <span className="px-1.5 py-0.5 rounded-md font-semibold bg-slate-100 dark:bg-[#1b1f2e] text-slate-600 dark:text-slate-300">
+                            <span className="px-1.5 py-0.5 rounded-md font-semibold bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)]">
                               {rep.reportType}
                             </span>
                             {rep.hasPasscode || rep.encryptedPayload || rep.passcode ? (
-                              <span className="px-1.5 py-0.5 rounded-md font-semibold bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
+                              <span className="px-1.5 py-0.5 rounded-md font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center gap-1">
                                 <Lock className="w-2.5 h-2.5" /> PIN
                               </span>
                             ) : null}
@@ -473,7 +473,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-[#1b1f2e] gap-2">
+                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--ds-border)] gap-2">
                         <div className="font-mono text-[10px] text-slate-400 truncate max-w-[200px]">
                           Token: {rep.id}
                         </div>
@@ -485,7 +485,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                                 type="button"
                                 onClick={() => handleCopyLink(shareUrl)}
                                 title="Salin Tautan"
-                                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] cursor-pointer"
+                                className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] cursor-pointer"
                               >
                                 <Copy className="w-3.5 h-3.5" />
                               </button>
@@ -494,7 +494,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                                 target="_blank"
                                 rel="noreferrer"
                                 title="Buka Tautan"
-                                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e]"
+                                className="p-1.5 rounded-lg text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)]"
                               >
                                 <ArrowSquareOut className="w-3.5 h-3.5" />
                               </a>

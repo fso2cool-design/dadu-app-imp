@@ -600,10 +600,10 @@ export const SubjectAttendancePage: React.FC = () => {
       )}
 
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-[#141722] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--ds-surface-elevated)] p-4 sm:p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs transition-colors">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-orange-50 dark:bg-cyan-950/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40">
+            <span className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)]">
               <CheckSquare className="w-5 h-5" />
             </span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100">Presensi Siswa Mata Pelajaran</h1>
@@ -626,7 +626,7 @@ export const SubjectAttendancePage: React.FC = () => {
       </div>
 
       {/* Assignment, Date & Meeting Selector Bar */}
-      <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between transition-colors">
+      <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto flex-wrap">
           {/* Assignment Selector */}
           <div className="w-full sm:w-60">
@@ -636,7 +636,7 @@ export const SubjectAttendancePage: React.FC = () => {
             <select
               value={selectedAssignmentId}
               onChange={e => handleAssignmentChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               {teachingAssignments.map(ta => (
                 <option key={ta.id} value={ta.id}>
@@ -656,7 +656,7 @@ export const SubjectAttendancePage: React.FC = () => {
                 type="date"
                 value={selectedDate}
                 onChange={e => handleDateChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-medium text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               />
             </div>
           )}
@@ -671,7 +671,7 @@ export const SubjectAttendancePage: React.FC = () => {
                 <select
                   value={selectedMeetingId}
                   onChange={e => handleMeetingChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#232838] text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-medium text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
                 >
                   <option value="">Tanpa Jurnal (Presensi Mandiri)</option>
                   {meetings.map(m => (
@@ -685,7 +685,7 @@ export const SubjectAttendancePage: React.FC = () => {
                   type="button"
                   disabled={isArchivedYear}
                   onClick={() => setIsMeetingModalOpen(true)}
-                  className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 dark:bg-cyan-950/60 dark:hover:bg-cyan-900/60 text-orange-600 dark:text-cyan-400 border border-orange-200/60 dark:border-cyan-500/40 text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] border border-[var(--ds-border)] text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan' : 'Buat Jurnal Pertemuan'}
                 >
                   <Plus className="w-4 h-4" />
@@ -695,10 +695,10 @@ export const SubjectAttendancePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsHolidayModalOpen(true)}
-                  className="px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-[#0c0e15] dark:hover:bg-[#1b1f2e] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#232838] text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5"
+                  className="px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-700 dark:text-slate-300 border border-[var(--ds-border)] text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5"
                   title="Atur Kalender & Hari Libur Madrasah"
                 >
-                  <CalendarBlank className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+                  <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
                 </button>
               </div>
             </div>
@@ -707,7 +707,7 @@ export const SubjectAttendancePage: React.FC = () => {
 
         {/* Tab specific actions */}
         {activeTab === 'TAKE' ? (
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-[#232838]">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full lg:w-auto justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[var(--ds-border)]">
             <button
               type="button"
               onClick={handleSetAllPresent}
@@ -730,7 +730,7 @@ export const SubjectAttendancePage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2 w-full lg:w-auto justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-[#232838]">
+          <div className="flex items-center gap-2 w-full lg:w-auto justify-end pt-2 lg:pt-0 border-t lg:border-t-0 border-[var(--ds-border)]">
             <button
               onClick={handleExportMatrixExcel}
               disabled={allEnrollments.length === 0 || matrixColumns.length === 0}
@@ -747,8 +747,8 @@ export const SubjectAttendancePage: React.FC = () => {
       {activeTab === 'TAKE' && (
         <div className="space-y-4">
           {/* Active Session Info Banner & Live Counters */}
-          <div className="p-4 bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs space-y-3 transition-colors">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-[#232838] pb-3">
+          <div className="p-4 bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs space-y-3 transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--ds-border)] pb-3">
               <div>
                 <div className="flex items-center gap-2">
                   {currentMeeting ? (
@@ -824,7 +824,7 @@ export const SubjectAttendancePage: React.FC = () => {
                     {stats.present}/{stats.total} Hadir ({stats.percentage}%)
                   </span>
                 </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-[#0c0e15] rounded-full overflow-hidden flex border border-slate-200/70 dark:border-[#232838] gap-0.5">
+                <div className="h-2 w-full bg-[var(--ds-surface-muted)] rounded-full overflow-hidden flex border border-[var(--ds-border)] gap-0.5">
                   {stats.present > 0 && (
                     <div 
                       style={{ width: `${(stats.present / stats.total) * 100}%` }} 
@@ -866,7 +866,7 @@ export const SubjectAttendancePage: React.FC = () => {
 
             {/* Counter Grid */}
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-xs">
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#0c0e15] border border-slate-100 dark:border-[#232838]">
+              <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)]">
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Total Siswa</span>
                 <span className="font-bold text-slate-800 dark:text-slate-100 text-base">{stats.total}</span>
               </div>
@@ -917,7 +917,7 @@ export const SubjectAttendancePage: React.FC = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Cari nama atau nomor absen siswa..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-white dark:bg-[#141722] border border-slate-200 dark:border-[#232838] text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 shadow-2xs transition-colors"
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[var(--ds-focus)] shadow-2xs transition-colors"
             />
           </div>
 
@@ -925,7 +925,7 @@ export const SubjectAttendancePage: React.FC = () => {
           {loadingRows ? (
             <SkeletonTable rows={8} columns={5} />
           ) : (
-            <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden transition-colors">
+            <div className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden transition-colors">
               {studentRows.length === 0 ? (
                 <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
                   <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
@@ -935,17 +935,17 @@ export const SubjectAttendancePage: React.FC = () => {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-slate-50 dark:bg-[#0c0e15] text-slate-700 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-[#232838] sticky top-0 z-20">
+                    <thead className="bg-[var(--ds-surface-muted)] text-slate-700 dark:text-slate-300 font-semibold border-b border-[var(--ds-border)] sticky top-0 z-20">
                       <tr>
-                        <th className="sticky left-0 z-30 bg-slate-50 dark:bg-[#0c0e15] py-3 px-4 w-12 text-center border-r border-slate-200 dark:border-[#232838]">No</th>
-                        <th className="sticky left-12 z-30 bg-slate-50 dark:bg-[#0c0e15] py-3 px-4 min-w-[180px] sm:min-w-[220px] border-r border-slate-200 dark:border-[#232838]">Nama Siswa</th>
-                        <th className="py-3 px-4 w-28 border-r border-slate-200 dark:border-[#232838]">NIS</th>
-                        <th className="py-3 px-4 w-12 text-center border-r border-slate-200 dark:border-[#232838]">L/P</th>
-                        <th className="py-3 px-4 w-60 text-center border-r border-slate-200 dark:border-[#232838]">Status Kehadiran</th>
+                        <th className="sticky left-0 z-30 bg-[var(--ds-surface-muted)] py-3 px-4 w-12 text-center border-r border-[var(--ds-border)]">No</th>
+                        <th className="sticky left-12 z-30 bg-[var(--ds-surface-muted)] py-3 px-4 min-w-[180px] sm:min-w-[220px] border-r border-[var(--ds-border)]">Nama Siswa</th>
+                        <th className="py-3 px-4 w-28 border-r border-[var(--ds-border)]">NIS</th>
+                        <th className="py-3 px-4 w-12 text-center border-r border-[var(--ds-border)]">L/P</th>
+                        <th className="py-3 px-4 w-60 text-center border-r border-[var(--ds-border)]">Status Kehadiran</th>
                         <th className="py-3 px-4 w-64">Keterangan / Alasan</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-[#232838] text-slate-600 dark:text-slate-300">
+                    <tbody className="divide-y divide-[var(--ds-border)] text-slate-600 dark:text-slate-300">
                       {filteredRows.map((row) => {
                         const rowHighlightClass = 
                           row.status === 'SICK'
@@ -956,7 +956,7 @@ export const SubjectAttendancePage: React.FC = () => {
                             ? 'bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-950/30'
                             : row.status === 'DISPENSATION'
                             ? 'bg-purple-50/50 hover:bg-purple-100/60 dark:bg-purple-950/20 dark:hover:bg-purple-950/30'
-                            : 'hover:bg-slate-50/70 dark:hover:bg-[#1b1f2e]';
+                            : 'hover:bg-[var(--ds-accent-soft)]';
 
                         const stickyCellClass =
                           row.status === 'SICK'
@@ -967,28 +967,28 @@ export const SubjectAttendancePage: React.FC = () => {
                             ? 'bg-rose-50/90 dark:bg-[#1c1114] group-hover:bg-rose-100/80 dark:group-hover:bg-[#241519]'
                             : row.status === 'DISPENSATION'
                             ? 'bg-purple-50/90 dark:bg-[#181120] group-hover:bg-purple-100/80 dark:group-hover:bg-[#20162a]'
-                            : 'bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e]';
+                            : 'bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)]';
 
                         return (
                           <tr key={row.studentId} className={`transition-colors group ${rowHighlightClass}`}>
-                            <td className={`sticky left-0 z-10 py-3 px-4 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[#232838] ${stickyCellClass}`}>
+                            <td className={`sticky left-0 z-10 py-3 px-4 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-[var(--ds-border)] ${stickyCellClass}`}>
                               {row.rollNumber}
                             </td>
-                            <td className={`sticky left-12 z-10 py-3 px-4 border-r border-slate-200 dark:border-[#232838] ${stickyCellClass}`}>
+                            <td className={`sticky left-12 z-10 py-3 px-4 border-r border-[var(--ds-border)] ${stickyCellClass}`}>
                               <span className="font-bold text-slate-800 dark:text-slate-100 block">{row.studentName}</span>
                             </td>
-                            <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-[#232838]">
+                            <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 border-r border-[var(--ds-border)]">
                               {row.nis || '-'}
                             </td>
-                            <td className="py-3 px-4 text-center border-r border-slate-200 dark:border-[#232838]">
+                            <td className="py-3 px-4 text-center border-r border-[var(--ds-border)]">
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                 row.gender === 'L' ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400' : 'bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-400'
                               }`}>
                                 {row.gender}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-center border-r border-slate-200 dark:border-[#232838]">
-                              <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-[#0c0e15] rounded-xl border border-slate-200/60 dark:border-[#232838]">
+                            <td className="py-3 px-4 text-center border-r border-[var(--ds-border)]">
+                              <div className="inline-flex items-center gap-1.5 p-1 bg-[var(--ds-surface-muted)] rounded-xl border border-[var(--ds-border)]">
                                 <button
                                   type="button"
                                   disabled={isArchivedYear}
@@ -996,7 +996,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'PRESENT'
                                       ? 'bg-emerald-600 text-white shadow-xs'
-                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-emerald-600 dark:hover:text-emerald-400'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white hover:bg-[var(--ds-accent-soft)] hover:text-emerald-600 dark:hover:text-emerald-400'
                                   }`}
                                   title="Hadir (H)"
                                 >
@@ -1009,7 +1009,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'SICK'
                                       ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
-                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-amber-600 dark:hover:text-amber-400'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white hover:bg-[var(--ds-accent-soft)] hover:text-amber-600 dark:hover:text-amber-400'
                                   }`}
                                   title="Sakit (S)"
                                 >
@@ -1022,7 +1022,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'PERMITTED'
                                       ? 'bg-sky-600 text-white shadow-xs'
-                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-sky-600 dark:hover:text-sky-400'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white hover:bg-[var(--ds-accent-soft)] hover:text-sky-600 dark:hover:text-sky-400'
                                   }`}
                                   title="Izin (I)"
                                 >
@@ -1035,7 +1035,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'ABSENT'
                                       ? 'bg-rose-600 text-white shadow-xs'
-                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-rose-600 dark:hover:text-rose-400'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white hover:bg-[var(--ds-accent-soft)] hover:text-rose-600 dark:hover:text-rose-400'
                                   }`}
                                   title="Alpa (A)"
                                 >
@@ -1048,7 +1048,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                     row.status === 'DISPENSATION'
                                       ? 'btn-primary text-white shadow-xs'
-                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-[#1b1f2e] hover:text-indigo-600 dark:hover:text-indigo-400'
+                                      : 'text-slate-600 dark:text-slate-400 hover:bg-white hover:bg-[var(--ds-accent-soft)] hover:text-indigo-600 dark:hover:text-indigo-400'
                                   }`}
                                   title="Dispensasi (D)"
                                 >
@@ -1063,7 +1063,7 @@ export const SubjectAttendancePage: React.FC = () => {
                                 value={row.note}
                                 onChange={e => handleNoteChange(row.studentId, e.target.value)}
                                 placeholder={isArchivedYear ? '-' : 'Keterangan...'}
-                                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-[#232838] bg-white dark:bg-[#0c0e15] text-slate-800 dark:text-slate-100 text-xs focus:ring-1 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-slate-800 dark:text-slate-100 text-xs focus:ring-1 focus:ring-[var(--ds-focus)] disabled:opacity-60 disabled:cursor-not-allowed"
                               />
                             </td>
                           </tr>
@@ -1080,8 +1080,8 @@ export const SubjectAttendancePage: React.FC = () => {
 
       {/* TAB 2: REKAP MATRIKS KEHADIRAN SISWA */}
       {activeTab === 'MATRIX' && (
-        <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden p-4 sm:p-5 space-y-4 transition-colors">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-[#232838] pb-3">
+        <div className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden p-4 sm:p-5 space-y-4 transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--ds-border)] pb-3">
             <div>
               <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">
                 Matriks Kehadiran Siswa Kelas {currentAssignment?.className} ({currentAssignment?.subjectName})
@@ -1122,18 +1122,18 @@ export const SubjectAttendancePage: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse border border-slate-200 dark:border-[#232838]">
-                <thead className="bg-slate-100 dark:bg-[#0c0e15] text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-[#232838] sticky top-0 z-20">
+              <table className="w-full text-left text-xs border-collapse border border-[var(--ds-border)]">
+                <thead className="bg-[var(--ds-surface-muted)] text-slate-700 dark:text-slate-300 font-bold border-b border-[var(--ds-border)] sticky top-0 z-20">
                   <tr>
-                    <th className="sticky left-0 z-30 bg-slate-100 dark:bg-[#0c0e15] py-2.5 px-3 border-r border-slate-200 dark:border-[#232838] w-10 text-center">No</th>
-                    <th className="sticky left-10 z-30 bg-slate-100 dark:bg-[#0c0e15] py-2.5 px-3 border-r border-slate-200 dark:border-[#232838] min-w-[160px]">Nama Siswa</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] w-10 text-center">L/P</th>
+                    <th className="sticky left-0 z-30 bg-[var(--ds-surface-muted)] py-2.5 px-3 border-r border-[var(--ds-border)] w-10 text-center">No</th>
+                    <th className="sticky left-10 z-30 bg-[var(--ds-surface-muted)] py-2.5 px-3 border-r border-[var(--ds-border)] min-w-[160px]">Nama Siswa</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] w-10 text-center">L/P</th>
                     
                     {/* Columns for each session (meeting or independent date) */}
                     {matrixColumns.map(col => (
                       <th 
                         key={col.key} 
-                        className={`py-2 px-2 border-r border-slate-200 dark:border-[#232838] text-center font-mono text-[11px] min-w-[40px] ${
+                        className={`py-2 px-2 border-r border-[var(--ds-border)] text-center font-mono text-[11px] min-w-[40px] ${
                           col.type === 'INDEPENDENT' ? 'bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300' : ''
                         }`}
                         title={col.title}
@@ -1143,15 +1143,15 @@ export const SubjectAttendancePage: React.FC = () => {
                       </th>
                     ))}
 
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40 w-10">H</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-amber-700 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40 w-10">S</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-sky-700 dark:text-sky-400 bg-sky-50/70 dark:bg-sky-950/40 w-10">I</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-rose-700 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-950/40 w-10">A</th>
-                    <th className="py-2.5 px-2 border-r border-slate-200 dark:border-[#232838] text-center text-violet-700 dark:text-violet-400 bg-violet-50/70 dark:bg-violet-950/40 w-10">D</th>
-                    <th className="py-2.5 px-3 text-center bg-orange-50 dark:bg-cyan-950/60 text-orange-800 dark:text-cyan-300 font-bold w-16" title={`Dihitung dari ${conductedSessions.length} sesi terlaksana`}>%</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] text-center text-emerald-700 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40 w-10">H</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] text-center text-amber-700 dark:text-amber-400 bg-amber-50/70 dark:bg-amber-950/40 w-10">S</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] text-center text-sky-700 dark:text-sky-400 bg-sky-50/70 dark:bg-sky-950/40 w-10">I</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] text-center text-rose-700 dark:text-rose-400 bg-rose-50/70 dark:bg-rose-950/40 w-10">A</th>
+                    <th className="py-2.5 px-2 border-r border-[var(--ds-border)] text-center text-violet-700 dark:text-violet-400 bg-violet-50/70 dark:bg-violet-950/40 w-10">D</th>
+                    <th className="py-2.5 px-3 text-center bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] font-bold w-16" title={`Dihitung dari ${conductedSessions.length} sesi terlaksana`}>%</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-[#232838]">
+                <tbody className="divide-y divide-[var(--ds-border)]">
                   {allEnrollments.map((en, idx) => {
                     const stud = en.student!;
                     let countH = 0;
@@ -1161,14 +1161,14 @@ export const SubjectAttendancePage: React.FC = () => {
                     let countD = 0;
 
                     return (
-                      <tr key={stud.id} className="hover:bg-slate-50 dark:hover:bg-[#1b1f2e] group">
-                        <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-2 px-3 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-[#232838]">
+                      <tr key={stud.id} className="hover:bg-slate-50 hover:bg-[var(--ds-accent-soft)] group">
+                        <td className="sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] py-2 px-3 text-center font-mono font-bold text-slate-700 dark:text-slate-200 border-r border-[var(--ds-border)]">
                           {en.rollNumber || (idx + 1)}
                         </td>
-                        <td className="sticky left-10 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-2 px-3 font-semibold text-slate-800 dark:text-slate-100 border-r border-slate-200 dark:border-[#232838] whitespace-nowrap">
+                        <td className="sticky left-10 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] py-2 px-3 font-semibold text-slate-800 dark:text-slate-100 border-r border-[var(--ds-border)] whitespace-nowrap">
                           {stud.fullName}
                         </td>
-                        <td className="py-2 px-2 text-center border-r border-slate-200 dark:border-[#232838] font-bold text-[10px] text-slate-600 dark:text-slate-300">
+                        <td className="py-2 px-2 text-center border-r border-[var(--ds-border)] font-bold text-[10px] text-slate-600 dark:text-slate-300">
                           {stud.gender}
                         </td>
 
@@ -1212,7 +1212,7 @@ export const SubjectAttendancePage: React.FC = () => {
                           return (
                             <td 
                               key={col.key} 
-                              className={`py-1.5 px-1 text-center border-r border-slate-200 dark:border-[#232838] font-mono text-xs ${cellClass}`}
+                              className={`py-1.5 px-1 text-center border-r border-[var(--ds-border)] font-mono text-xs ${cellClass}`}
                             >
                               {statusShort}
                             </td>
@@ -1220,22 +1220,22 @@ export const SubjectAttendancePage: React.FC = () => {
                         })}
 
                         {/* Summary totals */}
-                        <td className="py-2 px-2 text-center font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/20 border-r border-[var(--ds-border)]">
                           {countH}
                         </td>
-                        <td className="py-2 px-2 text-center font-bold text-amber-700 dark:text-amber-400 bg-amber-50/40 dark:bg-amber-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-amber-700 dark:text-amber-400 bg-amber-50/40 dark:bg-amber-950/20 border-r border-[var(--ds-border)]">
                           {countS}
                         </td>
-                        <td className="py-2 px-2 text-center font-bold text-sky-700 dark:text-sky-400 bg-sky-50/40 dark:bg-sky-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-sky-700 dark:text-sky-400 bg-sky-50/40 dark:bg-sky-950/20 border-r border-[var(--ds-border)]">
                           {countI}
                         </td>
-                        <td className="py-2 px-2 text-center font-bold text-rose-700 dark:text-rose-400 bg-rose-50/40 dark:bg-rose-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-rose-700 dark:text-rose-400 bg-rose-50/40 dark:bg-rose-950/20 border-r border-[var(--ds-border)]">
                           {countA}
                         </td>
-                        <td className="py-2 px-2 text-center font-bold text-violet-700 dark:text-violet-400 bg-violet-50/40 dark:bg-violet-950/20 border-r border-slate-200 dark:border-[#232838]">
+                        <td className="py-2 px-2 text-center font-bold text-violet-700 dark:text-violet-400 bg-violet-50/40 dark:bg-violet-950/20 border-r border-[var(--ds-border)]">
                           {countD}
                         </td>
-                        <td className="py-2 px-3 text-center font-bold bg-orange-50/70 dark:bg-cyan-950/40 text-orange-900 dark:text-cyan-300">
+                        <td className="py-2 px-3 text-center font-bold bg-[var(--ds-accent-soft)]/50 text-[var(--ds-accent)]">
                           {conductedSessions.length > 0 ? Math.round(((countH + countD) / conductedSessions.length) * 100) : 0}%
                         </td>
                       </tr>

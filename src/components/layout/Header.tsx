@@ -209,22 +209,22 @@ export const Header: React.FC<HeaderProps> = ({
         }}
         className={`w-full p-2 rounded-xl text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
           isSelected
-            ? 'bg-accent-primary text-accent-primary-text font-bold shadow-xs'
-            : 'hover:bg-slate-100 dark:hover:bg-[var(--ds-surface)] text-slate-700 dark:text-slate-300'
+            ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] font-bold shadow-xs'
+            : 'hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)]'
         }`}
       >
         <div className="flex items-center gap-2.5 truncate">
           <span
             className={`font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${
               isSelected
-                ? 'bg-white/20 text-white'
-                : 'bg-slate-100 dark:bg-[var(--ds-surface)] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[var(--ds-border)]'
+                ? 'bg-[color-mix(in_srgb,var(--ds-accent-fg)_20%,transparent)] text-[var(--ds-accent-fg)]'
+                : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text)] border border-[var(--ds-border)]'
             }`}
           >
             {assign.className}
           </span>
           <span
-            className={`truncate ${isSelected ? 'text-white' : 'text-slate-600 dark:text-slate-400'}`}
+            className={`truncate ${isSelected ? 'text-[var(--ds-accent-fg)]' : 'text-[var(--ds-text-muted)]'}`}
           >
             {assign.subjectName}
           </span>
@@ -234,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span
               className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
                 isSelected
-                  ? 'bg-white/20 text-white'
+                  ? 'bg-[color-mix(in_srgb,var(--ds-accent-fg)_20%,transparent)] text-[var(--ds-accent-fg)]'
                   : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
               }`}
             >
@@ -248,17 +248,17 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 lg:h-16 bg-white/95 dark:bg-[var(--ds-surface)]/90 backdrop-blur-md border-b border-slate-200/90 dark:border-[var(--ds-border)] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
+    <header className="h-14 lg:h-16 bg-[color-mix(in_srgb,var(--ds-surface-elevated)_95%,transparent)] backdrop-blur-md border-b border-[var(--ds-border)] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
       {/* Mobile App Branding & Drawer Toggle (Visible only on mobile screens < lg) */}
       <div className="flex items-center gap-1.5 lg:hidden mr-2 shrink-0">
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+          className="p-1 rounded-xl hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] transition-colors flex items-center gap-1.5 cursor-pointer"
           aria-label="Buka List"
         >
           <AppLogo size={28} variant="mark" />
-          <span className="font-extrabold text-sm text-slate-900 dark:text-white tracking-tight hidden xs:inline">
+          <span className="font-extrabold text-sm text-[var(--ds-text)] tracking-tight hidden xs:inline">
             DADU
           </span>
         </button>
@@ -274,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({
               setShowClassDropdown(!showClassDropdown);
               setShowUserDropdown(false);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#141722] hover:bg-slate-50 dark:hover:bg-[var(--ds-surface)] border border-slate-200/90 dark:border-[var(--ds-border)] text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-xs group"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--ds-surface-elevated)] hover:bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold transition-all cursor-pointer shadow-xs group"
           >
             <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/70 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black text-[11px] shrink-0">
               {selectedAssignment ? selectedAssignment.className.split('-')[0] : 'K'}
@@ -282,33 +282,33 @@ export const Header: React.FC<HeaderProps> = ({
 
             {selectedAssignment ? (
               <div className="flex items-center gap-1 sm:gap-1.5">
-                <span className="font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap text-xs">
+                <span className="font-bold text-[var(--ds-text)] whitespace-nowrap text-xs">
                   Kelas {selectedAssignment.className}
                 </span>
-                <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">•</span>
+                <span className="text-[var(--ds-text-muted)] hidden sm:inline">•</span>
                 <span className="text-emerald-700 dark:text-emerald-400 font-medium max-w-[90px] xs:max-w-[130px] sm:max-w-[180px] md:max-w-[220px] truncate hidden sm:inline">
                   {selectedAssignment.subjectName}
                 </span>
               </div>
             ) : (
-              <span className="text-slate-500 dark:text-slate-400 font-medium">Pilih Rombel & Mapel</span>
+              <span className="text-[var(--ds-text-muted)] font-medium">Pilih Rombel & Mapel</span>
             )}
 
-            <CaretDown className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform ${showClassDropdown ? 'rotate-180' : ''}`} />
+            <CaretDown className={`w-3.5 h-3.5 text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)] transition-transform ${showClassDropdown ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Class Switcher Dropdown Modal */}
           {showClassDropdown && (
             <div 
-              className="absolute left-0 mt-2 w-72 sm:w-84 rounded-2xl bg-white dark:bg-[#141722] p-3 shadow-2xl border border-slate-200 dark:border-[var(--ds-border)] z-50 animate-in fade-in slide-in-from-top-2"
+              className="absolute left-0 mt-2 w-72 sm:w-84 rounded-2xl bg-[var(--ds-surface-elevated)] p-3 shadow-2xl border border-[var(--ds-border)] z-50 animate-in fade-in slide-in-from-top-2"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-[var(--ds-border)] pb-2.5 mb-2.5">
+              <div className="flex items-center justify-between border-b border-[var(--ds-border)] pb-2.5 mb-2.5">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-[var(--ds-text)] uppercase tracking-wider">
                     Ganti Fokus Kelas & Mapel
                   </h4>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  <p className="text-[10px] text-[var(--ds-text-muted)]">
                     Pilih rombel untuk input presensi, jurnal, atau penilaian
                   </p>
                 </div>
@@ -323,9 +323,9 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Optional Year & Semester Selector inside Dropdown */}
               {showAdvancedSettings && (
-                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-[var(--ds-surface)] border border-slate-200/80 dark:border-[var(--ds-border)] mb-3 space-y-2">
+                <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] mb-3 space-y-2">
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Tahun Ajaran:</span>
+                    <span className="text-[10px] font-bold text-[var(--ds-text-muted)] block mb-1">Tahun Ajaran:</span>
                     <div className="flex flex-wrap gap-1">
                       {academicYears.map(year => (
                         <button
@@ -334,8 +334,8 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setActiveAcademicYear(year)}
                           className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeAcademicYear?.id === year.id
-                              ? 'bg-accent-primary text-accent-primary-text border-accent-primary font-bold shadow-xs'
-                              : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[var(--ds-border)]'
+                              ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] border-[var(--ds-accent)] font-bold shadow-xs'
+                              : 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] border border-[var(--ds-border)]'
                           }`}
                         >
                           {year.label}
@@ -345,7 +345,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1">Semester:</span>
+                    <span className="text-[10px] font-bold text-[var(--ds-text-muted)] block mb-1">Semester:</span>
                     <div className="flex gap-1">
                       {(['GANJIL', 'GENAP'] as const).map(sem => (
                         <button
@@ -354,8 +354,8 @@ export const Header: React.FC<HeaderProps> = ({
                           onClick={() => setActiveSemester(sem)}
                           className={`flex-1 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
                             activeSemester === sem
-                              ? 'bg-accent-primary text-accent-primary-text border-accent-primary font-bold shadow-xs'
-                              : 'bg-white dark:bg-[#141722] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[var(--ds-border)]'
+                              ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] border-[var(--ds-accent)] font-bold shadow-xs'
+                              : 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] border border-[var(--ds-border)]'
                           }`}
                         >
                           {sem === 'GANJIL' ? 'Ganjil' : 'Genap'}
@@ -369,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* List of Teaching Assignments (Grouped by Today if available, else Natural Sorted) */}
               <div className="max-h-64 overflow-y-auto space-y-1 pr-0.5">
                 {sortedAssignments.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-slate-400 dark:text-slate-500">
+                  <div className="text-center py-6 text-xs text-[var(--ds-text-muted)]">
                     Belum ada rombel terdaftar
                   </div>
                 ) : todayAssignments.length > 0 ? (
@@ -389,11 +389,11 @@ export const Header: React.FC<HeaderProps> = ({
 
                     {otherAssignments.length > 0 && (
                       <>
-                        <div className="px-2 pt-2.5 pb-1 border-t border-slate-100 dark:border-[var(--ds-border)] flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                        <div className="px-2 pt-2.5 pb-1 border-t border-[var(--ds-border)] flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ds-text-muted)]">
                             Kelas Lainnya
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                          <span className="text-[10px] font-mono text-[var(--ds-text-muted)]">
                             {otherAssignments.length} Kelas
                           </span>
                         </div>
@@ -414,12 +414,12 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* 2. Live Local Clock Widget */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-[#141722] border border-slate-200/90 dark:border-[var(--ds-border)] text-slate-700 dark:text-slate-300 text-xs font-mono font-bold shadow-2xs shrink-0">
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-mono font-bold shadow-2xs shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-          <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+          <Clock className="w-3.5 h-3.5 text-[var(--ds-text-muted)]" />
           <span>{localTime || '--:--:--'}</span>
           {localTimeZone && (
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans font-semibold">
+            <span className="text-[10px] text-[var(--ds-text-muted)] font-sans font-semibold">
               {localTimeZone}
             </span>
           )}
@@ -488,13 +488,13 @@ export const Header: React.FC<HeaderProps> = ({
                 const nextMode = mode === 'dark' ? 'light' : 'dark';
                 applyAndSaveMode(nextMode);
               }}
-              className="p-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#141722] dark:hover:bg-[var(--ds-surface)] border border-slate-200/90 dark:border-[var(--ds-border)] text-slate-600 dark:text-slate-300 transition-all cursor-pointer shadow-2xs"
+              className="p-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[var(--ds-text)] transition-all cursor-pointer shadow-2xs"
               aria-label={mode === 'dark' ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'}
             >
               {mode === 'dark' ? (
                 <Sun className="w-3.5 h-3.5 text-amber-400 animate-in spin-in-180 duration-200" />
               ) : (
-                <Moon className="w-3.5 h-3.5 text-slate-600 dark:text-slate-300 animate-in spin-in-180 duration-200" />
+                <Moon className="w-3.5 h-3.5 text-[var(--ds-text)] animate-in spin-in-180 duration-200" />
               )}
             </button>
           </Tooltip>
@@ -510,13 +510,13 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-2 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 dark:bg-[#141722] dark:hover:bg-[var(--ds-surface)] border border-slate-200/90 dark:border-[var(--ds-border)] text-slate-600 dark:text-slate-300 transition-all cursor-pointer shadow-2xs"
+              className="p-2 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[var(--ds-text)] transition-all cursor-pointer shadow-2xs"
               aria-label={isFullscreen ? 'Keluar Layar Penuh (Esc)' : 'Mode Layar Penuh'}
             >
               {isFullscreen ? (
                 <ArrowsIn className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               ) : (
-                <ArrowsOut className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <ArrowsOut className="w-3.5 h-3.5 text-[var(--ds-text-muted)]" />
               )}
             </button>
           </Tooltip>
@@ -532,7 +532,7 @@ export const Header: React.FC<HeaderProps> = ({
               setShowUserDropdown(!showUserDropdown);
               setShowClassDropdown(false);
             }}
-            className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#141722] text-slate-700 dark:text-slate-300 text-xs transition-colors cursor-pointer"
+            className="flex items-center gap-2 p-1 rounded-xl hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs transition-colors cursor-pointer"
           >
             <div className="relative w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-xs">
               {profile?.displayName?.charAt(0) || 'G'}
@@ -546,29 +546,29 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
             <div className="text-left hidden md:block">
-              <div className="font-bold text-slate-800 dark:text-slate-100 text-xs leading-none">
+              <div className="font-bold text-[var(--ds-text)] text-xs leading-none">
                 {profile?.displayName || 'Guru'}
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+              <div className="text-[10px] text-[var(--ds-text-muted)] mt-0.5">
                 {isAdmin ? 'Administrator' : 'Guru'}
               </div>
             </div>
-            <CaretDown className="w-3.5 h-3.5 text-slate-400 hidden md:block" />
+            <CaretDown className="w-3.5 h-3.5 text-[var(--ds-text-muted)] hidden md:block" />
           </button>
 
           {/* Profile Dropdown List */}
           {showUserDropdown && (
             <div 
-              className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#141722] p-2 shadow-2xl border border-slate-200 dark:border-[var(--ds-border)] z-50 animate-in fade-in slide-in-from-top-2"
+              className="absolute right-0 mt-2 w-64 rounded-2xl bg-[var(--ds-surface-elevated)] p-2 shadow-2xl border border-[var(--ds-border)] z-50 animate-in fade-in slide-in-from-top-2"
             >
-              <div className="p-3 border-b border-slate-100 dark:border-[var(--ds-border)] mb-1">
-                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{profile?.displayName}</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{profile?.email}</p>
+              <div className="p-3 border-b border-[var(--ds-border)] mb-1">
+                <p className="text-xs font-bold text-[var(--ds-text)] truncate">{profile?.displayName}</p>
+                <p className="text-[11px] text-[var(--ds-text-muted)] truncate">{profile?.email}</p>
                 <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-500/50">
                   {isAdmin ? 'ADMINISTRATOR' : 'GURU'}
                 </span>
                 {profile?.nip && (
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-mono">NIP: {profile.nip}</p>
+                  <p className="text-[10px] text-[var(--ds-text-muted)] mt-1 font-mono">NIP: {profile.nip}</p>
                 )}
               </div>
 
@@ -604,7 +604,7 @@ export const Header: React.FC<HeaderProps> = ({
                     setShowUserDropdown(false);
                     onOpenFeedbackModal();
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[var(--ds-surface)] transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
                 >
                   <Heart className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />
                   <span>Kirim Masukan & Lapor Bug</span>
@@ -617,13 +617,13 @@ export const Header: React.FC<HeaderProps> = ({
                   onNavigate('settings');
                   setShowUserDropdown(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[var(--ds-surface)] transition-colors cursor-pointer"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer"
               >
-                <Gear className="w-4 h-4 text-slate-400 shrink-0" />
+                <Gear className="w-4 h-4 text-[var(--ds-text-muted)] shrink-0" />
                 Pengaturan Profil & Madrasah
               </button>
 
-              <div className="border-t border-slate-100 dark:border-[var(--ds-border)] my-1" />
+              <div className="border-t border-[var(--ds-border)] my-1" />
 
               <button
                 type="button"

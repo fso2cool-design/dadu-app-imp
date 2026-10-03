@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+  <!-- Neo-Brutalism hazard tile: seamless 45deg yellow/black band. Decorative
+       strip only (.ds-hazard-bar); never place text on top of it. -->
+  <rect width="16" height="16" fill="#FFE500"/>
+  <path d="M0 8L8 0H16L0 16Z M8 16L16 8V16Z" fill="#000000"/>
+</svg>

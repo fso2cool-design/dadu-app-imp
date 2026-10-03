@@ -283,16 +283,16 @@ export const OnboardingWizard: React.FC = () => {
                   <div
                     className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all ${
                       isCurrent
-                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30 ring-2 ring-orange-400'
+                        ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] shadow-lg shadow-[var(--ds-accent)]/30 ring-2 ring-[var(--ds-accent)]'
                         : isCompleted
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-[#161922] text-slate-400 border border-slate-800'
+                        : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                     }`}
                   >
                     {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-4 h-4" />}
                   </div>
                   <span className={`text-[11px] font-medium mt-1.5 hidden sm:block ${
-                    isCurrent ? 'text-orange-400 font-semibold' : isCompleted ? 'text-emerald-400' : 'text-slate-500'
+                    isCurrent ? 'text-[var(--ds-accent)] font-semibold' : isCompleted ? 'text-emerald-400' : 'text-slate-500'
                   }`}>
                     {s.title}
                   </span>
@@ -308,7 +308,7 @@ export const OnboardingWizard: React.FC = () => {
         </div>
 
         {/* Card Container */}
-        <div className="bg-[#141722]/95 border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+        <div className="bg-[color-mix(in_srgb,var(--ds-surface-elevated)_95%,transparent)] border border-[var(--ds-border)] rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
           {error && (
             <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm">
               <WarningCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -321,7 +321,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <User className="w-5 h-5 text-orange-400" />
+                  <User className="w-5 h-5 text-[var(--ds-accent)]" />
                   1. Data Profil Guru
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -342,7 +342,7 @@ export const OnboardingWizard: React.FC = () => {
                     profile: { ...prev.profile, displayName: e.target.value }
                   }))}
                   placeholder="Contoh: Ahmad Dahlan, S.Pd.I., M.Pd."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                 />
               </div>
 
@@ -359,7 +359,7 @@ export const OnboardingWizard: React.FC = () => {
                       profile: { ...prev.profile, nip: e.target.value }
                     }))}
                     placeholder="198501012010011001"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
                 <div>
@@ -374,7 +374,7 @@ export const OnboardingWizard: React.FC = () => {
                       profile: { ...prev.profile, nik: e.target.value }
                     }))}
                     placeholder="3201..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
               </div>
@@ -391,7 +391,7 @@ export const OnboardingWizard: React.FC = () => {
                     profile: { ...prev.profile, phone: e.target.value }
                   }))}
                   placeholder="081234567890"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                 />
               </div>
             </div>
@@ -402,7 +402,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <Buildings className="w-5 h-5 text-orange-400" />
+                  <Buildings className="w-5 h-5 text-[var(--ds-accent)]" />
                   2. Identitas Madrasah / Sekolah
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -438,7 +438,7 @@ export const OnboardingWizard: React.FC = () => {
                         }}
                         className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                           isSelected
-                            ? 'bg-orange-500 text-white border-orange-500 ring-2 ring-orange-500/40 shadow-sm'
+                            ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] border-[var(--ds-accent)] ring-2 ring-[var(--ds-accent)]/40 shadow-sm'
                             : 'bg-slate-900/80 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
                         }`}
                       >
@@ -462,7 +462,7 @@ export const OnboardingWizard: React.FC = () => {
                     school: { ...prev.school, schoolName: e.target.value }
                   }))}
                   placeholder="Contoh: MAN 1 Model Bukittinggi / SMA Negeri 1"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                 />
               </div>
 
@@ -479,7 +479,7 @@ export const OnboardingWizard: React.FC = () => {
                       school: { ...prev.school, npsn: e.target.value }
                     }))}
                     placeholder="10304567"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
                 <div>
@@ -494,7 +494,7 @@ export const OnboardingWizard: React.FC = () => {
                       school: { ...prev.school, nsm: e.target.value }
                     }))}
                     placeholder="131113750001"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
               </div>
@@ -511,7 +511,7 @@ export const OnboardingWizard: React.FC = () => {
                     school: { ...prev.school, address: e.target.value }
                   }))}
                   placeholder="Jl. Raya Pendidikan No. 45..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                 />
               </div>
 
@@ -529,7 +529,7 @@ export const OnboardingWizard: React.FC = () => {
                       school: { ...prev.school, headmasterName: e.target.value }
                     }))}
                     placeholder="Drs. H. Syukri, M.Pd."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
                 <div>
@@ -544,7 +544,7 @@ export const OnboardingWizard: React.FC = () => {
                       school: { ...prev.school, headmasterNip: e.target.value }
                     }))}
                     placeholder="197005121995031002"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
               </div>
@@ -556,7 +556,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <CalendarBlank className="w-5 h-5 text-orange-400" />
+                  <CalendarBlank className="w-5 h-5 text-[var(--ds-accent)]" />
                   3. Tahun Ajaran & Semester Berjalan
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -578,7 +578,7 @@ export const OnboardingWizard: React.FC = () => {
                       academicYear: { ...prev.academicYear, label: e.target.value }
                     }))}
                     placeholder="2026/2027"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
                 <div>
@@ -592,7 +592,7 @@ export const OnboardingWizard: React.FC = () => {
                       ...prev,
                       academicYear: { ...prev.academicYear, startYear: parseInt(e.target.value) || 2026 }
                     }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
                 <div>
@@ -606,7 +606,7 @@ export const OnboardingWizard: React.FC = () => {
                       ...prev,
                       academicYear: { ...prev.academicYear, endYear: parseInt(e.target.value) || 2027 }
                     }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)] focus:border-[var(--ds-focus)]"
                   />
                 </div>
               </div>
@@ -626,7 +626,7 @@ export const OnboardingWizard: React.FC = () => {
                       }))}
                       className={`p-4 rounded-xl border text-center font-semibold text-sm transition-all cursor-pointer ${
                         formData.academicYear.currentSemester === sem
-                          ? 'bg-orange-500/20 border-orange-500 text-orange-400 ring-1 ring-orange-500 font-bold'
+                          ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-accent)] ring-1 ring-[var(--ds-accent)] font-bold'
                           : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
                       }`}
                     >
@@ -644,7 +644,7 @@ export const OnboardingWizard: React.FC = () => {
               <div className="border-b border-slate-800 pb-3 mb-2 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                    <Stack className="w-5 h-5 text-orange-400" />
+                    <Stack className="w-5 h-5 text-[var(--ds-accent)]" />
                     4. Daftar Rombongan Belajar (Kelas)
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -654,7 +654,7 @@ export const OnboardingWizard: React.FC = () => {
                 <button
                   type="button"
                   onClick={addClass}
-                  className="px-3 py-1.5 rounded-lg bg-orange-600/30 hover:bg-orange-600 text-orange-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent)] text-[var(--ds-accent)] hover:text-[var(--ds-accent-fg)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Kelas
                 </button>
@@ -664,7 +664,7 @@ export const OnboardingWizard: React.FC = () => {
               <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                   <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                    <GraduationCap className="w-4 h-4 text-orange-400" />
+                    <GraduationCap className="w-4 h-4 text-[var(--ds-accent)]" />
                     Preset Jenjang / Format Kelas Cepat:
                   </span>
                   <span className="text-[11px] text-slate-400">
@@ -687,13 +687,13 @@ export const OnboardingWizard: React.FC = () => {
                         onClick={() => applyLevelPreset(p.id as LevelPresetKey)}
                         className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500 shadow-sm'
+                            ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-text)] ring-1 ring-[var(--ds-accent)] shadow-sm'
                             : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:text-white hover:border-slate-600'
                         }`}
                       >
                         <div className="font-bold text-xs flex items-center justify-between">
                           {p.label}
-                          {isActive && <Check className="w-3 h-3 text-orange-400" />}
+                          {isActive && <Check className="w-3 h-3 text-[var(--ds-accent)]" />}
                         </div>
                         <div className="text-[10px] text-slate-400 mt-0.5">{p.desc}</div>
                       </button>
@@ -705,7 +705,7 @@ export const OnboardingWizard: React.FC = () => {
               {/* Homeroom guidance badge */}
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 text-slate-300">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <span className="w-2 h-2 rounded-full bg-[var(--ds-accent)]"></span>
                   <span>Bukan Wali Kelas? Biarkan opsi <b>"Wali Kelas di sini"</b> tidak dicentang.</span>
                 </div>
                 {formData.classes.some(c => c.isHomeroom) && (
@@ -717,7 +717,7 @@ export const OnboardingWizard: React.FC = () => {
                         classes: prev.classes.map(c => ({ ...c, isHomeroom: false }))
                       }));
                     }}
-                    className="text-[11px] text-orange-400 hover:text-orange-300 underline font-medium cursor-pointer"
+                    className="text-[11px] text-[var(--ds-accent)] hover:underline font-medium cursor-pointer"
                   >
                     Setel Semua Bukan Wali Kelas
                   </button>
@@ -773,7 +773,7 @@ export const OnboardingWizard: React.FC = () => {
                               classes: prev.classes.map((c, i) => i === idx ? { ...c, isHomeroom: checked } : c)
                             }));
                           }}
-                          className="rounded border-slate-700 text-orange-500 focus:ring-orange-500 accent-orange-500"
+                          className="rounded border-[var(--ds-border)] text-[var(--ds-accent)] focus:ring-[var(--ds-focus)] accent-[var(--ds-accent)]"
                         />
                         <span className="truncate font-medium">Wali Kelas di sini</span>
                       </label>
@@ -794,7 +794,7 @@ export const OnboardingWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={addClass}
-                className="w-full py-2.5 rounded-xl border border-dashed border-slate-700 hover:border-orange-500 text-slate-400 hover:text-orange-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer bg-slate-900/40"
+                className="w-full py-2.5 rounded-xl border border-dashed border-[var(--ds-border)] hover:border-[var(--ds-accent)] text-slate-400 hover:text-[var(--ds-accent)] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer bg-slate-900/40"
               >
                 <Plus className="w-4 h-4" /> Tambah Kelas Lainnya
               </button>
@@ -807,7 +807,7 @@ export const OnboardingWizard: React.FC = () => {
               <div className="border-b border-slate-800 pb-3 mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                    <BookOpen className="w-5 h-5 text-orange-400" />
+                    <BookOpen className="w-5 h-5 text-[var(--ds-accent)]" />
                     5. Mata Pelajaran yang Anda Ampu
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
@@ -817,7 +817,7 @@ export const OnboardingWizard: React.FC = () => {
                 <button
                   type="button"
                   onClick={addSubject}
-                  className="px-3 py-1.5 rounded-lg bg-orange-600/30 hover:bg-orange-600 text-orange-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-[var(--ds-accent-soft)] hover:bg-[var(--ds-accent)] text-[var(--ds-accent)] hover:text-[var(--ds-accent-fg)] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah Mapel
                 </button>
@@ -882,7 +882,7 @@ export const OnboardingWizard: React.FC = () => {
             <div className="space-y-4">
               <div className="border-b border-slate-800 pb-3 mb-4">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2 font-serif">
-                  <Briefcase className="w-5 h-5 text-orange-400" />
+                  <Briefcase className="w-5 h-5 text-[var(--ds-accent)]" />
                   6. Hubungkan Kelas & Mata Pelajaran
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -893,11 +893,11 @@ export const OnboardingWizard: React.FC = () => {
               <div className="space-y-4">
                 {formData.classes.map((cls, cIdx) => (
                   <div key={cIdx} className="p-4 rounded-xl bg-slate-900/70 border border-slate-700">
-                    <div className="font-semibold text-sm text-orange-300 mb-2.5 flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-orange-400" />
+                    <div className="font-semibold text-sm text-[var(--ds-accent)] mb-2.5 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[var(--ds-accent)]" />
                       Kelas {cls.name || `Kelas ${cIdx + 1}`}
                       {cls.isHomeroom && (
-                        <span className="text-[10px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full border border-orange-500/30 font-semibold">
+                        <span className="text-[10px] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] px-2 py-0.5 rounded-full border border-[var(--ds-border)] font-semibold">
                           Wali Kelas
                         </span>
                       )}
@@ -914,7 +914,7 @@ export const OnboardingWizard: React.FC = () => {
                             onClick={() => toggleAssignment(cIdx, sIdx)}
                             className={`p-3 rounded-lg border text-left flex items-center justify-between text-xs transition-all cursor-pointer ${
                               isChecked
-                                ? 'bg-orange-500/20 border-orange-500 text-white ring-1 ring-orange-500'
+                                ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-text)] ring-1 ring-[var(--ds-accent)]'
                                 : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-slate-200'
                             }`}
                           >
@@ -922,7 +922,7 @@ export const OnboardingWizard: React.FC = () => {
                               {sub.name || `Mapel ${sIdx + 1}`} ({sub.code || 'CODE'})
                             </span>
                             <div className={`w-4 h-4 rounded flex items-center justify-center border ${
-                              isChecked ? 'bg-orange-500 border-orange-500 text-white' : 'border-slate-600'
+                              isChecked ? 'bg-[var(--ds-accent)] border-[var(--ds-accent)] text-[var(--ds-accent-fg)]' : 'border-slate-600'
                             }`}>
                               {isChecked && <Check className="w-3 h-3" />}
                             </div>
@@ -965,7 +965,7 @@ export const OnboardingWizard: React.FC = () => {
                     setStep(s => s + 1);
                   }
                 }}
-                className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-orange-600/30 transition-all cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[var(--ds-accent)] hover:opacity-90 text-[var(--ds-accent-fg)] text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-[var(--ds-accent)]/30 transition-all cursor-pointer"
               >
                 Lanjut <CaretRight className="w-4 h-4" />
               </button>

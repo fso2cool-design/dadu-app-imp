@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+  <!-- Paper Craft fibre tile. Transparent ground: the card keeps its own
+       --ds-surface colour; strokes are a mid-tone at ~8% so they read on both
+       light (#FFFDF9) and dark (#292524) cards without touching text contrast. -->
+  <g fill="none" stroke="#8A7F72" stroke-opacity="0.09" stroke-width="0.7" stroke-linecap="round">
+    <path d="M6 14l9 2M31 6l7 4M52 19l11-1M78 9l6 5M97 21l12 1M12 37l8-3M40 31l10 4M66 42l9-2M90 35l7 6M108 48l9-3"/>
+    <path d="M4 61l11 1M27 55l6 6M49 66l10-2M72 58l8 5M95 69l11 1M15 84l7-4M38 79l12 2M61 90l6-6M84 82l10 3M104 94l8-2"/>
+    <path d="M8 107l10-1M30 100l7 5M55 112l9 1M76 103l11-3M99 115l8-4M20 24l3 7M58 73l-2 7M86 49l2 6M43 95l3 6M113 70l-2 6"/>
+  </g>
+  <g fill="#8A7F72" fill-opacity="0.08">
+    <circle cx="23" cy="47" r="0.8"/><circle cx="71" cy="27" r="0.7"/><circle cx="101" cy="83" r="0.8"/>
+    <circle cx="47" cy="104" r="0.7"/><circle cx="88" cy="112" r="0.6"/><circle cx="14" cy="93" r="0.6"/>
+  </g>
+</svg>

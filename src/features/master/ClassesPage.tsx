@@ -237,7 +237,7 @@ export const ClassesPage: React.FC = () => {
       </div>
 
       {/* Funnel Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-[#232838] pb-3 text-xs font-semibold">
+      <div className="flex items-center gap-2 border-b border-[var(--ds-border)] pb-3 text-xs font-semibold">
         <button
           type="button"
           onClick={() => setStatusFilter('active')}
@@ -286,7 +286,7 @@ export const ClassesPage: React.FC = () => {
 
       {/* Classes Grid */}
       {filteredClasses.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-white dark:bg-[#141722] border border-slate-200/90 dark:border-[#232838] text-center">
+        <div className="p-8 rounded-2xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-center">
           <Stack className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {statusFilter === 'archived' ? 'Tidak ada kelas yang diarsipkan' : 'Belum ada kelas'}
@@ -318,8 +318,8 @@ export const ClassesPage: React.FC = () => {
                 key={cls.id}
                 className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
                   cls.isArchived 
-                    ? 'bg-slate-50/60 dark:bg-[#10121a] border-dashed border-slate-300 dark:border-slate-800 opacity-80'
-                    : 'bg-white dark:bg-[#141722] border-slate-200/90 dark:border-[#232838] shadow-2xs hover:border-emerald-300 dark:hover:border-emerald-800'
+                    ? 'bg-[var(--ds-surface-muted)] border-dashed border-[var(--ds-border)] opacity-80'
+                    : 'bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] shadow-2xs hover:border-[var(--ds-accent)]'
                 }`}
               >
                 <div>

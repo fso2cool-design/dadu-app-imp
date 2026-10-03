@@ -432,11 +432,11 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       )}
 
       {/* Header & Controls */}
-      <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs space-y-4 transition-colors">
+      <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs space-y-4 transition-colors">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 dark:bg-cyan-950/60 text-orange-700 dark:text-cyan-400 border border-orange-200 dark:border-cyan-500/40">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)]">
                 Presensi Harian Wali Kelas
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -456,7 +456,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <button
               type="button"
               onClick={handleExportExcel}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-3.5 py-2 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
             >
               <FileCsv className="w-4 h-4 text-emerald-600" />
               Export Excel
@@ -475,7 +475,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         </div>
 
         {/* Filters and Date Bar */}
-        <div className="pt-3 border-t border-slate-100 dark:border-[#232838] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="pt-3 border-t border-[var(--ds-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Class Select */}
           <div className="flex items-center gap-2">
             <label htmlFor="daily-att-class" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Kelas:</label>
@@ -483,7 +483,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               id="daily-att-class"
               value={currentClass?.id || 'NONE'}
               onChange={(e) => handleClassChange(e.target.value)}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-lg focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)]"
             >
               <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
               {availableClasses.map(c => (
@@ -499,13 +499,13 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <button
               type="button"
               onClick={() => handleDateShift(-1)}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
+              className="p-1.5 rounded-lg border border-[var(--ds-border)] text-slate-600 dark:text-slate-400 hover:bg-[var(--ds-accent-soft)] cursor-pointer"
               title="Hari Sebelumnya"
             >
               <CaretLeft className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] px-3 py-1.5 rounded-lg">
+            <div className="flex items-center gap-1.5 bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-3 py-1.5 rounded-lg">
               <CalendarDots className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               <input
                 type="date"
@@ -518,7 +518,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <button
               type="button"
               onClick={() => handleDateShift(1)}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-[#232838] text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#1b1f2e] cursor-pointer"
+              className="p-1.5 rounded-lg border border-[var(--ds-border)] text-slate-600 dark:text-slate-400 hover:bg-[var(--ds-accent-soft)] cursor-pointer"
               title="Hari Berikutnya"
             >
               <CaretRight className="w-4 h-4" />
@@ -527,7 +527,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <button
               type="button"
               onClick={() => handleDateChange(getTodayISO())}
-              className="px-2.5 py-1.5 text-xs font-semibold text-orange-700 dark:text-cyan-400 bg-orange-50 dark:bg-cyan-950/60 hover:bg-orange-100 dark:hover:bg-cyan-900/60 rounded-lg border border-orange-200 dark:border-cyan-500/40 cursor-pointer"
+              className="px-2.5 py-1.5 text-xs font-semibold text-[var(--ds-accent)] bg-[var(--ds-accent-soft)] hover:opacity-90 rounded-lg border border-[var(--ds-border)] cursor-pointer"
             >
               Hari Ini
             </button>
@@ -535,10 +535,10 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             <button
               type="button"
               onClick={() => setIsHolidayModalOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-[#0c0e15] hover:bg-slate-100 dark:hover:bg-[#1b1f2e] rounded-lg border border-slate-300 dark:border-[#232838] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-border)] transition-colors cursor-pointer"
               title="Atur Sistem Hari Belajar 5/6 Hari & Hari Libur Kustom"
             >
-              <CalendarBlank className="w-3.5 h-3.5 text-orange-500 dark:text-cyan-400" />
+              <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
               <span>Kalender & Libur</span>
             </button>
           </div>
@@ -546,8 +546,8 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       </div>
 
       {!currentClass ? (
-        <div className="bg-white dark:bg-[#141722] p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-[#232838] text-center shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-cyan-400 flex items-center justify-center mx-auto mb-4 border border-blue-100 dark:border-blue-900/50">
+        <div className="bg-[var(--ds-surface-elevated)] p-8 sm:p-12 rounded-3xl border border-[var(--ds-border)] text-center shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] flex items-center justify-center mx-auto mb-4 border border-[var(--ds-border)]">
             <UserMinus className="w-8 h-8" />
           </div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
@@ -587,44 +587,44 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
           {/* Summary KPI Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-slate-200 dark:border-[#232838] text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] text-center">
           <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Total Siswa</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">{summaryStats.total}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 text-center">
           <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase">Hadir (H)</p>
           <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">{summaryStats.present}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-amber-200 dark:border-amber-500/40 bg-amber-50/30 dark:bg-amber-950/20 text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-amber-200 dark:border-amber-500/40 bg-amber-50/30 dark:bg-amber-950/20 text-center">
           <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase">Sakit (S)</p>
           <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">{summaryStats.sick}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-sky-200 dark:border-sky-500/40 bg-sky-50/30 dark:bg-sky-950/20 text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-sky-200 dark:border-sky-500/40 bg-sky-50/30 dark:bg-sky-950/20 text-center">
           <p className="text-[10px] font-semibold text-sky-700 dark:text-sky-400 uppercase">Izin (I)</p>
           <p className="text-xl font-bold text-sky-700 dark:text-sky-300 mt-0.5">{summaryStats.permitted}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-rose-200 dark:border-rose-500/40 bg-rose-50/30 dark:bg-rose-950/20 text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-rose-200 dark:border-rose-500/40 bg-rose-50/30 dark:bg-rose-950/20 text-center">
           <p className="text-[10px] font-semibold text-rose-700 dark:text-rose-400 uppercase">Alpa (A)</p>
           <p className="text-xl font-bold text-rose-700 dark:text-rose-300 mt-0.5">{summaryStats.absent}</p>
         </div>
 
-        <div className="bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-violet-200 dark:border-violet-500/40 bg-violet-50/30 dark:bg-violet-950/20 text-center">
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-violet-200 dark:border-violet-500/40 bg-violet-50/30 dark:bg-violet-950/20 text-center">
           <p className="text-[10px] font-semibold text-violet-700 dark:text-violet-400 uppercase">Dispen (D)</p>
           <p className="text-xl font-bold text-violet-700 dark:text-violet-300 mt-0.5">{summaryStats.dispensation}</p>
         </div>
 
-        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#141722] p-3.5 rounded-xl border border-orange-200 dark:border-cyan-500/40 bg-orange-50/30 dark:bg-cyan-950/20 text-center">
-          <p className="text-[10px] font-semibold text-orange-700 dark:text-cyan-400 uppercase">% Kehadiran</p>
-          <p className="text-xl font-bold text-orange-700 dark:text-cyan-300 mt-0.5">{summaryStats.rate}%</p>
+        <div className="col-span-2 sm:col-span-1 bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/50 text-center">
+          <p className="text-[10px] font-semibold text-[var(--ds-text-muted)] uppercase">% Kehadiran</p>
+          <p className="text-xl font-bold text-[var(--ds-accent)] mt-0.5">{summaryStats.rate}%</p>
         </div>
       </div>
 
       {/* Batch Operations & Student MagnifyingGlass */}
-      <div className="bg-white dark:bg-[#141722] p-4 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Fast Batch Setting */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">Set Massal:</span>
@@ -641,7 +641,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             type="button"
             disabled={isArchivedYear}
             onClick={() => handleSetAllStatus('PERMITTED')}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             Semua Izin
           </button>
@@ -653,7 +653,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] rounded-lg focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+            className="px-3 py-1.5 text-xs font-medium text-[var(--ds-text)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)]"
           >
             <option value="ALL">Semua Siswa</option>
             <option value="NOT_PRESENT">Hanya yang Tidak Hadir</option>
@@ -672,27 +672,27 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari siswa..."
-              className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-[#0c0e15] border border-slate-300 dark:border-[#232838] text-slate-800 dark:text-slate-200 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500"
+              className="w-full pl-8.5 pr-3 py-1.5 text-xs bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)]"
             />
           </div>
         </div>
       </div>
 
       {/* Student List Table with Sticky Columns */}
-      <div className="bg-white dark:bg-[#141722] rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs overflow-hidden transition-colors">
+      <div className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 dark:bg-[#0c0e15] text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-[#232838] sticky top-0 z-20">
+            <thead className="bg-[var(--ds-surface-muted)] text-slate-600 dark:text-slate-300 font-semibold border-b border-[var(--ds-border)] sticky top-0 z-20">
               <tr>
-                <th className="sticky left-0 z-30 bg-slate-50 dark:bg-[#0c0e15] py-3 px-3.5 w-12 text-center border-r border-slate-200 dark:border-[#232838]">No</th>
-                <th className="sticky left-12 z-30 bg-slate-50 dark:bg-[#0c0e15] py-3 px-3.5 min-w-[200px] border-r border-slate-200 dark:border-[#232838]">Nama Lengkap</th>
-                <th className="py-3 px-3.5 w-24 border-r border-slate-200 dark:border-[#232838]">NIS</th>
-                <th className="py-3 px-2 w-12 text-center border-r border-slate-200 dark:border-[#232838]">L/P</th>
-                <th className="py-3 px-3.5 min-w-[260px] text-center border-r border-slate-200 dark:border-[#232838]">Status Kehadiran</th>
+                <th className="sticky left-0 z-30 bg-[var(--ds-surface-muted)] py-3 px-3.5 w-12 text-center border-r border-[var(--ds-border)]">No</th>
+                <th className="sticky left-12 z-30 bg-[var(--ds-surface-muted)] py-3 px-3.5 min-w-[200px] border-r border-[var(--ds-border)]">Nama Lengkap</th>
+                <th className="py-3 px-3.5 w-24 border-r border-[var(--ds-border)]">NIS</th>
+                <th className="py-3 px-2 w-12 text-center border-r border-[var(--ds-border)]">L/P</th>
+                <th className="py-3 px-3.5 min-w-[260px] text-center border-r border-[var(--ds-border)]">Status Kehadiran</th>
                 <th className="py-3 px-3.5 min-w-[220px]">Keterangan / Alasan</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-[#232838] text-slate-700 dark:text-slate-300">
+            <tbody className="divide-y divide-[var(--ds-border)] text-slate-700 dark:text-slate-300">
               {filteredList.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
@@ -704,11 +704,11 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                   const state = attendanceState[enr.studentId] || { status: 'PRESENT', note: '' };
 
                   return (
-                    <tr key={enr.id} className="hover:bg-slate-50/60 dark:hover:bg-[#1b1f2e] transition-colors group">
-                      <td className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-3 px-3.5 text-center font-mono font-semibold text-slate-500 dark:text-slate-400 border-r border-slate-200 dark:border-[#232838]">
+                    <tr key={enr.id} className="hover:bg-[var(--ds-accent-soft)]/50 transition-colors group">
+                      <td className="sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] py-3 px-3.5 text-center font-mono font-semibold text-slate-500 dark:text-slate-400 border-r border-[var(--ds-border)]">
                         {enr.rollNumber}
                       </td>
-                      <td className="sticky left-12 z-10 bg-white group-hover:bg-slate-50 dark:bg-[#141722] dark:group-hover:bg-[#1b1f2e] py-3 px-3.5 border-r border-slate-200 dark:border-[#232838]">
+                      <td className="sticky left-12 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] py-3 px-3.5 border-r border-[var(--ds-border)]">
                         <span className="font-semibold text-slate-900 dark:text-slate-100 block">
                           {enr.student?.fullName || '-'}
                         </span>
@@ -718,15 +718,15 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-slate-200 dark:border-[#232838]">
+                      <td className="py-3 px-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-[var(--ds-border)]">
                         {enr.student?.nis || '-'}
                       </td>
-                      <td className="py-3 px-2 text-center border-r border-slate-200 dark:border-[#232838]">
+                      <td className="py-3 px-2 text-center border-r border-[var(--ds-border)]">
                         <GenderBadge gender={enr.student?.gender || 'L'} showLabel={false} size="sm" />
                       </td>
 
                       {/* Status Badges Group */}
-                      <td className="py-3 px-3.5 border-r border-slate-200 dark:border-[#232838]">
+                      <td className="py-3 px-3.5 border-r border-[var(--ds-border)]">
                         <div className="flex items-center justify-center gap-1">
                           {statusOptions.map((opt) => {
                             const isSelected = state.status === opt.value;
@@ -739,7 +739,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border ${isArchivedYear ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${
                                   isSelected
                                     ? opt.activeColor + ' border-transparent shadow-xs scale-105'
-                                    : 'bg-slate-50 dark:bg-[#0c0e15] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#232838] hover:bg-slate-100 dark:hover:bg-[#1b1f2e]'
+                                    : 'bg-[var(--ds-surface-muted)] text-slate-600 dark:text-slate-400 border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)]'
                                 }`}
                               >
                                 {opt.short} <span className="hidden sm:inline font-normal">({opt.label})</span>
@@ -757,7 +757,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                           value={state.note}
                           onChange={(e) => handleNoteChange(enr.studentId, e.target.value)}
                           placeholder={isArchivedYear ? '-' : 'Catatan...'}
-                          className="w-full px-2.5 py-1 text-xs bg-slate-50 dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838] text-slate-800 dark:text-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-orange-500 dark:focus:ring-cyan-500 mb-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="w-full px-2.5 py-1 text-xs bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[var(--ds-focus)] mb-1 disabled:opacity-60 disabled:cursor-not-allowed"
                         />
                         {/* Quick Presets for non-present */}
                         {state.status !== 'PRESENT' && !isArchivedYear && (
@@ -777,7 +777,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                                 className={`px-1.5 py-0.5 rounded text-[9px] cursor-pointer transition-colors ${
                                   state.status === 'DISPENSATION'
                                     ? 'bg-violet-50 hover:bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 dark:hover:bg-violet-900/60'
-                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-[#1b1f2e] dark:hover:bg-[#232838] text-slate-600 dark:text-slate-400'
+                                    : 'bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-600 dark:text-slate-400'
                                 }`}
                               >
                                 + {preset}
@@ -796,7 +796,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
       </div>
 
       {/* Class General Notes & FloppyDisk Footer */}
-      <div className="bg-white dark:bg-[#141722] p-5 rounded-2xl border border-slate-200 dark:border-[#232838] shadow-xs space-y-3 transition-colors">
+      <div className="bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs space-y-3 transition-colors">
         <label htmlFor="homeroom-notes-area" className="block text-xs font-bold text-slate-800 dark:text-slate-200">
           Catatan & Kejadian Khusus Wali Kelas Hari Ini:
         </label>
@@ -807,7 +807,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           value={sessionNotes}
           onChange={(e) => handleSessionNotesChange(e.target.value)}
           placeholder={isArchivedYear ? 'Tidak ada catatan kelas khusus (Arsip read-only)' : 'Tulis catatan kelas, kejadian istimewa, pengumuman, atau kondisi khusus siswa pada hari ini...'}
-          className="w-full p-3 text-xs bg-slate-50 dark:bg-[#0c0e15] border border-slate-200 dark:border-[#232838] text-slate-800 dark:text-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full p-3 text-xs bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] disabled:opacity-60 disabled:cursor-not-allowed"
         />
 
         <div className="pt-2">

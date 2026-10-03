@@ -127,9 +127,9 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white dark:bg-[#141722] w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-[#232838] overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-[var(--ds-surface-elevated)] w-full max-w-xl rounded-2xl shadow-2xl border border-[var(--ds-border)] overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-[#232838] flex items-center justify-between bg-slate-50/50 dark:bg-[#181d2a]/50">
+        <div className="px-5 py-4 border-b border-[var(--ds-border)] flex items-center justify-between bg-[var(--ds-surface-muted)]">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 flex items-center justify-center">
               <UserPlus className="w-5 h-5" />
@@ -146,7 +146,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1f2536] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-lg hover:bg-[var(--ds-accent-soft)] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -166,7 +166,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   isSubstitute
                     ? 'bg-violet-50 dark:bg-violet-950/30 border-violet-400 dark:border-violet-600 text-violet-900 dark:text-violet-200 shadow-xs'
-                    : 'bg-slate-50 dark:bg-[#181d2a] border-slate-200 dark:border-[#282e42] text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+                    : 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-slate-600 dark:text-slate-400 hover:bg-[var(--ds-accent-soft)]'
                 }`}
               >
                 <div className="font-bold flex items-center gap-1.5">
@@ -184,7 +184,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   !isSubstitute
                     ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-400 dark:border-blue-600 text-blue-900 dark:text-blue-200 shadow-xs'
-                    : 'bg-slate-50 dark:bg-[#181d2a] border-slate-200 dark:border-[#282e42] text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+                    : 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-slate-600 dark:text-slate-400 hover:bg-[var(--ds-accent-soft)]'
                 }`}
               >
                 <div className="font-bold flex items-center gap-1.5">
@@ -209,7 +209,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   <select
                     value={substituteTarget}
                     onChange={(e) => setSubstituteTarget(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-[var(--ds-surface-elevated)] text-slate-900 dark:text-slate-100 focus:outline-none"
                   >
                     <option value="">-- Pilih Guru Kelas yang Digantikan --</option>
                     {regularClassTeachers.map((t) => (
@@ -224,7 +224,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                     value={substituteTarget}
                     onChange={(e) => setSubstituteTarget(e.target.value)}
                     placeholder="Ketik nama guru yang digantikan..."
-                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                    className="w-full px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-800 bg-[var(--ds-surface-elevated)] text-slate-900 dark:text-slate-100 focus:outline-none"
                   />
                 )}
               </div>
@@ -268,7 +268,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
               <select
                 value={selectedTeacherId}
                 onChange={(e) => setSelectedTeacherId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-focus)]"
               >
                 {availableTeachers.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -282,7 +282,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 value={customTeacherName}
                 onChange={(e) => setCustomTeacherName(e.target.value)}
                 placeholder="Contoh: Drs. H. Ahmad Fauzi, M.Pd.I (Guru Piket)"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-focus)]"
               />
             )}
           </div>
@@ -324,7 +324,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
               <select
                 value={selectedSubjectId}
                 onChange={(e) => setSelectedSubjectId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-focus)]"
               >
                 {availableSubjects.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -338,13 +338,13 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 value={customSubjectName}
                 onChange={(e) => setCustomSubjectName(e.target.value)}
                 placeholder="Contoh: Bahasa Arab / Bimbingan Konseling"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-focus)]"
               />
             )}
           </div>
 
           {/* 4. Target Pertemuan & Hadir */}
-          <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#181d2a] border border-slate-200 dark:border-[#282e42]">
+          <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)]">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Target Pertemuan (Bulan Ini)
@@ -359,7 +359,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   setTargetMeetings(val);
                   setHadir(val);
                 }}
-                className="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-[#333b52] bg-white dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 font-bold focus:outline-none"
+                className="w-full px-3 py-1.5 rounded-lg border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] text-slate-900 dark:text-slate-100 font-bold focus:outline-none"
               />
             </div>
             <div>
@@ -372,7 +372,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 max={targetMeetings}
                 value={hadir}
                 onChange={(e) => setHadir(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-[#1b2030] text-emerald-700 dark:text-emerald-300 font-bold focus:outline-none"
+                className="w-full px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-[var(--ds-surface-elevated)] text-emerald-700 dark:text-emerald-300 font-bold focus:outline-none"
               />
             </div>
           </div>
@@ -388,7 +388,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 min="0"
                 value={sakit}
                 onChange={(e) => setSakit(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full px-2 py-1 rounded-lg border border-amber-300 dark:border-amber-800 bg-white dark:bg-[#1b2030] text-center font-bold"
+                className="w-full px-2 py-1 rounded-lg border border-amber-300 dark:border-amber-800 bg-[var(--ds-surface-elevated)] text-center font-bold"
               />
             </div>
             <div>
@@ -400,7 +400,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 min="0"
                 value={izin}
                 onChange={(e) => setIzin(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full px-2 py-1 rounded-lg border border-blue-300 dark:border-blue-800 bg-white dark:bg-[#1b2030] text-center font-bold"
+                className="w-full px-2 py-1 rounded-lg border border-blue-300 dark:border-blue-800 bg-[var(--ds-surface-elevated)] text-center font-bold"
               />
             </div>
             <div>
@@ -412,7 +412,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                 min="0"
                 value={alpa}
                 onChange={(e) => setAlpa(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full px-2 py-1 rounded-lg border border-rose-300 dark:border-rose-800 bg-white dark:bg-[#1b2030] text-center font-bold"
+                className="w-full px-2 py-1 rounded-lg border border-rose-300 dark:border-rose-800 bg-[var(--ds-surface-elevated)] text-center font-bold"
               />
             </div>
           </div>
@@ -427,7 +427,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Contoh: Mengisi jam ke-3 s.d 4 (Pak Budi sakit); materi Bab 3 tuntas"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] bg-slate-50 dark:bg-[#1b2030] text-slate-900 dark:text-slate-100 focus:outline-none"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] text-[var(--ds-text)] focus:outline-none focus:ring-1 focus:ring-[var(--ds-focus)]"
             />
 
             {/* Quick preset chips */}
@@ -445,7 +445,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
                   key={chip}
                   type="button"
                   onClick={() => handleApplyPresetNote(chip)}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#202738] hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-colors cursor-pointer"
+                  className="px-2 py-0.5 rounded-md bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-600 dark:text-slate-300 text-[10px] font-medium transition-colors cursor-pointer"
                 >
                   + {chip}
                 </button>
@@ -454,11 +454,11 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-3 border-t border-slate-100 dark:border-[#232838] flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[var(--ds-border)] flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#282e42] hover:bg-slate-50 dark:hover:bg-[#1c2232] text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
+              className="px-4 py-2 rounded-xl border border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
             >
               Batal
             </button>

@@ -103,14 +103,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className={`relative w-full ${maxWidthClass} transform overflow-hidden rounded-2xl bg-white dark:bg-[#141722] p-6 text-left shadow-2xl transition-all border border-slate-200 dark:border-[#232838]`}
+              className={`relative w-full ${maxWidthClass} transform overflow-hidden rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface-elevated)] p-6 text-left shadow-[var(--ds-elevation-lg)] transition-all border border-[var(--ds-border)] text-[var(--ds-text)]`}
             >
               {/* Close Button Top Right */}
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isLoading}
-                className="absolute top-4 right-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-40"
+                className="absolute top-4 right-4 rounded-[var(--ds-radius-md)] p-1.5 text-[var(--ds-text-muted)] hover:bg-[var(--ds-accent-soft)] hover:text-[var(--ds-text)] transition-colors cursor-pointer disabled:opacity-40"
                 aria-label="Tutup dialog"
               >
                 <X className="w-4 h-4" />
@@ -118,27 +118,27 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
               <div className="flex items-start gap-4">
                 {/* Variant Icon */}
-                <div className={`p-3 rounded-2xl shrink-0 ${config.iconBg}`}>
+                <div className={`p-3 rounded-[var(--ds-radius-lg)] shrink-0 ${config.iconBg}`}>
                   <IconComponent className="w-6 h-6" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                  <h3 className="text-base font-bold text-[var(--ds-text)] tracking-tight">
                     {title}
                   </h3>
-                  <div className="mt-2 text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  <div className="mt-2 text-xs text-[var(--ds-text-muted)] leading-relaxed font-normal">
                     {message}
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons Footer */}
-              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-[#232838] flex items-center justify-end gap-2.5">
+              <div className="mt-6 pt-4 border-t border-[var(--ds-border)] flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={handleClose}
                   disabled={isLoading}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1b1f2e] border border-slate-200 dark:border-[#232838] transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-[var(--ds-radius-md)] text-xs font-semibold text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {cancelLabel}
                 </button>
@@ -146,7 +146,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                   type="button"
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${config.btnClass}`}
+                  className={`px-4 py-2 rounded-[var(--ds-radius-md)] text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${config.btnClass}`}
                 >
                   {isLoading && <CircleNotch className="w-3.5 h-3.5 animate-spin" />}
                   {finalConfirmLabel}
