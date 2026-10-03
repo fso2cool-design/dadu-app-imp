@@ -16,7 +16,7 @@ interface DesignSystemContextType {
 
 const DesignSystemContext = createContext<DesignSystemContextType | undefined>(undefined);
 
-const DEFAULT_SYSTEM: DesignSystemKey = 'minimalist';
+const DEFAULT_SYSTEM: DesignSystemKey = 'shadcn-ui';
 
 export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
@@ -210,32 +210,42 @@ export const useOptionalDesignSystem = (): DesignSystemContextType | null => {
 };
 
 // Helper: Validate design system key (new ids only)
-function isValidDesignSystem(key: string): key is DesignSystemKey {
-  return ['paper-craft', 'minimalist', 'atelier'].includes(key);
+export function isValidDesignSystem(key: string): key is DesignSystemKey {
+  return (['paper-craft', 'neo-brutalism', 'shadcn-ui'] as string[]).includes(key);
 }
 
 // Helper: Resolve stored value — new id or legacy id mapping; null if unknown
-function resolveDesignSystem(key: string): DesignSystemKey | null {
+export function resolveDesignSystem(key: string): DesignSystemKey | null {
   if (isValidDesignSystem(key)) return key;
   const legacy: Record<string, DesignSystemKey> = {
+    'atelier': 'neo-brutalism',
+    'minimalist': 'shadcn-ui',
     'brutalism': 'paper-craft',
-    'neo-skeuomorphic': 'minimalist',
-    'apple-glass': 'atelier',
+    'neo-skeuomorphic': 'shadcn-ui',
+    'apple-glass': 'neo-brutalism',
+    'light': 'shadcn-ui',
+    'dark-crimson': 'neo-brutalism',
+    'obsidian-tactile': 'neo-brutalism',
+    'swiss-manuscript': 'shadcn-ui',
+    'solarized-comfort': 'neo-brutalism',
+    'chalkboard-school': 'paper-craft',
   };
   return legacy[key] ?? null;
 }
 
 // Helper: Map legacy theme to new design system
-function mapLegacyThemeToDesignSystem(theme: string): DesignSystemKey {
+export function mapLegacyThemeToDesignSystem(theme: string): DesignSystemKey {
   const resolved = resolveDesignSystem(theme);
   if (resolved) return resolved;
   const mapping: Record<string, DesignSystemKey> = {
-    'light': 'minimalist',
-    'dark-crimson': 'atelier',
-    'obsidian-tactile': 'atelier',
-    'swiss-manuscript': 'minimalist',
-    'solarized-comfort': 'atelier',
+    'atelier': 'neo-brutalism',
+    'minimalist': 'shadcn-ui',
+    'light': 'shadcn-ui',
+    'dark-crimson': 'neo-brutalism',
+    'obsidian-tactile': 'neo-brutalism',
+    'swiss-manuscript': 'shadcn-ui',
+    'solarized-comfort': 'neo-brutalism',
     'chalkboard-school': 'paper-craft',
   };
-  return mapping[theme] || 'minimalist';
+  return mapping[theme] || 'shadcn-ui';
 }

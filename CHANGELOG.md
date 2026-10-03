@@ -11,12 +11,12 @@ Rilis Theme Consolidation: ganti 5 tema legacy menjadi 3 tema modern dengan arsi
 ### Added
 - **Theme Architecture**:
   - `DesignSystemContext` (`src/context/DesignSystemContext.tsx`) dengan injeksi CSS var `--ds-*`, persistensi Firestore `designSystemPreference`, dan mapping legacy theme.
-  - 3 Tema: `paper-craft` (kertas & tinta, bayangan tajam), `minimalist` (monokrom hangat, serif editorial), `atelier` (Neo-Brutalism: border tegas, bayangan tajam).
+  - 3 Tema: `paper-craft` (kertas & tinta, bayangan tajam), `shadcn-ui` (dashboard netral, border crisp), `neo-brutalism` (border tegas 2px, hard offset shadow, grafis berani).
   - Token lengkap per tema: `accent`, `background`, `surface`, `text`, `border`, radius, shadow.
 
 ### Changed
 - **Theme System (Breaking)**:
-  - `ThemeKey` disederhanakan dari 9 nilai (6 legacy + 3 baru) menjadi hanya 3: `paper-craft | minimalist | atelier`.
+  - `ThemeKey` disederhanakan dari 9 nilai (6 legacy + 3 baru) menjadi hanya 3: `paper-craft | shadcn-ui | neo-brutalism`.
   - `THEME_OPTIONS` di `src/context/ThemeContext.tsx` 5 → 3 opsi dropdown.
   - `ThemeContext` sekarang thin wrapper di atas `DesignSystemContext` untuk backward compatibility.
   - `src/index.css` 5 blok tema legacy dihapus, 3 blok baru, `data-design-system` attribute.

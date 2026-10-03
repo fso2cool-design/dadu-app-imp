@@ -40,8 +40,8 @@ export interface UserProfile {
 
 export type DesignSystemKey =
   | 'paper-craft'
-  | 'minimalist'
-  | 'atelier';
+  | 'neo-brutalism'
+  | 'shadcn-ui';
 
 export type DesignSystemMode = 'light' | 'dark';
 
@@ -125,13 +125,13 @@ export interface DesignSystemOption {
 //   NOTE: spec muted #78716C on #FAF7EE is 4.48 -> FAIL, darkened to #6B6259.
 // paper-craft dark: text #FAF7EE/bg #1C1917 16.33, muted #A8A29E/bg 6.93,
 //   card text #FAF7EE/#292524 14.16.
-// minimalist light: text #2F3437/#F7F6F3 11.65, muted #57534E/bg 7.06,
-//   white/accent-ink #2F3437 12.60.
-// minimalist dark: text #F7F6F3/bg #201E1C 15.37, muted #A8A29E/bg 6.59,
-//   ink/accent-bone #E7E5E0 13.89.
-// atelier light (Neo-Brutalism): text #000000/#FFFDF5 20.62, muted #52525B/bg 7.59,
+// shadcn-ui light: text #09090B/#FFFFFF 19.35, muted #52525B/bg 6.94,
+//   accent-fg #FAFAFA/accent #18181B 16.97. All >= 4.5 (AAA).
+// shadcn-ui dark: text #FAFAFA/bg #09090B 18.06, muted #A1A1AA/bg 7.55,
+//   card text #FAFAFA/#18181B 15.69, accent-fg #18181B/accent #FAFAFA 16.97. All >= 4.5 (AAA).
+// neo-brutalism light: text #000000/#FFFDF5 20.62, muted #52525B/bg 7.59,
 //   ink #000000/accent #FFE500 16.46. All >= 4.5 (AAA).
-// atelier dark (Neo-Brutalism): text #F4F4F5/#121212 17.04, muted #A1A1AA/bg 7.31,
+// neo-brutalism dark: text #F4F4F5/#121212 17.04, muted #A1A1AA/bg 7.31,
 //   card text #F4F4F5/#1E1E22 15.11, ink #000000/accent #FFE500 16.46. All >= 4.5 (AAA).
 // Pastel note pairs (paper-craft sticky notes): red #9F2F2D/#FDEBEC 6.66,
 //   blue #1F6C9F/#E1F3FE 4.98, green #346538/#EDF3EC 6.08,
@@ -220,45 +220,44 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
     },
   },
   {
-    id: 'minimalist',
-    name: 'Minimalist',
-    description: 'Warm monochrome editorial: hairline border, judul serif besar, pastel lembut',
-    tagline: 'Monokrom hangat, serif editorial',
-    swatches: ['#F7F6F3','#2F3437','#E7E5E0','#57534E'],
+    id: 'shadcn-ui',
+    name: 'Shadcn UI',
+    description: 'Modern neutral dashboard: crisp 1px borders, subtle zinc shadows, typography bersih dan terstruktur',
+    tagline: 'Clean, modern, neutral-first',
+    swatches: ['#FFFFFF', '#18181B', '#E4E4E7', '#52525B'],
     preview: { card: 'bg-[var(--card-bg)] border-[var(--card-border)]', accent: 'bg-[var(--accent-primary)]' },
     tokens: {
       colors: {
-        accent: '#2F3437',
-        accentFg: '#FFFFFF',
-        surface: '#F7F6F3',
+        accent: '#18181B',
+        accentFg: '#FAFAFA',
+        surface: '#FFFFFF',
         surfaceElevated: '#FFFFFF',
-        border: '#EAEAEA',
-        text: '#2F3437',
-        textMuted: '#57534E',
-        focus: '#2F3437',
+        border: '#E4E4E7',
+        text: '#09090B',
+        textMuted: '#52525B',
+        focus: '#18181B',
         input: '#FFFFFF',
-        accentHover: '#1C1E21',
-        accentSoft: 'rgba(47,52,55,0.08)',
-        surfaceMuted: '#F0EFEC',
+        accentHover: '#27272A',
+        accentSoft: 'rgba(24,24,27,0.06)',
+        surfaceMuted: '#F4F4F5',
       },
       darkColors: {
-        accent: '#E7E5E0',
-        accentFg: '#1C1917',
-        surface: '#201E1C',
-        surfaceElevated: '#2A2725',
-        border: 'rgba(255,255,255,0.1)',
-        text: '#F7F6F3',
-        textMuted: '#A8A29E',
-        focus: '#E7E5E0',
-        input: '#2A2725',
-        accentHover: '#F5F3EE',
-        accentSoft: 'rgba(231,229,224,0.12)',
-        surfaceMuted: '#252220',
+        accent: '#FAFAFA',
+        accentFg: '#18181B',
+        surface: '#09090B',
+        surfaceElevated: '#18181B',
+        border: '#27272A',
+        text: '#FAFAFA',
+        textMuted: '#A1A1AA',
+        focus: '#FAFAFA',
+        input: '#18181B',
+        accentHover: '#F4F4F5',
+        accentSoft: 'rgba(250,250,250,0.10)',
+        surfaceMuted: '#18181B',
       },
       typography: {
         fontFamily: {
           sans: 'Geist, system-ui, sans-serif',
-          serif: 'Newsreader, Georgia, serif',
           mono: 'Geist Mono, monospace',
         },
         scale: {
@@ -278,32 +277,32 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
       },
       borders: {
         width: '1px',
-        color: '#EAEAEA',
+        color: '#E4E4E7',
         style: 'solid',
       },
       elevation: {
         none: 'none',
-        sm: '0 1px 2px rgba(0,0,0,0.04)',
-        md: '0 4px 12px rgba(0,0,0,0.05)',
-        lg: '0 12px 28px rgba(0,0,0,0.07)',
+        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
       },
       radius: {
         none: '0px',
-        sm: '8px',
-        md: '12px',
-        lg: '16px',
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
         full: '9999px',
       },
       transitions: {
-        fast: '150ms ease',
-        base: '250ms ease',
-        slow: '400ms ease',
+        fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
+        base: '200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        slow: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },
   {
-    id: 'atelier',
-    name: 'Atelier (Neo-Brutalism)',
+    id: 'neo-brutalism',
+    name: 'Neo-Brutalism',
     description: 'Neo-Brutalism: border tegas 2px, hard offset shadow, kontras tinggi dan aksen berani',
     tagline: 'Border tegas, bayangan tajam, grafis berani',
     swatches: ['#FFFDF5', '#000000', '#FFE500', '#52525B'],

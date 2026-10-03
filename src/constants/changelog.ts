@@ -15,13 +15,13 @@ export const APP_CHANGELOGS: ChangeLogItem[] = [
     version: 'ver. 2.4.0-JRA',
     versionCode: '2.4.0-JRA',
     releaseDate: '1 Oktober 2026',
-    title: 'Tampilan Baru: Paper-Craft, Minimalist & Atelier + Mode Gelap',
+    title: 'Tampilan Baru: Paper-Craft, Shadcn UI & Neo-Brutalism + Mode Gelap',
     badge: 'Tampilan',
     highlights: [
       {
         category: 'Gaya Visual Baru',
         items: [
-          'Tiga gaya baru menggantikan yang lama: Paper-Craft (kertas hangat), Minimalist (bersih dan rapi), dan Atelier (Neo-Brutalism: border tegas, bayangan tajam) — ganti instan via menu Pengaturan.',
+          'Tiga gaya baru: Paper-Craft (kertas hangat), Shadcn UI (bersih, netral dan modern), dan Neo-Brutalism (border tegas 2px, bayangan tajam) — ganti instan via menu Pengaturan.',
           'Setiap gaya kini punya mode gelap: tombol bulan/matahari di pengaturan untuk beralih terang-gelap.',
           'Pilihan lama Anda tetap terbawa otomatis ke gaya baru yang sepadan.',
         ],

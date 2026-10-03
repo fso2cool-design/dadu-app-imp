@@ -1,10 +1,17 @@
 import { render, screen, act } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DesignSystemProvider, useDesignSystem } from './DesignSystemContext';
-import { ThemeProvider, useAppTheme } from './ThemeContext';
+import {
+  DesignSystemProvider,
+  useDesignSystem,
+  isValidDesignSystem,
+  resolveDesignSystem,
+  mapLegacyThemeToDesignSystem,
+} from './DesignSystemContext';
+import { ThemeProvider, useAppTheme, THEME_OPTIONS } from './ThemeContext';
 import { ApplicationProvider } from '../application/ApplicationContext';
 import { AuthProvider } from '../features/auth/AuthContext';
+import { DESIGN_SYSTEMS } from '../types';
 import type { ApplicationOperations } from '../application/types';
 import type { DesignSystemKey, DesignSystemMode } from '../types';
 
@@ -88,10 +95,10 @@ describe('DesignSystemContext & Theme Architecture', () => {
   }> = [
     { system: 'paper-craft', mode: 'light', expectedAccent: '#FF5A36', expectedSurface: '#FAF7EE', hasDarkClass: false },
     { system: 'paper-craft', mode: 'dark', expectedAccent: '#FF5A36', expectedSurface: '#1C1917', hasDarkClass: true },
-    { system: 'minimalist', mode: 'light', expectedAccent: '#2F3437', expectedSurface: '#F7F6F3', hasDarkClass: false },
-    { system: 'minimalist', mode: 'dark', expectedAccent: '#E7E5E0', expectedSurface: '#201E1C', hasDarkClass: true },
-    { system: 'atelier', mode: 'light', expectedAccent: '#FFE500', expectedSurface: '#FFFDF5', hasDarkClass: false },
-    { system: 'atelier', mode: 'dark', expectedAccent: '#FFE500', expectedSurface: '#121212', hasDarkClass: true },
+    { system: 'shadcn-ui', mode: 'light', expectedAccent: '#18181B', expectedSurface: '#FFFFFF', hasDarkClass: false },
+    { system: 'shadcn-ui', mode: 'dark', expectedAccent: '#FAFAFA', expectedSurface: '#09090B', hasDarkClass: true },
+    { system: 'neo-brutalism', mode: 'light', expectedAccent: '#FFE500', expectedSurface: '#FFFDF5', hasDarkClass: false },
+    { system: 'neo-brutalism', mode: 'dark', expectedAccent: '#FFE500', expectedSurface: '#121212', hasDarkClass: true },
   ];
 
   describe('6 System & Mode Combinations Verification', () => {
@@ -128,7 +135,7 @@ describe('DesignSystemContext & Theme Architecture', () => {
     it('completely purges dark mode and system-specific tokens when switching between themes and modes', () => {
       renderProviders();
 
-      // Start at paper-craft dark
+      // 1. Start at paper-craft dark
       act(() => {
         contextValue.setSystem('paper-craft');
         contextValue.setMode('dark');
@@ -140,21 +147,90 @@ describe('DesignSystemContext & Theme Architecture', () => {
       expect(root.style.getPropertyValue('--ds-accent')).toBe('#FF5A36');
       expect(root.style.getPropertyValue('--ds-surface')).toBe('#1C1917');
 
-      // Transition directly to atelier light
+      // 2. Transition directly to neo-brutalism light
       act(() => {
-        contextValue.setSystem('atelier');
+        contextValue.setSystem('neo-brutalism');
         contextValue.setMode('light');
       });
 
       // Assert no leakage from paper-craft or dark mode
-      expect(root.getAttribute('data-design-system')).toBe('atelier');
+      expect(root.getAttribute('data-design-system')).toBe('neo-brutalism');
       expect(root.getAttribute('data-mode')).toBe('light');
       expect(root.classList.contains('dark')).toBe(false);
       expect(root.style.getPropertyValue('--ds-accent')).toBe('#FFE500');
       expect(root.style.getPropertyValue('--ds-surface')).toBe('#FFFDF5');
-
-      // Verify border styling does not leak paper-craft width (1.5px) into atelier (2px)
       expect(root.style.getPropertyValue('--ds-border-width')).toBe('2px');
+
+      // 3. Transition to shadcn-ui light
+      act(() => {
+        contextValue.setSystem('shadcn-ui');
+        contextValue.setMode('light');
+      });
+
+      expect(root.getAttribute('data-design-system')).toBe('shadcn-ui');
+      expect(root.getAttribute('data-mode')).toBe('light');
+      expect(root.classList.contains('dark')).toBe(false);
+      expect(root.style.getPropertyValue('--ds-accent')).toBe('#18181B');
+      expect(root.style.getPropertyValue('--ds-surface')).toBe('#FFFFFF');
+      expect(root.style.getPropertyValue('--ds-border-width')).toBe('1px');
+    });
+  });
+
+  describe('Legacy Migration & Backward Compatibility Boundary', () => {
+    it('validates active design system keys strictly', () => {
+      expect(isValidDesignSystem('paper-craft')).toBe(true);
+      expect(isValidDesignSystem('neo-brutalism')).toBe(true);
+      expect(isValidDesignSystem('shadcn-ui')).toBe(true);
+
+      // Legacy keys must NOT be valid active keys
+      expect(isValidDesignSystem('atelier')).toBe(false);
+      expect(isValidDesignSystem('minimalist')).toBe(false);
+      expect(isValidDesignSystem('light')).toBe(false);
+      expect(isValidDesignSystem('apple-glass')).toBe(false);
+    });
+
+    it('resolves legacy identifiers at read boundary correctly', () => {
+      // atelier -> neo-brutalism
+      expect(resolveDesignSystem('atelier')).toBe('neo-brutalism');
+      // minimalist -> shadcn-ui
+      expect(resolveDesignSystem('minimalist')).toBe('shadcn-ui');
+
+      // Other legacy theme aliases
+      expect(resolveDesignSystem('apple-glass')).toBe('neo-brutalism');
+      expect(resolveDesignSystem('dark-crimson')).toBe('neo-brutalism');
+      expect(resolveDesignSystem('obsidian-tactile')).toBe('neo-brutalism');
+      expect(resolveDesignSystem('solarized-comfort')).toBe('neo-brutalism');
+      expect(resolveDesignSystem('neo-skeuomorphic')).toBe('shadcn-ui');
+      expect(resolveDesignSystem('light')).toBe('shadcn-ui');
+      expect(resolveDesignSystem('swiss-manuscript')).toBe('shadcn-ui');
+      expect(resolveDesignSystem('brutalism')).toBe('paper-craft');
+      expect(resolveDesignSystem('chalkboard-school')).toBe('paper-craft');
+
+      // Unknown keys return null
+      expect(resolveDesignSystem('unknown-random')).toBeNull();
+    });
+
+    it('maps legacy theme preferences with safe default fallback', () => {
+      expect(mapLegacyThemeToDesignSystem('atelier')).toBe('neo-brutalism');
+      expect(mapLegacyThemeToDesignSystem('minimalist')).toBe('shadcn-ui');
+      expect(mapLegacyThemeToDesignSystem('light')).toBe('shadcn-ui');
+      expect(mapLegacyThemeToDesignSystem('chalkboard-school')).toBe('paper-craft');
+      expect(mapLegacyThemeToDesignSystem('unknown-legacy')).toBe('shadcn-ui');
+    });
+
+    it('ensures DESIGN_SYSTEMS array only contains active keys', () => {
+      const activeIds = DESIGN_SYSTEMS.map((ds) => ds.id);
+      expect(activeIds).toEqual(['paper-craft', 'shadcn-ui', 'neo-brutalism']);
+      expect(activeIds).not.toContain('atelier');
+      expect(activeIds).not.toContain('minimalist');
+    });
+
+    it('ensures THEME_OPTIONS presents clean display names in the dropdown', () => {
+      const displayNames = THEME_OPTIONS.map((opt) => opt.name);
+      expect(displayNames).toEqual(['Paper Craft', 'Shadcn UI', 'Neo-Brutalism']);
+      expect(displayNames).not.toContain('Minimalist');
+      expect(displayNames).not.toContain('Atelier');
+      expect(displayNames).not.toContain('Atelier (Neo-Brutalism)');
     });
   });
 

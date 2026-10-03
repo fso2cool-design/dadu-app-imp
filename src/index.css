@@ -15,7 +15,7 @@
 
 
 /* ==========================================================================
-   DESIGN SYSTEMS: paper-craft | minimalist | atelier
+   DESIGN SYSTEMS: paper-craft | shadcn-ui | neo-brutalism
    ========================================================================== */
 
 
@@ -57,13 +57,13 @@
 }
 
 /* ==========================================================================
-   NEW SYSTEMS: paper-craft | minimalist | atelier (Worker B)
+   NEW SYSTEMS: paper-craft | shadcn-ui | neo-brutalism
    Tokens come from DesignSystemContext --ds-* injection; blocks below only
    coerce app vars + shape/elevation, NO duplicate hex.
    ========================================================================== */
 [data-design-system="paper-craft"],
-[data-design-system="minimalist"],
-[data-design-system="atelier"] {
+[data-design-system="shadcn-ui"],
+[data-design-system="neo-brutalism"] {
   --app-bg: var(--ds-surface);
   --card-bg: var(--ds-surface-elevated);
   --card-border: var(--ds-border);
@@ -87,12 +87,12 @@
 .dark [data-design-system="paper-craft"] {
   --accent-glow: color-mix(in srgb, var(--ds-accent) 45%, transparent);
 }
-[data-design-system="minimalist"].dark,
-.dark [data-design-system="minimalist"] {
+[data-design-system="shadcn-ui"].dark,
+.dark [data-design-system="shadcn-ui"] {
   --accent-glow: color-mix(in srgb, var(--ds-accent) 25%, transparent);
 }
-[data-design-system="atelier"].dark,
-.dark [data-design-system="atelier"] {
+[data-design-system="neo-brutalism"].dark,
+.dark [data-design-system="neo-brutalism"] {
   --accent-glow: color-mix(in srgb, var(--ds-accent) 40%, transparent);
   --ds-elevation-sm: 2px 2px 0px 0px #000000;
   --ds-elevation-md: 4px 4px 0px 0px #000000;
@@ -117,80 +117,80 @@
   border-color: var(--ds-border) !important;
   border-width: var(--ds-border-width);
 }
-[data-design-system="minimalist"] [class*="rounded-2xl"],
-[data-design-system="minimalist"] [class*="rounded-3xl"] {
+[data-design-system="shadcn-ui"] [class*="rounded-2xl"],
+[data-design-system="shadcn-ui"] [class*="rounded-3xl"] {
   border-radius: var(--ds-radius-lg) !important;
 }
-[data-design-system="minimalist"] [class*="rounded-xl"] {
+[data-design-system="shadcn-ui"] [class*="rounded-xl"] {
   border-radius: var(--ds-radius-md) !important;
 }
-[data-design-system="minimalist"] [class*="rounded-lg"] {
+[data-design-system="shadcn-ui"] [class*="rounded-lg"] {
   border-radius: var(--ds-radius-sm) !important;
 }
-[data-design-system="minimalist"] [class*="shadow"],
-[data-design-system="minimalist"] .card,
-[data-design-system="minimalist"] [class*="card"] {
+[data-design-system="shadcn-ui"] [class*="shadow"],
+[data-design-system="shadcn-ui"] .card,
+[data-design-system="shadcn-ui"] [class*="card"] {
   box-shadow: var(--ds-elevation-sm) !important;
 }
-/* Neo-Brutalism (Atelier) radius, shadow & border coercion */
-[data-design-system="atelier"] [class*="rounded-2xl"],
-[data-design-system="atelier"] [class*="rounded-3xl"] {
+/* Neo-Brutalism radius, shadow & border coercion */
+[data-design-system="neo-brutalism"] [class*="rounded-2xl"],
+[data-design-system="neo-brutalism"] [class*="rounded-3xl"] {
   border-radius: var(--ds-radius-lg) !important;
 }
-[data-design-system="atelier"] [class*="rounded-xl"] {
+[data-design-system="neo-brutalism"] [class*="rounded-xl"] {
   border-radius: var(--ds-radius-md) !important;
 }
-[data-design-system="atelier"] [class*="rounded-lg"] {
+[data-design-system="neo-brutalism"] [class*="rounded-lg"] {
   border-radius: var(--ds-radius-sm) !important;
 }
-[data-design-system="atelier"] [class*="rounded-md"] {
+[data-design-system="neo-brutalism"] [class*="rounded-md"] {
   border-radius: var(--ds-radius-sm) !important;
 }
-[data-design-system="atelier"] [class*="shadow"],
-[data-design-system="atelier"] .card,
-[data-design-system="atelier"] [class*="card"] {
+[data-design-system="neo-brutalism"] [class*="shadow"],
+[data-design-system="neo-brutalism"] .card,
+[data-design-system="neo-brutalism"] [class*="card"] {
   box-shadow: var(--ds-elevation-md) !important;
 }
-[data-design-system="atelier"] .bg-white,
-[data-design-system="atelier"] [class*="bg-white"],
-[data-design-system="atelier"] .card,
-[data-design-system="atelier"] [class*="card"],
-[data-design-system="atelier"] [class*="border-slate"] {
+[data-design-system="neo-brutalism"] .bg-white,
+[data-design-system="neo-brutalism"] [class*="bg-white"],
+[data-design-system="neo-brutalism"] .card,
+[data-design-system="neo-brutalism"] [class*="card"],
+[data-design-system="neo-brutalism"] [class*="border-slate"] {
   border-color: var(--ds-border) !important;
   border-width: var(--ds-border-width) !important;
 }
 
-/* Neo-Brutalism (Atelier) press physics: active translate 2px + shadow collapse */
-[data-design-system="atelier"] .btn-primary:active:not(:disabled),
-[data-design-system="atelier"] .tactile-press:active,
-[data-design-system="atelier"] button:active:not(:disabled) {
+/* Neo-Brutalism press physics: active translate 2px + shadow collapse */
+[data-design-system="neo-brutalism"] .btn-primary:active:not(:disabled),
+[data-design-system="neo-brutalism"] .tactile-press:active,
+[data-design-system="neo-brutalism"] button:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: var(--ds-elevation-none, none) !important;
 }
-[data-design-system="atelier"] .btn-primary {
+[data-design-system="neo-brutalism"] .btn-primary {
   border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
   box-shadow: var(--ds-elevation-sm) !important;
   font-weight: 700 !important;
 }
-[data-design-system="atelier"] .btn-primary:hover:not(:disabled) {
+[data-design-system="neo-brutalism"] .btn-primary:hover:not(:disabled) {
   transform: translate(-1px, -1px);
   box-shadow: var(--ds-elevation-md) !important;
 }
 
-/* Neo-Brutalism (Atelier) component coercions: controls, tabs, tables, badges */
-[data-design-system="atelier"] input,
-[data-design-system="atelier"] select,
-[data-design-system="atelier"] textarea {
+/* Neo-Brutalism component coercions: controls, tabs, tables, badges */
+[data-design-system="neo-brutalism"] input,
+[data-design-system="neo-brutalism"] select,
+[data-design-system="neo-brutalism"] textarea {
   border-color: var(--ds-border) !important;
   border-width: var(--ds-border-width, 2px) !important;
   border-radius: var(--ds-radius-sm) !important;
 }
-[data-design-system="atelier"] [role="tablist"] {
+[data-design-system="neo-brutalism"] [role="tablist"] {
   border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
   border-radius: var(--ds-radius-md) !important;
   background-color: var(--ds-surface-muted) !important;
 }
-[data-design-system="atelier"] [role="tab"][aria-selected="true"] {
+[data-design-system="neo-brutalism"] [role="tab"][aria-selected="true"] {
   background-color: var(--ds-accent) !important;
   color: var(--ds-accent-fg) !important;
   border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
@@ -198,21 +198,21 @@
   border-radius: var(--ds-radius-sm) !important;
   font-weight: 800 !important;
 }
-[data-design-system="atelier"] table {
+[data-design-system="neo-brutalism"] table {
   border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
 }
-[data-design-system="atelier"] th {
+[data-design-system="neo-brutalism"] th {
   border-bottom: var(--ds-border-width, 2px) solid var(--ds-border) !important;
   font-weight: 700 !important;
   background-color: var(--ds-surface-muted) !important;
   color: var(--ds-text) !important;
 }
-[data-design-system="atelier"] td {
+[data-design-system="neo-brutalism"] td {
   border-bottom: 1.5px solid var(--ds-border) !important;
 }
-[data-design-system="atelier"] .badge,
-[data-design-system="atelier"] span[class*="rounded-full"][class*="text-xs"],
-[data-design-system="atelier"] span[class*="rounded-md"][class*="border"] {
+[data-design-system="neo-brutalism"] .badge,
+[data-design-system="neo-brutalism"] span[class*="rounded-full"][class*="text-xs"],
+[data-design-system="neo-brutalism"] span[class*="rounded-md"][class*="border"] {
   border: 1.5px solid var(--ds-border) !important;
   border-radius: var(--ds-radius-sm) !important;
   font-weight: 700 !important;
@@ -274,32 +274,32 @@ body {
 
 /* 1. App Body & Background Canvas */
 .dark body, 
-[data-design-system="minimalist"] body,
+[data-design-system="shadcn-ui"] body,
 [data-design-system="paper-craft"] body,
-[data-design-system="atelier"] body {
+[data-design-system="neo-brutalism"] body {
   background-color: var(--app-bg) !important;
   color: var(--text-main) !important;
 }
 
 /* 2. Canvas Classes -> Dynamic App Background (all 3 systems) */
 [data-design-system="paper-craft"] .bg-slate-50,
-[data-design-system="minimalist"] .bg-slate-50,
-[data-design-system="atelier"] .bg-slate-50 {
+[data-design-system="shadcn-ui"] .bg-slate-50,
+[data-design-system="neo-brutalism"] .bg-slate-50 {
   background-color: var(--app-bg) !important;
 }
 
 /* 3. Cards & Elevated Surfaces (all 3 systems) */
 [data-design-system="paper-craft"] .bg-white,
-[data-design-system="minimalist"] .bg-white,
-[data-design-system="atelier"] .bg-white {
+[data-design-system="shadcn-ui"] .bg-white,
+[data-design-system="neo-brutalism"] .bg-white {
   background-color: var(--card-bg) !important;
   color: var(--text-main) !important;
 }
 
 /* 4. Subtle containers: tint of surface, NOT border color (was near-black in paper-craft) */
 [data-design-system="paper-craft"] .bg-slate-100,
-[data-design-system="minimalist"] .bg-slate-100,
-[data-design-system="atelier"] .bg-slate-100 {
+[data-design-system="shadcn-ui"] .bg-slate-100,
+[data-design-system="neo-brutalism"] .bg-slate-100 {
   background-color: color-mix(in srgb, var(--ds-border) 8%, var(--ds-surface)) !important;
 }
 
@@ -308,14 +308,14 @@ body {
 [data-design-system="paper-craft"] .border-slate-200\/80,
 [data-design-system="paper-craft"] .border-slate-200\/90,
 [data-design-system="paper-craft"] .border-slate-100,
-[data-design-system="minimalist"] .border-slate-200,
-[data-design-system="minimalist"] .border-slate-200\/80,
-[data-design-system="minimalist"] .border-slate-200\/90,
-[data-design-system="minimalist"] .border-slate-100,
-[data-design-system="atelier"] .border-slate-200,
-[data-design-system="atelier"] .border-slate-200\/80,
-[data-design-system="atelier"] .border-slate-200\/90,
-[data-design-system="atelier"] .border-slate-100 {
+[data-design-system="shadcn-ui"] .border-slate-200,
+[data-design-system="shadcn-ui"] .border-slate-200\/80,
+[data-design-system="shadcn-ui"] .border-slate-200\/90,
+[data-design-system="shadcn-ui"] .border-slate-100,
+[data-design-system="neo-brutalism"] .border-slate-200,
+[data-design-system="neo-brutalism"] .border-slate-200\/80,
+[data-design-system="neo-brutalism"] .border-slate-200\/90,
+[data-design-system="neo-brutalism"] .border-slate-100 {
   border-color: var(--card-border) !important;
 }
 
@@ -324,14 +324,14 @@ body {
 [data-design-system="paper-craft"] .text-slate-900,
 [data-design-system="paper-craft"] [class*="text-slate-900"],
 [data-design-system="paper-craft"] [class*="text-slate-800"],
-[data-design-system="minimalist"] .text-slate-800,
-[data-design-system="minimalist"] .text-slate-900,
-[data-design-system="minimalist"] [class*="text-slate-900"],
-[data-design-system="minimalist"] [class*="text-slate-800"],
-[data-design-system="atelier"] .text-slate-900,
-[data-design-system="atelier"] .text-slate-800,
-[data-design-system="atelier"] [class*="text-slate-900"],
-[data-design-system="atelier"] [class*="text-slate-800"] {
+[data-design-system="shadcn-ui"] .text-slate-800,
+[data-design-system="shadcn-ui"] .text-slate-900,
+[data-design-system="shadcn-ui"] [class*="text-slate-900"],
+[data-design-system="shadcn-ui"] [class*="text-slate-800"],
+[data-design-system="neo-brutalism"] .text-slate-900,
+[data-design-system="neo-brutalism"] .text-slate-800,
+[data-design-system="neo-brutalism"] [class*="text-slate-900"],
+[data-design-system="neo-brutalism"] [class*="text-slate-800"] {
   color: var(--text-main) !important;
 }
 
@@ -339,14 +339,14 @@ body {
 [data-design-system="paper-craft"] .text-slate-600,
 [data-design-system="paper-craft"] [class*="text-slate-700"],
 [data-design-system="paper-craft"] [class*="text-slate-600"],
-[data-design-system="minimalist"] .text-slate-700,
-[data-design-system="minimalist"] .text-slate-600,
-[data-design-system="minimalist"] [class*="text-slate-700"],
-[data-design-system="minimalist"] [class*="text-slate-600"],
-[data-design-system="atelier"] .text-slate-700,
-[data-design-system="atelier"] .text-slate-600,
-[data-design-system="atelier"] [class*="text-slate-700"],
-[data-design-system="atelier"] [class*="text-slate-600"] {
+[data-design-system="shadcn-ui"] .text-slate-700,
+[data-design-system="shadcn-ui"] .text-slate-600,
+[data-design-system="shadcn-ui"] [class*="text-slate-700"],
+[data-design-system="shadcn-ui"] [class*="text-slate-600"],
+[data-design-system="neo-brutalism"] .text-slate-700,
+[data-design-system="neo-brutalism"] .text-slate-600,
+[data-design-system="neo-brutalism"] [class*="text-slate-700"],
+[data-design-system="neo-brutalism"] [class*="text-slate-600"] {
   color: var(--text-muted) !important;
 }
 
@@ -354,14 +354,14 @@ body {
 [data-design-system="paper-craft"] .text-slate-400,
 [data-design-system="paper-craft"] [class*="text-slate-500"],
 [data-design-system="paper-craft"] [class*="text-slate-400"],
-[data-design-system="minimalist"] .text-slate-500,
-[data-design-system="minimalist"] .text-slate-400,
-[data-design-system="minimalist"] [class*="text-slate-500"],
-[data-design-system="minimalist"] [class*="text-slate-400"],
-[data-design-system="atelier"] .text-slate-500,
-[data-design-system="atelier"] .text-slate-400,
-[data-design-system="atelier"] [class*="text-slate-500"],
-[data-design-system="atelier"] [class*="text-slate-400"] {
+[data-design-system="shadcn-ui"] .text-slate-500,
+[data-design-system="shadcn-ui"] .text-slate-400,
+[data-design-system="shadcn-ui"] [class*="text-slate-500"],
+[data-design-system="shadcn-ui"] [class*="text-slate-400"],
+[data-design-system="neo-brutalism"] .text-slate-500,
+[data-design-system="neo-brutalism"] .text-slate-400,
+[data-design-system="neo-brutalism"] [class*="text-slate-500"],
+[data-design-system="neo-brutalism"] [class*="text-slate-400"] {
   color: var(--text-muted) !important;
 }
 
@@ -371,23 +371,23 @@ body {
 [data-design-system="paper-craft"] .font-sans {
   font-family: var(--ds-font-sans) !important;
 }
-[data-design-system="minimalist"],
-[data-design-system="minimalist"] body,
-[data-design-system="minimalist"] .font-sans,
-[data-design-system="atelier"],
-[data-design-system="atelier"] body,
-[data-design-system="atelier"] .font-sans {
+[data-design-system="shadcn-ui"],
+[data-design-system="shadcn-ui"] body,
+[data-design-system="shadcn-ui"] .font-sans,
+[data-design-system="neo-brutalism"],
+[data-design-system="neo-brutalism"] body,
+[data-design-system="neo-brutalism"] .font-sans {
   font-family: var(--ds-font-sans) !important;
 }
-[data-design-system="atelier"] h1,
-[data-design-system="atelier"] h2,
-[data-design-system="atelier"] h3,
-[data-design-system="atelier"] h4 {
+[data-design-system="neo-brutalism"] h1,
+[data-design-system="neo-brutalism"] h2,
+[data-design-system="neo-brutalism"] h3,
+[data-design-system="neo-brutalism"] h4 {
   font-family: var(--ds-font-sans) !important;
   font-weight: 800 !important;
   letter-spacing: -0.025em;
 }
-[data-design-system="minimalist"] .font-serif {
+[data-design-system="shadcn-ui"] .font-serif {
   font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
 }
 
@@ -531,18 +531,18 @@ body {
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus,
-[data-design-system="minimalist"] input:focus,
-[data-design-system="minimalist"] select:focus,
-[data-design-system="minimalist"] textarea:focus,
+[data-design-system="shadcn-ui"] input:focus,
+[data-design-system="shadcn-ui"] select:focus,
+[data-design-system="shadcn-ui"] textarea:focus,
 [data-design-system="paper-craft"] input:focus,
 [data-design-system="paper-craft"] select:focus,
 [data-design-system="paper-craft"] textarea:focus {
   border-color: var(--focus-ring) !important;
   box-shadow: 0 0 0 1.5px var(--focus-ring), 0 0 8px var(--accent-glow) !important;
 }
-[data-design-system="atelier"] input:focus,
-[data-design-system="atelier"] select:focus,
-[data-design-system="atelier"] textarea:focus {
+[data-design-system="neo-brutalism"] input:focus,
+[data-design-system="neo-brutalism"] select:focus,
+[data-design-system="neo-brutalism"] textarea:focus {
   border-color: var(--ds-border) !important;
   box-shadow: var(--ds-elevation-sm) !important;
   outline: none !important;
