@@ -11,7 +11,7 @@ Rilis Theme Consolidation: ganti 5 tema legacy menjadi 3 tema modern dengan arsi
 ### Added
 - **Theme Architecture**:
   - `DesignSystemContext` (`src/context/DesignSystemContext.tsx`) dengan injeksi CSS var `--ds-*`, persistensi Firestore `designSystemPreference`, dan mapping legacy theme.
-  - 3 Tema: `paper-craft` (kertas & tinta, bayangan tajam), `minimalist` (monokrom hangat, serif editorial), `atelier` (gelap pekat OLED, squircle lembut).
+  - 3 Tema: `paper-craft` (kertas & tinta, bayangan tajam), `minimalist` (monokrom hangat, serif editorial), `atelier` (Neo-Brutalism: border tegas, bayangan tajam).
   - Token lengkap per tema: `accent`, `background`, `surface`, `text`, `border`, radius, shadow.
 
 ### Changed

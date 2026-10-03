@@ -19,23 +19,6 @@
    ========================================================================== */
 
 
-/* G1+G2: Neo-Skeuomorphic — binder curvature + tactile emboss */
-[data-design-system="atelier"] [class*="rounded-2xl"],
-[data-design-system="atelier"] [class*="rounded-3xl"] {
-  border-radius: var(--ds-radius-lg) !important;
-}
-[data-design-system="atelier"] [class*="rounded-xl"] {
-  border-radius: var(--ds-radius-md) !important;
-}
-[data-design-system="atelier"] [class*="rounded-lg"] {
-  border-radius: var(--ds-radius-sm) !important;
-}
-[data-design-system="atelier"] [class*="shadow"],
-[data-design-system="atelier"] .card,
-[data-design-system="atelier"] [class*="card"] {
-  box-shadow: var(--ds-elevation-sm) !important;
-}
-
 /* Self-hosted fonts: Geist Sans (body), Newsreader (editorial display), Geist Mono (meta) */
 @font-face {
   font-family: "Geist";
@@ -111,6 +94,9 @@
 [data-design-system="atelier"].dark,
 .dark [data-design-system="atelier"] {
   --accent-glow: color-mix(in srgb, var(--ds-accent) 40%, transparent);
+  --ds-elevation-sm: 2px 2px 0px 0px #000000;
+  --ds-elevation-md: 4px 4px 0px 0px #000000;
+  --ds-elevation-lg: 6px 6px 0px 0px #000000;
 }
 
 /* Per-system radius / shadow / border coercion */
@@ -146,6 +132,7 @@
 [data-design-system="minimalist"] [class*="card"] {
   box-shadow: var(--ds-elevation-sm) !important;
 }
+/* Neo-Brutalism (Atelier) radius, shadow & border coercion */
 [data-design-system="atelier"] [class*="rounded-2xl"],
 [data-design-system="atelier"] [class*="rounded-3xl"] {
   border-radius: var(--ds-radius-lg) !important;
@@ -156,16 +143,79 @@
 [data-design-system="atelier"] [class*="rounded-lg"] {
   border-radius: var(--ds-radius-sm) !important;
 }
+[data-design-system="atelier"] [class*="rounded-md"] {
+  border-radius: var(--ds-radius-sm) !important;
+}
 [data-design-system="atelier"] [class*="shadow"],
 [data-design-system="atelier"] .card,
 [data-design-system="atelier"] [class*="card"] {
-  box-shadow: var(--ds-elevation-sm) !important;
+  box-shadow: var(--ds-elevation-md) !important;
 }
+[data-design-system="atelier"] .bg-white,
+[data-design-system="atelier"] [class*="bg-white"],
 [data-design-system="atelier"] .card,
 [data-design-system="atelier"] [class*="card"],
-[data-design-system="atelier"] [class*="bg-white"] {
-  backdrop-filter: var(--ds-backdrop-blur, none);
-  -webkit-backdrop-filter: var(--ds-backdrop-blur, none);
+[data-design-system="atelier"] [class*="border-slate"] {
+  border-color: var(--ds-border) !important;
+  border-width: var(--ds-border-width) !important;
+}
+
+/* Neo-Brutalism (Atelier) press physics: active translate 2px + shadow collapse */
+[data-design-system="atelier"] .btn-primary:active:not(:disabled),
+[data-design-system="atelier"] .tactile-press:active,
+[data-design-system="atelier"] button:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: var(--ds-elevation-none, none) !important;
+}
+[data-design-system="atelier"] .btn-primary {
+  border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
+  box-shadow: var(--ds-elevation-sm) !important;
+  font-weight: 700 !important;
+}
+[data-design-system="atelier"] .btn-primary:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--ds-elevation-md) !important;
+}
+
+/* Neo-Brutalism (Atelier) component coercions: controls, tabs, tables, badges */
+[data-design-system="atelier"] input,
+[data-design-system="atelier"] select,
+[data-design-system="atelier"] textarea {
+  border-color: var(--ds-border) !important;
+  border-width: var(--ds-border-width, 2px) !important;
+  border-radius: var(--ds-radius-sm) !important;
+}
+[data-design-system="atelier"] [role="tablist"] {
+  border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
+  border-radius: var(--ds-radius-md) !important;
+  background-color: var(--ds-surface-muted) !important;
+}
+[data-design-system="atelier"] [role="tab"][aria-selected="true"] {
+  background-color: var(--ds-accent) !important;
+  color: var(--ds-accent-fg) !important;
+  border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
+  box-shadow: var(--ds-elevation-sm) !important;
+  border-radius: var(--ds-radius-sm) !important;
+  font-weight: 800 !important;
+}
+[data-design-system="atelier"] table {
+  border: var(--ds-border-width, 2px) solid var(--ds-border) !important;
+}
+[data-design-system="atelier"] th {
+  border-bottom: var(--ds-border-width, 2px) solid var(--ds-border) !important;
+  font-weight: 700 !important;
+  background-color: var(--ds-surface-muted) !important;
+  color: var(--ds-text) !important;
+}
+[data-design-system="atelier"] td {
+  border-bottom: 1.5px solid var(--ds-border) !important;
+}
+[data-design-system="atelier"] .badge,
+[data-design-system="atelier"] span[class*="rounded-full"][class*="text-xs"],
+[data-design-system="atelier"] span[class*="rounded-md"][class*="border"] {
+  border: 1.5px solid var(--ds-border) !important;
+  border-radius: var(--ds-radius-sm) !important;
+  font-weight: 700 !important;
 }
 
 /* Paper-craft press physics: active translate 1px + shadow shrink */
@@ -332,8 +382,10 @@ body {
 [data-design-system="atelier"] h1,
 [data-design-system="atelier"] h2,
 [data-design-system="atelier"] h3,
-[data-design-system="atelier"] .font-serif {
-  font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
+[data-design-system="atelier"] h4 {
+  font-family: var(--ds-font-sans) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em;
 }
 [data-design-system="minimalist"] .font-serif {
   font-family: var(--ds-font-serif, var(--ds-font-sans)) !important;
@@ -342,7 +394,8 @@ body {
 
 
 /* Dark elevation overrides for paper-craft (make shadow visible on dark surface) */
-[data-design-system="paper-craft"].dark,.dark [data-design-system="paper-craft"] {
+[data-design-system="paper-craft"].dark,
+.dark [data-design-system="paper-craft"] {
   --ds-elevation-sm: 3px 3px 0px 0px rgba(0,0,0,0.4);
   --ds-elevation-md: 5px 5px 0px 0px rgba(0,0,0,0.4);
   --ds-elevation-lg: 8px 8px 0px 0px rgba(0,0,0,0.4);
@@ -483,12 +536,16 @@ body {
 [data-design-system="minimalist"] textarea:focus,
 [data-design-system="paper-craft"] input:focus,
 [data-design-system="paper-craft"] select:focus,
-[data-design-system="paper-craft"] textarea:focus,
+[data-design-system="paper-craft"] textarea:focus {
+  border-color: var(--focus-ring) !important;
+  box-shadow: 0 0 0 1.5px var(--focus-ring), 0 0 8px var(--accent-glow) !important;
+}
 [data-design-system="atelier"] input:focus,
 [data-design-system="atelier"] select:focus,
 [data-design-system="atelier"] textarea:focus {
-  border-color: var(--focus-ring) !important;
-  box-shadow: 0 0 0 1.5px var(--focus-ring), 0 0 8px var(--accent-glow) !important;
+  border-color: var(--ds-border) !important;
+  box-shadow: var(--ds-elevation-sm) !important;
+  outline: none !important;
 }
 
 

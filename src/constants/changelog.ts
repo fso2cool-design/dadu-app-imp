@@ -21,7 +21,7 @@ export const APP_CHANGELOGS: ChangeLogItem[] = [
       {
         category: 'Gaya Visual Baru',
         items: [
-          'Tiga gaya baru menggantikan yang lama: Paper-Craft (kertas hangat), Minimalist (bersih dan rapi), dan Atelier (premium) — ganti instan via menu Pengaturan.',
+          'Tiga gaya baru menggantikan yang lama: Paper-Craft (kertas hangat), Minimalist (bersih dan rapi), dan Atelier (Neo-Brutalism: border tegas, bayangan tajam) — ganti instan via menu Pengaturan.',
           'Setiap gaya kini punya mode gelap: tombol bulan/matahari di pengaturan untuk beralih terang-gelap.',
           'Pilihan lama Anda tetap terbawa otomatis ke gaya baru yang sepadan.',
         ],

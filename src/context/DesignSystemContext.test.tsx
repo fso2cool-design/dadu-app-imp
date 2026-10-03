@@ -90,8 +90,8 @@ describe('DesignSystemContext & Theme Architecture', () => {
     { system: 'paper-craft', mode: 'dark', expectedAccent: '#FF5A36', expectedSurface: '#1C1917', hasDarkClass: true },
     { system: 'minimalist', mode: 'light', expectedAccent: '#2F3437', expectedSurface: '#F7F6F3', hasDarkClass: false },
     { system: 'minimalist', mode: 'dark', expectedAccent: '#E7E5E0', expectedSurface: '#201E1C', hasDarkClass: true },
-    { system: 'atelier', mode: 'light', expectedAccent: '#1C1917', expectedSurface: '#FDFBF7', hasDarkClass: false },
-    { system: 'atelier', mode: 'dark', expectedAccent: '#F5F2EB', expectedSurface: '#050505', hasDarkClass: true },
+    { system: 'atelier', mode: 'light', expectedAccent: '#FFE500', expectedSurface: '#FFFDF5', hasDarkClass: false },
+    { system: 'atelier', mode: 'dark', expectedAccent: '#FFE500', expectedSurface: '#121212', hasDarkClass: true },
   ];
 
   describe('6 System & Mode Combinations Verification', () => {
@@ -150,11 +150,11 @@ describe('DesignSystemContext & Theme Architecture', () => {
       expect(root.getAttribute('data-design-system')).toBe('atelier');
       expect(root.getAttribute('data-mode')).toBe('light');
       expect(root.classList.contains('dark')).toBe(false);
-      expect(root.style.getPropertyValue('--ds-accent')).toBe('#1C1917');
-      expect(root.style.getPropertyValue('--ds-surface')).toBe('#FDFBF7');
+      expect(root.style.getPropertyValue('--ds-accent')).toBe('#FFE500');
+      expect(root.style.getPropertyValue('--ds-surface')).toBe('#FFFDF5');
 
-      // Verify border styling does not leak paper-craft width (1.5px) into atelier (1px)
-      expect(root.style.getPropertyValue('--ds-border-width')).toBe('1px');
+      // Verify border styling does not leak paper-craft width (1.5px) into atelier (2px)
+      expect(root.style.getPropertyValue('--ds-border-width')).toBe('2px');
     });
   });
 
