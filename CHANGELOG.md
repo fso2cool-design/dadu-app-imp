@@ -4,6 +4,33 @@ Format changelog ini mengacu pada [Keep a Changelog](https://keepachangelog.com/
 
 ---
 
+## [2.4.0] — 2026-10-01
+
+Rilis Tampilan Baru, Mode Gelap & Architectural Rename:
+- Penyempurnaan 3 tema aktif: `paper-craft` (Paper Craft), `shadcn-ui` (Shadcn UI, default), dan `neo-brutalism` (Neo-Brutalism).
+- Penambahan mode gelap (Dark Mode) untuk seluruh tema dengan flipping token dinamis `--ds-*` berstandar WCAG AAA.
+- True architectural rename: menghapus penuh `atelier` dan `minimalist` dari active `DesignSystemKey` union type dengan fallback legacy migration transparan pada read boundary.
+- Standardisasi keluarga ikon Phosphor dan tipografi lokal Geist Sans & Geist Mono.
+- Isolasi cetak dokumen dinas (`.printable-document`, `@media print`) 100% formal dan terlindungi dari kebocoran tema.
+
+### Changed
+- **Design System Keys (Breaking Internal Architecture)**:
+  - `DesignSystemKey`: `'paper-craft' | 'neo-brutalism' | 'shadcn-ui'` (default: `'shadcn-ui'`).
+  - `THEME_OPTIONS`: Pilihan dropdown menampilkan secara bersih: `Paper Craft`, `Shadcn UI`, dan `Neo-Brutalism`.
+  - Migrasi transparan pada `resolveDesignSystem` dan `mapLegacyThemeToDesignSystem` untuk data lama di Firestore dan `localStorage`.
+- **Styling & Scoping**:
+  - `src/index.css`: Seluruh scoped selector diperbarui menggunakan `[data-design-system="neo-brutalism"]` dan `[data-design-system="shadcn-ui"]`.
+  - Input focus ring dan tactile button press physics diisolasi tanpa kebocoran global.
+
+### Verification
+- `tsc --noEmit`: 0 errors.
+- `biome lint`: 248 files checked, 0 errors.
+- `depcruise`: 266 modules, 943 dependencies, 0 violations.
+- `vitest`: 25 test suites, 136 tests passed (100% pass).
+- `vite build`: 5165 modules transformed, production bundle built cleanly in ~20s.
+
+---
+
 ## [2.3.0] — 2026-09-30
 
 Rilis Theme Consolidation: ganti 5 tema legacy menjadi 3 tema modern dengan arsitektur layered tetap terjaga.
