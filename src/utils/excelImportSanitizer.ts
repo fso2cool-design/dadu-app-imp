@@ -17,9 +17,9 @@ export function sanitizeExcelDate(val: any): string {
   // Jika berupa JS Date object
   if (val instanceof Date) {
     if (isNaN(val.getTime())) return '';
-    const yyyy = val.getFullYear();
-    const mm = String(val.getMonth() + 1).padStart(2, '0');
-    const dd = String(val.getDate()).padStart(2, '0');
+    const yyyy = val.getUTCFullYear();
+    const mm = String(val.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(val.getUTCDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   }
 
@@ -59,24 +59,20 @@ export function sanitizeExcelDate(val: any): string {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // Format 2: DD/MM/YYYY atau DD-MM-YYYY
+  // Format 2: DD/MM/YYYY atau DD-MM-YYYY (Forced Indonesian Format)
   const dmyMatch = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
   if (dmyMatch) {
-    const p1 = parseInt(dmyMatch[1], 10);
-    const p2 = parseInt(dmyMatch[2], 10);
+    const dd = parseInt(dmyMatch[1], 10);
+    const mm = parseInt(dmyMatch[2], 10);
     const yyyy = dmyMatch[3];
-    // Jika p1 > 12, dipastikan DD/MM/YYYY
-    if (p1 > 12 && p2 <= 12) {
-      return `${yyyy}-${String(p2).padStart(2, '0')}-${String(p1).padStart(2, '0')}`;
+    // Force DD/MM/YYYY reading
+    let finalDd = dd;
+    let finalMm = mm;
+    if (mm > 12 && dd <= 12) {
+      finalMm = dd;
+      finalDd = mm;
     }
-    // Jika p2 > 12, dipastikan MM/DD/YYYY
-    if (p2 > 12 && p1 <= 12) {
-      return `${yyyy}-${String(p1).padStart(2, '0')}-${String(p2).padStart(2, '0')}`;
-    }
-    // Default asumsi Indonesia DD/MM/YYYY
-    const dd = String(p1).padStart(2, '0');
-    const mm = String(p2).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return `${yyyy}-${String(finalMm).padStart(2, '0')}-${String(finalDd).padStart(2, '0')}`;
   }
 
   // Format 2b: 2-digit year (contoh: 11/14/10 atau 14/11/10 atau 4/10/11)
@@ -104,16 +100,16 @@ export function sanitizeExcelDate(val: any): string {
   // Format 3: DD NamaBulan YYYY (Indonesia/Inggris)
   const monthNames: Record<string, string> = {
     januari: '01', jan: '01', january: '01',
-    februari: '02', feb: '02', february: '02',
+    februari: '02', feb: '02', february: '02', pebruari: '02', peb: '02',
     maret: '03', mar: '03', march: '03',
     april: '04', apr: '04',
     mei: '05', may: '05',
     juni: '06', jun: '06', june: '06',
     juli: '07', jul: '07', july: '07',
-    agustus: '08', agu: '08', ags: '08', august: '08',
+    agustus: '08', agu: '08', ags: '08', agt: '08', august: '08',
     september: '09', sep: '09', sept: '09',
     oktober: '10', okt: '10', oct: '10', october: '10',
-    november: '11', nov: '11',
+    november: '11', nov: '11', nopember: '11', nop: '11',
     desember: '12', des: '12', dec: '12', december: '12',
   };
 

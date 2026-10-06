@@ -340,7 +340,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           {/* Class Select */}
           <div className="flex items-center gap-2">
-            <label htmlFor="monthly-class-select" className="text-xs font-semibold text-slate-600">Kelas:</label>
+            <label htmlFor="monthly-class-select" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Kelas:</label>
             <select
               id="monthly-class-select"
               value={currentClass?.id || 'NONE'}
@@ -348,7 +348,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
                 const val = e.target.value;
                 setSelectedClassId(val === 'NONE' ? '' : val);
               }}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
               {availableClasses.map(c => (
@@ -361,12 +361,12 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
 
           {/* Month Select */}
           <div className="flex items-center gap-2">
-            <label htmlFor="monthly-month-select" className="text-xs font-semibold text-slate-600">Bulan:</label>
+            <label htmlFor="monthly-month-select" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Bulan:</label>
             <select
               id="monthly-month-select"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               {months.map(m => (
                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -376,12 +376,12 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
 
           {/* Year Select */}
           <div className="flex items-center gap-2">
-            <label htmlFor="monthly-year-select" className="text-xs font-semibold text-slate-600">Tahun:</label>
+            <label htmlFor="monthly-year-select" className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tahun:</label>
             <select
               id="monthly-year-select"
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
               {[2024, 2025, 2026, 2027, 2028].map(y => (
                 <option key={y} value={y}>{y}</option>

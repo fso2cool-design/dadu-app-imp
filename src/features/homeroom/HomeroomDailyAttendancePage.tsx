@@ -61,6 +61,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   const initialSnapshotRef = useRef<string>('');
   const [isDirty, setIsDirty] = useState(false);
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: 'class' | 'date'; targetValue: string } | null>(null);
 
   // Browser safety check on tab close/reload
@@ -147,6 +148,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
           const stateMap: Record<string, { status: AttendanceStatus; note: string }> = {};
           
+          setIsNewRecord(records.length === 0);
           if (records.length > 0) {
             records.forEach(r => {
               stateMap[r.studentId] = {
@@ -350,6 +352,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
       initialSnapshotRef.current = JSON.stringify({ stateMap: attendanceState, sessionNotes });
       setIsDirty(false);
+      setIsNewRecord(false);
 
       triggerSyncFeedback('saved', 'Presensi harian berhasil disimpan!');
       toastSuccess('Presensi harian berhasil disimpan ke cloud database!');
@@ -461,13 +464,26 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               <FileCsv className="w-4 h-4 text-emerald-600" />
               Export Excel
             </button>
+            {(isNewRecord || isDirty) && !loading && (
+              <span
+                role="status"
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)] flex items-center gap-1.5"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-warning-fg)] motion-safe:animate-pulse" />
+                {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
+              </span>
+            )}
             <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || loading || isArchivedYear}
-              title={isArchivedYear ? 'Tahun Ajaran telah diarsipkan (read-only)' : 'Simpan Presensi'}
-              className="btn-primary px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
-            >
+                type="button"
+                onClick={handleSave}
+                disabled={(!isDirty && !isNewRecord) || saving || loading || isArchivedYear}
+                title={isArchivedYear ? 'Tahun Ajaran telah diarsipkan (read-only)' : 'Simpan Presensi'}
+                className={`px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer ${
+                  isDirty || isNewRecord 
+                    ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md' 
+                    : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
+                }`}
+              >
               <FloppyDisk className="w-4 h-4" />
               {saving ? 'Menyimpan...' : (isArchivedYear ? 'Terkunci (Arsip)' : 'Simpan Presensi')}
             </button>

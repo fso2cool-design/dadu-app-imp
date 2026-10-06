@@ -11,8 +11,7 @@ export function calculateFinalScore(
   conductedIds: Set<string>,
   scores: Map<string, ScoreValue>,
   method: CalculationMethod,
-  missingTreatment: MissingScoreTreatment=
-    'IGNORE'
+  missingTreatment: MissingScoreTreatment = 'IGNORE'
 ): GradingResult {
   let weightedSum = 0, usedWeight = 0, simpleSum = 0, filledCount = 0, conductedFilledCount = 0;
   const conductedItems = items.filter(it => conductedIds.has(it.id));
@@ -42,9 +41,13 @@ export function calculateFinalScore(
 
 export function getGradeScale(score: number, passingGrade: number): { predicate: string; label: string; isPassed: boolean } {
   const isPassed = score >= passingGrade;
-  if (score >= 90) return { predicate: 'A', label: 'Superior', isPassed };
-  if (score >= 80) return { predicate: 'B', label: 'Baik', isPassed };
-  if (score >= 70) return { predicate: 'C', label: 'Cukup', isPassed };
-  if (score >= 60) return { predicate: 'D', label: 'Kurang', isPassed };
-  return { predicate: 'E', label: 'Sangat Kurang', isPassed };
+  const safeKkm = Math.min(Math.max(passingGrade, 0), 100);
+  const interval = Math.max(1, (100 - safeKkm) / 3);
+  const thresholdB = Math.round(safeKkm + interval);
+  const thresholdA = Math.round(safeKkm + (2 * interval));
+
+  if (score >= thresholdA) return { predicate: 'A', label: 'Sangat Baik', isPassed };
+  if (score >= thresholdB) return { predicate: 'B', label: 'Baik', isPassed };
+  if (score >= safeKkm) return { predicate: 'C', label: 'Cukup', isPassed };
+  return { predicate: 'D', label: 'Kurang', isPassed };
 }

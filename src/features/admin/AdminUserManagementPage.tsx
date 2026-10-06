@@ -1,3 +1,4 @@
+import { formatDateIndonesian, dateToLocalISO } from '../../utils/date';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useApplication } from '../../application/ApplicationContext';
@@ -22,13 +23,7 @@ const formatLastLoginDate = (timestamp: any): string => {
     }
     if (isNaN(date.getTime())) return '';
     
-    return date.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return formatDateIndonesian(dateToLocalISO(date));
   } catch {
     return '';
   }

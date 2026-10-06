@@ -7,7 +7,7 @@ import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 
 import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
-import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { OfficialDocumentHeader } from '../../components/common/OfficialDocumentHeader';
 import { Printer, ShareNetwork, Copy, Check, FileText, Medal, CheckCircle, WarningCircle, CalendarBlank, User, Handshake, ChatCircle, Buildings, ArrowSquareOut } from '@phosphor-icons/react';
 
 interface StudentProgressReportModalProps {
@@ -44,17 +44,19 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
   }, [initialAttendanceRecords, initialStudentNotes]);
 
   useEffect(() => {
+      let isMounted = true;
     if (!user || !isOpen || !enrollment) return;
 
     const loadData = async () => {
       setLoadingData(true);
       try {
         const [sch, docS] = await Promise.all([
-          app.settings.getSettings(user.uid),
-          app.settings.getSettings(user.uid),
+          app.settings.getSchoolSettings(user.uid),
+          app.settings.getDocumentSettings(user.uid),
         ]);
+        if (!isMounted) return;
         if (sch) setSchoolSettings(sch);
-        if (docS) setDocSettings(docS as any);
+        if (docS) setDocSettings(docS);
 
         // If attendance or notes were not passed in props, load them directly from Firestore
         const promises: Promise<any>[] = [];
@@ -82,8 +84,10 @@ export const StudentProgressReportModal: React.FC<StudentProgressReportModalProp
         setLoadingData(false);
       }
     };
+      if (!isMounted) return;
 
     loadData();
+      return () => { isMounted = false; };
   }, [user, isOpen, enrollment, initialAttendanceRecords, initialStudentNotes]);
 
   if (!isOpen || !enrollment) return null;
@@ -241,60 +245,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
           id="printable-progress-report"
           className="bg-white border border-slate-300 rounded-2xl p-6 shadow-xs space-y-5 text-slate-800 font-sans print:border-none print:shadow-none print:p-0"
         >
-          {/* 4-TIER OFFICIAL KOP SURAT */}
-          <div className="pb-3">
-            <div className="flex items-center justify-between gap-3 text-center pb-2">
-              {/* Left Logo: Kemenag */}
-              <div className="w-16 flex items-center justify-center shrink-0">
-                <img
-                  src={schoolSettings?.kemenagLogoUrl || DEFAULT_KEMENAG_LOGO}
-                  alt="Logo Kemenag"
-                  className="w-14 h-14 max-w-full max-h-full object-contain"
-                />
-              </div>
-
-              {/* 4-Tier Official Text */}
-              <div className="flex-1 text-center px-1">
-                <h4 className="text-[10px] font-semibold uppercase tracking-wider text-slate-800 leading-tight">
-                  KEMENTERIAN AGAMA REPUBLIK INDONESIA
-                </h4>
-                <h5 className="text-[9px] font-semibold uppercase tracking-wide text-slate-800 leading-tight mt-0.5">
-                  {schoolSettings?.kemenagDistrict || (
-                    schoolSettings?.regency 
-                      ? `KANTOR KEMENTERIAN AGAMA KABUPATEN ${schoolSettings.regency.toUpperCase().replace(/^KABUPATEN\s+|^KOTA\s+/i, '')}`
-                      : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
-                  )}
-                </h5>
-                <h2 className="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-950 my-0.5 leading-snug">
-                  {schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR'}
-                </h2>
-                <p className="text-[9px] text-slate-700 leading-snug">
-                  {schoolSettings?.address 
-                    ? `${schoolSettings.address}${schoolSettings.village ? `, ${schoolSettings.village}` : ''}${schoolSettings.district ? `, Kec. ${schoolSettings.district}` : ''}${schoolSettings.regency ? `, ${schoolSettings.regency}` : ''}${schoolSettings.province ? `, ${schoolSettings.province}` : ''}`
-                    : 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula'}
-                </p>
-              </div>
-
-              {/* Right Logo: Madrasah */}
-              <div className="w-16 flex items-center justify-center shrink-0">
-                {(schoolSettings?.schoolLogoUrl || schoolSettings?.logoUrl) ? (
-                  <img
-                    src={schoolSettings?.schoolLogoUrl || schoolSettings?.logoUrl}
-                    alt="Logo Madrasah"
-                    className="w-14 h-14 max-w-full max-h-full object-contain"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 no-print">
-                    <Buildings className="w-5 h-5 text-slate-400" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Double Border Rule */}
-            <div className="border-b-2 border-slate-950"></div>
-            <div className="border-b border-slate-950 mt-0.5"></div>
-          </div>
+          <OfficialDocumentHeader schoolSettings={schoolSettings} />
 
           {/* DOCUMENT TITLE */}
           <div className="text-center space-y-0.5">

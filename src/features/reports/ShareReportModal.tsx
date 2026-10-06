@@ -1,3 +1,4 @@
+import { formatNumericDate, dateToLocalISO } from '../../utils/date';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useApplication } from '../../application/ApplicationContext';
@@ -364,7 +365,7 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
                 <div className="flex items-center justify-between text-[var(--ds-text-muted)]">
                   <span>Masa Berlaku:</span>
                   <span className="font-medium text-[var(--ds-text)]">
-                    {createdReport.expiresAt ? new Date(createdReport.expiresAt.toMillis ? createdReport.expiresAt.toMillis() : createdReport.expiresAt).toLocaleDateString('id-ID') : 'Selamanya'}
+                    {createdReport.expiresAt ? formatNumericDate(dateToLocalISO(new Date(createdReport.expiresAt.toMillis ? createdReport.expiresAt.toMillis() : createdReport.expiresAt))) : 'Selamanya'}
                   </span>
                 </div>
               </div>

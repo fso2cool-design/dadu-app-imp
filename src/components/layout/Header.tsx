@@ -36,19 +36,6 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () =
 }
 
 // Natural alphabetical & numerical sorter for class names (e.g. X-A, X-B, XI-A, XII-A)
-function parseClassOrder(className: string): { grade: number; letter: string } {
-  const clean = className.trim().toUpperCase();
-  let grade = 99;
-  if (clean.startsWith('X-') || clean.startsWith('10-') || clean === 'X' || clean === '10') grade = 10;
-  else if (clean.startsWith('XI-') || clean.startsWith('11-') || clean === 'XI' || clean === '11') grade = 11;
-  else if (clean.startsWith('XII-') || clean.startsWith('12-') || clean === 'XII' || clean === '12') grade = 12;
-  else if (clean.startsWith('VII-') || clean.startsWith('7-')) grade = 7;
-  else if (clean.startsWith('VIII-') || clean.startsWith('8-')) grade = 8;
-  else if (clean.startsWith('IX-') || clean.startsWith('9-')) grade = 9;
-
-  const letter = clean.replace(/^(X|XI|XII|VII|VIII|IX|10|11|12|7|8|9)[-\s]*/, '');
-  return { grade, letter };
-}
 
 export const Header: React.FC<HeaderProps> = ({
   currentRoute,
@@ -79,7 +66,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [localTime, setLocalTime] = useState<string>('');
   const [localTimeZone, setLocalTimeZone] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showClassDropdown, setShowClassDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
@@ -147,106 +133,13 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const classDropdownRef = useRef<HTMLDivElement>(null);
+
   const userDropdownRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(classDropdownRef, () => {
-    setShowClassDropdown(false);
-    setShowAdvancedSettings(false);
-  }, showClassDropdown);
-
   useClickOutside(userDropdownRef, () => {
     setShowUserDropdown(false);
   }, showUserDropdown);
 
   // Sort teaching assignments naturally by grade level and section
-  const sortedAssignments = useMemo(() => {
-    return [...teachingAssignments].sort((a, b) => {
-      const orderA = parseClassOrder(a.className || '');
-      const orderB = parseClassOrder(b.className || '');
-
-      if (orderA.grade !== orderB.grade) {
-        return orderA.grade - orderB.grade;
-      }
-      return (orderA.letter || '').localeCompare(orderB.letter || '', undefined, { numeric: true });
-    });
-  }, [teachingAssignments]);
-
-  const todayDayName = useMemo(() => {
-    return INDONESIAN_DAYS[new Date().getDay()] || '';
-  }, []);
-
-  const { todayAssignments, otherAssignments } = useMemo(() => {
-    const today: typeof sortedAssignments = [];
-    const other: typeof sortedAssignments = [];
-    const target = todayDayName.toLowerCase();
-
-    sortedAssignments.forEach((assign) => {
-      const matchDayOfWeek = assign.dayOfWeek?.trim().toLowerCase() === target;
-      const matchSchedules = Array.isArray(assign.schedules) && assign.schedules.some((s) => s.day?.trim().toLowerCase() === target);
-      if (todayDayName && (matchDayOfWeek || matchSchedules)) {
-        today.push(assign);
-      } else {
-        other.push(assign);
-      }
-    });
-
-    return { todayAssignments: today, otherAssignments: other };
-  }, [sortedAssignments, todayDayName]);
-
-  const renderAssignmentItem = (assign: (typeof sortedAssignments)[number], isTodayMatch = false) => {
-    const isSelected = selectedAssignment?.id === assign.id;
-    return (
-      <button
-        key={assign.id}
-        type="button"
-        onClick={() => {
-          setSelectedAssignment(assign);
-          if (assign.classId) {
-            selectClassWithAutoAssignment(assign.classId);
-          }
-          setShowClassDropdown(false);
-        }}
-        className={`w-full p-2 rounded-xl text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-          isSelected
-            ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] font-bold shadow-xs'
-            : 'hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)]'
-        }`}
-      >
-        <div className="flex items-center gap-2.5 truncate">
-          <span
-            className={`font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${
-              isSelected
-                ? 'bg-[color-mix(in_srgb,var(--ds-accent-fg)_20%,transparent)] text-[var(--ds-accent-fg)]'
-                : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text)] border border-[var(--ds-border)]'
-            }`}
-          >
-            {assign.className}
-          </span>
-          <span
-            className={`truncate ${isSelected ? 'text-[var(--ds-accent-fg)]' : 'text-[var(--ds-text-muted)]'}`}
-          >
-            {assign.subjectName}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0 ml-2">
-          {isTodayMatch && assign.timeSlot && (
-            <span
-              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                isSelected
-                  ? 'bg-[color-mix(in_srgb,var(--ds-accent-fg)_20%,transparent)] text-[var(--ds-accent-fg)]'
-                  : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40'
-              }`}
-            >
-              {assign.timeSlot}
-            </span>
-          )}
-          {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
-        </div>
-      </button>
-    );
-  };
-
   return (
     <header className="h-14 lg:h-16 bg-[color-mix(in_srgb,var(--ds-surface-elevated)_95%,transparent)] backdrop-blur-md border-b border-[var(--ds-border)] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none transition-colors shadow-2xs">
       {/* Mobile App Branding & Drawer Toggle (Visible only on mobile screens < lg) */}
@@ -266,152 +159,6 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Left Side: Class/Subject Focus Switcher, Clock, Cloud Sync, & Fullscreen (Ultra-Compact Left Group) */}
       <div className="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
-        {/* 1. Class & Subject Context Switcher with Natural Ordering */}
-        <div className="relative shrink-0" ref={classDropdownRef}>
-          <button
-            type="button"
-            onClick={() => {
-              setShowClassDropdown(!showClassDropdown);
-              setShowUserDropdown(false);
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--ds-surface-elevated)] hover:bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-semibold transition-all cursor-pointer shadow-xs group"
-          >
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/70 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-black text-[11px] shrink-0">
-              {selectedAssignment ? selectedAssignment.className.split('-')[0] : 'K'}
-            </div>
-
-            {selectedAssignment ? (
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <span className="font-bold text-[var(--ds-text)] whitespace-nowrap text-xs">
-                  Kelas {selectedAssignment.className}
-                </span>
-                <span className="text-[var(--ds-text-muted)] hidden sm:inline">•</span>
-                <span className="text-emerald-700 dark:text-emerald-400 font-medium max-w-[90px] xs:max-w-[130px] sm:max-w-[180px] md:max-w-[220px] truncate hidden sm:inline">
-                  {selectedAssignment.subjectName}
-                </span>
-              </div>
-            ) : (
-              <span className="text-[var(--ds-text-muted)] font-medium">Pilih Rombel & Mapel</span>
-            )}
-
-            <CaretDown className={`w-3.5 h-3.5 text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)] transition-transform ${showClassDropdown ? 'rotate-180' : ''}`} />
-          </button>
-
-          {/* Class Switcher Dropdown Modal */}
-          {showClassDropdown && (
-            <div 
-              className="absolute left-0 mt-2 w-72 sm:w-84 rounded-2xl bg-[var(--ds-surface-elevated)] p-3 shadow-2xl border border-[var(--ds-border)] z-50 animate-in fade-in slide-in-from-top-2"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b border-[var(--ds-border)] pb-2.5 mb-2.5">
-                <div>
-                  <h4 className="text-xs font-bold text-[var(--ds-text)] uppercase tracking-wider">
-                    Ganti Fokus Kelas & Mapel
-                  </h4>
-                  <p className="text-[10px] text-[var(--ds-text-muted)]">
-                    Pilih rombel untuk input presensi, jurnal, atau penilaian
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-                  className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
-                >
-                  {showAdvancedSettings ? 'Tutup TA' : 'Ubah TA/Sem'}
-                </button>
-              </div>
-
-              {/* Optional Year & Semester Selector inside Dropdown */}
-              {showAdvancedSettings && (
-                <div className="p-2.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] mb-3 space-y-2">
-                  <div>
-                    <span className="text-[10px] font-bold text-[var(--ds-text-muted)] block mb-1">Tahun Ajaran:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {academicYears.map(year => (
-                        <button
-                          key={year.id}
-                          type="button"
-                          onClick={() => setActiveAcademicYear(year)}
-                          className={`px-2 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
-                            activeAcademicYear?.id === year.id
-                              ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] border-[var(--ds-accent)] font-bold shadow-xs'
-                              : 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] border border-[var(--ds-border)]'
-                          }`}
-                        >
-                          {year.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold text-[var(--ds-text-muted)] block mb-1">Semester:</span>
-                    <div className="flex gap-1">
-                      {(['GANJIL', 'GENAP'] as const).map(sem => (
-                        <button
-                          key={sem}
-                          type="button"
-                          onClick={() => setActiveSemester(sem)}
-                          className={`flex-1 py-1 rounded text-[11px] font-medium border transition-colors cursor-pointer ${
-                            activeSemester === sem
-                              ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] border-[var(--ds-accent)] font-bold shadow-xs'
-                              : 'bg-[var(--ds-surface-elevated)] text-[var(--ds-text)] border border-[var(--ds-border)]'
-                          }`}
-                        >
-                          {sem === 'GANJIL' ? 'Ganjil' : 'Genap'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* List of Teaching Assignments (Grouped by Today if available, else Natural Sorted) */}
-              <div className="max-h-64 overflow-y-auto space-y-1 pr-0.5">
-                {sortedAssignments.length === 0 ? (
-                  <div className="text-center py-6 text-xs text-[var(--ds-text-muted)]">
-                    Belum ada rombel terdaftar
-                  </div>
-                ) : todayAssignments.length > 0 ? (
-                  <>
-                    <div className="px-2 pt-1 pb-1 flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        Jadwal Hari Ini ({todayDayName})
-                      </span>
-                      <span className="text-[10px] font-mono font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
-                        {todayAssignments.length} Kelas
-                      </span>
-                    </div>
-                    <div className="space-y-1 mb-2">
-                      {todayAssignments.map(assign => renderAssignmentItem(assign, true))}
-                    </div>
-
-                    {otherAssignments.length > 0 && (
-                      <>
-                        <div className="px-2 pt-2.5 pb-1 border-t border-[var(--ds-border)] flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--ds-text-muted)]">
-                            Kelas Lainnya
-                          </span>
-                          <span className="text-[10px] font-mono text-[var(--ds-text-muted)]">
-                            {otherAssignments.length} Kelas
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          {otherAssignments.map(assign => renderAssignmentItem(assign, false))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div className="space-y-1">
-                    {sortedAssignments.map(assign => renderAssignmentItem(assign, false))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* 2. Live Local Clock Widget */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] text-xs font-mono font-bold shadow-2xs shrink-0">
@@ -530,7 +277,6 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={() => {
               setShowUserDropdown(!showUserDropdown);
-              setShowClassDropdown(false);
             }}
             className="flex items-center gap-2 p-1 rounded-xl hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs transition-colors cursor-pointer"
           >

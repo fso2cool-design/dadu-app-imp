@@ -44,6 +44,7 @@ export const JournalReportPage: React.FC = () => {
 
   // Fetch meetings with SWR
   useEffect(() => {
+      let isMounted = true;
     if (!user || !activeAcademicYear || !selectedAssignment) return;
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
@@ -62,6 +63,7 @@ export const JournalReportPage: React.FC = () => {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester
         });
+        if (!isMounted) return;
         mets.sort((a, b) => (a.meetingNumber || 0) - (b.meetingNumber || 0));
         journalReportCache.set(cacheKey, mets);
         setMeetings(mets);
@@ -73,6 +75,7 @@ export const JournalReportPage: React.FC = () => {
     };
 
     fetchJournalData();
+      return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
 
   // Filtered meetings

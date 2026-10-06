@@ -189,6 +189,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
 
   // Load Firestore Settings
   useEffect(() => {
+      let isMounted = true;
     if (!user) return;
     const fetchSettings = async () => {
       try {
@@ -198,6 +199,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           app.settings.getDocumentSettings(user.uid),
           app.workspace.getUserPreferences(user.uid),
         ]);
+        if (!isMounted) return;
 
         if (sch) {
           setSchoolData(sch);
@@ -218,6 +220,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       }
     };
     fetchSettings();
+      return () => { isMounted = false; };
   }, [user]);
 
   const isProfileDirty = JSON.stringify(profileData) !== JSON.stringify(initialProfileRef.current);
@@ -836,7 +839,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           setSuccessMsg('Tanda tangan guru berhasil diperbarui. Klik "Simpan Perubahan" untuk menyimpan ke cloud.');
         }}
         title="Tanda Tangan Digital Guru"
-        subtitle="Goreskan tanda tangan guru pengampu atau unggah file PNG transparan"
+        subtitle="Unggah file gambar tanda tangan guru berformat transparan (.png)"
       />
 
       {/* Signature Modal for Headmaster */}
@@ -848,7 +851,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           setSuccessMsg('Tanda tangan kepala madrasah berhasil diperbarui. Klik "Simpan Perubahan" untuk menyimpan ke cloud.');
         }}
         title="Tanda Tangan Kepala Madrasah"
-        subtitle="Goreskan tanda tangan Kepala Madrasah untuk laporan resmi"
+        subtitle="Unggah file gambar tanda tangan Kepala Madrasah berformat transparan (.png)"
       />
 
       {/* Signature Modal for Stamp / Cap */}

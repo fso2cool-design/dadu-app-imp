@@ -1,3 +1,4 @@
+import { formatShortDate, dateToLocalISO } from '../../utils/date';
 import React, { useState, useEffect } from 'react';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '../../types';
 import { useApplication } from '../../application/ApplicationContext';
@@ -292,13 +293,7 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
             const meta = getTypeMeta(item.type);
             const Icon = meta.icon;
             const formattedDate = item.createdAt?.toDate 
-              ? item.createdAt.toDate().toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
+              ? formatShortDate(dateToLocalISO(item.createdAt.toDate()))
               : 'Baru saja';
 
             return (

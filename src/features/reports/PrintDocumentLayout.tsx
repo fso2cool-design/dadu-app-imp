@@ -4,9 +4,10 @@ import { useApplication } from '../../application/ApplicationContext';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
-import { Printer, Download, Buildings, Sliders, CheckCircle, FileCsv, X } from '@phosphor-icons/react';
-import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
-import { PAPER, type PaperSizeKey } from '../../constants/print';
+import { Buildings } from '@phosphor-icons/react';
+import { getOfficialLetterhead } from '../../domain/reports/letterhead';
+import { PrintActionBar, PrintOptions } from '../../components/common/PrintActionBar';
+import { type PaperSizeKey } from '../../constants/print';
 
 interface PrintDocumentLayoutProps {
   title: string;
@@ -47,13 +48,27 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   const app = useApplication();
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
   const [documentSettings, setDocumentSettings] = useState<DocumentSettings | null>(null);
-  const [showLetterhead, setShowLetterhead] = useState(true);
-  const [showSignatures, setShowSignatures] = useState(true);
-  const [showDigitalSignatures, setShowDigitalSignatures] = useState(true);
+  
+  const [printOptions, setPrintOptions] = useState<PrintOptions>({
+    paperSize: (paperSize === 'F4' ? 'F4' : 'A4') as 'A4' | 'F4',
+    orientation: paperOrientation,
+    useKop: true,
+    useSignature: true,
+  });
+
   const [customCity, setCustomCity] = useState('');
   const [customDate, setCustomDate] = useState('');
 
   useEffect(() => {
+    setPrintOptions((prev) => ({
+      ...prev,
+      paperSize: (paperSize === 'F4' ? 'F4' : 'A4') as 'A4' | 'F4',
+      orientation: paperOrientation,
+    }));
+  }, [paperSize, paperOrientation]);
+
+  useEffect(() => {
+      let isMounted = true;
     if (!user) return;
     const fetchSettings = async () => {
       try {
@@ -61,6 +76,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
           app.settings.getSchoolSettings(user.uid),
           app.settings.getDocumentSettings(user.uid),
         ]);
+        if (!isMounted) return;
         setSchoolSettings(school);
         setDocumentSettings(doc);
         if (doc?.city) {
@@ -75,32 +91,15 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
     fetchSettings();
 
     // Default formatted Indonesian date
+      return () => { isMounted = false; };
     setCustomDate(formatDateIndonesian(getTodayISO()));
-  }, [user]);
+  }, [user, app.settings]);
 
   const handlePrint = () => {
     window.print();
   };
 
-  const isMadrasah = !schoolSettings?.schoolLevel || ['MI', 'MTs', 'MA', 'MAK'].includes(schoolSettings.schoolLevel);
-  
-  const tier1 = isMadrasah 
-    ? 'KEMENTERIAN AGAMA REPUBLIK INDONESIA' 
-    : 'KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI';
-
-  const tier2 = schoolSettings?.kemenagDistrict || (
-    schoolSettings?.regency 
-      ? `KANTOR KEMENTERIAN AGAMA KABUPATEN ${schoolSettings.regency.toUpperCase().replace(/^KABUPATEN\s+|^KOTA\s+/i, '')}`
-      : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
-  );
-
-  const effectiveSchoolName = schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR';
-  const effectiveAddress = schoolSettings?.address 
-    ? `${schoolSettings.address}${schoolSettings.village ? `, ${schoolSettings.village}` : ''}${schoolSettings.district ? `, Kec. ${schoolSettings.district}` : ''}${schoolSettings.regency ? `, ${schoolSettings.regency}` : ''}${schoolSettings.province ? `, ${schoolSettings.province}` : ''}`
-    : 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula';
-
-  const kemenagLogo = schoolSettings?.kemenagLogoUrl || DEFAULT_KEMENAG_LOGO;
-  const madrasahLogo = schoolSettings?.schoolLogoUrl || schoolSettings?.logoUrl;
+  const letterhead = getOfficialLetterhead(schoolSettings);
 
   const effectiveHeadmasterName = schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I';
   const effectiveHeadmasterNip = schoolSettings?.headmasterNip || '19780512 200501 1 003';
@@ -112,101 +111,30 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   return (
     <div className="space-y-4">
       {/* Document Control Bar (Hidden on Print) */}
-      <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] flex items-center justify-center">
-            <Printer className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="font-bold text-[var(--ds-text)] text-xs block">Pratinjau Dokumen Cetak</span>
-            <span className="text-[11px] text-[var(--ds-text-muted)]">
-              Format Kertas: <strong className="text-[var(--ds-text)]">{paperSize}</strong> • Orientasi: <strong className="text-[var(--ds-text)]">{paperOrientation}</strong>
-            </span>
-          </div>
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Toggle Letterhead */}
-          <button
-            type="button"
-            onClick={() => setShowLetterhead(!showLetterhead)}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              showLetterhead 
-                ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-accent)]' 
-                : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
-            }`}
-          >
-            <Buildings className="w-3.5 h-3.5" />
-            <span>{showLetterhead ? 'Kop Madrasah: Aktif' : 'Kop Madrasah: Nonaktif'}</span>
-          </button>
-
-          {/* Toggle Signatures */}
-          <button
-            type="button"
-            onClick={() => setShowSignatures(!showSignatures)}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              showSignatures 
-                ? 'bg-[var(--ds-accent-soft)] border-[var(--ds-accent)] text-[var(--ds-accent)]' 
-                : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
-            }`}
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            <span>{showSignatures ? 'Tanda Tangan: Aktif' : 'Tanda Tangan: Nonaktif'}</span>
-          </button>
-
-          {/* Export Excel if provided */}
-          {onExportExcel && (
-            <button
-              type="button"
-              onClick={onExportExcel}
-              disabled={excelExportDisabled}
-              className="px-3.5 py-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text)] text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
-            >
-              <FileCsv className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Ekspor Excel</span>
-            </button>
-          )}
-
-          {/* Print Button */}
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="btn-primary px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Cetak Dokumen</span>
-          </button>
-
-          {/* Close Button if modal mode */}
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] transition-colors cursor-pointer"
-              title="Tutup"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-      </div>
+      <PrintActionBar
+        options={printOptions}
+        onOptionsChange={setPrintOptions}
+        onPrint={handlePrint}
+        onExportExcel={onExportExcel}
+        excelExportDisabled={excelExportDisabled}
+        onClose={onClose}
+      />
 
       {/* Printable Sheet Wrapper */}
       <div
         className="printable-document bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-10 shadow-sm max-w-5xl mx-auto text-slate-900 font-sans"
-        data-paper={paperSize}
-        data-orientation={paperOrientation}
+        data-paper={printOptions.paperSize}
+        data-orientation={printOptions.orientation}
       >
         
         {/* 1. Official Madrasah 4-Tier Letterhead (Kop Surat) */}
-        {showLetterhead && (
+        {printOptions.useKop && (
           <div className="mb-6">
             <div className="flex items-center justify-between gap-3 text-center pb-2">
               {/* Left Logo: Kementerian Agama */}
               <div className="w-20 flex items-center justify-center shrink-0">
                 <img
-                  src={kemenagLogo}
+                  src={letterhead.kemenagLogoUrl}
                   alt="Logo Kemenag"
                   className="w-18 h-18 max-w-full max-h-full object-contain"
                 />
@@ -216,29 +144,29 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
               <div className="flex-1 text-center px-2">
                 {/* Tingkat 1 */}
                 <h4 className="text-xs sm:text-[13px] font-semibold tracking-wider uppercase text-slate-800 leading-tight">
-                  {tier1}
+                  {letterhead.tier1}
                 </h4>
                 {/* Tingkat 2 */}
-                {isMadrasah && (
+                {letterhead.isMadrasah && (
                   <h5 className="text-[11px] sm:text-xs font-semibold tracking-wide uppercase text-slate-800 leading-tight mt-0.5">
-                    {tier2}
+                    {letterhead.tier2}
                   </h5>
                 )}
                 {/* Tingkat 3: Nama Madrasah */}
                 <h2 className="text-base sm:text-lg font-black tracking-wide uppercase text-slate-950 my-1 leading-snug">
-                  {effectiveSchoolName}
+                  {letterhead.tier3}
                 </h2>
-                {/* Tingkat 4: Alamat Lengkap Tanpa NSM/NPSN */}
+                {/* Tingkat 4: Alamat Lengkap */}
                 <p className="text-[11px] text-slate-700 leading-snug">
-                  {effectiveAddress}
+                  {letterhead.tier4}
                 </p>
               </div>
 
               {/* Right Logo: Madrasah / Sekolah */}
               <div className="w-20 flex items-center justify-center shrink-0">
-                {madrasahLogo ? (
+                {letterhead.hasSchoolLogo && letterhead.schoolLogoUrl ? (
                   <img
-                    src={madrasahLogo}
+                    src={letterhead.schoolLogoUrl}
                     alt="Logo Madrasah"
                     className="w-18 h-18 max-w-full max-h-full object-contain"
                   />
@@ -252,8 +180,8 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
             </div>
 
             {/* Double Border Rule (Garis Ganda Dokumen Dinas Resmi) */}
-            <div className="border-b-2 border-slate-950 print:!border-slate-950"></div>
-            <div className="border-b border-slate-950 print:!border-slate-950 mt-0.5"></div>
+            <div className="border-b-2 border-slate-950 print:!border-slate-950" />
+            <div className="border-b border-slate-950 print:!border-slate-950 mt-0.5" />
           </div>
         )}
 
@@ -292,69 +220,73 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
         </div>
 
         {/* 5. Formal Indonesian Signature Blocks */}
-        {showSignatures && (
+        {printOptions.useSignature && (
           <div className="mt-10 pt-4 page-break-inside-avoid text-xs text-slate-800">
-            <div className="grid grid-cols-2 gap-8 items-start">
+            <div className={`grid ${signatureType === 'HEADMASTER_ONLY' || signatureType === 'TEACHER_ONLY' ? 'grid-cols-1 justify-items-center' : 'grid-cols-2'} gap-8 items-start`}>
               {/* Left Column: Mengetahui Kepala Madrasah */}
-              <div className="text-center space-y-1">
-                <p className="text-xs text-slate-600 font-medium">Mengetahui,</p>
-                <p className="font-bold text-slate-800">Kepala Madrasah</p>
-                
-                {/* Signature & Stamp space */}
-                <div className="h-20 flex items-center justify-center relative">
-                  {schoolSettings?.stampImageUrl && (
-                    <img
-                      src={schoolSettings.stampImageUrl}
-                      alt="Stempel Madrasah"
-                      className="absolute max-h-18 max-w-28 object-contain opacity-80 pointer-events-none -rotate-6"
-                    />
-                  )}
-                  {schoolSettings?.headmasterSignatureUrl ? (
-                    <img
-                      src={schoolSettings.headmasterSignatureUrl}
-                      alt="Tanda Tangan Kepala"
-                      className="max-h-16 max-w-32 object-contain relative z-10"
-                    />
-                  ) : (
-                    <span className="text-[10px] text-slate-300 italic no-print">(Tanda Tangan & Stempel)</span>
-                  )}
-                </div>
+              {signatureType !== 'TEACHER_ONLY' && (
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-slate-600 font-medium">Mengetahui,</p>
+                  <p className="font-bold text-slate-800">Kepala Madrasah</p>
+                  
+                  {/* Signature & Stamp space */}
+                  <div className="h-20 flex items-center justify-center relative">
+                    {schoolSettings?.stampImageUrl && (
+                      <img
+                        src={schoolSettings.stampImageUrl}
+                        alt="Stempel Madrasah"
+                        className="absolute max-h-18 max-w-28 object-contain opacity-80 pointer-events-none -rotate-6"
+                      />
+                    )}
+                    {schoolSettings?.headmasterSignatureUrl ? (
+                      <img
+                        src={schoolSettings.headmasterSignatureUrl}
+                        alt="Tanda Tangan Kepala"
+                        className="max-h-16 max-w-32 object-contain relative z-10"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-300 italic no-print">(Tanda Tangan & Stempel)</span>
+                    )}
+                  </div>
 
-                <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
-                  {formatOfficialSignatureName(effectiveHeadmasterName, 'Kepala Madrasah')}
-                </p>
-                <p className="text-[11px] text-slate-600 font-mono">
-                  {formatOfficialNip(effectiveHeadmasterNip)}
-                </p>
-              </div>
+                  <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
+                    {formatOfficialSignatureName(effectiveHeadmasterName, 'Kepala Madrasah')}
+                  </p>
+                  <p className="text-[11px] text-slate-600 font-mono">
+                    {formatOfficialNip(effectiveHeadmasterNip)}
+                  </p>
+                </div>
+              )}
 
               {/* Right Column: Tempat, Titimangsa & Guru Pengampu / Wali Kelas */}
-              <div className="text-center space-y-1">
-                <p className="text-xs text-slate-600 font-medium">
-                  {customCity || 'Kota'}, {customDate}
-                </p>
-                <p className="font-bold text-slate-800">{effectiveTeacherRole}</p>
+              {signatureType !== 'HEADMASTER_ONLY' && (
+                <div className="text-center space-y-1">
+                  <p className="text-xs text-slate-600 font-medium">
+                    {customCity || 'Kota'}, {customDate}
+                  </p>
+                  <p className="font-bold text-slate-800">{effectiveTeacherRole}</p>
 
-                {/* Signature space */}
-                <div className="h-20 flex items-center justify-center">
-                  {(profile?.signatureUrl || documentSettings?.signatureImageUrl) ? (
-                    <img
-                      src={profile?.signatureUrl || documentSettings?.signatureImageUrl}
-                      alt="Tanda Tangan Guru"
-                      className="max-h-16 max-w-32 object-contain"
-                    />
-                  ) : (
-                    <span className="text-[10px] text-slate-300 italic no-print">(Tanda Tangan)</span>
-                  )}
+                  {/* Signature space */}
+                  <div className="h-20 flex items-center justify-center">
+                    {(profile?.signatureUrl || documentSettings?.signatureImageUrl) ? (
+                      <img
+                        src={profile?.signatureUrl || documentSettings?.signatureImageUrl}
+                        alt="Tanda Tangan Guru"
+                        className="max-h-16 max-w-32 object-contain"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-slate-300 italic no-print">(Tanda Tangan)</span>
+                    )}
+                  </div>
+
+                  <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
+                    {formatOfficialSignatureName(effectiveTeacherName, 'Guru Pengampu')}
+                  </p>
+                  <p className="text-[11px] text-slate-600 font-mono">
+                    {formatOfficialNip(effectiveTeacherNip)}
+                  </p>
                 </div>
-
-                <p className="font-bold text-slate-900 underline decoration-1 underline-offset-2">
-                  {formatOfficialSignatureName(effectiveTeacherName, 'Guru Pengampu')}
-                </p>
-                <p className="text-[11px] text-slate-600 font-mono">
-                  {formatOfficialNip(effectiveTeacherNip)}
-                </p>
-              </div>
+              )}
             </div>
           </div>
         )}

@@ -497,7 +497,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
             {activeView === 'matrix' ? (
               <>
                 <Printer className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-                <span>Format Cetak Resmi</span>
+                <span>Cetak Jadwal</span>
               </>
             ) : (
               <>
@@ -642,6 +642,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
             { label: 'Semester', value: activeSemester || '-' },
           ]}
           onExportExcel={handleExportExcel}
+          onClose={() => setActiveView('matrix')}
         >
           {/* Printable 6-Day Schedule Matrix */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-2 text-slate-950">

@@ -11,6 +11,7 @@ import { GenderBadge, GenderIcon } from '../../components/common/GenderIcon';
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { Users, MagnifyingGlass, FileCsv, UserCheck, Phone, House, CalendarBlank, Notepad, Plus, Medal, ShieldWarning, Eye, Funnel, CheckCircle, WarningCircle, Printer, CreditCard, FileText, UserMinus, Stack } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
+import { aggregateByStudent } from '../../domain/attendance/attendanceAggregation';
 import { useToast } from '../../context/ToastContext';
 
 interface HomeroomStudentsPageProps {
@@ -132,28 +133,24 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
     return () => { isMounted = false; };
   }, [user, selectedEnrollment]);
 
-  // Quick stats per student
+  // Quick stats per student (Domain Aggregate)
   const studentStatsMap = useMemo(() => {
+    const aggregated = aggregateByStudent(attendanceRecords);
     const map = new Map<string, { present: number; sick: number; permitted: number; absent: number; total: number; rate: number }>();
     
     enrollments.forEach(e => {
-      map.set(e.studentId, { present: 0, sick: 0, permitted: 0, absent: 0, total: 0, rate: 100 });
-    });
-
-    attendanceRecords.forEach(rec => {
-      const stats = map.get(rec.studentId);
-      if (stats) {
-        stats.total++;
-        if (rec.status === 'PRESENT' || rec.status === 'DISPENSATION') stats.present++;
-        else if (rec.status === 'SICK') stats.sick++;
-        else if (rec.status === 'PERMITTED') stats.permitted++;
-        else if (rec.status === 'ABSENT') stats.absent++;
-      }
-    });
-
-    map.forEach(stats => {
-      if (stats.total > 0) {
-        stats.rate = Math.round((stats.present / stats.total) * 100);
+      const summary = aggregated.get(e.studentId);
+      if (summary) {
+        map.set(e.studentId, {
+          present: summary.present + summary.dispensation,
+          sick: summary.sick,
+          permitted: summary.permitted,
+          absent: summary.absent,
+          total: summary.total,
+          rate: summary.rate,
+        });
+      } else {
+        map.set(e.studentId, { present: 0, sick: 0, permitted: 0, absent: 0, total: 0, rate: 100 });
       }
     });
 

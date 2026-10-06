@@ -14,7 +14,7 @@ import { emitSyncSuccess, emitSyncError } from '../../utils/syncEvents';
 import { CalendarDots, CheckCircle, Download, FileCsv, Printer, ArrowCounterClockwise, FloppyDisk, MagnifyingGlass, Sparkle, Users, WarningCircle, Briefcase, Plus, Trash, ArrowsLeftRight, UserPlus, BookOpen, Check, Percent, ArrowClockwise } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { AddTeacherAttendanceModal } from './AddTeacherAttendanceModal';
-import { OfficialDocumentHeader } from '../../components/common/OfficialDocumentHeader';
+import { PrintDocumentLayout } from '../reports/PrintDocumentLayout';
 
 const MONTH_NAMES = [
   'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -34,6 +34,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
   // Settings & Kop
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
+
+  const [activeView, setActiveView] = useState<'table' | 'print'>('table');
 
   // Filter State
   const now = new Date();
@@ -446,13 +448,97 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
 
   // Cetak Dokumen Resmi
   const handlePrint = () => {
-    window.print();
+    setActiveView('print');
   };
 
   return (
     <div className="space-y-6 pb-16">
-      {/* ========================================================= */}
-      {/* 1. HEADER & CONTROLS (Screen View Only)                  */}
+      {activeView === 'print' ? (
+        <PrintDocumentLayout
+          title="LAPORAN REKAPITULASI KEHADIRAN GURU MATA PELAJARAN"
+          documentSubtitle={`Kelas: ${currentClass?.name || '-'} | Periode: ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} | Semester: ${selectedSemester} TP: ${activeAcademicYear?.label || '2026/2027'}`}
+          signatureType="HOMEROOM_AND_HEADMASTER"
+          paperOrientation="LANDSCAPE"
+          metaItems={[
+            { label: 'Kelas / Rombel', value: currentClass?.name || '-' },
+            { label: 'Periode', value: `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}` },
+            { label: 'Semester', value: selectedSemester },
+            { label: 'Tahun Pelajaran', value: activeAcademicYear?.label || '2026/2027' },
+          ]}
+          onExportExcel={handleExportExcel}
+          onClose={() => setActiveView('table')}
+        >
+          <table className="w-full border-collapse border border-slate-900 text-[10pt] my-3">
+          <thead>
+            <tr className="bg-slate-100 font-bold text-center">
+              <th className="border border-slate-900 p-1 w-8">No</th>
+              <th className="border border-slate-900 p-1 text-left min-w-[140px]">Nama Guru Pengampu</th>
+              <th className="border border-slate-900 p-1 text-left min-w-[120px]">Mata Pelajaran</th>
+              <th className="border border-slate-900 p-1 w-14">Target Tatap Muka</th>
+              <th className="border border-slate-900 p-1 w-10">H</th>
+              <th className="border border-slate-900 p-1 w-10">S</th>
+              <th className="border border-slate-900 p-1 w-10">I</th>
+              <th className="border border-slate-900 p-1 w-10">A</th>
+              <th className="border border-slate-900 p-1 w-10">D</th>
+              <th className="border border-slate-900 p-1 w-14">% Hadir</th>
+              <th className="border border-slate-900 p-1 text-left min-w-[160px]">
+                Keterangan / Tindak Lanjut Jurnal
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item, idx) => {
+              const target = item.targetMeetings || 0;
+              const effective = item.hadir + item.dinas;
+              const pct = target > 0 ? Math.round((effective / target) * 100) : 0;
+
+              return (
+                <tr key={item.id} className="break-inside-avoid">
+                  <td className="border border-slate-900 p-1 text-center">{idx + 1}</td>
+                  <td className="border border-slate-900 p-1 font-semibold">
+                    {item.teacherName}
+                    {item.isSubstitute ? ' (Inval)' : item.isManual ? ' (Khusus)' : ''}
+                    {item.substituteForTeacherName ? ` [ganti ${item.substituteForTeacherName}]` : ''}
+                  </td>
+                  <td className="border border-slate-900 p-1">
+                    {item.subjectName} {item.subjectCode ? `(${item.subjectCode})` : ''}
+                  </td>
+                  <td className="border border-slate-900 p-1 text-center font-bold">{target}</td>
+                  <td className="border border-slate-900 p-1 text-center">{item.hadir}</td>
+                  <td className="border border-slate-900 p-1 text-center">{item.sakit}</td>
+                  <td className="border border-slate-900 p-1 text-center">{item.izin}</td>
+                  <td className="border border-slate-900 p-1 text-center">{item.alpa}</td>
+                  <td className="border border-slate-900 p-1 text-center">{item.dinas}</td>
+                  <td className="border border-slate-900 p-1 text-center font-bold">{pct}%</td>
+                  <td className="border border-slate-900 p-1 text-xs">{item.notes || '-'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-slate-100 font-bold">
+              <td colSpan={3} className="border border-slate-900 p-1.5 text-center">
+                TOTAL KESELURUHAN
+              </td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalTarget}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalHadir}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalSakit}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalIzin}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalAlpa}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.totalDinas}</td>
+              <td className="border border-slate-900 p-1.5 text-center">{stats.percentage}%</td>
+              <td className="border border-slate-900 p-1.5 text-xs">
+                {stats.teachersWithAbsence > 0
+                  ? `${stats.teachersWithAbsence} guru ada catatan absensi`
+                  : 'Seluruh guru hadir tuntas'}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        </PrintDocumentLayout>
+      ) : (
+        <>
+          {/* 1. HEADER & CONTROLS (Screen View Only)                  */}
       {/* ========================================================= */}
       <div className="print:hidden space-y-4">
         {/* Banner Title */}
@@ -576,13 +662,17 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] font-bold focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] font-bold focus:outline-none"
               >
                 {MONTH_NAMES.map((m, idx) => (
-                  <option key={idx} value={idx + 1}>
-                    {m}
-                  </option>
-                ))}
+                    <option 
+                      key={idx} 
+                      value={idx + 1}
+                      className="bg-[var(--ds-surface)] text-[var(--ds-text)]"
+                    >
+                      {m}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -1017,126 +1107,8 @@ export const HomeroomTeacherAttendancePage: React.FC = () => {
           year={selectedYear}
         />
       )}
-
-      {/* ========================================================= */}
-      {/* 6. PRINT LAYOUT (Visible ONLY when Printing / window.print)*/}
-      {/* ========================================================= */}
-      <div className="hidden print:block text-black font-serif text-[11pt] leading-normal">
-        {/* KOP RESMI MADRASAH & JUDUL LAPORAN (STANDAR GOVERNANCE) */}
-        <OfficialDocumentHeader
-          schoolSettings={schoolSettings}
-          documentTitle="LAPORAN REKAPITULASI KEHADIRAN GURU MATA PELAJARAN"
-          documentSubtitle={`Kelas: ${currentClass?.name || '-'} | Periode: ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} | Semester: ${selectedSemester} TP: ${activeAcademicYear?.label || '2026/2027'}`}
-          showLetterhead={true}
-        />
-
-        {/* TABEL CETAK RESMI */}
-        <table className="w-full border-collapse border border-black text-[10pt] my-3">
-          <thead>
-            <tr className="bg-gray-100 font-bold text-center">
-              <th className="border border-black p-1 w-8">No</th>
-              <th className="border border-black p-1 text-left min-w-[140px]">Nama Guru Pengampu</th>
-              <th className="border border-black p-1 text-left min-w-[120px]">Mata Pelajaran</th>
-              <th className="border border-black p-1 w-14">Target Tatap Muka</th>
-              <th className="border border-black p-1 w-10">H</th>
-              <th className="border border-black p-1 w-10">S</th>
-              <th className="border border-black p-1 w-10">I</th>
-              <th className="border border-black p-1 w-10">A</th>
-              <th className="border border-black p-1 w-10">D</th>
-              <th className="border border-black p-1 w-14">% Hadir</th>
-              <th className="border border-black p-1 text-left min-w-[160px]">
-                Keterangan / Tindak Lanjut Jurnal
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => {
-              const target = item.targetMeetings || 0;
-              const effective = item.hadir + item.dinas;
-              const pct = target > 0 ? Math.round((effective / target) * 100) : 0;
-
-              return (
-                <tr key={item.id} className="break-inside-avoid">
-                  <td className="border border-black p-1 text-center">{idx + 1}</td>
-                  <td className="border border-black p-1 font-semibold">
-                    {item.teacherName}
-                    {item.isSubstitute ? ' (Inval)' : item.isManual ? ' (Khusus)' : ''}
-                    {item.substituteForTeacherName ? ` [ganti ${item.substituteForTeacherName}]` : ''}
-                  </td>
-                  <td className="border border-black p-1">
-                    {item.subjectName} {item.subjectCode ? `(${item.subjectCode})` : ''}
-                  </td>
-                  <td className="border border-black p-1 text-center font-bold">{target}</td>
-                  <td className="border border-black p-1 text-center">{item.hadir}</td>
-                  <td className="border border-black p-1 text-center">{item.sakit}</td>
-                  <td className="border border-black p-1 text-center">{item.izin}</td>
-                  <td className="border border-black p-1 text-center">{item.alpa}</td>
-                  <td className="border border-black p-1 text-center">{item.dinas}</td>
-                  <td className="border border-black p-1 text-center font-bold">{pct}%</td>
-                  <td className="border border-black p-1 text-xs">{item.notes || '-'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr className="bg-gray-100 font-bold">
-              <td colSpan={3} className="border border-black p-1.5 text-center">
-                TOTAL KESELURUHAN
-              </td>
-              <td className="border border-black p-1.5 text-center">{stats.totalTarget}</td>
-              <td className="border border-black p-1.5 text-center">{stats.totalHadir}</td>
-              <td className="border border-black p-1.5 text-center">{stats.totalSakit}</td>
-              <td className="border border-black p-1.5 text-center">{stats.totalIzin}</td>
-              <td className="border border-black p-1.5 text-center">{stats.totalAlpa}</td>
-              <td className="border border-black p-1.5 text-center">{stats.totalDinas}</td>
-              <td className="border border-black p-1.5 text-center">{stats.percentage}%</td>
-              <td className="border border-black p-1.5 text-xs">
-                {stats.teachersWithAbsence > 0
-                  ? `${stats.teachersWithAbsence} guru ada catatan absensi`
-                  : 'Seluruh guru hadir tuntas'}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-
-        {/* TANDA TANGAN (DUAL SIGNATURES) */}
-        <div className="mt-8 pt-4 flex justify-between items-start text-xs break-inside-avoid">
-          {/* KIRI: KEPALA MADRASAH */}
-          <div className="text-center w-60">
-            <p>Mengetahui,</p>
-            <p className="font-bold">Kepala Madrasah</p>
-            <div className="h-20"></div>
-            <p className="font-bold underline">
-              {formatOfficialSignatureName(
-                schoolSettings?.headmasterName,
-                'NAMA KEPALA MADRASAH, M.Pd.'
-              )}
-            </p>
-            <p>{formatOfficialNip(schoolSettings?.headmasterNip)}</p>
-          </div>
-
-          {/* KANAN: WALI KELAS */}
-          <div className="text-center w-60">
-            <p>
-              {schoolSettings?.district || 'Tempat'},{' '}
-              {new Date().toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </p>
-            <p className="font-bold">Wali Kelas {currentClass?.name || ''}</p>
-            <div className="h-20"></div>
-            <p className="font-bold underline">
-              {formatOfficialSignatureName(
-                profile?.displayName || user?.displayName,
-                'WALI KELAS'
-              )}
-            </p>
-            <p>{formatOfficialNip(profile?.nip)}</p>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };

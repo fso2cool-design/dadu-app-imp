@@ -1,3 +1,4 @@
+import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -5,6 +6,7 @@ import { Student, Enrollment, ClassItem, SchoolSettings } from '../../types';
 import { useApplication } from '../../application/ApplicationContext';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Modal } from '../../components/common/Modal';
+import { getOfficialLetterhead } from '../../domain/reports/letterhead';
 import { Printer, CheckSquare, Square, GearFine, Buildings, Sparkle, ArrowLeft, ArrowRight, Plus, Trash, X, SlidersHorizontal, ArrowCounterClockwise } from '@phosphor-icons/react';
 
 export interface StudentPrintItem {
@@ -414,6 +416,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
     window.print();
   };
 
+  const head = useMemo(() => getOfficialLetterhead(schoolSettings), [schoolSettings]);
   const todayFormatted = useMemo(() => {
     try {
       return new Intl.DateTimeFormat('id-ID', {
@@ -422,7 +425,7 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
         year: 'numeric',
       }).format(new Date());
     } catch {
-      return new Date().toLocaleDateString();
+      return formatDateIndonesian(getTodayISO());
     }
   }, []);
 
@@ -917,37 +920,41 @@ export const StudentCustomPrintModal: React.FC<StudentCustomPrintModalProps> = (
             <div className="border-b-2 border-slate-900 pb-3 mb-4 text-center">
               <div className="flex items-center justify-between gap-4">
                 <div className="w-14 h-14 flex items-center justify-center shrink-0">
-                  {schoolSettings?.schoolLogoUrl ? (
-                    <img 
-                      src={schoolSettings.schoolLogoUrl} 
-                      alt="Logo Madrasah" 
-                      className="max-w-14 max-h-14 object-contain"
-                    />
-                  ) : (
-                    <Buildings className="w-12 h-12 text-slate-800" />
-                  )}
+                  <img
+                    src={head.kemenagLogoUrl}
+                    alt="Logo Kemenag"
+                    className="max-w-14 max-h-14 object-contain"
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0 text-center">
                   <h4 className="text-xs font-semibold tracking-wider uppercase text-slate-800 leading-tight">
-                    KEMENTERIAN AGAMA REPUBLIK INDONESIA
+                    {head.tier1}
                   </h4>
-                  <h5 className="text-[11px] font-semibold tracking-wide uppercase text-slate-800 leading-tight mt-0.5">
-                    {schoolSettings?.kemenagDistrict || (
-                      schoolSettings?.regency 
-                        ? `KANTOR KEMENTERIAN AGAMA KABUPATEN ${schoolSettings.regency.toUpperCase().replace(/^KABUPATEN\s+|^KOTA\s+/i, '')}`
-                        : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
-                    )}
-                  </h5>
+                  {head.isMadrasah && (
+                    <h5 className="text-[11px] font-semibold tracking-wide uppercase text-slate-800 leading-tight mt-0.5">
+                      {head.tier2}
+                    </h5>
+                  )}
                   <h3 className="text-base sm:text-lg font-black uppercase text-slate-950 my-0.5 leading-snug">
-                    {schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR'}
+                    {head.tier3}
                   </h3>
                   <p className="text-[10px] sm:text-xs text-slate-700 leading-snug">
-                    {schoolSettings?.address || 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula'}
+                    {head.tier4}
                   </p>
                 </div>
 
-                <div className="w-14 h-14 shrink-0" />
+                <div className="w-14 h-14 flex items-center justify-center shrink-0">
+                  {head.schoolLogoUrl ? (
+                    <img 
+                      src={head.schoolLogoUrl} 
+                      alt="Logo Madrasah" 
+                      className="max-w-14 max-h-14 object-contain"
+                    />
+                  ) : (
+                    <Buildings className="w-10 h-10 text-slate-800" />
+                  )}
+                </div>
               </div>
             </div>
           )}

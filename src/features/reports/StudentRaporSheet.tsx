@@ -1,7 +1,7 @@
 import React from 'react';
 import { SchoolSettings, DocumentSettings, Enrollment, Subject, DailyAttendanceRecord, StudentNote } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
-import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { getOfficialLetterhead } from '../../domain/reports/letterhead';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/formatOfficialName';
 import { Buildings, Medal, Sparkle } from '@phosphor-icons/react';
@@ -66,25 +66,14 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
   const { enrollment, rank, totalStudents, subjectScores, averageScore, attendanceStats, notes } = data;
   const student = enrollment.student;
 
-  const isMadrasah = !schoolSettings?.schoolLevel || ['MI', 'MTs', 'MA', 'MAK'].includes(schoolSettings.schoolLevel);
-  
-  const tier1 = isMadrasah 
-    ? 'KEMENTERIAN AGAMA REPUBLIK INDONESIA' 
-    : 'KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI';
-
-  const tier2 = schoolSettings?.kemenagDistrict || (
-    schoolSettings?.regency 
-      ? `KANTOR KEMENTERIAN AGAMA KABUPATEN ${schoolSettings.regency.toUpperCase().replace(/^KABUPATEN\s+|^KOTA\s+/i, '')}`
-      : 'KANTOR KEMENTERIAN AGAMA KABUPATEN'
-  );
-
-  const effectiveSchoolName = schoolSettings?.schoolName || 'MAN 2 SERAM BAGIAN TIMUR';
-  const effectiveAddress = schoolSettings?.address 
-    ? `${schoolSettings.address}${schoolSettings.village ? `, ${schoolSettings.village}` : ''}${schoolSettings.district ? `, Kec. ${schoolSettings.district}` : ''}${schoolSettings.regency ? `, ${schoolSettings.regency}` : ''}${schoolSettings.province ? `, ${schoolSettings.province}` : ''}`
-    : 'Jl. dr. Sugiono – Kelapa Dua Kec. Bula, Kab. Seram Bagian Timur, Bula';
-
-  const kemenagLogo = schoolSettings?.kemenagLogoUrl || DEFAULT_KEMENAG_LOGO;
-  const madrasahLogo = schoolSettings?.schoolLogoUrl || schoolSettings?.logoUrl;
+  const head = getOfficialLetterhead(schoolSettings);
+  const isMadrasah = head.isMadrasah;
+  const tier1 = head.tier1;
+  const tier2 = head.tier2;
+  const effectiveSchoolName = head.tier3;
+  const effectiveAddress = head.tier4;
+  const kemenagLogo = head.kemenagLogoUrl;
+  const madrasahLogo = head.schoolLogoUrl;
 
   const effectiveHeadmasterName = schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I';
   const effectiveHeadmasterNip = schoolSettings?.headmasterNip || '19780512 200501 1 003';

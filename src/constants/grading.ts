@@ -53,12 +53,18 @@ export const GRADE_SCALES: GradeScale[] = [
 
 /**
  * Get grade scale info based on numeric score and optional custom KKM
+ * Dynamic interval according to Kurikulum Merdeka: Interval = (100 - KKM) / 3
  */
 export function getGradeScale(score: number, customKkm: number = DEFAULT_KKM): GradeScale {
   const rounded = Math.round(score);
-  if (rounded >= 90) return GRADE_SCALES[0];
-  if (rounded >= 80) return GRADE_SCALES[1];
-  if (rounded >= customKkm) return GRADE_SCALES[2];
+  const kkm = Math.min(Math.max(customKkm, 0), 100);
+  const interval = Math.max(1, (100 - kkm) / 3);
+  const thresholdB = Math.round(kkm + interval);
+  const thresholdA = Math.round(kkm + (2 * interval));
+
+  if (rounded >= thresholdA) return GRADE_SCALES[0];
+  if (rounded >= thresholdB) return GRADE_SCALES[1];
+  if (rounded >= kkm) return GRADE_SCALES[2];
   return GRADE_SCALES[3];
 }
 

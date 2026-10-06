@@ -14,6 +14,7 @@ import {
 } from '../../types';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
+import { aggregateAttendance } from '../../domain/attendance/attendanceAggregation';
 import { GraduationCap, Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Users, MagnifyingGlass, Sliders, CheckCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { useToast } from '../../context/ToastContext';
 
@@ -65,6 +66,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
 
   // Load Settings
   useEffect(() => {
+      let isMounted = true;
     if (!user) return;
     const loadSettings = async () => {
       try {
@@ -72,6 +74,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
           app.settings.getSchoolSettings(user.uid),
           app.settings.getDocumentSettings(user.uid),
         ]);
+        if (!isMounted) return;
         if (sch) setSchoolSettings(sch);
         if (docS) setDocSettings(docS);
       } catch (err) {
@@ -79,6 +82,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
       }
     };
     loadSettings();
+      return () => { isMounted = false; };
   }, [user]);
 
   // Load Class Data
@@ -223,27 +227,9 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
         ? Math.round((totalScore / validSubjectScores.length) * 10) / 10 
         : 0;
 
-      // Attendance
+      // Attendance (Domain Aggregate)
       const studentDailyRecs = attendanceRecords.filter(r => r.studentId === enr.studentId);
-      let hadirCount = 0;
-      let sakitCount = 0;
-      let izinCount = 0;
-      let alpaCount = 0;
-      let dispCount = 0;
-
-      studentDailyRecs.forEach(r => {
-        const st = r.status as string;
-        if (st === 'PRESENT' || st === 'H') hadirCount++;
-        else if (st === 'SICK' || st === 'S') sakitCount++;
-        else if (st === 'PERMITTED' || st === 'I') izinCount++;
-        else if (st === 'ABSENT' || st === 'A') alpaCount++;
-        else if (st === 'DISPENSATION' || st === 'D') dispCount++;
-      });
-
-      const totalDays = hadirCount + sakitCount + izinCount + alpaCount + dispCount;
-      const attendanceRate = totalDays > 0 
-        ? Math.round(((hadirCount + dispCount) / totalDays) * 100) 
-        : 100;
+      const attSummary = aggregateAttendance(studentDailyRecs);
 
       // Notes
       const notes = studentNotes.filter(n => n.studentId === enr.studentId);
@@ -254,12 +240,12 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
         totalScore: Math.round(totalScore * 10) / 10,
         averageScore,
         attendanceStats: {
-          hadir: hadirCount,
-          sakit: sakitCount,
-          izin: izinCount,
-          alpa: alpaCount,
-          dispensasi: dispCount,
-          attendanceRate,
+          hadir: attSummary.present,
+          sakit: attSummary.sick,
+          izin: attSummary.permitted,
+          alpa: attSummary.absent,
+          dispensasi: attSummary.dispensation,
+          attendanceRate: attSummary.rate,
         },
         notes,
       };
@@ -499,22 +485,7 @@ _${schoolSettings?.schoolName || 'Madrasah Tsanawiyah'}_`;
           {selectedStudentId === 'ALL' ? (
             /* Batch View: All Students in class */
             <div className="space-y-8">
-              <div className="no-print p-3.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-blue-900 dark:text-blue-200 rounded-2xl text-xs flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <WarningCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                  <span>
-                    Menampilkan <strong>{allStudentsRaporData.length}</strong> lembar rapor siswa. Saat mencetak, masing-masing lembar otomatis berada di halaman terpisah.
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handlePrint}
-                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Cetak Sekarang</span>
-                </button>
-              </div>
+              
 
               {allStudentsRaporData.map((sData, idx) => (
                 <div 

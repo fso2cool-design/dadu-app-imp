@@ -45,6 +45,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
 
   // Load students & existing attendance
   useEffect(() => {
+      let isMounted = true;
     if (!isOpen || !meeting || !user || !activeAcademicYear) return;
 
     const loadData = async () => {
@@ -58,9 +59,11 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
           meeting.academicYearId || activeAcademicYear.id, 
           meeting.classId
         );
+        if (!isMounted) return;
 
         // Fetch existing attendance records for this meeting
         const existingRecords = await app.attendance.getByMeeting(user.uid, meeting.id);
+        if (!isMounted) return;
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
@@ -94,6 +97,7 @@ export const SubjectAttendanceModal: React.FC<SubjectAttendanceModalProps> = ({
     };
 
     loadData();
+      return () => { isMounted = false; };
   }, [isOpen, meeting, user, activeAcademicYear]);
 
   // Real-time counter metrics

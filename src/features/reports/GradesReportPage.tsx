@@ -57,6 +57,7 @@ export const GradesReportPage: React.FC = () => {
 
   // Fetch Assessment and Score Data with SWR
   useEffect(() => {
+      let isMounted = true;
     if (!user || !activeAcademicYear || !selectedAssignment) return;
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
@@ -76,6 +77,7 @@ export const GradesReportPage: React.FC = () => {
         const items = await app.grades.getItems(user.uid, {
           teachingAssignmentId: selectedAssignment.id,
         });
+        if (!isMounted) return;
 
         // 2. Fetch class enrollments
         const enrs = await app.enrollment.getByClass(
@@ -83,6 +85,7 @@ export const GradesReportPage: React.FC = () => {
           activeAcademicYear.id,
           selectedAssignment.classId
         );
+        if (!isMounted) return;
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 3. Fetch scores for these assessments
@@ -107,8 +110,10 @@ export const GradesReportPage: React.FC = () => {
         setLoading(false);
       }
     };
+      if (!isMounted) return;
 
     fetchData();
+      return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
 
   // Compute Grade Matrix per Student

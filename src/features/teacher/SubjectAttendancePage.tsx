@@ -54,6 +54,7 @@ export const SubjectAttendancePage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayISO());
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [selectedMeetingId, setSelectedMeetingId] = useState<string>('');
+  const todayMeetings = meetings.filter(m => m.date === selectedDate);
   const [loadingMeetings, setLoadingMeetings] = useState(false);
 
   // Take Attendance State
@@ -66,6 +67,38 @@ export const SubjectAttendancePage: React.FC = () => {
   // Matrix Rekap State
   const [allEnrollments, setAllEnrollments] = useState<Enrollment[]>([]);
   const [matrixColumns, setMatrixColumns] = useState<MatrixColumn[]>([]);
+  
+  const [matrixMonthFilter, setMatrixMonthFilter] = useState<string>('ALL');
+  const [matrixYearFilter, setMatrixYearFilter] = useState<string>(new Date().getFullYear().toString());
+
+  const activeYears = useMemo(() => {
+    if (!activeAcademicYear) return [new Date().getFullYear().toString()];
+    const parts = activeAcademicYear.id.split('/');
+    if (parts.length === 2) return parts;
+    return [new Date().getFullYear().toString()];
+  }, [activeAcademicYear]);
+
+  const semesterMonths = useMemo(() => {
+    if (activeSemester === 'GANJIL') {
+      return [
+        { value: '07', label: 'Juli' },
+        { value: '08', label: 'Agustus' },
+        { value: '09', label: 'September' },
+        { value: '10', label: 'Oktober' },
+        { value: '11', label: 'November' },
+        { value: '12', label: 'Desember' }
+      ];
+    }
+    return [
+      { value: '01', label: 'Januari' },
+      { value: '02', label: 'Februari' },
+      { value: '03', label: 'Maret' },
+      { value: '04', label: 'April' },
+      { value: '05', label: 'Mei' },
+      { value: '06', label: 'Juni' }
+    ];
+  }, [activeSemester]);
+
   const [allAssignmentRecords, setAllAssignmentRecords] = useState<AttendanceRecord[]>([]);
   const [loadingMatrix, setLoadingMatrix] = useState(false);
 
@@ -77,6 +110,7 @@ export const SubjectAttendancePage: React.FC = () => {
   const initialRowsRef = useRef<string>('[]');
   const [isDirty, setIsDirty] = useState(false);
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [pendingAction, setPendingAction] = useState<{ type: 'assignment' | 'date' | 'meeting' | 'tab'; targetValue: string } | null>(null);
 
   // Warning when leaving or reloading browser tab with unsaved attendance
@@ -98,10 +132,11 @@ export const SubjectAttendancePage: React.FC = () => {
     }
   }, [teachingAssignments, selectedAssignmentId]);
 
-  // 2. Fetch meetings whenever assignment changes with SWR
+    // 2. Fetch meetings whenever assignment changes with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !selectedAssignmentId) return;
 
+    let isMounted = true;
     const meetingsKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignmentId}`;
     const cached = subjectMeetingsCache.get(meetingsKey);
     if (cached) {
@@ -117,16 +152,19 @@ export const SubjectAttendancePage: React.FC = () => {
           semester: activeSemester,
           teachingAssignmentId: selectedAssignmentId,
         });
+        if (!isMounted) return;
         subjectMeetingsCache.set(meetingsKey, data);
         setMeetings(data);
       } catch (err) {
+        if (!isMounted) return;
         console.error('Error fetching meetings:', err);
       } finally {
-        setLoadingMeetings(false);
+        if (isMounted) setLoadingMeetings(false);
       }
     };
 
     fetchMeetings();
+    return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, selectedAssignmentId]);
 
   // Selected Assignment details
@@ -187,6 +225,8 @@ export const SubjectAttendancePage: React.FC = () => {
 
         if (!isMounted) return;
 
+        setIsNewRecord(existingRecords.length === 0);
+
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
@@ -233,6 +273,7 @@ export const SubjectAttendancePage: React.FC = () => {
 
   // 4. Load Matrix Data (all enrollments & all records for this class & assignment)
   useEffect(() => {
+      let isMounted = true;
     if (activeTab !== 'MATRIX' || !user || !activeAcademicYear || !currentAssignment) return;
 
     const loadMatrixData = async () => {
@@ -243,16 +284,19 @@ export const SubjectAttendancePage: React.FC = () => {
           activeAcademicYear.id,
           currentAssignment.classId
         );
+        if (!isMounted) return;
         setAllEnrollments(enrollments.filter(e => e.status === 'ACTIVE' && e.student));
 
         // 1. Fetch all records for this assignment (both independent and meeting-linked)
         const recs = await app.attendance.getByAssignment(user.uid, currentAssignment.id);
+        if (!isMounted) return;
 
         // Merge with any legacy records queried via meetingIds
         const mIds = meetings.map(m => m.id);
         let mergedRecords = [...recs];
         if (mIds.length > 0) {
           const legacy = await app.attendance.getByMeetingIds(user.uid, mIds);
+            if (!isMounted) return;
           const map = new Map<string, AttendanceRecord>();
           legacy.forEach(r => map.set(r.id, r));
           recs.forEach(r => map.set(r.id, r));
@@ -302,6 +346,7 @@ export const SubjectAttendancePage: React.FC = () => {
     };
 
     loadMatrixData();
+      return () => { isMounted = false; };
   }, [activeTab, user, activeAcademicYear, currentAssignment, meetings]);
 
   // List of sessions in matrix that have attendance filled
@@ -417,6 +462,7 @@ export const SubjectAttendancePage: React.FC = () => {
 
       initialRowsRef.current = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
       setIsDirty(false);
+      setIsNewRecord(false);
 
       triggerSyncFeedback('saved', 'Presensi siswa berhasil disimpan!');
       setFeedbackMsg({ type: 'success', text: 'Presensi siswa berhasil disimpan ke database!' });
@@ -583,7 +629,9 @@ export const SubjectAttendancePage: React.FC = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Rekap Presensi Mapel');
 
-    const fileName = `Rekap_Presensi_${currentAssignment.className}_${currentAssignment.subjectCode}_${activeAcademicYear?.label.replace('/', '-')}.xlsx`;
+    const selectedMonthObj = semesterMonths.find(m => m.value === matrixMonthFilter);
+    const monthSuffix = matrixMonthFilter === 'ALL' ? '' : `_Bulan_${selectedMonthObj?.label || matrixMonthFilter}`;
+    const fileName = `Rekap_Presensi_${currentAssignment.className}_${currentAssignment.subjectCode}${monthSuffix}_${activeAcademicYear?.label.replace('/', '-')}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
@@ -627,83 +675,91 @@ export const SubjectAttendancePage: React.FC = () => {
 
       {/* Assignment, Date & Meeting Selector Bar */}
       <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto flex-wrap">
-          {/* Assignment Selector */}
-          <div className="w-full sm:w-60">
-            <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-              Rombel & Mata Pelajaran
-            </label>
-            <select
-              value={selectedAssignmentId}
-              onChange={e => handleAssignmentChange(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
-            >
-              {teachingAssignments.map(ta => (
-                <option key={ta.id} value={ta.id}>
-                  Kelas {ta.className} • {ta.subjectName} ({ta.subjectCode})
-                </option>
-              ))}
-            </select>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full flex-wrap">
+            {/* Rombel Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Rombel & Mapel:</label>
+              <select
+                value={selectedAssignmentId}
+                onChange={e => handleAssignmentChange(e.target.value)}
+                className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+              >
+                {teachingAssignments.map(ta => (
+                  <option key={ta.id} value={ta.id}>
+                    Kelas {ta.className} — {ta.subjectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Selector (Input Presensi tab) */}
+            {activeTab === 'TAKE' && (
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tanggal:</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                />
+              </div>
+            )}
+
+            {/* Month / Year Filter (Rekap Matriks tab) */}
+            {activeTab === 'MATRIX' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Bulan:</label>
+                  <select
+                    value={matrixMonthFilter}
+                    onChange={(e) => setMatrixMonthFilter(e.target.value)}
+                    className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                  >
+                    <option value="ALL">Semua Bulan</option>
+                    {semesterMonths.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tahun:</label>
+                  <select
+                    value={matrixYearFilter}
+                    onChange={(e) => setMatrixYearFilter(e.target.value)}
+                    className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                  >
+                    {activeYears.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Optional Meeting Selector (for Take Attendance tab) */}
+            {activeTab === 'TAKE' && (
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tautkan ke Jurnal:</label>
+                <div className="flex gap-1.5 flex-1 sm:flex-none">
+                  <select
+                    value={selectedMeetingId}
+                    onChange={(e) => setSelectedMeetingId(e.target.value)}
+                    className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px]"
+                  >
+                    <option value="">-- Tidak ditautkan --</option>
+                    {todayMeetings.map(m => (
+                      <option key={m.id} value={m.id}>
+                        Jurnal Ke-{m.meetingNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Date Selector (Input Presensi tab) */}
-          {activeTab === 'TAKE' && (
-            <div className="w-full sm:w-44">
-              <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                Tanggal Presensi
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={e => handleDateChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-medium text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
-              />
-            </div>
-          )}
-
-          {/* Optional Meeting Selector (for Take Attendance tab) */}
-          {activeTab === 'TAKE' && (
-            <div className="w-full sm:w-72">
-              <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                Tautkan ke Jurnal (Opsional)
-              </label>
-              <div className="flex gap-1.5">
-                <select
-                  value={selectedMeetingId}
-                  onChange={e => handleMeetingChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-medium text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
-                >
-                  <option value="">Tanpa Jurnal (Presensi Mandiri)</option>
-                  {meetings.map(m => (
-                    <option key={m.id} value={m.id}>
-                      P#{m.meetingNumber} ({m.date}) - {m.topic}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  type="button"
-                  disabled={isArchivedYear}
-                  onClick={() => setIsMeetingModalOpen(true)}
-                  className="px-3 py-2 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] border border-[var(--ds-border)] text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan' : 'Buat Jurnal Pertemuan'}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Jurnal</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsHolidayModalOpen(true)}
-                  className="px-2.5 py-2 rounded-xl bg-slate-50 hover:bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-slate-700 dark:text-slate-300 border border-[var(--ds-border)] text-xs font-semibold shrink-0 cursor-pointer flex items-center gap-1.5"
-                  title="Atur Kalender & Hari Libur Madrasah"
-                >
-                  <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          
 
         {/* Tab specific actions */}
         {activeTab === 'TAKE' ? (
@@ -719,12 +775,16 @@ export const SubjectAttendancePage: React.FC = () => {
             </button>
 
             <button
-              type="button"
-              onClick={handleSaveAttendance}
-              disabled={savingAttendance || studentRows.length === 0 || isArchivedYear}
-              title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
-              className="flex-1 sm:flex-none px-4 py-2 rounded-xl btn-primary font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
+                type="button"
+                onClick={handleSaveAttendance}
+                disabled={(!isDirty && !isNewRecord) || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                  isDirty || isNewRecord 
+                    ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md' 
+                    : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
+                }`}
+              >
               <FloppyDisk className="w-3.5 h-3.5" />
               {savingAttendance ? 'Menyimpan...' : (isArchivedYear ? 'Terkunci (Arsip)' : 'Simpan Presensi')}
             </button>
@@ -817,8 +877,13 @@ export const SubjectAttendancePage: React.FC = () => {
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
                   <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span className={`w-1.5 h-1.5 rounded-full ${isNewRecord || isDirty ? 'bg-[var(--ds-warning-fg)] motion-safe:animate-pulse' : 'bg-emerald-500'}`} />
                     Spektrum Kehadiran Kelas
+                    {(isNewRecord || isDirty) && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded-md normal-case tracking-normal text-[10px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)]">
+                        {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
+                      </span>
+                    )}
                   </span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300 font-mono text-[11px]">
                     {stats.present}/{stats.total} Hadir ({stats.percentage}%)

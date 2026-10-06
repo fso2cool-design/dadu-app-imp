@@ -178,6 +178,105 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
 
   const currentTeacherName = profile?.displayName || user?.displayName || 'Guru Pengampu';
   const totalTeachingHours = scheduledSlots.length;
+  if (isPrintModalOpen) {
+    return (
+      <PrintDocumentLayout
+          title="JADWAL MENGAJAR GURU"
+          subtitle={`Tahun Ajaran ${activeAcademicYear?.label || ''} • Semester ${activeSemester}`}
+          onClose={() => setIsPrintModalOpen(false)}
+        >
+          <div className="space-y-6 text-slate-900 text-xs">
+            {/* Identitas Guru */}
+            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-300">
+              <div>
+                <table className="w-full text-xs">
+                  <tbody>
+                    <tr>
+                      <td className="w-28 py-0.5 font-semibold text-slate-600">Nama Guru</td>
+                      <td className="w-4">:</td>
+                      <td className="font-bold text-slate-900">{currentTeacherName}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-0.5 font-semibold text-slate-600">NIP / NUPTK</td>
+                      <td>:</td>
+                      <td className="font-mono">{profile?.nip || profile?.nuptk || '-'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-0.5 font-semibold text-slate-600">Mata Pelajaran</td>
+                      <td>:</td>
+                      <td>{profile?.mainSubject || 'Guru Mata Pelajaran'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div>
+                <table className="w-full text-xs">
+                  <tbody>
+                    <tr>
+                      <td className="w-28 py-0.5 font-semibold text-slate-600">Tahun Ajaran</td>
+                      <td className="w-4">:</td>
+                      <td className="font-bold">{activeAcademicYear?.label}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-0.5 font-semibold text-slate-600">Semester</td>
+                      <td>:</td>
+                      <td>{activeSemester}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-0.5 font-semibold text-slate-600">Beban Mengajar</td>
+                      <td>:</td>
+                      <td className="font-bold">{scheduledSlots.length} Sesi Pertemuan / Pekan</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Matriks Tabel Jadwal */}
+            <table className="w-full border-collapse border border-slate-400 text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-800 font-bold">
+                  <th className="border border-slate-400 py-2 px-3 text-center w-12">No</th>
+                  <th className="border border-slate-400 py-2 px-3 text-left w-24">Hari</th>
+                  <th className="border border-slate-400 py-2 px-3 text-center w-28">Waktu / Jam</th>
+                  <th className="border border-slate-400 py-2 px-3 text-left">Mata Pelajaran</th>
+                  <th className="border border-slate-400 py-2 px-3 text-center w-24">Kelas</th>
+                  <th className="border border-slate-400 py-2 px-3 text-center w-24">Ruang</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scheduledSlots.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="border border-slate-400 py-6 text-center text-slate-500">
+                      Belum ada jadwal mengajar pada semester ini.
+                    </td>
+                  </tr>
+                ) : (
+                  scheduledSlots.map((slot, idx) => (
+                    <tr key={slot.id} className="hover:bg-slate-50">
+                      <td className="border border-slate-400 py-1.5 px-3 text-center">{idx + 1}</td>
+                      <td className="border border-slate-400 py-1.5 px-3 font-semibold">{slot.day}</td>
+                      <td className="border border-slate-400 py-1.5 px-3 text-center font-mono">{slot.timeSlot}</td>
+                      <td className="border border-slate-400 py-1.5 px-3 font-medium">
+                        {slot.subjectName}
+                        {slot.subjectCode && <span className="text-slate-500 ml-1">({slot.subjectCode})</span>}
+                      </td>
+                      <td className="border border-slate-400 py-1.5 px-3 text-center font-bold">
+                        Kelas {slot.className}
+                      </td>
+                      <td className="border border-slate-400 py-1.5 px-3 text-center text-slate-600">
+                        {slot.room || '-'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </PrintDocumentLayout>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -412,104 +511,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
         </div>
       )}
 
-      {/* PRINT MODAL LAYOUT */}
-      {isPrintModalOpen && (
-        <PrintDocumentLayout
-          title="JADWAL MENGAJAR GURU"
-          subtitle={`Tahun Ajaran ${activeAcademicYear?.label || ''} • Semester ${activeSemester}`}
-          onClose={() => setIsPrintModalOpen(false)}
-        >
-          <div className="space-y-6 text-slate-900 text-xs">
-            {/* Identitas Guru */}
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-300">
-              <div>
-                <table className="w-full text-xs">
-                  <tbody>
-                    <tr>
-                      <td className="w-28 py-0.5 font-semibold text-slate-600">Nama Guru</td>
-                      <td className="w-4">:</td>
-                      <td className="font-bold text-slate-900">{currentTeacherName}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-0.5 font-semibold text-slate-600">NIP / NUPTK</td>
-                      <td>:</td>
-                      <td className="font-mono">{profile?.nip || profile?.nuptk || '-'}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-0.5 font-semibold text-slate-600">Mata Pelajaran</td>
-                      <td>:</td>
-                      <td>{profile?.mainSubject || 'Guru Mata Pelajaran'}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div>
-                <table className="w-full text-xs">
-                  <tbody>
-                    <tr>
-                      <td className="w-28 py-0.5 font-semibold text-slate-600">Tahun Ajaran</td>
-                      <td className="w-4">:</td>
-                      <td className="font-bold">{activeAcademicYear?.label}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-0.5 font-semibold text-slate-600">Semester</td>
-                      <td>:</td>
-                      <td>{activeSemester}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-0.5 font-semibold text-slate-600">Beban Mengajar</td>
-                      <td>:</td>
-                      <td className="font-bold">{scheduledSlots.length} Sesi Pertemuan / Pekan</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Matriks Tabel Jadwal */}
-            <table className="w-full border-collapse border border-slate-400 text-xs">
-              <thead>
-                <tr className="bg-slate-100 text-slate-800 font-bold">
-                  <th className="border border-slate-400 py-2 px-3 text-center w-12">No</th>
-                  <th className="border border-slate-400 py-2 px-3 text-left w-24">Hari</th>
-                  <th className="border border-slate-400 py-2 px-3 text-center w-28">Waktu / Jam</th>
-                  <th className="border border-slate-400 py-2 px-3 text-left">Mata Pelajaran</th>
-                  <th className="border border-slate-400 py-2 px-3 text-center w-24">Kelas</th>
-                  <th className="border border-slate-400 py-2 px-3 text-center w-24">Ruang</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scheduledSlots.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="border border-slate-400 py-6 text-center text-slate-500">
-                      Belum ada jadwal mengajar pada semester ini.
-                    </td>
-                  </tr>
-                ) : (
-                  scheduledSlots.map((slot, idx) => (
-                    <tr key={slot.id} className="hover:bg-slate-50">
-                      <td className="border border-slate-400 py-1.5 px-3 text-center">{idx + 1}</td>
-                      <td className="border border-slate-400 py-1.5 px-3 font-semibold">{slot.day}</td>
-                      <td className="border border-slate-400 py-1.5 px-3 text-center font-mono">{slot.timeSlot}</td>
-                      <td className="border border-slate-400 py-1.5 px-3 font-medium">
-                        {slot.subjectName}
-                        {slot.subjectCode && <span className="text-slate-500 ml-1">({slot.subjectCode})</span>}
-                      </td>
-                      <td className="border border-slate-400 py-1.5 px-3 text-center font-bold">
-                        Kelas {slot.className}
-                      </td>
-                      <td className="border border-slate-400 py-1.5 px-3 text-center text-slate-600">
-                        {slot.room || '-'}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </PrintDocumentLayout>
-      )}
+      
     </div>
   );
 };

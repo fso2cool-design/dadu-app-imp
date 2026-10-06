@@ -470,12 +470,24 @@ body {
 .printable-document,
 .print-sheet,
 #printable-progress-report {
-  --app-bg: #f8fafc;
+  --app-bg: #ffffff;
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
   --text-main: #0f172a;
   --text-muted: #64748b;
   --interactive-border: #f1f5f9;
+
+  /* Force Light Mode Tokens inside Print Boundary */
+  --ds-surface: #ffffff;
+  --ds-surface-elevated: #ffffff;
+  --ds-surface-muted: #f8fafc;
+  --ds-border: #e2e8f0;
+  --ds-text: #0f172a;
+  --ds-text-muted: #64748b;
+  --ds-focus: #3b82f6;
+  --ds-accent: #2563eb;
+  --ds-accent-soft: #eff6ff;
+  --ds-accent-fg: #ffffff;
 }
 
 /* Explicit surface & text locks within document boundary */
@@ -637,6 +649,49 @@ body {
 
   nav, sidebar, header, aside, .no-print {
     display: none !important;
+  }
+
+  /* Modal Print Isolation: When printing from inside a modal */
+  body:has([role="dialog"]) main > *:not(:has([role="dialog"])),
+  body:has([aria-modal="true"]) main > *:not(:has([aria-modal="true"])) {
+    display: none !important;
+  }
+
+  [role="dialog"],
+  [aria-modal="true"] {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  [role="dialog"] .fixed.inset-0,
+  [aria-modal="true"] .fixed.inset-0 {
+    display: none !important;
+  }
+
+  [role="dialog"] > div,
+  [aria-modal="true"] > div,
+  [role="dialog"] [class*="max-h-"],
+  [aria-modal="true"] [class*="max-h-"] {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
   }
 
   table {

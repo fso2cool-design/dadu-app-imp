@@ -45,6 +45,37 @@ export const AttendanceReportPage: React.FC = () => {
 
   const [reportMode, setReportMode] = useState<'SUBJECT' | 'HOMEROOM'>('SUBJECT');
   const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
+  const activeYears = useMemo(() => {
+    if (!activeAcademicYear) return [new Date().getFullYear().toString()];
+    const parts = activeAcademicYear.id.split('/');
+    if (parts.length === 2) {
+      return parts;
+    }
+    return [new Date().getFullYear().toString()];
+  }, [activeAcademicYear]);
+
+  const semesterMonths = useMemo(() => {
+    return activeSemester === 'GENAP'
+      ? [
+          { value: '01', label: 'Januari' },
+          { value: '02', label: 'Februari' },
+          { value: '03', label: 'Maret' },
+          { value: '04', label: 'April' },
+          { value: '05', label: 'Mei' },
+          { value: '06', label: 'Juni' },
+        ]
+      : [
+          { value: '07', label: 'Juli' },
+          { value: '08', label: 'Agustus' },
+          { value: '09', label: 'September' },
+          { value: '10', label: 'Oktober' },
+          { value: '11', label: 'November' },
+          { value: '12', label: 'Desember' },
+        ];
+  }, [activeSemester]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -52,7 +83,7 @@ export const AttendanceReportPage: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    app.settings.getSettings(user.uid).then(setSchoolSettings).catch(console.error);
+    app.settings.getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
   
   // Subject Attendance State
@@ -75,6 +106,7 @@ export const AttendanceReportPage: React.FC = () => {
 
   // Fetch Subject Attendance Data with SWR
   useEffect(() => {
+      let isMounted = true;
     if (!user || !activeAcademicYear || reportMode !== 'SUBJECT' || !selectedAssignment) return;
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
@@ -96,6 +128,7 @@ export const AttendanceReportPage: React.FC = () => {
           academicYearId: activeAcademicYear.id,
           semester: activeSemester
         });
+        if (!isMounted) return;
 
         // 2. Fetch class enrollments
         const enrs = await app.enrollment.getByClass(
@@ -103,16 +136,19 @@ export const AttendanceReportPage: React.FC = () => {
           activeAcademicYear.id,
           selectedAssignment.classId
         );
+        if (!isMounted) return;
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 3. Fetch all attendance records for this assignment (both independent and meeting-linked)
         const recs = await app.attendance.getByAssignment(user.uid, selectedAssignment.id);
+        if (!isMounted) return;
         
         // If there are legacy records queried via meetingIds that might not have assignmentId stamped, merge them
         let finalRecords = recs;
         if (mets.length > 0) {
           const mIds = mets.map(m => m.id);
           const legacyRecs = await app.attendance.getByMeetingIds(user.uid, mIds);
+            if (!isMounted) return;
           const map = new Map<string, AttendanceRecord>();
           legacyRecs.forEach(r => map.set(r.id, r));
           recs.forEach(r => map.set(r.id, r));
@@ -136,10 +172,12 @@ export const AttendanceReportPage: React.FC = () => {
     };
 
     fetchSubjectData();
+      return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, reportMode, selectedAssignment]);
 
   // Fetch Homeroom Daily Attendance Data with SWR
   useEffect(() => {
+      let isMounted = true;
     if (!user || !activeAcademicYear || reportMode !== 'HOMEROOM' || !selectedClassId) return;
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${selectedClassId}`;
@@ -160,10 +198,12 @@ export const AttendanceReportPage: React.FC = () => {
           activeAcademicYear.id,
           selectedClassId
         );
+        if (!isMounted) return;
         enrs.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 
         // 2. Fetch all daily records for this class within the active academic year
         const recs = await app.attendance.getAllDailyForClass(user.uid, selectedClassId, activeAcademicYear.id);
+        if (!isMounted) return;
 
         homeroomReportCache.set(cacheKey, {
           enrollments: enrs,
@@ -180,6 +220,7 @@ export const AttendanceReportPage: React.FC = () => {
     };
 
     fetchHomeroomData();
+      return () => { isMounted = false; };
   }, [user, activeAcademicYear, reportMode, selectedClassId]);
 
   // Compile Student Summaries for Subject Attendance
@@ -189,7 +230,15 @@ export const AttendanceReportPage: React.FC = () => {
     const distinctDates = new Set(attendanceRecords.map(r => r.date || r.meetingId).filter(Boolean));
     const totalM = Math.max(meetings.length, distinctDates.size);
     return enrollments.map(enr => {
-      const studentRecs = attendanceRecords.filter(r => r.studentId === enr.studentId);
+      const studentRecs = attendanceRecords.filter(r => {
+        if (r.studentId !== enr.studentId) return false;
+        if (selectedMonth !== 'ALL') {
+          const d = new Date(r.date || r.meetingId);
+          if (String(d.getMonth() + 1).padStart(2, '0') !== selectedMonth) return false;
+          if (String(d.getFullYear()) !== selectedYear) return false;
+        }
+        return true;
+      });
       
       let p = 0;
       let s = 0;
@@ -225,7 +274,7 @@ export const AttendanceReportPage: React.FC = () => {
         presentPercentage: percentage,
       };
     });
-  }, [reportMode, enrollments, attendanceRecords, meetings]);
+  }, [reportMode, enrollments, attendanceRecords, meetings, selectedMonth, selectedYear]);
 
   // Compile Student Summaries for Homeroom Attendance
   const homeroomSummaries = useMemo<StudentAttendanceSummary[]>(() => {
@@ -236,7 +285,15 @@ export const AttendanceReportPage: React.FC = () => {
     const totalEffectiveDays = distinctDates.size;
 
     return enrollments.map(enr => {
-      const studentRecs = dailyRecords.filter(r => r.studentId === enr.studentId);
+      const studentRecs = dailyRecords.filter(r => {
+        if (r.studentId !== enr.studentId) return false;
+        if (selectedMonth !== 'ALL') {
+          const d = new Date(r.date);
+          if (String(d.getMonth() + 1).padStart(2, '0') !== selectedMonth) return false;
+          if (String(d.getFullYear()) !== selectedYear) return false;
+        }
+        return true;
+      });
 
       let p = 0;
       let s = 0;
@@ -272,7 +329,7 @@ export const AttendanceReportPage: React.FC = () => {
         presentPercentage: percentage,
       };
     });
-  }, [reportMode, enrollments, dailyRecords]);
+  }, [reportMode, enrollments, dailyRecords, selectedMonth, selectedYear]);
 
   const activeSummaries = reportMode === 'SUBJECT' ? subjectSummaries : homeroomSummaries;
 
@@ -452,17 +509,17 @@ export const AttendanceReportPage: React.FC = () => {
 
       {/* Funnel Selector Bar (Hidden on Print) */}
       <div className="no-print bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs space-y-3 transition-colors">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           {reportMode === 'SUBJECT' ? (
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Mapel & Kelas:</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Mapel & Kelas:</label>
               <select
                 value={selectedAssignment?.id || ''}
                 onChange={(e) => {
                   const asg = teachingAssignments.find(a => a.id === e.target.value);
                   if (asg) setSelectedAssignment(asg);
                 }}
-                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
                 {teachingAssignments.map(asg => (
                   <option key={asg.id} value={asg.id}>
@@ -473,11 +530,11 @@ export const AttendanceReportPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Rombongan Belajar:</label>
+              <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Kelas:</label>
               <select
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
                 {classes.map(c => (
                   <option key={c.id} value={c.id}>
@@ -488,15 +545,41 @@ export const AttendanceReportPage: React.FC = () => {
             </div>
           )}
 
-          {/* MagnifyingGlass Input */}
-          <div className="relative min-w-[220px]">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Bulan:</label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+            >
+              <option value="ALL">Semua Bulan</option>
+              {semesterMonths.map(m => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tahun:</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+            >
+              {activeYears.map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="relative ml-auto w-full sm:w-auto min-w-[220px]">
             <MagnifyingGlass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari siswa atau NIS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] bg-[var(--ds-surface-muted)] transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[var(--ds-border)] text-xs text-[var(--ds-text)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] bg-[var(--ds-surface)] transition-all"
             />
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { formatShortDate, dateToLocalISO } from '../../utils/date';
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -117,7 +118,7 @@ export const AttendanceHolidaysModal: React.FC<AttendanceHolidaysModalProps> = (
       const parts = dateStr.split('-');
       if (parts.length === 3) {
         const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        return formatShortDate(dateToLocalISO(d));
       }
     } catch {
       // fallback

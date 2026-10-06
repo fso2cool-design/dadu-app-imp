@@ -105,9 +105,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Users,
           subItems: [
             { id: 'homeroom-students', label: 'Daftar Siswa Kelas', icon: Users },
+            { id: 'homeroom-daily-attendance', label: 'Presensi Harian', icon: CalendarDots },
+            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: ChartBar },
+            { id: 'homeroom-notes', label: 'Catatan & Sikap', icon: Notepad },
             { id: 'homeroom-class-schedule', label: 'Jadwal Pelajaran Kelas', icon: Clock },
             { id: 'homeroom-teacher-attendance', label: 'Kehadiran Guru Mapel', icon: UserCheck },
-            { id: 'homeroom-monthly-attendance', label: 'Rekap Presensi Siswa', icon: ChartBar },
           ]
         },
       ],

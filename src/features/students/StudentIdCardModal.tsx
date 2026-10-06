@@ -126,16 +126,19 @@ export const StudentIdCardModal: React.FC<StudentIdCardModalProps> = ({
   }, [selectedEnrollment, enrollments, isOpen]);
 
   useEffect(() => {
+      let isMounted = true;
     if (!user || !isOpen) return;
     const loadSchool = async () => {
       try {
         const sch = await app.settings.getSchoolSettings(user.uid);
+        if (!isMounted) return;
         if (sch) setSchoolSettings(sch as SchoolSettings);
       } catch (err) {
         console.error('Error loading school settings:', err);
       }
     };
     loadSchool();
+      return () => { isMounted = false; };
   }, [user, isOpen]);
 
   if (!isOpen) return null;

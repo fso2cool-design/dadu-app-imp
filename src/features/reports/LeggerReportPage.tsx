@@ -16,7 +16,7 @@ import { BatchRaporPrintModal } from './BatchRaporPrintModal';
 import { ShareReportModal } from './ShareReportModal';
 import { StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
-import { getTodayISO } from '../../utils/date';
+import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { 
   TeachingAssignment, 
   AssessmentItem, 
@@ -100,13 +100,13 @@ export const LeggerReportPage: React.FC = () => {
       // 1. Fetch subjects & settings
       const [subs, sch, docS] = await Promise.all([
         app.master.subjects.getAll(user.uid),
-        app.settings.getSettings(user.uid),
-        app.settings.getSettings(user.uid),
+        app.settings.getSchoolSettings(user.uid),
+        app.settings.getDocumentSettings(user.uid),
       ]);
       subs.sort((a, b) => a.name.localeCompare(b.name));
       setSubjectsList(subs);
-      if (sch) setSchoolSettings(sch as any);
-      if (docS) setDocSettings(docS as any);
+      if (sch) setSchoolSettings(sch);
+      if (docS) setDocSettings(docS);
 
       // 2. Fetch class enrollments
       const enrs = await app.enrollment.getByClass(
@@ -479,7 +479,7 @@ export const LeggerReportPage: React.FC = () => {
     sheetData.push([]);
     sheetData.push([]);
     const regency = schoolSettings?.regency || 'Kota';
-    sheetData.push(['', '', 'Mengetahui,', '', '', '', '', '', `${regency}, ${new Date().toLocaleDateString('id-ID')}`]);
+    sheetData.push(['', '', 'Mengetahui,', '', '', '', '', '', `${regency}, ${formatDateIndonesian(getTodayISO())}`]);
     sheetData.push(['', '', 'Kepala Madrasah,', '', '', '', '', '', 'Wali Kelas,']);
     sheetData.push([]);
     sheetData.push([]);
