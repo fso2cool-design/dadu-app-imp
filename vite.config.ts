@@ -49,9 +49,6 @@ export default defineConfig(() => {
               if (normalizedId.includes('/motion/') || normalizedId.includes('/framer-motion/')) {
                 return 'vendor-motion';
               }
-              if (normalizedId.includes('/lucide-react/')) {
-                return 'vendor-lucide';
-              }
               if (
                 normalizedId.includes('/react-router/') || 
                 normalizedId.includes('/react-router-dom/')

@@ -14,8 +14,9 @@ import { TransferClassModal } from './TransferClassModal';
 import { DeduplicateStudentsModal } from './DeduplicateStudentsModal';
 import { StudentCustomPrintModal } from './StudentCustomPrintModal';
 import { ManageCustomFieldsModal } from './ManageCustomFieldsModal';
-import { StudentExamCardModal } from './StudentExamCardModal';
+
 import { StudentProgressReportModal } from './StudentProgressReportModal';
+import { StudentIdCardModal } from './StudentIdCardModal';
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -752,7 +753,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                 className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer p-0.5"
                 title="Hapus pencarian"
               >
-                ✕
+                Ã¢Å“â€¢
               </button>
             )}
           </div>
@@ -909,7 +910,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                             )}
                             {stud.address && (
                               <div className="text-slate-500 dark:text-slate-400 truncate max-w-xs text-[10px]" title={stud.address}>
-                                📍 {stud.address}
+                                Ã°Å¸â€œÂ {stud.address}
                               </div>
                             )}
                           </div>
@@ -1084,7 +1085,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                             )}
                             {stud.address && (
                               <div className="text-slate-500 dark:text-slate-400 truncate max-w-xs text-[10px]" title={stud.address}>
-                                📍 {stud.address}
+                                Ã°Å¸â€œÂ {stud.address}
                               </div>
                             )}
                           </div>
@@ -1418,7 +1419,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
       />
 
       {/* Modal Cetak Kartu Peserta Ujian / Asesmen Resmi */}
-      <StudentExamCardModal
+      <StudentIdCardModal
         isOpen={examCardModalOpen}
         onClose={() => {
           setExamCardModalOpen(false);

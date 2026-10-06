@@ -5,7 +5,7 @@ import { useApplication } from '../../application/ApplicationContext';
 import { Enrollment, StudentNote, DailyAttendanceRecord } from '../../types';
 import { Modal } from '../../components/common/Modal';
 import { StudentProgressReportModal } from '../students/StudentProgressReportModal';
-import { StudentExamCardModal } from '../students/StudentExamCardModal';
+import { StudentIdCardModal } from '../students/StudentIdCardModal';
 import { StudentCustomPrintModal, StudentPrintItem } from '../students/StudentCustomPrintModal';
 import { GenderBadge, GenderIcon } from '../../components/common/GenderIcon';
 import { SkeletonTable } from '../../components/common/Skeleton';
@@ -341,7 +341,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
               Data Siswa Kelas Binaan
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              T.A {activeAcademicYear?.label} • Sem {activeSemester}
+              T.A {activeAcademicYear?.label} â€¢ Sem {activeSemester}
             </span>
           </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -445,7 +445,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                   <option value="NONE">-- Bukan Wali Kelas / Tidak Ada Binaan --</option>
                   {availableClasses.map(c => (
                     <option key={c.id} value={c.id}>
-                      Kelas {c.name} {c.classTeacherId === user?.uid ? '⭐ (Binaan Saya)' : ''}
+                      Kelas {c.name} {c.classTeacherId === user?.uid ? 'â­ (Binaan Saya)' : ''}
                     </option>
                   ))}
                 </select>
@@ -571,7 +571,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                               {stats.total > 0 ? `${stats.rate}%` : '-'}
                             </span>
                             <span className="block text-[10px] text-slate-400 dark:text-slate-500">
-                              {stats.present} H • {stats.absent} A
+                              {stats.present} H â€¢ {stats.absent} A
                             </span>
                           </td>
                           <td className="py-3 px-3.5 text-center">
@@ -644,7 +644,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  NIS: <span className="font-mono font-semibold text-slate-700">{selectedEnrollment.student?.nis || '-'}</span> • NISN: <span className="font-mono font-semibold text-slate-700">{selectedEnrollment.student?.nisn || '-'}</span> • No. Urut: {selectedEnrollment.rollNumber}
+                  NIS: <span className="font-mono font-semibold text-slate-700">{selectedEnrollment.student?.nis || '-'}</span> â€¢ NISN: <span className="font-mono font-semibold text-slate-700">{selectedEnrollment.student?.nisn || '-'}</span> â€¢ No. Urut: {selectedEnrollment.rollNumber}
                 </p>
               </div>
 
@@ -859,7 +859,7 @@ export const HomeroomStudentsPage: React.FC<HomeroomStudentsPageProps> = ({ onNa
       />
 
       {/* Student Exam Card Modal (Kartu Peserta Ujian / Asesmen) */}
-      <StudentExamCardModal
+      <StudentIdCardModal
         isOpen={isExamCardModalOpen}
         onClose={() => {
           setIsExamCardModalOpen(false);
