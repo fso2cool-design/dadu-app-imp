@@ -81,8 +81,8 @@ export const ShareReportModal: React.FC<ShareReportModalProps> = ({
         reportType: reportType,
         title: title.trim() || defaultTitle,
         description: description.trim(),
-        passcode: usePasscode && passcode.trim() ? passcode.trim() : undefined,
-        expiresInDays: expiresInDays > 0 ? expiresInDays : undefined,
+        ...(usePasscode && passcode.trim() ? { passcode: passcode.trim() } : {}),
+        ...(expiresInDays > 0 ? { expiresInDays } : {}),
         payload: {
           ...payload,
           title: title.trim() || defaultTitle,

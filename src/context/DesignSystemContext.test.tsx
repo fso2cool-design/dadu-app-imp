@@ -26,11 +26,7 @@ vi.mock('firebase/auth', () => ({
   signOut: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
   updateProfile: vi.fn(),
-    login: vi.fn(),
-    signup: vi.fn(),
-    logout: vi.fn(),
-    resetPassword: vi.fn(),
-    onAuthStateChanged: vi.fn((cb) => { if (typeof authStateCallback !== 'undefined' && authStateCallback === null) { authStateCallback = cb; } else if (typeof authStateCallback !== 'undefined' && authStateCallback !== null) { authStateCallback = cb; } else { cb({ uid: 'test-user-id', email: 'test@example.com' }); } return vi.fn(); }),
+
 }));
 
 vi.mock('../services/firebase/config', () => ({
@@ -44,11 +40,7 @@ const mockApp: ApplicationOperations = {
     createProfile: vi.fn(),
     recordLastLogin: vi.fn(),
     updateProfile: vi.fn(),
-    login: vi.fn(),
-    signup: vi.fn(),
-    logout: vi.fn(),
-    resetPassword: vi.fn(),
-    onAuthStateChanged: vi.fn((cb) => { if (typeof authStateCallback !== 'undefined' && authStateCallback === null) { authStateCallback = cb; } else if (typeof authStateCallback !== 'undefined' && authStateCallback !== null) { authStateCallback = cb; } else { cb({ uid: 'test-user-id', email: 'test@example.com' }); } return vi.fn(); }),
+
   },
   theme: {
     updateDesignSystem: vi.fn(),

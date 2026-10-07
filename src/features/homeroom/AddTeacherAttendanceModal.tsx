@@ -119,7 +119,7 @@ export const AddTeacherAttendanceModal: React.FC<AddTeacherAttendanceModalProps>
       notes: notes.trim(),
       isManual: true,
       isSubstitute,
-      substituteForTeacherName: isSubstitute && substituteTarget.trim() ? substituteTarget.trim() : undefined,
+      ...(isSubstitute && substituteTarget.trim() ? { substituteForTeacherName: substituteTarget.trim() } : {}),
     });
 
     onClose();
