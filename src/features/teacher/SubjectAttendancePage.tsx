@@ -235,6 +235,7 @@ export const SubjectAttendancePage = () => {
 
   // Dirty state tracking for attendance input
   const initialRowsRef = useRef<string>('[]');
+  const initialMeetingIdRef = useRef<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
@@ -383,6 +384,7 @@ export const SubjectAttendancePage = () => {
         subjectAttendanceCache.set(sessionCacheKey, rows);
         setStudentRows(rows);
         initialRowsRef.current = JSON.stringify(rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
+        initialMeetingIdRef.current = existingRecords.length > 0 ? (existingRecords[0].meetingId || '') : '';
         setIsDirty(false);
       } catch (err) {
         console.error('Error loading attendance rows:', err);
@@ -588,6 +590,7 @@ export const SubjectAttendancePage = () => {
       }
 
       initialRowsRef.current = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
+      initialMeetingIdRef.current = selectedMeetingId || '';
       setIsDirty(false);
       setIsNewRecord(false);
 
@@ -904,7 +907,7 @@ export const SubjectAttendancePage = () => {
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={(!isDirty && !isNewRecord) || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={(!isDirty && !isNewRecord && selectedMeetingId !== initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                   isDirty || isNewRecord 
