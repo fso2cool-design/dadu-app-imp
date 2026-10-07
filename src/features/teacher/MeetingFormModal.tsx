@@ -180,7 +180,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           notes: notes.trim(),
           status,
           meetingType,
-          activityCategory: isActivity ? activityCategory : undefined,
+          ...(isActivity ? { activityCategory } : {}),
         });
 
         const updatedObj: Meeting = {
@@ -201,7 +201,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           notes: notes.trim(),
           status,
           meetingType,
-          activityCategory: isActivity ? activityCategory : undefined,
+          ...(isActivity ? { activityCategory } : {}),
           updatedAt: new Date(),
         };
 
@@ -227,7 +227,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           notes: notes.trim(),
           status,
           meetingType,
-          activityCategory: isActivity ? activityCategory : undefined,
+          ...(isActivity ? { activityCategory } : {}),
         });
 
         triggerSyncFeedback('saved', 'Jurnal pertemuan berhasil dicatat!');
