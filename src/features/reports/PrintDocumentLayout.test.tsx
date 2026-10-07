@@ -33,6 +33,21 @@ const mockApp: ApplicationOperations = {
       displayName: 'Guru Cetak',
       role: 'TEACHER',
     }),
+    createProfile: vi.fn(),
+    recordLastLogin: vi.fn(),
+    updateProfile: vi.fn(),
+    login: vi.fn(),
+    signup: vi.fn(),
+    logout: vi.fn(),
+    resetPassword: vi.fn(),
+    onAuthStateChanged: vi.fn((cb) => { 
+      if (typeof authStateCallback !== 'undefined' && authStateCallback) { 
+        // will be triggered in test
+      } else { 
+        cb({ uid: 'test-user-id', email: 'test@example.com' }); 
+      } 
+      return vi.fn(); 
+    }),
   },
   settings: {
     getSchoolSettings: vi.fn().mockResolvedValue({

@@ -4,11 +4,11 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 
-import { AssessmentItemModal } from './AssessmentItemModal';
-import { PasteExcelModal } from './PasteExcelModal';
-import { ScoreNoteModal } from './ScoreNoteModal';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
-import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
+const AssessmentItemModal = React.lazy(() => import('./AssessmentItemModal').then(m => ({ default: m.AssessmentItemModal })));
+const PasteExcelModal = React.lazy(() => import('./PasteExcelModal').then(m => ({ default: m.PasteExcelModal })));
+const ScoreNoteModal = React.lazy(() => import('./ScoreNoteModal').then(m => ({ default: m.ScoreNoteModal })));
+const ConfirmDialog = React.lazy(() => import('../../components/common/ConfirmDialog').then(m => ({ default: m.ConfirmDialog })));
+const UnsavedChangesModal = React.lazy(() => import('../../components/common/UnsavedChangesModal').then(m => ({ default: m.UnsavedChangesModal })));
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { Tooltip } from '../../components/common/Tooltip';
 import { 
@@ -18,12 +18,156 @@ import {
   TeachingAssignment, 
   CalculationMethod 
 } from '../../types';
-import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
+import { DEFAULT_KKM } from '../../constants/grading';
+import { calculateFinalScore, getGradeScale } from '../../domain/grading/grading.service';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { useToast } from '../../context/ToastContext';
+
+
+const GradeRow = React.memo(({
+  enr, index, calc, isBelowPassing, assessmentItems, scoresMap, notesMap, passingGrade, isArchivedYear,
+  handleScoreChange, setNoteTarget, setIsNoteModalOpen
+}: any) => {
+  return (
+    <tr className="hover:bg-slate-50/70 dark:hover:bg-[var(--ds-surface-elevated)] transition-colors group">
+      <td className="sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-3 py-2 text-center font-mono font-semibold text-[var(--ds-text-muted)] border-r border-[var(--ds-border)]">
+        {enr.rollNumber || index + 1}
+      </td>
+      <td className="sticky left-12 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-4 py-2 border-r border-[var(--ds-border)]">
+        <div className="flex items-center gap-1.5">
+          <span className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
+            {enr.student?.fullName || 'Nama Siswa'}
+          </span>
+          {enr.status !== 'ACTIVE' && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1c2030] text-slate-500 shrink-0">
+              {enr.status === 'TRANSFERRED' ? 'Mutasi' : 'Non-Aktif'}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+          <span>NIS: {enr.student?.nis || '-'}</span>
+          <span>•</span>
+          <span className="font-sans text-slate-500 dark:text-slate-400 font-medium">({enr.student?.gender})</span>
+        </div>
+      </td>
+      {assessmentItems.map((item: any) => {
+        const cellKey = `${enr.studentId}_${item.id}`;
+        const rawVal = scoresMap[cellKey];
+        const note = notesMap[cellKey];
+        const numVal = rawVal !== undefined && rawVal !== '' ? Number(rawVal) : null;
+        const isScoreLow = numVal !== null && numVal < passingGrade;
+
+        return (
+          <td key={item.id} className="px-2 py-1 text-center border-r border-slate-100 dark:border-[var(--ds-border)] relative group/cell">
+            <div className="flex items-center justify-center gap-1">
+              <input
+                type="number"
+                min={0}
+                max={item.maxScore || 100}
+                step="0.5"
+                disabled={isArchivedYear}
+                value={rawVal ?? ''}
+                placeholder="-"
+                onChange={(e) => handleScoreChange(enr.studentId, item.id, e.target.value)}
+                className={`w-16 h-8 text-center py-1 font-mono font-bold text-xs rounded-lg border transition-all focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-70 disabled:cursor-not-allowed ${
+                  isScoreLow
+                    ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
+                    : numVal !== null
+                    ? 'bg-white dark:bg-[var(--ds-surface)] border-slate-300 dark:border-[#2e344a] text-slate-900 dark:text-slate-100 font-bold shadow-2xs'
+                    : 'bg-slate-50/60 dark:bg-[var(--ds-surface)]/40 border-dashed border-slate-300/80 dark:border-[var(--ds-border)] text-slate-400 dark:text-slate-600 hover:border-slate-400'
+                }`}
+              />
+              <Tooltip content={note ? `Catatan: ${note}` : 'Tambah Catatan / Remedial'} position="top">
+                <button
+                  type="button"
+                  disabled={isArchivedYear}
+                  onClick={() => {
+                    setNoteTarget({
+                      studentId: enr.studentId,
+                      assessmentItemId: item.id,
+                      studentName: enr.student?.fullName || 'Siswa',
+                      assessmentName: item.name,
+                      currentScore: rawVal ?? '',
+                      currentNote: note || '',
+                    });
+                    setIsNoteModalOpen(true);
+                  }}
+                  className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
+                    note 
+                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
+                      : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
+                  }`}
+                >
+                  <Notepad className="w-3 h-3" />
+                </button>
+              </Tooltip>
+            </div>
+          </td>
+        );
+      })}
+      <td className="border-r border-slate-100 dark:border-[var(--ds-border)]"></td>
+      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-[var(--ds-accent-soft)]/40">
+        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--ds-accent)] font-bold'}>
+          {calc?.finalScore || 0}
+        </span>
+      </td>
+      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/40">
+        <span
+          className={`inline-block w-6 py-0.5 rounded-md font-bold text-xs font-mono ${
+            calc?.predicate === 'A'
+              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/40'
+              : calc?.predicate === 'B'
+              ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-300/40'
+              : calc?.predicate === 'C'
+              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/40'
+              : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300/40'
+          }`}
+        >
+          {calc?.predicate || 'D'}
+        </span>
+      </td>
+      <td className="px-3 py-2 text-center bg-[var(--ds-accent-soft)]/40">
+        {calc && calc.filledCount > 0 ? (
+          calc.isIncomplete ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                Belum Lengkap ({calc.conductedFilledCount}/{calc.conductedTotalCount})
+              </span>
+              <span className="text-[9px] text-slate-400">
+                {calc.isPassed ? 'Sementara Tuntas' : 'Sementara Remedial'}
+              </span>
+            </div>
+          ) : calc.isPassed ? (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              Tuntas
+            </span>
+          ) : (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+              Remedial
+            </span>
+          )
+        ) : (
+          <span className="text-[10px] text-slate-400 italic">Belum Ada</span>
+        )}
+      </td>
+    </tr>
+  );
+}, (prev: any, next: any) => {
+  if (prev.isArchivedYear !== next.isArchivedYear) return false;
+  if (prev.passingGrade !== next.passingGrade) return false;
+  if (prev.calc !== next.calc) return false;
+  if (prev.isBelowPassing !== next.isBelowPassing) return false;
+  
+  for (const item of prev.assessmentItems) {
+    const key = `${prev.enr.studentId}_${item.id}`;
+    if (prev.scoresMap[key] !== next.scoresMap[key]) return false;
+    if (prev.notesMap[key] !== next.notesMap[key]) return false;
+  }
+  return true;
+});
 
 export const GradesPage: React.FC = () => {
   const { user } = useAuth();
@@ -379,7 +523,7 @@ export const GradesPage: React.FC = () => {
     });
   }, [assessmentItems, enrollments, scoresMap]);
 
-  // Calculate final grade for each student
+  // Calculate final grade for each student using domain grading service
   const studentCalculations = useMemo(() => {
     const calcs: Record<string, {
       finalScore: number;
@@ -393,57 +537,38 @@ export const GradesPage: React.FC = () => {
     }> = {};
 
     const includedItems = assessmentItems.filter(i => i.isIncludedInFinalScore !== false);
+    const conductedIdSet = new Set(conductedItems.map(ci => ci.id));
 
     enrollments.forEach(enr => {
-      let weightedSum = 0;
-      let usedWeight = 0;
-      let simpleSum = 0;
-      let filledCount = 0;
-      let conductedFilledCount = 0;
-
-      includedItems.forEach(item => {
-        const key = `${enr.studentId}_${item.id}`;
-        const rawVal = scoresMap[key];
-        const isConducted = conductedItems.some(ci => ci.id === item.id);
-
+      const studentScores = new Map<string, number | undefined | null>();
+      for (const item of includedItems) {
+        const rawVal = scoresMap[`${enr.studentId}_${item.id}`];
         if (rawVal !== undefined && rawVal !== '' && rawVal !== null) {
-          const num = Number(rawVal);
-          const w = Number(item.weight) || 1;
-          weightedSum += num * w;
-          usedWeight += w;
-          simpleSum += num;
-          filledCount += 1;
-          if (isConducted) conductedFilledCount += 1;
-        } else if (isConducted && missingScoreTreatment === 'ZERO_PENALTY') {
-          // Uncompleted assessment that has been conducted is treated as 0
-          const w = Number(item.weight) || 1;
-          usedWeight += w;
+          studentScores.set(item.id, Number(rawVal));
+        } else {
+          studentScores.set(item.id, null);
         }
-      });
-
-      let finalScore = 0;
-      if (calculationMethod === 'WEIGHTED_AVERAGE') {
-        finalScore = usedWeight > 0 ? Math.round((weightedSum / usedWeight) * 10) / 10 : 0;
-      } else {
-        const denom = missingScoreTreatment === 'ZERO_PENALTY' ? Math.max(1, conductedItems.length) : filledCount;
-        finalScore = denom > 0 ? Math.round((simpleSum / denom) * 10) / 10 : 0;
       }
 
-      const scale = getGradeScale(finalScore, passingGrade);
-      const predicate = scale.predicate;
-      const predicateLabel = scale.label;
-      const conductedTotalCount = conductedItems.length;
-      const isIncomplete = conductedTotalCount > 0 && conductedFilledCount < conductedTotalCount;
+      const result = calculateFinalScore(
+        includedItems,
+        conductedIdSet,
+        studentScores,
+        calculationMethod,
+        missingScoreTreatment
+      );
+
+      const scale = getGradeScale(result.finalScore, passingGrade);
 
       calcs[enr.studentId] = {
-        finalScore,
-        predicate,
-        predicateLabel,
-        isPassed: finalScore >= passingGrade && filledCount > 0 && !isIncomplete,
-        filledCount,
-        conductedFilledCount,
-        conductedTotalCount,
-        isIncomplete,
+        finalScore: result.finalScore,
+        predicate: scale.predicate,
+        predicateLabel: scale.label,
+        isPassed: result.finalScore >= passingGrade && result.filledCount > 0 && !result.isIncomplete,
+        filledCount: result.filledCount,
+        conductedFilledCount: result.conductedFilledCount,
+        conductedTotalCount: result.conductedTotalCount,
+        isIncomplete: result.isIncomplete,
       };
     });
 
@@ -1239,151 +1364,22 @@ export const GradesPage: React.FC = () => {
                 {displayedEnrollments.map((enr, index) => {
                   const calc = studentCalculations[enr.studentId];
                   const isBelowPassing = calc ? !calc.isPassed && calc.filledCount > 0 : false;
-
                   return (
-                    <tr
+                    <GradeRow
                       key={enr.id}
-                      className="hover:bg-slate-50/70 dark:hover:bg-[var(--ds-surface-elevated)] transition-colors group"
-                    >
-                      {/* Sticky Roll Number */}
-                      <td className="sticky left-0 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-3 py-2 text-center font-mono font-semibold text-[var(--ds-text-muted)] border-r border-[var(--ds-border)]">
-                        {enr.rollNumber || index + 1}
-                      </td>
-
-                      {/* Sticky Student Name & NIS */}
-                      <td className="sticky left-12 z-10 bg-[var(--ds-surface-elevated)] group-hover:bg-[var(--ds-accent-soft)] px-4 py-2 border-r border-[var(--ds-border)]">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-slate-800 dark:text-slate-100 line-clamp-1">
-                            {enr.student?.fullName || 'Nama Siswa'}
-                          </span>
-                          {enr.status !== 'ACTIVE' && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1c2030] text-slate-500 shrink-0">
-                              {enr.status === 'TRANSFERRED' ? 'Mutasi' : 'Non-Aktif'}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                          <span>NIS: {enr.student?.nis || '-'}</span>
-                          <span>•</span>
-                          <span className="font-sans text-slate-500 dark:text-slate-400 font-medium">({enr.student?.gender})</span>
-                        </div>
-                      </td>
-
-                      {/* Dynamic Assessment Score Inputs */}
-                      {assessmentItems.map((item) => {
-                        const cellKey = `${enr.studentId}_${item.id}`;
-                        const rawVal = scoresMap[cellKey];
-                        const note = notesMap[cellKey];
-                        const numVal = rawVal !== undefined && rawVal !== '' ? Number(rawVal) : null;
-                        const isScoreLow = numVal !== null && numVal < passingGrade;
-
-                        return (
-                          <td
-                            key={item.id}
-                            className="px-2 py-1 text-center border-r border-slate-100 dark:border-[var(--ds-border)] relative group/cell"
-                          >
-                            <div className="flex items-center justify-center gap-1">
-                              <input
-                                type="number"
-                                min={0}
-                                max={item.maxScore || 100}
-                                step="0.5"
-                                disabled={isArchivedYear}
-                                value={rawVal ?? ''}
-                                placeholder="-"
-                                onChange={(e) => handleScoreChange(enr.studentId, item.id, e.target.value)}
-                                className={`w-16 h-8 text-center py-1 font-mono font-bold text-xs rounded-lg border transition-all focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 disabled:opacity-70 disabled:cursor-not-allowed ${
-                                  isScoreLow
-                                    ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-500/60 text-rose-800 dark:text-rose-300 font-black shadow-2xs'
-                                    : numVal !== null
-                                    ? 'bg-white dark:bg-[var(--ds-surface)] border-slate-300 dark:border-[#2e344a] text-slate-900 dark:text-slate-100 font-bold shadow-2xs'
-                                    : 'bg-slate-50/60 dark:bg-[var(--ds-surface)]/40 border-dashed border-slate-300/80 dark:border-[var(--ds-border)] text-slate-400 dark:text-slate-600 hover:border-slate-400'
-                                }`}
-                              />
-
-                              {/* Note icon button */}
-                              <Tooltip content={note ? `Catatan: ${note}` : 'Tambah Catatan / Remedial'} position="top">
-                                <button
-                                  type="button"
-                                  disabled={isArchivedYear}
-                                  onClick={() => {
-                                    setNoteTarget({
-                                      studentId: enr.studentId,
-                                      assessmentItemId: item.id,
-                                      studentName: enr.student?.fullName || 'Siswa',
-                                      assessmentName: item.name,
-                                      currentScore: rawVal ?? '',
-                                      currentNote: note || '',
-                                    });
-                                    setIsNoteModalOpen(true);
-                                  }}
-                                  className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
-                                    note 
-                                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
-                                      : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
-                                  }`}
-                                >
-                                  <Notepad className="w-3 h-3" />
-                                </button>
-                              </Tooltip>
-                            </div>
-                          </td>
-                        );
-                      })}
-
-                      {/* Spacer empty cell */}
-                      <td className="border-r border-slate-100 dark:border-[var(--ds-border)]"></td>
-
-                      {/* Final Score Calculated Value */}
-                      <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-[var(--ds-accent-soft)]/40">
-                        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--ds-accent)] font-bold'}>
-                          {calc?.finalScore || 0}
-                        </span>
-                      </td>
-
-                      {/* Predicate */}
-                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/40">
-                        <span
-                          className={`inline-block w-6 py-0.5 rounded-md font-bold text-xs font-mono ${
-                            calc?.predicate === 'A'
-                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/40'
-                              : calc?.predicate === 'B'
-                              ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-300/40'
-                              : calc?.predicate === 'C'
-                              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/40'
-                              : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300/40'
-                          }`}
-                        >
-                          {calc?.predicate || 'D'}
-                        </span>
-                      </td>
-
-                      {/* Status Ketuntasan */}
-                      <td className="px-3 py-2 text-center bg-[var(--ds-accent-soft)]/40">
-                        {calc && calc.filledCount > 0 ? (
-                          calc.isIncomplete ? (
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                Belum Lengkap ({calc.conductedFilledCount}/{calc.conductedTotalCount})
-                              </span>
-                              <span className="text-[9px] text-slate-400">
-                                {calc.isPassed ? 'Sementara Tuntas' : 'Sementara Remedial'}
-                              </span>
-                            </div>
-                          ) : calc.isPassed ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                              Tuntas
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                              Remedial
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-[10px] text-slate-400 italic">Belum Ada</span>
-                        )}
-                      </td>
-                    </tr>
+                      enr={enr}
+                      index={index}
+                      calc={calc}
+                      isBelowPassing={isBelowPassing}
+                      assessmentItems={assessmentItems}
+                      scoresMap={scoresMap}
+                      notesMap={notesMap}
+                      passingGrade={passingGrade}
+                      isArchivedYear={isArchivedYear}
+                      handleScoreChange={handleScoreChange}
+                      setNoteTarget={setNoteTarget}
+                      setIsNoteModalOpen={setIsNoteModalOpen}
+                    />
                   );
                 })}
               </tbody>
@@ -1426,6 +1422,7 @@ export const GradesPage: React.FC = () => {
         </div>
       )}
 
+      <React.Suspense fallback={null}>
       {/* Modals */}
       <AssessmentItemModal
         isOpen={isItemModalOpen}
@@ -1497,6 +1494,7 @@ export const GradesPage: React.FC = () => {
         saveButtonText="Simpan & Pindah"
         discardButtonText="Buang Perubahan"
       />
+    </React.Suspense>
     </div>
   );
 };

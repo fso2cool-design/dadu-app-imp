@@ -16,20 +16,12 @@
 - **Git State:** Seluruh kode sudah di-*commit* (`chore(security): purge service account key & dead code`). *Working tree clean*.
 
 ## 2. Resolusi Bug & Performa Sesi Sebelumnya
+- **Context API Re-render Leaks (A):** Keempat penyedia *Context* (Workspace, DesignSystem, Toast, Auth) telah direfaktor. Objek dibungkus `useMemo` dan fungsi `useCallback`. Status tersinkronisasi `syncStatus` dipisah menjadi `WorkspaceSyncContext` terisolasi sehingga komponen header tidak lagi merender ulang seluruh komponen child.
 - **Memory Leaks & Race Conditions (B1):** 10 Komponen raksasa yang melakukan *fetch* data berat (seperti `AttendanceReportPage`) telah di-*patch* menggunakan AST Transformer. Injeksi `let isMounted = true;` dan pencegahan pembaruan *state* asinkron pada komponen mati terbukti berhasil tanpa merusak tipe.
 - **Bug Native UI (A2):** Dropdown `<select>` gelap di Windows pada *shadcn dark mode* teratasi menggunakan `bg-[var(--ds-surface)] text-[var(--ds-text)]`.
 
 ## 3. 📌 PENDING ARCHITECTURAL DEBT (Tugas Untuk Sesi Berikutnya)
-Berdasarkan "Ultimate Security & Architecture Audit Report v4", ada **2 Hutang Teknis Skala Besar** yang *sengaja ditunda* untuk mencegah regresi stabilitas (memerlukan sesi operasi khusus):
-
-### A. Context API Re-render Leaks (Prioritas: [OPTIMIZE])
-Keempat penyedia *Context* membocorkan objek *literal* tanpa `useMemo`. Setiap sinkronisasi atau kemunculan *Toast* memaksa 100% pohon UI me- *render* ulang dirinya sendiri.
-- **Tugas:** Bungkus objek di `value={...}` dengan `useMemo` dan fungsi aksi dengan `useCallback`. Pisahkan status `syncStatus`/`isOnline` dari domain statis di `WorkspaceContext.tsx`.
-- **Lokasi Utama:** 
-  - `src/context/WorkspaceContext.tsx:241-268`
-  - `src/context/DesignSystemContext.tsx:191-202`
-  - `src/context/ToastContext.tsx:93`
-  - `src/features/auth/AuthContext.tsx:146-158`
+Berdasarkan "Ultimate Security & Architecture Audit Report v4", tersisa **1 Hutang Teknis Skala Besar**:
 
 ### B. Spreadsheet Matrix Bottleneck (Prioritas: [MEMOIZE])
 Komponen rekapitulasi nilai merender >400 blok `<input>` yang tidak dibungkus `React.memo`. Setiap pengetikan satu karakter menyebabkan re-kalkulasi brutal $O(N \times M)$.

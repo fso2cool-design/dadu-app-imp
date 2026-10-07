@@ -152,7 +152,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     root.style.setProperty('--text-muted', activeColors.textMuted);
   }, [activeSystem, mode, tokens, activeColors]);
 
-  const applyAndSaveSystem = (system: DesignSystemKey) => {
+  const applyAndSaveSystem = useCallback((system: DesignSystemKey) => {
     setActiveSystem(system);
     if (user) {
       try {
@@ -160,7 +160,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
       } catch {}
       app.theme.updateDesignSystem(user.uid, system);
     }
-  };
+  }, [user, app]);
 
   const persistMode = useCallback(
     (next: DesignSystemMode) => {
@@ -175,31 +175,31 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     [user, app],
   );
 
-  const setMode = (next: DesignSystemMode) => {
+  const setMode = useCallback((next: DesignSystemMode) => {
     persistMode(next);
-  };
+  }, [persistMode]);
 
-  const toggleMode = () => {
+  const toggleMode = useCallback(() => {
     persistMode(mode === 'dark' ? 'light' : 'dark');
-  };
+  }, [mode, persistMode]);
 
-  const applyAndSaveMode = (next: DesignSystemMode) => {
+  const applyAndSaveMode = useCallback((next: DesignSystemMode) => {
     persistMode(next);
-  };
+  }, [persistMode]);
+
+  const contextValue = React.useMemo(() => ({
+    activeSystem,
+    tokens,
+    mode,
+    setSystem: setActiveSystem,
+    applyAndSaveSystem,
+    setMode,
+    toggleMode,
+    applyAndSaveMode,
+  }), [activeSystem, tokens, mode, applyAndSaveSystem, setMode, toggleMode, applyAndSaveMode]);
 
   return (
-    <DesignSystemContext.Provider
-      value={{
-        activeSystem,
-        tokens,
-        mode,
-        setSystem: setActiveSystem,
-        applyAndSaveSystem,
-        setMode,
-        toggleMode,
-        applyAndSaveMode,
-      }}
-    >
+    <DesignSystemContext.Provider value={contextValue}>
       {children}
     </DesignSystemContext.Provider>
   );

@@ -1,14 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-  updateProfile as updateFirebaseProfile
-} from 'firebase/auth';
-import { auth } from '../../services/firebase/config';
+import type { User } from 'firebase/auth';
 import { useApplication } from '../../application/ApplicationContext';
 import { UserProfile } from '../../types';
 
@@ -31,7 +22,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState<boolean>(true);
   const app = useApplication();
 
-  const fetchProfile = async (firebaseUser: User) => {
+  const fetchProfile = React.useCallback(async (firebaseUser: User) => {
     try {
       let p: UserProfile | null = null;
       try {
@@ -64,10 +55,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (err) {
       console.error('Error fetching user profile:', err);
     }
-  };
+  }, [app]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = app.auth.onAuthStateChanged(async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
         // Record last login once per browser session/device
@@ -85,40 +76,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [app, fetchProfile]);
 
-  const login = async (email: string, pass: string) => {
-    const res = await signInWithEmailAndPassword(auth, email, pass);
-    await app.auth.recordLastLogin(res.user.uid);
+  const login = React.useCallback(async (email: string, pass: string) => {
+    const resUser = await app.auth.login(email, pass);
+    await app.auth.recordLastLogin(resUser.uid);
     try {
-      sessionStorage.setItem('login_session_recorded', res.user.uid);
+      sessionStorage.setItem('login_session_recorded', resUser.uid);
     } catch {}
-    await fetchProfile(res.user);
-  };
+    await fetchProfile(resUser);
+  }, [app, fetchProfile]);
 
-  const signup = async (email: string, pass: string, name: string) => {
-    const res = await createUserWithEmailAndPassword(auth, email, pass);
-    if (name) {
-      await updateFirebaseProfile(res.user, { displayName: name });
-    }
-    const initialProfile = await app.auth.createProfile(res.user.uid, {
+  const signup = React.useCallback(async (email: string, pass: string, name: string) => {
+    const resUser = await app.auth.signup(email, pass, name);
+    const initialProfile = await app.auth.createProfile(resUser.uid, {
       displayName: name || email.split('@')[0],
-      email: res.user.email || '',
+      email: resUser.email || '',
       role: 'TEACHER',
       accountStatus: 'ACTIVE',
       defaultSemester: 'GANJIL',
       isOnboarded: false,
     });
-    await app.auth.recordLastLogin(res.user.uid);
+    await app.auth.recordLastLogin(resUser.uid);
     try {
-      sessionStorage.setItem('login_session_recorded', res.user.uid);
+      sessionStorage.setItem('login_session_recorded', resUser.uid);
     } catch {}
     setProfile(initialProfile);
-  };
+  }, [app]);
 
-  const logout = async () => {
+  const logout = React.useCallback(async () => {
     try {
-      await signOut(auth);
+      await app.auth.logout();
     } catch (err) {
       console.error('Sign out error:', err);
     } finally {
@@ -130,31 +118,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // ignore
       }
     }
-  };
+  }, [app]);
 
-  const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
-  };
+  const resetPassword = React.useCallback(async (email: string) => {
+    await app.auth.resetPassword(email);
+  }, [app]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = React.useCallback(async () => {
     if (user) {
       await fetchProfile(user);
     }
-  };
+  }, [user, fetchProfile]);
+
+  const contextValue = React.useMemo(() => ({
+    user,
+    profile,
+    loading,
+    login,
+    signup,
+    logout,
+    resetPassword,
+    refreshProfile,
+  }), [user, profile, loading, login, signup, logout, resetPassword, refreshProfile]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        login,
-        signup,
-        logout,
-        resetPassword,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

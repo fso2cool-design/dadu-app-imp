@@ -7,16 +7,16 @@ import { useApplication } from '../../application/ApplicationContext';
 
 import { Student, Enrollment, GenderType, StudentStatus, StudentCustomFieldDefinition } from '../../types';
 
-import { ImportStudentsModal } from './ImportStudentsModal';
-import { StudentFormModal } from './StudentFormModal';
-import { StudentDetailModal } from './StudentDetailModal';
-import { TransferClassModal } from './TransferClassModal';
-import { DeduplicateStudentsModal } from './DeduplicateStudentsModal';
-import { StudentCustomPrintModal } from './StudentCustomPrintModal';
-import { ManageCustomFieldsModal } from './ManageCustomFieldsModal';
+const ImportStudentsModal = React.lazy(() => import('./ImportStudentsModal').then(m => ({ default: m.ImportStudentsModal })));
+const StudentFormModal = React.lazy(() => import('./StudentFormModal').then(m => ({ default: m.StudentFormModal })));
+const StudentDetailModal = React.lazy(() => import('./StudentDetailModal').then(m => ({ default: m.StudentDetailModal })));
+const TransferClassModal = React.lazy(() => import('./TransferClassModal').then(m => ({ default: m.TransferClassModal })));
+const DeduplicateStudentsModal = React.lazy(() => import('./DeduplicateStudentsModal').then(m => ({ default: m.DeduplicateStudentsModal })));
+const StudentCustomPrintModal = React.lazy(() => import('./StudentCustomPrintModal').then(m => ({ default: m.StudentCustomPrintModal })));
+const ManageCustomFieldsModal = React.lazy(() => import('./ManageCustomFieldsModal').then(m => ({ default: m.ManageCustomFieldsModal })));
 
-import { StudentProgressReportModal } from './StudentProgressReportModal';
-import { StudentIdCardModal } from './StudentIdCardModal';
+const StudentProgressReportModal = React.lazy(() => import('./StudentProgressReportModal').then(m => ({ default: m.StudentProgressReportModal })));
+const StudentIdCardModal = React.lazy(() => import('./StudentIdCardModal').then(m => ({ default: m.StudentIdCardModal })));
 import { Modal } from '../../components/common/Modal';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { useToast } from '../../context/ToastContext';
@@ -1239,6 +1239,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         )}
       </div>
 
+      <React.Suspense fallback={null}>
       {/* Modals */}
       <ImportStudentsModal
         isOpen={importModalOpen}
@@ -1438,6 +1439,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
         }}
         enrollment={selectedEnrollment}
       />
+    </React.Suspense>
     </div>
   );
 };

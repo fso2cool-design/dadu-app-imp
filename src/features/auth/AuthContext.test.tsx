@@ -7,18 +7,6 @@ import type { ApplicationOperations } from '../../application/types';
 let authStateCallback: ((user: any) => void) | null = null;
 const mockUnsubscribe = vi.fn();
 
-vi.mock('firebase/auth', () => ({
-  onAuthStateChanged: vi.fn((_auth, callback) => {
-    authStateCallback = callback;
-    return mockUnsubscribe;
-  }),
-  signInWithEmailAndPassword: vi.fn(),
-  createUserWithEmailAndPassword: vi.fn(),
-  signOut: vi.fn(),
-  sendPasswordResetEmail: vi.fn(),
-  updateProfile: vi.fn(),
-}));
-
 vi.mock('../../services/firebase/config', () => ({
   auth: { app: { name: '[DEFAULT]' } },
 }));
@@ -34,6 +22,14 @@ const mockApp: ApplicationOperations = {
     createProfile: vi.fn(),
     recordLastLogin: vi.fn(),
     updateProfile: vi.fn(),
+    login: vi.fn(),
+    signup: vi.fn(),
+    logout: vi.fn(),
+    resetPassword: vi.fn(),
+    onAuthStateChanged: vi.fn((callback) => {
+      authStateCallback = callback;
+      return mockUnsubscribe;
+    }),
   },
 } as any;
 

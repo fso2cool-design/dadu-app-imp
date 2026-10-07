@@ -91,8 +91,9 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
     fetchSettings();
 
     // Default formatted Indonesian date
-      return () => { isMounted = false; };
     setCustomDate(formatDateIndonesian(getTodayISO()));
+
+    return () => { isMounted = false; };
   }, [user, app.settings]);
 
   const handlePrint = () => {

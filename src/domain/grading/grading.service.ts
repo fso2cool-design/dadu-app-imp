@@ -1,10 +1,17 @@
 // Pure domain: grading - extracted from GradesPage.tsx:400-480
 export type CalculationMethod = 'SIMPLE_AVERAGE' | 'WEIGHTED_AVERAGE';
-export type MissingScoreTreatment = 'IGNORE' | 'ZERO_PENALTY';
+export type MissingScoreTreatment = 'IGNORE' | 'PRO_RATA' | 'ZERO_PENALTY';
 export type AssessmentItemDomain = { id: string; weight?: number; };
 export type ScoreValue = number | undefined | null;
+export type GradePredicate = 'A' | 'B' | 'C' | 'D';
 
-export type GradingResult = { finalScore: number; filledCount: number; conductedFilledCount: number; conductedTotalCount: number; isIncomplete: boolean; };
+export type GradingResult = {
+  finalScore: number;
+  filledCount: number;
+  conductedFilledCount: number;
+  conductedTotalCount: number;
+  isIncomplete: boolean;
+};
 
 export function calculateFinalScore(
   items: AssessmentItemDomain[],
@@ -39,7 +46,7 @@ export function calculateFinalScore(
   return { finalScore, filledCount, conductedFilledCount, conductedTotalCount, isIncomplete };
 }
 
-export function getGradeScale(score: number, passingGrade: number): { predicate: string; label: string; isPassed: boolean } {
+export function getGradeScale(score: number, passingGrade: number): { predicate: GradePredicate; label: string; isPassed: boolean } {
   const isPassed = score >= passingGrade;
   const safeKkm = Math.min(Math.max(passingGrade, 0), 100);
   const interval = Math.max(1, (100 - safeKkm) / 3);

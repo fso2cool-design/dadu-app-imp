@@ -19,6 +19,7 @@ import { feedbackRepository } from '../../infrastructure/firestore/repositories/
 import { backupRepository, diagnosticsRepository, deduplicationRepository, relationshipRecoveryRepository, classScheduleRepository, onboardingRepository } from '../../infrastructure/firestore/repositories/misc.repository';
 import { loadWorkspaceUseCase } from '../workspace/loadWorkspace.usecase';
 import { checkHolidayUseCase } from '../attendance/checkHoliday.usecase';
+import { authRepository } from '../../infrastructure/firebase/auth.repository';
 import { searchStudentsUseCase } from '../students/searchStudents.usecase';
 import { importStudentsUseCase } from '../students/importStudents.usecase';
 import type { ApplicationOperations } from '../types';
@@ -69,6 +70,11 @@ const app: ApplicationOperations = {
     createProfile: (uid, data) => userRepository.createProfile(uid, data),
     recordLastLogin: (uid) => userRepository.recordLastLogin(uid),
     updateProfile: (uid, data) => userRepository.updateProfile(uid, data),
+    login: (email, pass) => authRepository.login(email, pass),
+    signup: (email, pass, name) => authRepository.signup(email, pass, name),
+    logout: () => authRepository.logout(),
+    resetPassword: (email) => authRepository.resetPassword(email),
+    onAuthStateChanged: (callback) => authRepository.onAuthStateChanged(callback),
   },
   workspace: {
     loadWorkspace: useCases.loadWorkspace,

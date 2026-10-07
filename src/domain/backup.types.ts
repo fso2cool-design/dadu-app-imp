@@ -66,6 +66,13 @@ export interface ResetSemesterScope {
   studentNotes?: boolean;         // Catatan siswa terkait
 }
 
+export interface ResetSemesterOptions {
+  academicYearId: string;
+  semester?: SemesterType | 'ALL';
+  scope?: Partial<ResetSemesterScope>;
+  forceArchived?: boolean;
+}
+
 export interface ResetSemesterSummary {
   academicYearId: string;
   semester: SemesterType | 'ALL';
@@ -81,4 +88,3 @@ export interface ResetSemesterSummary {
   studentNotes: number;
   totalDeleted: number;
 }
-

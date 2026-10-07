@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { List, CaretDown, Clock, ArrowsOut, ArrowsIn, Cloud, CloudSlash, ArrowClockwise, Gear, SignOut, Sparkle, Check, Heart, ShieldCheck, Sun, Moon } from '@phosphor-icons/react';
 import { useAuth } from '../../features/auth/AuthContext';
-import { useWorkspace } from '../../context/WorkspaceContext';
+import { useWorkspace, useWorkspaceSync } from '../../context/WorkspaceContext';
 import { useAppTheme } from '../../context/ThemeContext';
 import { AppLogo } from '../common/AppLogo';
 import { Tooltip } from '../common/Tooltip';
@@ -56,11 +56,14 @@ export const Header: React.FC<HeaderProps> = ({
     selectClassWithAutoAssignment,
     setActiveAcademicYear,
     setActiveSemester,
+    reloadWorkspaceData,
+  } = useWorkspace();
+  
+  const {
     syncStatus,
     syncMessage,
-    reloadWorkspaceData,
     triggerSyncFeedback
-  } = useWorkspace();
+  } = useWorkspaceSync();
   const { activeTheme, isDark, mode, applyAndSaveMode } = useAppTheme();
 
   const [localTime, setLocalTime] = useState<string>('');

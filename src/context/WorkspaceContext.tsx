@@ -32,14 +32,19 @@ interface WorkspaceContextType {
   selectClassWithAutoAssignment: (classId: string) => void;
   
   // Status
-  isOnline: boolean;
-  syncStatus: 'synced' | 'syncing' | 'saved' | 'offline';
-  syncMessage: string;
   loading: boolean;
   reloadWorkspaceData: () => Promise<void>;
   triggerSyncFeedback: (status: 'syncing' | 'saved' | 'synced' | 'offline', message?: string) => void;
 }
 
+export interface WorkspaceSyncContextType {
+  isOnline: boolean;
+  syncStatus: 'synced' | 'syncing' | 'saved' | 'offline';
+  syncMessage: string;
+  triggerSyncFeedback: (status: 'syncing' | 'saved' | 'synced' | 'offline', message?: string) => void;
+}
+
+export const WorkspaceSyncContext = createContext<WorkspaceSyncContextType | undefined>(undefined);
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -210,26 +215,26 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
   }, [user, teachingAssignments, selectedAssignment]);
 
-  const setActiveAcademicYear = async (year: AcademicYear) => {
+  const setActiveAcademicYear = useCallback(async (year: AcademicYear) => {
     setActiveAcademicYearState(year);
     if (user) {
       await app.workspace.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
     }
-  };
+  }, [user, app]);
 
-  const setActiveSemester = async (sem: SemesterType) => {
+  const setActiveSemester = useCallback(async (sem: SemesterType) => {
     setActiveSemesterState(sem);
     if (user) {
       await app.workspace.saveUserPreferences(user.uid, { defaultSemester: sem });
     }
-  };
+  }, [user, app]);
 
-  const updateAttendanceSettings = async (newSettings: AttendanceSettings) => {
+  const updateAttendanceSettings = useCallback(async (newSettings: AttendanceSettings) => {
     setAttendanceSettings(newSettings);
     if (user) {
       await app.workspace.saveAttendanceSettings(user.uid, newSettings);
     }
-  };
+  }, [user, app]);
 
   const checkIsHoliday = useCallback(
     (dateStr: string): { isHoliday: boolean; reason?: string } =>
@@ -237,39 +242,59 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     [attendanceSettings],
   );
 
+  const syncValue = React.useMemo(() => ({
+    isOnline,
+    syncStatus,
+    syncMessage,
+    triggerSyncFeedback,
+  }), [isOnline, syncStatus, syncMessage, triggerSyncFeedback]);
+
+  const workspaceValue = React.useMemo(() => ({
+    academicYears,
+    activeAcademicYear,
+    activeSemester,
+    classes,
+    subjects,
+    teachingAssignments,
+    selectedClassId,
+    selectedSubjectId,
+    selectedAssignment,
+    attendanceSettings,
+    updateAttendanceSettings,
+    checkIsHoliday,
+    setActiveAcademicYear,
+    setActiveSemester,
+    setSelectedClassId,
+    setSelectedSubjectId,
+    setSelectedAssignment,
+    selectClassWithAutoAssignment,
+    loading,
+    reloadWorkspaceData: loadData,
+    triggerSyncFeedback,
+  }), [
+    academicYears, activeAcademicYear, activeSemester, classes, subjects,
+    teachingAssignments, selectedClassId, selectedSubjectId, selectedAssignment,
+    attendanceSettings, updateAttendanceSettings, checkIsHoliday,
+    setActiveAcademicYear, setActiveSemester, selectClassWithAutoAssignment,
+    loading, loadData, triggerSyncFeedback
+  ]);
+
   return (
-    <WorkspaceContext.Provider
-      value={{
-        academicYears,
-        activeAcademicYear,
-        activeSemester,
-        classes,
-        subjects,
-        teachingAssignments,
-        selectedClassId,
-        selectedSubjectId,
-        selectedAssignment,
-        attendanceSettings,
-        updateAttendanceSettings,
-        checkIsHoliday,
-        setActiveAcademicYear,
-        setActiveSemester,
-        setSelectedClassId,
-        setSelectedSubjectId,
-        setSelectedAssignment,
-        selectClassWithAutoAssignment,
-        isOnline,
-        syncStatus,
-        syncMessage,
-        loading,
-        reloadWorkspaceData: loadData,
-        triggerSyncFeedback,
-      }}
-    >
-      {children}
-    </WorkspaceContext.Provider>
+    <WorkspaceSyncContext.Provider value={syncValue}>
+      <WorkspaceContext.Provider value={workspaceValue}>
+        {children}
+      </WorkspaceContext.Provider>
+    </WorkspaceSyncContext.Provider>
   );
 };
+
+export function useWorkspaceSync(): WorkspaceSyncContextType {
+  const context = useContext(WorkspaceSyncContext);
+  if (!context) {
+    throw new Error('useWorkspaceSync must be used within a WorkspaceProvider');
+  }
+  return context;
+}
 
 export function useWorkspace(): WorkspaceContextType {
   const context = useContext(WorkspaceContext);
