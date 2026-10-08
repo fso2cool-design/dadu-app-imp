@@ -28,8 +28,8 @@ interface StudentAttendanceSummary {
 }
 
 // In-memory module cache for instant SWR report rendering
-const subjectReportCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
-const homeroomReportCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
+const subjectReportCache = new Map();
+const homeroomReportCache = new Map();
 
 export const AttendanceReportPage: React.FC = () => {
   const { user, profile } = useAuth();

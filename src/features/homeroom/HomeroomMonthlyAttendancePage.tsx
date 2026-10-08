@@ -10,8 +10,8 @@ import { GenderBadge } from '../../components/common/GenderIcon';
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const homeroomMonthlyRosterCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
-const homeroomMonthlyRecordsCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
+const homeroomMonthlyRosterCache = new Map();
+const homeroomMonthlyRecordsCache = new Map();
 
 export const HomeroomMonthlyAttendancePage: React.FC = () => {
   const { user, profile } = useAuth();

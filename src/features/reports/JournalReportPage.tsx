@@ -11,7 +11,7 @@ import { loadXlsx } from '../../utils/lazyXlsx';
 import { CalendarCheck, MagnifyingGlass, BookOpen, Stack, CalendarBlank, CheckCircle, FileCsv, Clock, Sparkle, ShareNetwork } from '@phosphor-icons/react';
 
 // In-memory module cache for instant SWR journal report rendering
-const journalReportCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
+const journalReportCache = new Map();
 
 export const JournalReportPage: React.FC = () => {
   const { user } = useAuth();

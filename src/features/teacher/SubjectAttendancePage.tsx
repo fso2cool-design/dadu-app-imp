@@ -37,9 +37,9 @@ interface MatrixColumn {
 }
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const subjectMeetingsCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
-const classEnrollmentsCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
-const subjectAttendanceCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
+const subjectMeetingsCache = new Map();
+const classEnrollmentsCache = new Map();
+const subjectAttendanceCache = new Map();
 
 
 const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, handleNoteChange }: any) => {

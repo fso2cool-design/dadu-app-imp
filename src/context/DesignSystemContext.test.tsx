@@ -40,7 +40,10 @@ const mockApp: ApplicationOperations = {
     createProfile: vi.fn(),
     recordLastLogin: vi.fn(),
     updateProfile: vi.fn(),
-
+    onAuthStateChanged: vi.fn((cb) => {
+      cb(null);
+      return vi.fn(); // return unsubscribe function
+    }),
   },
   theme: {
     updateDesignSystem: vi.fn(),
