@@ -11,3 +11,7 @@ coverage/
 # Firebase Admin service account (RAHASIA - jangan commit)
 tools/serviceAccountKey.json
 
+# Playwright Test Artifacts
+test-results/
+playwright-report/
+tests/e2e/.auth/

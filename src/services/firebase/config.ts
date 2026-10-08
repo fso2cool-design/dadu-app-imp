@@ -1,11 +1,12 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { 
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager,
   getFirestore,
-  Firestore
+  Firestore,
+  connectFirestoreEmulator
 } from 'firebase/firestore';
 import firebaseConfigJson from '../../../firebase-applet-config.json';
 
@@ -69,3 +70,8 @@ try {
 }
 
 export const db = firestoreInstance;
+
+if (import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+}
