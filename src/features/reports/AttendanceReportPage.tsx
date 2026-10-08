@@ -28,8 +28,9 @@ interface StudentAttendanceSummary {
 }
 
 // In-memory module cache for instant SWR report rendering
-const subjectReportCache = new Map();
-const homeroomReportCache = new Map();
+import { LRUCache } from '../../utils/lruCache';
+const subjectReportCache = new LRUCache<string, any>(10);
+const homeroomReportCache = new LRUCache<string, any>(5);
 
 export const AttendanceReportPage: React.FC = () => {
   const { user, profile } = useAuth();

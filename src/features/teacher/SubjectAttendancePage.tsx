@@ -37,9 +37,10 @@ interface MatrixColumn {
 }
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const subjectMeetingsCache = new Map();
-const classEnrollmentsCache = new Map();
-const subjectAttendanceCache = new Map();
+import { LRUCache } from '../../utils/lruCache';
+const subjectMeetingsCache = new LRUCache<string, Meeting[]>(20);
+const classEnrollmentsCache = new LRUCache<string, Enrollment[]>(20);
+const subjectAttendanceCache = new LRUCache<string, StudentRow[]>(50);
 
 
 const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, handleNoteChange }: any) => {
