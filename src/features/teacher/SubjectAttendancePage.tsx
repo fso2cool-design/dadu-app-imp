@@ -908,10 +908,10 @@ export const SubjectAttendancePage = () => {
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={(!isDirty && !isNewRecord && selectedMeetingId !== initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={(!isDirty && !isNewRecord && selectedMeetingId === initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  isDirty || isNewRecord 
+                  isDirty || isNewRecord || selectedMeetingId !== initialMeetingIdRef.current 
                     ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md' 
                     : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
@@ -1010,7 +1010,7 @@ export const SubjectAttendancePage = () => {
                   <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                     <span className={`w-1.5 h-1.5 rounded-full ${isNewRecord || isDirty ? 'bg-[var(--ds-warning-fg)] motion-safe:animate-pulse' : 'bg-emerald-500'}`} />
                     Spektrum Kehadiran Kelas
-                    {(isNewRecord || isDirty) && (
+                    {(isNewRecord || isDirty || selectedMeetingId !== initialMeetingIdRef.current) && (
                       <span className="ml-1 px-1.5 py-0.5 rounded-md normal-case tracking-normal text-[10px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)]">
                         {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
                       </span>
