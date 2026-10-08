@@ -25,7 +25,7 @@ interface StudentGradeRow {
 }
 
 // In-memory module cache for instant SWR grades report rendering
-const gradesReportCache = new Map<string, { assessmentItems: AssessmentItem[]; enrollments: Enrollment[]; scores: Score[] }>();
+const gradesReportCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
 
 export const GradesReportPage: React.FC = () => {
   const { user } = useAuth();

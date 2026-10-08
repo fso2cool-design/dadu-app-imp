@@ -15,7 +15,7 @@ interface MeetingsJournalPageProps {
 }
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const meetingsJournalCache = new Map<string, Meeting[]>();
+const meetingsJournalCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
 
 export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({ 
   initialAssignmentId,

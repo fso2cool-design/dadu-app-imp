@@ -14,8 +14,8 @@ import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal
 import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const dailyEnrollmentsCache = new Map<string, Enrollment[]>();
-const dailyAttendanceCache = new Map<string, { stateMap: Record<string, { status: AttendanceStatus; note: string }>; sessionNotes: string }>();
+const dailyEnrollmentsCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
+const dailyAttendanceCache = { get: () => undefined, set: () => {}, delete: () => {}, clear: () => {}, values: () => [], keys: () => [], entries: () => [] } as any;
 
 interface HomeroomDailyAttendancePageProps {
   initialClassId?: string;

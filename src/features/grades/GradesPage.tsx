@@ -918,7 +918,7 @@ export const GradesPage: React.FC = () => {
               setEditingItem(null);
               setIsItemModalOpen(true);
             }}
-            disabled={!activeAssignment || isArchivedYear}
+            disabled={!activeAssignment || isArchivedYear || isDirty}
             className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
@@ -1299,23 +1299,25 @@ export const GradesPage: React.FC = () => {
                       {/* Header quick actions on hover */}
                       {!isArchivedYear && (
                         <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[var(--ds-surface-elevated)]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[var(--ds-border)]">
-                          <Tooltip content="Edit Kolom" position="top">
+                          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Edit Kolom"} position="top">
                             <button
                               type="button"
                               onClick={() => {
                                 setEditingItem(item);
                                 setIsItemModalOpen(true);
                               }}
-                              className="p-1 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded cursor-pointer"
+                              disabled={isDirty}
+                              className={`p-1 rounded ${isDirty ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer'}`}
                             >
                               <PencilSimple className="w-3 h-3" />
                             </button>
                           </Tooltip>
-                          <Tooltip content="Hapus Kolom" position="top">
+                          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Hapus Kolom"} position="top">
                             <button
                               type="button"
                               onClick={() => handleDeleteItem(item.id, item.name)}
-                              className="p-1 text-slate-400 hover:text-rose-600 rounded cursor-pointer"
+                              disabled={isDirty}
+                              className={`p-1 rounded ${isDirty ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'text-slate-400 hover:text-rose-600 cursor-pointer'}`}
                             >
                               <Trash className="w-3 h-3" />
                             </button>
@@ -1329,14 +1331,15 @@ export const GradesPage: React.FC = () => {
                   {/* Empty Add Column Button Header */}
                   <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[var(--ds-border)]">
                     {!isArchivedYear && (
-                      <Tooltip content="Tambah Kolom Penilaian Baru" position="top">
+                      <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Tambah Kolom Penilaian Baru"} position="top">
                         <button
                           type="button"
                           onClick={() => {
                             setEditingItem(null);
                             setIsItemModalOpen(true);
                           }}
-                          className="w-7 h-7 rounded-lg border border-dashed border-accent-primary-border text-accent-text hover:bg-accent-primary-soft flex items-center justify-center mx-auto transition-colors cursor-pointer"
+                          disabled={isDirty}
+                          className={`w-7 h-7 rounded-lg border border-dashed border-accent-primary-border text-accent-text flex items-center justify-center mx-auto transition-colors ${isDirty ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent-primary-soft cursor-pointer'}`}
                         >
                           <Plus className="w-4 h-4" />
                         </button>
