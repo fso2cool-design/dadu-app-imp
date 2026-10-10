@@ -1,8 +1,10 @@
+import { useLocation } from 'react-router-dom';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 import { useApplication } from '../../application/ApplicationContext';
+import { invalidateMeetingsJournalCache } from './MeetingsJournalPage';
 import type { SaveAttendanceItem } from '../../domain/attendance.types';
 
 const MeetingFormModal = React.lazy(() => import('./MeetingFormModal').then(m => ({ default: m.MeetingFormModal })));
@@ -13,7 +15,7 @@ import { TabNavigation } from '../../components/common/TabNavigation';
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { getTodayISO, formatDateIndonesian } from '../../utils/date';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { CheckSquare, Users, CalendarBlank, Sparkle, FloppyDisk, MagnifyingGlass, Download, Plus, Table, CheckCircle, WarningCircle, Clock, Stack, BookOpen, Link as LinkIcon, Info } from '@phosphor-icons/react';
+import { CheckSquare, Users, CalendarBlank, Sparkle, FloppyDisk, MagnifyingGlass, Download, Plus, Table, CheckCircle, WarningCircle, Clock, Stack, BookOpen, Link as LinkIcon, Info, ArrowLeft } from '@phosphor-icons/react';
 
 interface StudentRow {
   studentId: string;
@@ -40,11 +42,11 @@ interface MatrixColumn {
 import { LRUCache } from '../../utils/lruCache';
 const subjectMeetingsCache = new LRUCache<string, Meeting[]>(20);
 const classEnrollmentsCache = new LRUCache<string, Enrollment[]>(20);
-const subjectAttendanceCache = new LRUCache<string, StudentRow[]>(50);
+const subjectAttendanceCache = new LRUCache<string, { rows: StudentRow[]; linkedMeetingId: string | null }>(50);
 
 
 const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, handleNoteChange }: any) => {
-  const rowHighlightClass = 
+  const rowHighlightClass =
     row.status === 'SICK'
       ? 'bg-amber-50/50 hover:bg-amber-100/60 dark:bg-amber-950/20 dark:hover:bg-amber-950/30'
       : row.status === 'PERMITTED'
@@ -169,7 +171,24 @@ const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, han
   return prev.row === next.row && prev.isArchivedYear === next.isArchivedYear;
 });
 
-export const SubjectAttendancePage = () => {
+export interface SubjectAttendancePageProps {
+  initialContext?: {
+    assignmentId?: string;
+    date?: string;
+    meetingId?: string;
+    returnTo?: string;
+  };
+  onNavigate?: (route: string, state?: any) => void;
+}
+
+export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
+  initialContext,
+  onNavigate,
+}) => {
+  const location = useLocation();
+  const navContext = initialContext || (location.state as any);
+  const [contextError, setContextError] = useState<string | null>(null);
+  const [rosterError, setRosterError] = useState<string | null>(null);
   const { user } = useAuth();
   const app = useApplication();
   const { teachingAssignments, activeAcademicYear, activeSemester, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
@@ -188,6 +207,7 @@ export const SubjectAttendancePage = () => {
   // Take Attendance State
   const [studentRows, setStudentRows] = useState<StudentRow[]>([]);
   const [loadingRows, setLoadingRows] = useState(false);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -195,7 +215,7 @@ export const SubjectAttendancePage = () => {
   // Matrix Rekap State
   const [allEnrollments, setAllEnrollments] = useState<Enrollment[]>([]);
   const [matrixColumns, setMatrixColumns] = useState<MatrixColumn[]>([]);
-  
+
   const [matrixMonthFilter, setMatrixMonthFilter] = useState<string>('ALL');
   const [matrixYearFilter, setMatrixYearFilter] = useState<string>(new Date().getFullYear().toString());
 
@@ -236,11 +256,17 @@ export const SubjectAttendancePage = () => {
 
   // Dirty state tracking for attendance input
   const initialRowsRef = useRef<string>('[]');
+  const isRowsDirtyRef = useRef(false);
   const initialMeetingIdRef = useRef<string | null>(null);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, _setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+  const setIsDirty = (val: boolean) => {
+    isDirtyRef.current = val;
+    _setIsDirty(val);
+  };
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: 'assignment' | 'date' | 'meeting' | 'tab'; targetValue: string } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back'; targetValue?: string } | null>(null);
 
   // Warning when leaving or reloading browser tab with unsaved attendance
   useEffect(() => {
@@ -254,12 +280,23 @@ export const SubjectAttendancePage = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // 1. Initial selection of teaching assignment
+  // 1. Initial selection of teaching assignment and navContext validation (D2)
   useEffect(() => {
     if (teachingAssignments.length > 0 && !selectedAssignmentId) {
-      setSelectedAssignmentId(teachingAssignments[0].id);
+      if (navContext?.assignmentId) {
+        const found = teachingAssignments.find(t => t.id === navContext.assignmentId);
+        if (!found) {
+          setContextError(`Penugasan mengajar dengan ID "${navContext.assignmentId}" dari konteks jurnal tidak ditemukan atau tidak dapat diakses.`);
+          return;
+        }
+        setSelectedAssignmentId(navContext.assignmentId);
+        if (navContext.date) setSelectedDate(navContext.date);
+        if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
+      } else {
+        setSelectedAssignmentId(teachingAssignments[0].id);
+      }
     }
-  }, [teachingAssignments, selectedAssignmentId]);
+  }, [teachingAssignments, selectedAssignmentId, navContext]);
 
     // 2. Fetch meetings whenever assignment changes with SWR
   useEffect(() => {
@@ -284,6 +321,14 @@ export const SubjectAttendancePage = () => {
         if (!isMounted) return;
         subjectMeetingsCache.set(meetingsKey, data);
         setMeetings(data);
+        if (navContext?.meetingId) {
+          const match = data.find(m => m.id === navContext.meetingId);
+          if (!match) {
+            setContextError(`Pertemuan jurnal dengan ID "${navContext.meetingId}" tidak ditemukan pada penugasan ini.`);
+          } else if (navContext.date && match.date !== navContext.date) {
+            setContextError(`Tanggal pertemuan jurnal (${match.date}) tidak cocok dengan tanggal presensi (${navContext.date}).`);
+          }
+        }
       } catch (err) {
         if (!isMounted) return;
         console.error('Error fetching meetings:', err);
@@ -315,20 +360,33 @@ export const SubjectAttendancePage = () => {
   useEffect(() => {
     if (!user || !activeAcademicYear || !currentAssignment) {
       setStudentRows([]);
+      isRowsDirtyRef.current = false;
+      setIsDirty(false);
+      setSessionLoaded(false);
       return;
     }
 
     let isMounted = true;
-    const sessionCacheKey = `${user.uid}_${currentAssignment.id}_${selectedDate}_${selectedMeetingId || 'NONE'}`;
-    const cachedRows = subjectAttendanceCache.get(sessionCacheKey);
-    if (cachedRows) {
-      setStudentRows(cachedRows);
+    const sessionCacheKey = `${user.uid}_${currentAssignment.id}_${selectedDate}`;
+    const cachedSession = subjectAttendanceCache.get(sessionCacheKey);
+    if (cachedSession) {
+      if (!isRowsDirtyRef.current) {
+        setStudentRows(cachedSession.rows);
+        initialMeetingIdRef.current = cachedSession.linkedMeetingId;
+        initialRowsRef.current = JSON.stringify(cachedSession.rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
+        isRowsDirtyRef.current = false;
+        const targetMeetingNorm = selectedMeetingId || cachedSession.linkedMeetingId || null;
+        const isMeetingLinkDirty = targetMeetingNorm !== (cachedSession.linkedMeetingId || null);
+        setIsDirty(isMeetingLinkDirty);
+      }
       setLoadingRows(false);
+      setSessionLoaded(true);
     }
 
     const loadAttendance = async () => {
       try {
-        if (!cachedRows) setLoadingRows(true);
+        if (!cachedSession) setLoadingRows(true);
+        setSessionLoaded(false);
         setFeedbackMsg(null);
 
         // Enrolled students in class (using class enrollments cache if available)
@@ -343,25 +401,47 @@ export const SubjectAttendancePage = () => {
           classEnrollmentsCache.set(enrollKey, enrollments);
         }
 
-        // Fetch existing records for this session (try by meeting if selected, otherwise by date)
+        // D1: Canonical loading by date as primary source
         let existingRecords: AttendanceRecord[] = [];
-        if (selectedMeetingId) {
-          existingRecords = await app.attendance.getByMeeting(user.uid, selectedMeetingId);
-        }
-        if (existingRecords.length === 0 && selectedDate) {
+        if (selectedDate) {
           existingRecords = await app.attendance.getByDate(user.uid, currentAssignment.id, selectedDate);
         }
 
         if (!isMounted) return;
+
+        // D1 & B6: Validate mixed relations or split meetings
+        const uniqueMeetings = new Set(existingRecords.map(r => r.meetingId || null));
+        if (uniqueMeetings.size > 1) {
+          setRosterError('Terdeteksi rekaman presensi dengan relasi pertemuan yang bercampur atau terpecah. Penyimpanan normal diblokir.');
+        } else {
+          setRosterError(null);
+        }
+
+        // D1: Check for inactive or orphan records
+        const activeStudentIds = new Set(enrollments.filter(en => en.status === 'ACTIVE' && en.student).map(en => en.student!.id));
+        const orphanRecords = existingRecords.filter(r => !activeStudentIds.has(r.studentId));
+        if (orphanRecords.length > 0) {
+          setRosterError(`Ditemukan ${orphanRecords.length} rekaman presensi tersimpan untuk siswa yang tidak ada di roster aktif. Penyimpanan diblokir.`);
+        }
+
+        // B5: Check for invalid status in saved records
+        const VALID_STATUSES: AttendanceStatus[] = ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'];
+        const invalidStatusRecord = existingRecords.find(r => !VALID_STATUSES.includes(r.status as AttendanceStatus));
+        if (invalidStatusRecord) {
+          setRosterError(`Ditemukan status presensi tidak sah ("${invalidStatusRecord.status}") pada data tersimpan. Penyimpanan diblokir.`);
+        }
 
         setIsNewRecord(existingRecords.length === 0);
 
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
-        // If records exist and they were linked to a meeting, sync selectedMeetingId
-        if (existingRecords.length > 0 && existingRecords[0].meetingId && !selectedMeetingId) {
-          setSelectedMeetingId(existingRecords[0].meetingId);
+        // Sync selectedMeetingId from canonical persistent record if available
+        const currentLinkedMeeting = existingRecords.length > 0 ? (existingRecords[0].meetingId || '') : '';
+        initialMeetingIdRef.current = currentLinkedMeeting || null;
+
+        if (!selectedMeetingId && currentLinkedMeeting) {
+          setSelectedMeetingId(currentLinkedMeeting);
         }
 
         const rows: StudentRow[] = enrollments
@@ -375,22 +455,33 @@ export const SubjectAttendancePage = () => {
               rollNumber: en.rollNumber || (idx + 1),
               nis: stud.nis || '',
               gender: stud.gender || 'L',
-              status: existing ? existing.status : 'PRESENT',
+              status: existing ? (existing.status as AttendanceStatus) : 'PRESENT',
               note: existing?.note || '',
               recordId: existing?.id,
             };
           });
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
-        subjectAttendanceCache.set(sessionCacheKey, rows);
-        setStudentRows(rows);
-        initialRowsRef.current = JSON.stringify(rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
-        initialMeetingIdRef.current = existingRecords.length > 0 ? (existingRecords[0].meetingId || '') : '';
-        setIsDirty(false);
+        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: currentLinkedMeeting || null });
+
+        // Preserve in-flight user edits if user started editing before background fetch completed
+        if (!isRowsDirtyRef.current) {
+          setStudentRows(rows);
+          initialRowsRef.current = JSON.stringify(rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
+          isRowsDirtyRef.current = false;
+        }
+
+        const targetMeetingNorm = selectedMeetingId || currentLinkedMeeting || null;
+        const isMeetingLinkDirty = targetMeetingNorm !== (currentLinkedMeeting || null);
+        setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
+        setSessionLoaded(true);
       } catch (err) {
         console.error('Error loading attendance rows:', err);
       } finally {
-        if (isMounted) setLoadingRows(false);
+        if (isMounted) {
+          setLoadingRows(false);
+          setSessionLoaded(true);
+        }
       }
     };
 
@@ -399,7 +490,7 @@ export const SubjectAttendancePage = () => {
     return () => {
       isMounted = false;
     };
-  }, [user, activeAcademicYear, currentAssignment, selectedDate, selectedMeetingId]);
+  }, [user, activeAcademicYear, currentAssignment, selectedDate]);
 
   // 4. Load Matrix Data (all enrollments & all records for this class & assignment)
   useEffect(() => {
@@ -517,7 +608,10 @@ export const SubjectAttendancePage = () => {
   const handleStatusChange = (studentId: string, newStatus: AttendanceStatus) => {
     setStudentRows(prev => {
       const updated = prev.map(r => r.studentId === studentId ? { ...r, status: newStatus } : r);
-      setIsDirty(JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current);
+      const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
+      isRowsDirtyRef.current = rowsDirty;
+      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
   };
@@ -526,7 +620,10 @@ export const SubjectAttendancePage = () => {
   const handleNoteChange = (studentId: string, newNote: string) => {
     setStudentRows(prev => {
       const updated = prev.map(r => r.studentId === studentId ? { ...r, note: newNote } : r);
-      setIsDirty(JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current);
+      const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
+      isRowsDirtyRef.current = rowsDirty;
+      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
   };
@@ -535,7 +632,10 @@ export const SubjectAttendancePage = () => {
   const handleSetAllPresent = () => {
     setStudentRows(prev => {
       const updated = prev.map(r => ({ ...r, status: 'PRESENT' as const }));
-      setIsDirty(JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current);
+      const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
+      isRowsDirtyRef.current = rowsDirty;
+      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
   };
@@ -559,6 +659,9 @@ export const SubjectAttendancePage = () => {
         note: r.note.trim(),
       }));
 
+      const targetMeetingId = selectedMeetingId ? selectedMeetingId : null;
+      const expectedPrev = initialMeetingIdRef.current || null;
+
       const summary = await app.attendance.saveSubjectAttendance(user.uid, {
         academicYearId: activeAcademicYear.id,
         semester: activeSemester,
@@ -566,32 +669,44 @@ export const SubjectAttendancePage = () => {
         classId: currentAssignment.classId,
         subjectId: currentAssignment.subjectId,
         date: selectedDate,
-        meetingId: selectedMeetingId || undefined,
+        meetingId: targetMeetingId,
+        expectedPreviousMeetingId: expectedPrev,
         meetingNumber: currentMeeting?.meetingNumber || undefined,
         items,
       });
 
       // Update local attendance cache
-      const sessionCacheKey = `${user.uid}_${currentAssignment.id}_${selectedDate}_${selectedMeetingId || 'NONE'}`;
-      subjectAttendanceCache.set(sessionCacheKey, studentRows);
+      const sessionCacheKey = `${user.uid}_${currentAssignment.id}_${selectedDate}`;
+      subjectAttendanceCache.set(sessionCacheKey, { rows: studentRows, linkedMeetingId: targetMeetingId });
 
-      // Update meeting attendanceSummary locally if linked
-      if (selectedMeetingId) {
-        setMeetings(prev => {
-          const next = prev.map(m => {
-            if (m.id === selectedMeetingId) {
-              return { ...m, attendanceSummary: summary, status: 'COMPLETED' as const };
-            }
-            return m;
-          });
-          const meetingsKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${currentAssignment.id}`;
-          subjectMeetingsCache.set(meetingsKey, next);
-          return next;
+      // Update meetings list locally: target meeting gets summary, old unlinked meeting gets null summary
+      setMeetings(prev => {
+        const next = prev.map(m => {
+          if (targetMeetingId && m.id === targetMeetingId) {
+            return {
+              ...m,
+              attendanceSummary: summary,
+              status: (m.status === 'SUBSTITUTE' ? ('SUBSTITUTE' as const) : ('COMPLETED' as const)),
+            };
+          }
+          if (expectedPrev && m.id === expectedPrev && expectedPrev !== targetMeetingId) {
+            return {
+              ...m,
+              attendanceSummary: null,
+            };
+          }
+          return m;
         });
-      }
+        const meetingsKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${currentAssignment.id}`;
+        subjectMeetingsCache.set(meetingsKey, next);
+        return next;
+      });
+
+      invalidateMeetingsJournalCache();
 
       initialRowsRef.current = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
-      initialMeetingIdRef.current = selectedMeetingId || '';
+      initialMeetingIdRef.current = targetMeetingId;
+      isRowsDirtyRef.current = false;
       setIsDirty(false);
       setIsNewRecord(false);
 
@@ -632,17 +747,27 @@ export const SubjectAttendancePage = () => {
 
   const handleMeetingChange = (targetMeetingId: string) => {
     if (targetMeetingId === selectedMeetingId) return;
+    setSelectedMeetingId(targetMeetingId);
+    if (targetMeetingId) {
+      const m = meetings.find(item => item.id === targetMeetingId);
+      if (m?.date) {
+        setSelectedDate(m.date);
+      }
+    }
+    const targetNorm = targetMeetingId || null;
+    const initialNorm = initialMeetingIdRef.current || null;
+    const isMeetingLinkDirty = targetNorm !== initialNorm;
+    const isRowsDirty = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
+    isRowsDirtyRef.current = isRowsDirty;
+    setIsDirty(isMeetingLinkDirty || isRowsDirty);
+  };
+
+  const handleBackToJournal = () => {
     if (isDirty) {
-      setPendingAction({ type: 'meeting', targetValue: targetMeetingId });
+      setPendingAction({ type: 'back' });
       setIsDirtyModalOpen(true);
     } else {
-      setSelectedMeetingId(targetMeetingId);
-      if (targetMeetingId) {
-        const m = meetings.find(item => item.id === targetMeetingId);
-        if (m?.date) {
-          setSelectedDate(m.date);
-        }
-      }
+      onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
     }
   };
 
@@ -660,10 +785,11 @@ export const SubjectAttendancePage = () => {
     try {
       await handleSaveAttendance();
       if (pendingAction) {
-        if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue);
-        else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue);
-        else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue);
+        if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
+        else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
+        else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
+        else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
         setPendingAction(null);
       }
       setIsDirtyModalOpen(false);
@@ -673,12 +799,14 @@ export const SubjectAttendancePage = () => {
   };
 
   const handleDiscardAndProceed = () => {
+    isRowsDirtyRef.current = false;
     setIsDirty(false);
     if (pendingAction) {
-      if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue);
-      else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue);
-      else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue);
+      if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
+      else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
+      else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
       else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
+      else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
       setPendingAction(null);
     }
     setIsDirtyModalOpen(false);
@@ -688,7 +816,7 @@ export const SubjectAttendancePage = () => {
   const filteredRows = useMemo(() => {
     if (!searchQuery.trim()) return studentRows;
     const q = searchQuery.toLowerCase();
-    return studentRows.filter(r => 
+    return studentRows.filter(r =>
       r.studentName.toLowerCase().includes(q) ||
       r.nis.toLowerCase().includes(q) ||
       String(r.rollNumber).includes(q)
@@ -726,10 +854,10 @@ export const SubjectAttendancePage = () => {
 
         const colKey = col.type === 'MEETING' ? `${col.label} (${col.date})` : `Presensi (${col.date})`;
         if (r) {
-          const statusShort = r.status === 'PRESENT' ? 'H' 
-            : r.status === 'SICK' ? 'S' 
-            : r.status === 'PERMITTED' ? 'I' 
-            : r.status === 'ABSENT' ? 'A' 
+          const statusShort = r.status === 'PRESENT' ? 'H'
+            : r.status === 'SICK' ? 'S'
+            : r.status === 'PERMITTED' ? 'I'
+            : r.status === 'ABSENT' ? 'A'
             : 'D';
           row[colKey] = statusShort;
 
@@ -766,6 +894,15 @@ export const SubjectAttendancePage = () => {
     XLSX.writeFile(wb, fileName);
   };
 
+    const meetingOptions = useMemo(() => {
+    const list = [...todayMeetings];
+    if (selectedMeetingId && !list.some(m => m.id === selectedMeetingId)) {
+      const extra = meetings.find(m => m.id === selectedMeetingId);
+      if (extra) list.push(extra);
+    }
+    return list;
+  }, [todayMeetings, selectedMeetingId, meetings]);
+
   return (
     <div className="space-y-6">
       {/* Historical Archive Banner */}
@@ -778,10 +915,32 @@ export const SubjectAttendancePage = () => {
         </div>
       )}
 
+      {/* Error & Warning Banners (D2 Context & D1 Roster) */}
+      {(contextError || rosterError) && (
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-200 text-xs">
+          <WarningCircle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+          <div>
+            <span className="font-bold">Peringatan Integritas Data & Konteks:</span>
+            <p className="mt-1">{contextError || rosterError}</p>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[var(--ds-surface-elevated)] p-4 sm:p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs transition-colors">
         <div>
           <div className="flex items-center gap-2">
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={handleBackToJournal}
+                className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all cursor-pointer mr-1"
+                title="Kembali ke Jurnal Mengajar"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Ke Jurnal
+              </button>
+            )}
             <span className="p-2 rounded-xl bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)]">
               <CheckSquare className="w-5 h-5" />
             </span>
@@ -852,7 +1011,7 @@ export const SubjectAttendancePage = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tahun:</label>
                   <select
@@ -875,7 +1034,7 @@ export const SubjectAttendancePage = () => {
                 <div className="flex gap-1.5 flex-1 sm:flex-none">
                   <select
                     value={selectedMeetingId}
-                    onChange={(e) => setSelectedMeetingId(e.target.value)}
+                    onChange={(e) => handleMeetingChange(e.target.value)}
                     className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px]"
                   >
                     <option value="">-- Tidak ditautkan --</option>
@@ -890,7 +1049,7 @@ export const SubjectAttendancePage = () => {
             )}
           </div>
 
-          
+
 
         {/* Tab specific actions */}
         {activeTab === 'TAKE' ? (
@@ -908,11 +1067,11 @@ export const SubjectAttendancePage = () => {
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={(!isDirty && !isNewRecord && selectedMeetingId === initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || (!isDirty && !isNewRecord && selectedMeetingId === initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  isDirty || isNewRecord || selectedMeetingId !== initialMeetingIdRef.current 
-                    ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md' 
+                  isDirty || isNewRecord || selectedMeetingId !== initialMeetingIdRef.current
+                    ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md'
                     : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
               >
@@ -1022,37 +1181,37 @@ export const SubjectAttendancePage = () => {
                 </div>
                 <div className="h-2 w-full bg-[var(--ds-surface-muted)] rounded-full overflow-hidden flex border border-[var(--ds-border)] gap-0.5">
                   {stats.present > 0 && (
-                    <div 
-                      style={{ width: `${(stats.present / stats.total) * 100}%` }} 
-                      className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300" 
+                    <div
+                      style={{ width: `${(stats.present / stats.total) * 100}%` }}
+                      className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300"
                       title={`Hadir: ${stats.present} siswa`}
                     />
                   )}
                   {stats.sick > 0 && (
-                    <div 
-                      style={{ width: `${(stats.sick / stats.total) * 100}%` }} 
-                      className="h-full bg-amber-500 dark:bg-amber-400 transition-all duration-300" 
+                    <div
+                      style={{ width: `${(stats.sick / stats.total) * 100}%` }}
+                      className="h-full bg-amber-500 dark:bg-amber-400 transition-all duration-300"
                       title={`Sakit: ${stats.sick} siswa`}
                     />
                   )}
                   {stats.permitted > 0 && (
-                    <div 
-                      style={{ width: `${(stats.permitted / stats.total) * 100}%` }} 
-                      className="h-full bg-sky-500 dark:bg-sky-400 transition-all duration-300" 
+                    <div
+                      style={{ width: `${(stats.permitted / stats.total) * 100}%` }}
+                      className="h-full bg-sky-500 dark:bg-sky-400 transition-all duration-300"
                       title={`Izin: ${stats.permitted} siswa`}
                     />
                   )}
                   {stats.absent > 0 && (
-                    <div 
-                      style={{ width: `${(stats.absent / stats.total) * 100}%` }} 
-                      className="h-full bg-rose-500 dark:bg-rose-400 transition-all duration-300" 
+                    <div
+                      style={{ width: `${(stats.absent / stats.total) * 100}%` }}
+                      className="h-full bg-rose-500 dark:bg-rose-400 transition-all duration-300"
                       title={`Alpa: ${stats.absent} siswa`}
                     />
                   )}
                   {stats.dispensation > 0 && (
-                    <div 
-                      style={{ width: `${(stats.dispensation / stats.total) * 100}%` }} 
-                      className="h-full bg-purple-500 dark:bg-purple-400 transition-all duration-300" 
+                    <div
+                      style={{ width: `${(stats.dispensation / stats.total) * 100}%` }}
+                      className="h-full bg-purple-500 dark:bg-purple-400 transition-all duration-300"
                       title={`Dispensasi: ${stats.dispensation} siswa`}
                     />
                   )}
@@ -1092,8 +1251,8 @@ export const SubjectAttendancePage = () => {
           {/* Feedback message */}
           {feedbackMsg && (
             <div className={`flex items-center gap-2 p-3 rounded-xl border text-xs ${
-              feedbackMsg.type === 'success' 
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300' 
+              feedbackMsg.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300'
                 : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300'
             }`}>
               {feedbackMsg.type === 'success' ? (
@@ -1210,11 +1369,11 @@ export const SubjectAttendancePage = () => {
                     <th className="sticky left-0 z-30 bg-[var(--ds-surface-muted)] py-2.5 px-3 border-r border-[var(--ds-border)] w-10 text-center">No</th>
                     <th className="sticky left-10 z-30 bg-[var(--ds-surface-muted)] py-2.5 px-3 border-r border-[var(--ds-border)] min-w-[160px]">Nama Siswa</th>
                     <th className="py-2.5 px-2 border-r border-[var(--ds-border)] w-10 text-center">L/P</th>
-                    
+
                     {/* Columns for each session (meeting or independent date) */}
                     {matrixColumns.map(col => (
-                      <th 
-                        key={col.key} 
+                      <th
+                        key={col.key}
                         className={`py-2 px-2 border-r border-[var(--ds-border)] text-center font-mono text-[11px] min-w-[40px] ${
                           col.type === 'INDEPENDENT' ? 'bg-amber-50/50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-300' : ''
                         }`}
@@ -1292,8 +1451,8 @@ export const SubjectAttendancePage = () => {
                           }
 
                           return (
-                            <td 
-                              key={col.key} 
+                            <td
+                              key={col.key}
                               className={`py-1.5 px-1 text-center border-r border-[var(--ds-border)] font-mono text-xs ${cellClass}`}
                             >
                               {statusShort}

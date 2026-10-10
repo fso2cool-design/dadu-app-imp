@@ -19,8 +19,8 @@ export interface SaveSubjectAttendancePayload {
   teachingAssignmentId: string;
   subjectId?: string;
   date: string; // YYYY-MM-DD
-  meetingId?: string | null;
+  meetingId: string | null;
+  expectedPreviousMeetingId: string | null;
   meetingNumber?: number | null;
   items: SaveAttendanceItem[];
 }
-

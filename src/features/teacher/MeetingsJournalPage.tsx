@@ -3,7 +3,6 @@ import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
-import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
 import { SkeletonMeetingList } from '../../components/common/Skeleton';
 import { loadXlsx } from '../../utils/lazyXlsx';
@@ -15,7 +14,11 @@ interface MeetingsJournalPageProps {
 }
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
-const meetingsJournalCache = new Map();
+export const meetingsJournalCache = new Map();
+
+export const invalidateMeetingsJournalCache = () => {
+  meetingsJournalCache.clear();
+};
 
 export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({ 
   initialAssignmentId,
@@ -34,6 +37,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
+  useEffect(() => {
+    if (initialAssignmentId) {
+      setSelectedAssignmentId(initialAssignmentId);
+    }
+  }, [initialAssignmentId]);
+
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>(initialAssignmentId || selectedAssignment?.id || '');
   
   const currentCacheKey = `${user?.uid}_${activeAcademicYear?.id}_${activeSemester}_${selectedAssignmentId || 'ALL'}`;
@@ -46,9 +55,7 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
   // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
-  const [meetingForAttendance, setMeetingForAttendance] = useState<Meeting | null>(null);
 
   // Delete confirmation modal state
   const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
@@ -510,8 +517,12 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => {
-                        setMeetingForAttendance(meeting);
-                        setIsAttendanceModalOpen(true);
+                        onNavigate?.('attendance-subject', {
+                          assignmentId: meeting.teachingAssignmentId,
+                          date: meeting.date,
+                          meetingId: meeting.id,
+                          returnTo: 'journal',
+                        });
                       }}
                       className="px-3 py-2 rounded-xl bg-[var(--ds-accent-soft)] hover:opacity-90 text-[var(--ds-accent)] border border-[var(--ds-border)] text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
                       title={isArchivedYear ? 'Lihat Rekap Presensi (Read-Only)' : 'Input / Pencil Presensi'}
@@ -610,16 +621,6 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
         }}
         meetingToEdit={meetingToEdit}
         defaultAssignmentId={selectedAssignmentId}
-        onSuccess={() => loadMeetings()}
-      />
-
-      <SubjectAttendanceModal
-        isOpen={isAttendanceModalOpen}
-        onClose={() => {
-          setIsAttendanceModalOpen(false);
-          setMeetingForAttendance(null);
-        }}
-        meeting={meetingForAttendance}
         onSuccess={() => loadMeetings()}
       />
     </div>

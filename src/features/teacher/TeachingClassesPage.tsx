@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
 import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
-import { SubjectAttendanceModal } from './SubjectAttendanceModal';
 import { TeachingAssignment, Meeting } from '../../types';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import { BookOpen, Users, CalendarCheck, CheckSquare, Plus, Stack, Medal, Funnel, GraduationCap, Sparkle, CalendarDots, Clock } from '@phosphor-icons/react';
@@ -47,9 +46,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
 
   // Modals state
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
-  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
-  const [selectedMeetingForAttendance, setSelectedMeetingForAttendance] = useState<Meeting | null>(null);
 
   const loadAssignmentsData = async (forceSilent = false) => {
     if (!user || !activeAcademicYear) return;
@@ -442,16 +439,6 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
         isOpen={isMeetingModalOpen}
         onClose={() => setIsMeetingModalOpen(false)}
         defaultAssignmentId={selectedAssignmentId}
-        onSuccess={() => loadAssignmentsData()}
-      />
-
-      <SubjectAttendanceModal
-        isOpen={isAttendanceModalOpen}
-        onClose={() => {
-          setIsAttendanceModalOpen(false);
-          setSelectedMeetingForAttendance(null);
-        }}
-        meeting={selectedMeetingForAttendance}
         onSuccess={() => loadAssignmentsData()}
       />
     </div>

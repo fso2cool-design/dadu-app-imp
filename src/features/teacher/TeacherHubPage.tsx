@@ -85,26 +85,34 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
       {/* Tab Panels */}
       <div className="animate-in fade-in duration-150">
         {activeTab === 'classes' && (
-          <TeachingClassesPage 
+          <TeachingClassesPage
             onNavigate={(route, state) => {
               if (route === 'meetings') handleTabChange('journal', state);
               else if (route === 'attendance-subject') handleTabChange('attendance', state);
               else if (route === 'grades') handleTabChange('grades', state);
               else if (route === 'teaching-schedule') handleTabChange('schedule', state);
               else onNavigate?.(route, state);
-            }} 
+            }}
           />
         )}
         {activeTab === 'schedule' && (
           <TeacherPersonalSchedulePage onNavigate={onNavigate} />
         )}
         {activeTab === 'journal' && (
-          <MeetingsJournalPage 
-            initialAssignmentId={routeState?.assignmentId} 
-            onNavigate={onNavigate} 
+          <MeetingsJournalPage
+            initialAssignmentId={routeState?.assignmentId}
+            onNavigate={onNavigate}
           />
         )}
-        {activeTab === 'attendance' && <SubjectAttendancePage />}
+                {activeTab === 'attendance' && (
+          <SubjectAttendancePage
+            initialContext={routeState}
+            onNavigate={(route, state) => {
+              if (route === 'meetings') handleTabChange('journal', state);
+              else onNavigate?.(route, state);
+            }}
+          />
+        )}
         {activeTab === 'grades' && <GradesPage />}
       </div>
     </div>

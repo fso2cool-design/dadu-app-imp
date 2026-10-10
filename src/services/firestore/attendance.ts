@@ -1,22 +1,18 @@
-export type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
+﻿export type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
 import type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
-import { 
-  collection, 
-  doc, 
+import {
+  collection,
+  doc,
   getDoc,
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
+  getDocs,
+  query,
+  where,
   serverTimestamp,
-  writeBatch
+  runTransaction
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { AttendanceRecord, AttendanceSummary, AttendanceStatus, SemesterType } from '../../types';
-import { updateMeetingAttendanceSummary } from './meetings';
+import { AttendanceRecord, AttendanceSummary, AttendanceStatus, SemesterType, MeetingStatus } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
-
-
 
 /**
  * Generates a deterministic document ID for an attendance record to guarantee idempotency
@@ -65,14 +61,14 @@ export function normalizeAttendanceRecord(
 }
 
 /**
- * Menyimpan data presensi mata pelajaran secara mandiri (idempotent).
- * Mampu menyimpan absensi tanpa ketergantungan wajib pada jurnal pertemuan.
- * Bila meetingId disertakan, ringkasan kehadiran pertemuan terkait akan diperbarui otomatis.
+ * Menyimpan data presensi mata pelajaran secara mandiri dan konsisten (atomik via runTransaction).
+ * Menjamin integritas relasi, validasi drift check optimistik, exhaustive status check meeting,
+ * dan kalkulasi ringkasan presensi tanpa side-effect parsial.
  *
  * @param uid - ID Pengguna (guru).
- * @param payload - Payload presensi ({ academicYearId, semester, classId, teachingAssignmentId, date, items, meetingId, meetingNumber }).
- * @returns Ringkasan kalkulasi kehadiran (hadir, sakit, izin, alfa, persentase kehadiran).
- * @throws Error bila payload tidak lengkap atau tahun ajaran telah diarsipkan.
+ * @param payload - Payload presensi lengkap dengan meetingId dan expectedPreviousMeetingId eksplisit.
+ * @returns Ringkasan kalkulasi kehadiran (hadir, sakit, izin, alpa, persentase kehadiran).
+ * @throws Error bila payload tidak lengkap, status tidak sah, atau terjadi konflik konkurensi.
  */
 export async function saveSubjectAttendance(
   uid: string,
@@ -85,26 +81,79 @@ export async function saveSubjectAttendance(
     teachingAssignmentId,
     subjectId = '',
     date,
-    meetingId = null,
-    meetingNumber = null,
+    meetingId,
+    expectedPreviousMeetingId,
+    meetingNumber,
     items
   } = payload;
 
-  if (!academicYearId || !classId || !teachingAssignmentId || !date) {
-    throw new Error('Data sesi presensi tidak lengkap (Tahun Ajaran, Kelas, Tugas Mengajar, dan Tanggal wajib diisi).');
+  // 1. Pre-validation: metadata sesi wajib
+  if (!academicYearId || !classId || !teachingAssignmentId || !date || !semester) {
+    throw new Error('Data sesi presensi tidak lengkap (Tahun Ajaran, Semester, Kelas, Tugas Mengajar, dan Tanggal wajib diisi).');
   }
 
-  if (!items || items.some(it => !it.studentId)) {
-    throw new Error('Data presensi tidak valid: ID Siswa wajib diisi.');
+  // 2. Pre-validation: roster tidak boleh kosong
+  if (!items || items.length === 0) {
+    throw new Error('Data presensi tidak valid: Roster siswa tidak boleh kosong.');
   }
 
-  // 1. Archive Governance: verify academic year is not archived
+  // 3. Pre-validation: batas kapasitas transaksi maksimal 200 siswa
+  if (items.length > 200) {
+    throw new Error('Data presensi melebihi batas kapasitas maksimal transaksi (maksimum 200 siswa).');
+  }
+
+  // 4. Pre-validation: ID siswa unik & status presensi sah (tanpa fallback diam-diam)
+  const studentIds = new Set<string>();
+  const validStatuses = new Set<AttendanceStatus>(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+
+  for (const item of items) {
+    if (!item.studentId || !item.studentId.trim()) {
+      throw new Error('Data presensi tidak valid: ID Siswa wajib diisi.');
+    }
+    if (studentIds.has(item.studentId)) {
+      throw new Error(`Data presensi tidak valid: Duplikasi ID Siswa terdeteksi (${item.studentId}).`);
+    }
+    studentIds.add(item.studentId);
+
+    if (!validStatuses.has(item.status)) {
+      throw new Error(`Data presensi tidak valid: Status presensi tidak sah (${String(item.status)}).`);
+    }
+  }
+
+  // 5. Hitung ringkasan hanya dari status yang telah divalidasi
+  let present = 0;
+  let sick = 0;
+  let permitted = 0;
+  let absent = 0;
+  let dispensation = 0;
+
+  for (const item of items) {
+    if (item.status === 'PRESENT') present++;
+    else if (item.status === 'SICK') sick++;
+    else if (item.status === 'PERMITTED') permitted++;
+    else if (item.status === 'ABSENT') absent++;
+    else if (item.status === 'DISPENSATION') dispensation++;
+  }
+
+  const total = items.length;
+  const presentPercentage = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
+  const summary: AttendanceSummary = {
+    present,
+    sick,
+    permitted,
+    absent,
+    dispensation,
+    total,
+    presentPercentage,
+  };
+
+  // 6. Archive Governance: periksa tahun ajaran tidak diarsipkan
   const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
   if (ayDoc.exists() && ayDoc.data()?.isArchived) {
     throw new Error('Tidak dapat mengubah presensi pada Tahun Ajaran yang telah diarsipkan (read-only).');
   }
 
-  // 2. Validate cross-relationship of teaching assignment
+  // 7. Validasi cross-relationship teaching assignment
   const taDoc = await getDoc(doc(db, 'users', uid, 'teachingAssignments', teachingAssignmentId));
   if (taDoc.exists()) {
     const taData = taDoc.data();
@@ -119,34 +168,59 @@ export async function saveSubjectAttendance(
     }
   }
 
+  // 8. Pemeriksaan Roster Pra-Transaksi (Query di Luar Transaksi)
+  // Catatan Risiko Residual: Operasi ini berlangsung di luar transaksi client-side SDK sehingga tidak dapat mengunci
+  // penyisipan dokumen baru di luar `items` secara atomik selama transaksi berlangsung.
+  const existingSessionRecords = await getAttendanceRecordsByDate(uid, teachingAssignmentId, date);
+  const extraRecords = existingSessionRecords.filter(r => !studentIds.has(r.studentId));
+  if (extraRecords.length > 0) {
+    throw new Error(`Rekonsiliasi gagal: Ditemukan ${extraRecords.length} data presensi siswa tersimpan yang tidak tercantum dalam form saat ini. Harap muat ulang halaman.`);
+  }
+
+  // 9. Transaksi Atomik Tunggal
   return trackSync((async () => {
-    const colRef = collection(db, 'users', uid, 'attendanceRecords');
-    const now = serverTimestamp();
+    await runTransaction(db, async (transaction) => {
+      // === FASE PEMBACAAN (READS FIRST) ===
 
-    let present = 0;
-    let sick = 0;
-    let permitted = 0;
-    let absent = 0;
-    let dispensation = 0;
+      // A. Baca dan validasi target meeting jika ada
+      let targetMeetingData: any = null;
+      let targetMeetingDocRef: any = null;
+      let nextTargetStatus: MeetingStatus | null = null;
 
-    const validStatuses = new Set(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+      if (meetingId) {
+        targetMeetingDocRef = doc(db, 'users', uid, 'meetings', meetingId);
+        const targetMeetingSnap = await transaction.get(targetMeetingDocRef);
+        if (!targetMeetingSnap.exists()) {
+          throw new Error(`Pertemuan target (${meetingId}) tidak ditemukan.`);
+        }
+        targetMeetingData = targetMeetingSnap.data();
 
-    // Chunking writes in batches of safe threshold 300
-    const chunkSize = 300;
-    for (let i = 0; i < items.length; i += chunkSize) {
-      const chunk = items.slice(i, i + chunkSize);
-      const batch = writeBatch(db);
+        // Validasi relasi target meeting terhadap sesi
+        if (targetMeetingData.teachingAssignmentId && targetMeetingData.teachingAssignmentId !== teachingAssignmentId) {
+          throw new Error('Relasi pertemuan tidak valid: Penugasan mengajar pertemuan tidak cocok dengan sesi presensi.');
+        }
+        if (targetMeetingData.date && targetMeetingData.date !== date) {
+          throw new Error('Relasi pertemuan tidak valid: Tanggal pertemuan tidak cocok dengan tanggal sesi presensi.');
+        }
 
-      for (const item of chunk) {
-        const status: AttendanceStatus = validStatuses.has(item.status) ? item.status : 'PRESENT';
+        // Validasi exhaustive status target meeting
+        const currentStatus: MeetingStatus = targetMeetingData.status;
+        if (currentStatus === 'SCHEDULED' || currentStatus === 'COMPLETED') {
+          nextTargetStatus = 'COMPLETED';
+        } else if (currentStatus === 'SUBSTITUTE') {
+          nextTargetStatus = 'SUBSTITUTE';
+        } else if (currentStatus === 'DRAFT' || currentStatus === 'CANCELLED') {
+          throw new Error(`Pertemuan tidak dapat ditautkan karena berstatus ${currentStatus}.`);
+        } else {
+          throw new Error(`Pertemuan memiliki status tidak sah (${String(currentStatus)}).`);
+        }
+      }
 
-        if (status === 'PRESENT') present++;
-        else if (status === 'SICK') sick++;
-        else if (status === 'PERMITTED') permitted++;
-        else if (status === 'ABSENT') absent++;
-        else if (status === 'DISPENSATION') dispensation++;
+      // B. Baca dokumen kanonikal yang mewakili setiap siswa pada payload
+      const colRef = collection(db, 'users', uid, 'attendanceRecords');
+      const recordDocRefs: Array<{ docRef: any; item: SaveAttendanceItem; existingSnap: any }> = [];
 
-        // Deterministic ID ensures idempotency
+      for (const item of items) {
         const recordId = getDeterministicAttendanceId(
           academicYearId,
           semester,
@@ -155,53 +229,131 @@ export async function saveSubjectAttendance(
           teachingAssignmentId,
           item.studentId
         );
-        const docRef = doc(colRef, recordId);
+        const recordDocRef = doc(colRef, recordId);
+        const existingSnap = await transaction.get(recordDocRef);
+        recordDocRefs.push({ docRef: recordDocRef, item, existingSnap });
+      }
 
-        batch.set(docRef, {
-          academicYearId,
-          semester,
-          classId,
-          teachingAssignmentId,
-          subjectId,
-          studentId: item.studentId,
-          date,
-          rollNumber: item.rollNumber || 0,
-          studentName: item.studentName || '',
-          gender: item.gender || 'L',
-          status,
-          note: item.note || '',
-          meetingId: meetingId || null,
-          meetingNumber: meetingNumber !== undefined ? meetingNumber : null,
-          recordedBy: uid,
+      // C. Validasi hubungan seluruh rekaman yang dibaca
+      const existingMeetingIds = new Set<string>();
+      let hasNullMeeting = false;
+
+      for (const { existingSnap } of recordDocRefs) {
+        if (existingSnap.exists()) {
+          const data = existingSnap.data();
+          if (data?.meetingId) {
+            existingMeetingIds.add(data.meetingId);
+          } else {
+            hasNullMeeting = true;
+          }
+        }
+      }
+
+      // Jika rekaman tersimpan terpecah/bercampur pada beberapa meeting berbeda atau campuran meeting & null
+      if (existingMeetingIds.size > 1 || (existingMeetingIds.size === 1 && hasNullMeeting)) {
+        throw new Error('Integritas data terganggu: Rekaman presensi sesi ini memiliki relasi pertemuan yang bercampur/terpecah. Operasi dibatalkan.');
+      }
+
+      // Tentukan relasi persisten aktual
+      const actualPreviousMeetingId: string | null = existingMeetingIds.size === 1
+        ? Array.from(existingMeetingIds)[0]
+        : null;
+
+      // D. Optimistic Drift Check: Bandingkan relasi aktual dengan expectedPreviousMeetingId
+      if (actualPreviousMeetingId !== expectedPreviousMeetingId) {
+        throw new Error(`OPTIMISTIC_CONCURRENCY_ERROR: Relasi sesi telah berubah oleh pengguna lain (sebelumnya ${expectedPreviousMeetingId || 'tidak ditautkan'}, sekarang ${actualPreviousMeetingId || 'tidak ditautkan'}). Harap muat ulang.`);
+      }
+
+      // E. Baca dan validasi meeting lama jika ringkasannya perlu dibersihkan
+      let oldMeetingDocRef: any = null;
+      if (actualPreviousMeetingId && actualPreviousMeetingId !== meetingId) {
+        oldMeetingDocRef = doc(db, 'users', uid, 'meetings', actualPreviousMeetingId);
+        const oldMeetingSnap = await transaction.get(oldMeetingDocRef);
+        if (oldMeetingSnap.exists()) {
+          const oldData = oldMeetingSnap.data() as any;
+          if (oldData.teachingAssignmentId && oldData.teachingAssignmentId !== teachingAssignmentId) {
+            throw new Error('Pertemuan lama yang ditautkan tidak sesuai dengan penugasan sesi ini.');
+          }
+        }
+      }
+
+      // === FASE PENULISAN (WRITES AFTER ALL READS) ===
+      const now = serverTimestamp();
+
+      // F. Tulis semua rekaman siswa
+      for (const { docRef: recordDocRef, item, existingSnap } of recordDocRefs) {
+        if (existingSnap.exists()) {
+          const oldData = existingSnap.data();
+          const updatePayload: Record<string, any> = {
+            academicYearId,
+            semester,
+            classId,
+            teachingAssignmentId,
+            subjectId: subjectId || oldData.subjectId || '',
+            studentId: item.studentId,
+            date,
+            rollNumber: item.rollNumber !== undefined ? item.rollNumber : (oldData.rollNumber ?? 0),
+            studentName: item.studentName !== undefined ? item.studentName : (oldData.studentName ?? ''),
+            gender: item.gender !== undefined ? item.gender : (oldData.gender ?? 'L'),
+            status: item.status,
+            note: item.note !== undefined ? item.note : (oldData.note ?? ''),
+            meetingId: meetingId || null,
+            meetingNumber: (meetingId && meetingNumber !== undefined && meetingNumber !== null)
+              ? meetingNumber
+              : (meetingId ? (targetMeetingData?.meetingNumber ?? null) : null),
+            recordedBy: oldData.recordedBy || uid,
+            updatedAt: now,
+          };
+          if (oldData.createdAt) {
+            updatePayload.createdAt = oldData.createdAt;
+          }
+
+          transaction.set(recordDocRef, updatePayload, { merge: true });
+        } else {
+          // Dokumen baru: sertakan createdAt
+          const createPayload: Record<string, any> = {
+            academicYearId,
+            semester,
+            classId,
+            teachingAssignmentId,
+            subjectId: subjectId || '',
+            studentId: item.studentId,
+            date,
+            rollNumber: item.rollNumber ?? 0,
+            studentName: item.studentName ?? '',
+            gender: item.gender ?? 'L',
+            status: item.status,
+            note: item.note ?? '',
+            meetingId: meetingId || null,
+            meetingNumber: (meetingId && meetingNumber !== undefined && meetingNumber !== null)
+              ? meetingNumber
+              : (meetingId ? (targetMeetingData?.meetingNumber ?? null) : null),
+            recordedBy: uid,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+          transaction.set(recordDocRef, createPayload);
+        }
+      }
+
+      // G. Bersihkan ringkasan meeting lama jika tautan dipindahkan atau dilepas
+      if (oldMeetingDocRef) {
+        transaction.update(oldMeetingDocRef, {
+          attendanceSummary: null,
           updatedAt: now,
-          createdAt: now,
-        }, { merge: true });
+        });
       }
 
-      await batch.commit();
-    }
-
-    const total = items.length;
-    const presentPercentage = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
-
-    const summary: AttendanceSummary = {
-      present,
-      sick,
-      permitted,
-      absent,
-      dispensation,
-      total,
-      presentPercentage,
-    };
-
-    // If an optional meeting is linked, update its summary
-    if (meetingId) {
-      try {
-        await updateMeetingAttendanceSummary(uid, meetingId, summary);
-      } catch (err) {
-        console.warn('Gagal memperbarui ringkasan pertemuan opsional:', err);
+      // H. Perbarui ringkasan dan status meeting target jika ditautkan
+      if (targetMeetingDocRef && nextTargetStatus) {
+        transaction.update(targetMeetingDocRef, {
+          attendanceSummary: summary,
+          status: nextTargetStatus,
+          updatedAt: now,
+        });
       }
-    }
+    });
 
     return summary;
   })(), {
@@ -214,6 +366,7 @@ export async function saveSubjectAttendance(
  * Wrapper kompatibilitas mundur untuk menyimpan presensi yang terikat pada jurnal pertemuan.
  * Mengambil metadata pertemuan dan mendelegasikannya ke schema penyimpanan presensi independen.
  *
+ * @deprecated Gunakan saveSubjectAttendance langsung dengan formulir SubjectAttendancePage kanonikal.
  * @param uid - ID Pengguna (guru).
  * @param meetingId - ID dokumen pertemuan terkait.
  * @param items - Daftar presensi kehadiran santri/siswa.
@@ -238,15 +391,22 @@ export async function saveMeetingAttendance(
     throw new Error('Pertemuan tidak ditemukan.');
   }
   const meetingData = meetingDoc.data() as any;
+  const teachingAssignmentId = meetingData.teachingAssignmentId || '';
+  const date = meetingData.date || new Date().toISOString().split('T')[0];
+
+  // Pre-fetch data persisten untuk menentukan expectedPreviousMeetingId
+  const existingRecords = await getAttendanceRecordsByDate(uid, teachingAssignmentId, date);
+  const expectedPreviousMeetingId = existingRecords.length > 0 ? (existingRecords[0].meetingId || null) : null;
 
   return saveSubjectAttendance(uid, {
     academicYearId: meetingData.academicYearId || '',
     semester: meetingData.semester || 'GANJIL',
     classId: meetingData.classId || '',
-    teachingAssignmentId: meetingData.teachingAssignmentId || '',
+    teachingAssignmentId,
     subjectId: meetingData.subjectId || '',
-    date: meetingData.date || new Date().toISOString().split('T')[0],
+    date,
     meetingId,
+    expectedPreviousMeetingId,
     meetingNumber: meetingData.meetingNumber ?? null,
     items,
   });
@@ -256,14 +416,14 @@ export async function saveMeetingAttendance(
  * Retrieves attendance records by meetingId.
  */
 export async function getAttendanceRecordsByMeeting(
-  uid: string, 
+  uid: string,
   meetingId: string
 ): Promise<AttendanceRecord[]> {
   const colRef = collection(db, 'users', uid, 'attendanceRecords');
   const q = query(colRef, where('meetingId', '==', meetingId));
   const snap = await getDocs(q);
   const records = snap.docs.map(d => normalizeAttendanceRecord({ id: d.id, ...d.data() }));
-  
+
   // Sort by rollNumber ascending
   return records.sort((a, b) => (a.rollNumber || 0) - (b.rollNumber || 0));
 }
