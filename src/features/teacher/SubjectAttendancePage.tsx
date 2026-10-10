@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useImperativeHandle } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 
@@ -171,6 +171,10 @@ const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, han
   return prev.row === next.row && prev.isArchivedYear === next.isArchivedYear;
 });
 
+export interface SubjectAttendancePageHandle {
+  requestTabChange: (targetTab: string, state?: any) => boolean;
+}
+
 export interface SubjectAttendancePageProps {
   initialContext?: {
     assignmentId?: string;
@@ -179,12 +183,17 @@ export interface SubjectAttendancePageProps {
     returnTo?: string;
   };
   onNavigate?: (route: string, state?: any) => void;
+  onNavigateParentTab?: (tabId: string, state?: any) => void;
 }
 
-export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
-  initialContext,
-  onNavigate,
-}) => {
+export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandle, SubjectAttendancePageProps>((
+  {
+    initialContext,
+    onNavigate,
+    onNavigateParentTab,
+  },
+  ref
+) => {
   const location = useLocation();
   const navContext = initialContext || (location.state as any);
   const [contextError, setContextError] = useState<string | null>(null);
@@ -266,7 +275,23 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
   };
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back'; targetValue?: string } | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back' | 'parent-tab';
+    targetValue?: string;
+    targetState?: any;
+  } | null>(null);
+  const isSavingRef = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    requestTabChange: (targetTab: string, state?: any) => {
+      if (isDirtyRef.current) {
+        setPendingAction({ type: 'parent-tab', targetValue: targetTab, targetState: state });
+        setIsDirtyModalOpen(true);
+        return false;
+      }
+      return true;
+    },
+  }), []);
 
   // Warning when leaving or reloading browser tab with unsaved attendance
   useEffect(() => {
@@ -641,9 +666,11 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
   };
 
   // FloppyDisk attendance (completely decoupled from meeting journal)
-  const handleSaveAttendance = async () => {
-    if (!user || !activeAcademicYear || !currentAssignment || studentRows.length === 0) return;
+  const handleSaveAttendance = async (): Promise<boolean> => {
+    if (!user || !activeAcademicYear || !currentAssignment || studentRows.length === 0) return false;
+    if (isSavingRef.current || savingAttendance) return false;
 
+    isSavingRef.current = true;
     try {
       setSavingAttendance(true);
       setFeedbackMsg(null);
@@ -713,11 +740,14 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
       triggerSyncFeedback('saved', 'Presensi siswa berhasil disimpan!');
       setFeedbackMsg({ type: 'success', text: 'Presensi siswa berhasil disimpan ke database!' });
       setTimeout(() => setFeedbackMsg(null), 3500);
+      return true;
     } catch (err: any) {
       console.error('Error saving attendance:', err);
       triggerSyncFeedback('synced');
       setFeedbackMsg({ type: 'error', text: err.message || 'Gagal menyimpan presensi.' });
+      return false;
     } finally {
+      isSavingRef.current = false;
       setSavingAttendance(false);
     }
   };
@@ -783,13 +813,16 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
 
   const handleSaveAndProceed = async () => {
     try {
-      await handleSaveAttendance();
+      const success = await handleSaveAttendance();
+      if (!success) return;
+
       if (pendingAction) {
         if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
         else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
         else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
+        else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
         setPendingAction(null);
       }
       setIsDirtyModalOpen(false);
@@ -807,6 +840,7 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
       else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
       else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
       else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
+      else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
       setPendingAction(null);
     }
     setIsDirtyModalOpen(false);
@@ -1527,4 +1561,6 @@ export const SubjectAttendancePage: React.FC<SubjectAttendancePageProps> = ({
     </React.Suspense>
     </div>
   );
-};
+});
+
+SubjectAttendancePage.displayName = 'SubjectAttendancePage';

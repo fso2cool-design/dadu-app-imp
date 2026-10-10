@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { TeachingClassesPage } from './TeachingClassesPage';
 import { MeetingsJournalPage } from './MeetingsJournalPage';
-import { SubjectAttendancePage } from './SubjectAttendancePage';
+import { SubjectAttendancePage, type SubjectAttendancePageHandle } from './SubjectAttendancePage';
 import { GradesPage } from '../grades/GradesPage';
 import { TeacherPersonalSchedulePage } from './TeacherPersonalSchedulePage';
 import { BookOpen, Stack, CalendarCheck, CheckSquare, Medal, CalendarDots } from '@phosphor-icons/react';
@@ -22,6 +22,7 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
 }) => {
   const { activeAcademicYear, activeSemester } = useWorkspace();
   const [activeTab, setActiveTab] = useState<TeacherTab>('classes');
+  const attendanceRef = useRef<SubjectAttendancePageHandle>(null);
 
   useEffect(() => {
     if (initialTab) {
@@ -34,7 +35,13 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
     }
   }, [initialTab]);
 
-  const handleTabChange = (tabId: TeacherTab, state?: any) => {
+  const handleTabChange = (tabId: TeacherTab, state?: any, bypassGuard = false) => {
+    if (!bypassGuard && activeTab === 'attendance' && tabId !== 'attendance' && attendanceRef.current) {
+      const allowed = attendanceRef.current.requestTabChange(tabId, state);
+      if (!allowed) {
+        return;
+      }
+    }
     setActiveTab(tabId);
     if (onNavigate) {
       let targetRoute = 'teaching-classes';
@@ -104,12 +111,16 @@ export const TeacherHubPage: React.FC<TeacherHubPageProps> = ({
             onNavigate={onNavigate}
           />
         )}
-                {activeTab === 'attendance' && (
+        {activeTab === 'attendance' && (
           <SubjectAttendancePage
+            ref={attendanceRef}
             initialContext={routeState}
             onNavigate={(route, state) => {
               if (route === 'meetings') handleTabChange('journal', state);
               else onNavigate?.(route, state);
+            }}
+            onNavigateParentTab={(tabId, state) => {
+              handleTabChange(tabId as TeacherTab, state, true);
             }}
           />
         )}
