@@ -294,6 +294,18 @@ export async function importFullDatabase(
         if ('userId' in data || col.name === 'meetings' || col.name === 'students') {
           data.userId = uid;
         }
+
+        // Sanitize recordedBy on attendanceRecords to maintain valid audit trail
+        if (col.name === 'attendanceRecords') {
+          if (
+            !data.recordedBy ||
+            typeof data.recordedBy !== 'string' ||
+            data.recordedBy.trim().length === 0 ||
+            /\s/.test(data.recordedBy)
+          ) {
+            data.recordedBy = uid;
+          }
+        }
         
         batch.set(targetDocRef, data, { merge: mode === 'merge' });
         totalRestored++;

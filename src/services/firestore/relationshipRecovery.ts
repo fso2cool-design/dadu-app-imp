@@ -11,6 +11,7 @@ import {
 import { db } from '../firebase/config';
 import { Student, Enrollment } from '../../types';
 import { trackSync } from '../../utils/syncEvents';
+import { getDeterministicAttendanceId, sanitizeRecordedBy } from './attendance';
 
 export interface RelinkClassParams {
   enrollmentId: string;
@@ -198,6 +199,38 @@ export async function relinkStudentRelationship(
       }
       const studentData = studentSnap.data() as Student;
 
+      // 1b. Khusus ATTENDANCE: Cek apakah target dokumen presensi sudah ada (READ SEBELUM WRITE)
+      let targetAttendanceDocRef: any = null;
+      if (targetType === 'ATTENDANCE') {
+        const targetDocId = (
+          transData.academicYearId &&
+          transData.semester &&
+          transData.classId &&
+          transData.date &&
+          transData.teachingAssignmentId
+        )
+          ? getDeterministicAttendanceId(
+              transData.academicYearId,
+              transData.semester,
+              transData.classId,
+              transData.date,
+              transData.teachingAssignmentId,
+              targetStudentId
+            )
+          : `${documentId}_${targetStudentId}`;
+
+        targetAttendanceDocRef = doc(db, 'users', uid, 'attendanceRecords', targetDocId);
+
+        if (targetDocId !== documentId) {
+          const targetSnap = await transaction.get(targetAttendanceDocRef);
+          if (targetSnap.exists()) {
+            throw new Error(
+              `Siswa tujuan "${studentData.fullName}" sudah memiliki rekam presensi pada pertemuan/sesi ini. Pemulihan dibatalkan demi mencegah konflik presensi.`
+            );
+          }
+        }
+      }
+
       // 2. Validasi status siswa target
       if (studentData.isArchived) {
         throw new Error('Siswa tujuan berada dalam status ARSIP. Tidak dapat menautkan transaksi ke siswa arsip.');
@@ -235,24 +268,70 @@ export async function relinkStudentRelationship(
       const now = serverTimestamp();
       const oldStudentId = transData.studentId || 'ORPHANED_STUDENT';
 
-      const updatePayload: any = {
-        studentId: targetStudentId,
-        relinkedAt: now,
-        relinkedBy: performedBy || 'admin',
-        relinkedFromId: oldStudentId,
-        relinkedToId: targetStudentId,
-        relinkReason: reason || 'Pemulihan relasi transaksi ke identitas siswa valid',
-        updatedAt: now,
-      };
+      if (targetType === 'ATTENDANCE' && targetAttendanceDocRef) {
+        // Attendance records mengharuskan studentId immutable pada update dan tidak mengizinkan field relinked*.
+        // Solusi aman: buat dokumen baru untuk target student via SET dan hapus dokumen yatim lama via DELETE secara atomik.
+        const cleanRecordedBy = sanitizeRecordedBy(transData.recordedBy, uid);
+        const newAttRecord: Record<string, any> = {
+          studentId: targetStudentId,
+          academicYearId: transData.academicYearId || '',
+          classId: transData.classId || '',
+          subjectId: transData.subjectId || '',
+          teachingAssignmentId: transData.teachingAssignmentId || '',
+          date: transData.date || '',
+          semester: transData.semester === 'GENAP' ? 'GENAP' : 'GANJIL',
+          status: ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'].includes(transData.status)
+            ? transData.status
+            : 'PRESENT',
+          recordedBy: cleanRecordedBy,
+          createdAt: transData.createdAt || now,
+          updatedAt: now,
+        };
 
-      // Perbarui nama siswa jika dicache pada dokumen transaksi
-      if (studentData.fullName) {
-        if ('studentName' in transData || targetType === 'ATTENDANCE' || targetType === 'DAILY_ATTENDANCE' || targetType === 'STUDENT_NOTE') {
-          updatePayload.studentName = studentData.fullName;
+        if (studentData.fullName || transData.studentName) {
+          newAttRecord.studentName = studentData.fullName || transData.studentName;
         }
-      }
+        if (typeof transData.rollNumber === 'number') {
+          newAttRecord.rollNumber = transData.rollNumber;
+        }
+        if (studentData.gender || transData.gender) {
+          newAttRecord.gender = studentData.gender || transData.gender;
+        }
+        if (transData.note !== undefined && transData.note !== null) newAttRecord.note = String(transData.note);
+        if (
+          typeof transData.meetingId === 'string' &&
+          transData.meetingId.trim().length > 0 &&
+          typeof transData.meetingNumber === 'number' &&
+          transData.meetingNumber > 0
+        ) {
+          newAttRecord.meetingId = transData.meetingId.trim();
+          newAttRecord.meetingNumber = Math.floor(transData.meetingNumber);
+        }
 
-      transaction.update(docRef, updatePayload);
+        transaction.set(targetAttendanceDocRef, newAttRecord);
+        if (targetAttendanceDocRef.id !== docRef.id) {
+          transaction.delete(docRef);
+        }
+      } else {
+        const updatePayload: any = {
+          studentId: targetStudentId,
+          relinkedAt: now,
+          relinkedBy: performedBy || 'admin',
+          relinkedFromId: oldStudentId,
+          relinkedToId: targetStudentId,
+          relinkReason: reason || 'Pemulihan relasi transaksi ke identitas siswa valid',
+          updatedAt: now,
+        };
+
+        // Perbarui nama siswa jika dicache pada dokumen transaksi
+        if (studentData.fullName) {
+          if ('studentName' in transData || targetType === 'DAILY_ATTENDANCE' || targetType === 'STUDENT_NOTE') {
+            updatePayload.studentName = studentData.fullName;
+          }
+        }
+
+        transaction.update(docRef, updatePayload);
+      }
     }),
     {
       startMessage: 'Menautkan ulang relasi siswa...',

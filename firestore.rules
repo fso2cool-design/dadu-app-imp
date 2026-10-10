@@ -6,11 +6,7 @@ service cloud.firestore {
     // Helper to check if current authenticated user is Administrator
     // Supports custom claims, role token, or primary administrator email
     function isSuperAdmin() {
-      return request.auth != null && (
-        request.auth.token.admin == true ||
-        request.auth.token.role == 'ADMIN' ||
-        request.auth.token.email == 'johanrovian90@gmail.com'
-      );
+      return request.auth != null && ('admin' in request.auth.token) && request.auth.token.admin == true;
     }
 
     match /users/{userId} {
@@ -138,14 +134,103 @@ service cloud.firestore {
       match /attendanceRecords/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && request.resource.data.studentId is string
-          && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
-          && (!('meetingId' in request.resource.data) || request.resource.data.meetingId == null || request.resource.data.meetingId is string);
+          && request.resource.data.keys().hasOnly([
+            'studentId', 'academicYearId', 'classId', 'subjectId', 'teachingAssignmentId',
+            'date', 'semester', 'status', 'note', 'rollNumber', 'studentName', 'gender',
+            'meetingId', 'meetingNumber', 'recordedBy', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.studentId is string && request.resource.data.studentId.matches('^\\S+$')
+          && request.resource.data.academicYearId is string && request.resource.data.academicYearId.matches('^\\S+$')
+          && request.resource.data.classId is string && request.resource.data.classId.matches('^\\S+$')
+          && request.resource.data.teachingAssignmentId is string && request.resource.data.teachingAssignmentId.matches('^\\S+$')
+          && request.resource.data.subjectId is string
+          && request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']
+          && (
+            (
+              (!('meetingId' in request.resource.data) || request.resource.data.meetingId == null) &&
+              (!('meetingNumber' in request.resource.data) || request.resource.data.meetingNumber == null)
+            ) ||
+            (
+              ('meetingId' in request.resource.data && request.resource.data.meetingId is string && request.resource.data.meetingId.matches('^\\S+$')) &&
+              ('meetingNumber' in request.resource.data && request.resource.data.meetingNumber is number && request.resource.data.meetingNumber > 0 && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber)
+            )
+          )
+          && 'recordedBy' in request.resource.data
+          && request.resource.data.recordedBy is string
+          && request.resource.data.recordedBy.matches('^\\S+$')
+          && (request.resource.data.recordedBy == request.auth.uid || isSuperAdmin());
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.keys().hasOnly([
+            'studentId', 'academicYearId', 'classId', 'subjectId', 'teachingAssignmentId',
+            'date', 'semester', 'status', 'note', 'rollNumber', 'studentName', 'gender',
+            'meetingId', 'meetingNumber', 'recordedBy', 'createdAt', 'updatedAt'
+          ])
           && (!('status' in request.resource.data) || request.resource.data.status in ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'])
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['studentId', 'meetingId', 'academicYearId', 'classId', 'subjectId', 'teachingAssignmentId'])
-              || (resource.data.studentId == request.resource.data.studentId
-                  && (!('academicYearId' in resource.data) || resource.data.academicYearId == request.resource.data.academicYearId)));
+          && request.resource.data.studentId == resource.data.studentId
+          && (
+            ('createdAt' in resource.data)
+              ? ('createdAt' in request.resource.data && request.resource.data.createdAt == resource.data.createdAt)
+              : (!('createdAt' in request.resource.data) || request.resource.data.createdAt is timestamp)
+          )
+          && (
+            ('academicYearId' in resource.data)
+              ? ('academicYearId' in request.resource.data && request.resource.data.academicYearId == resource.data.academicYearId)
+              : (!('academicYearId' in request.resource.data) || (request.resource.data.academicYearId is string && request.resource.data.academicYearId.matches('^\\S+$')))
+          )
+          && (
+            ('classId' in resource.data)
+              ? ('classId' in request.resource.data && request.resource.data.classId == resource.data.classId)
+              : (!('classId' in request.resource.data) || (request.resource.data.classId is string && request.resource.data.classId.matches('^\\S+$')))
+          )
+          && (
+            ('subjectId' in resource.data)
+              ? ('subjectId' in request.resource.data && request.resource.data.subjectId == resource.data.subjectId)
+              : (!('subjectId' in request.resource.data) || request.resource.data.subjectId is string)
+          )
+          && (
+            ('teachingAssignmentId' in resource.data)
+              ? ('teachingAssignmentId' in request.resource.data && request.resource.data.teachingAssignmentId == resource.data.teachingAssignmentId)
+              : (!('teachingAssignmentId' in request.resource.data) || (request.resource.data.teachingAssignmentId is string && request.resource.data.teachingAssignmentId.matches('^\\S+$')))
+          )
+          && (
+            ('date' in resource.data)
+              ? ('date' in request.resource.data && request.resource.data.date == resource.data.date)
+              : (!('date' in request.resource.data) || (request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')))
+          )
+          && (
+            ('semester' in resource.data)
+              ? ('semester' in request.resource.data && request.resource.data.semester == resource.data.semester)
+              : (!('semester' in request.resource.data) || request.resource.data.semester in ['GANJIL', 'GENAP'])
+          )
+          && (
+            (
+              (!('meetingId' in request.resource.data) || request.resource.data.meetingId == null) &&
+              (!('meetingNumber' in request.resource.data) || request.resource.data.meetingNumber == null)
+            ) ||
+            (
+              ('meetingId' in request.resource.data && request.resource.data.meetingId is string && request.resource.data.meetingId.matches('^\\S+$')) &&
+              ('meetingNumber' in request.resource.data && request.resource.data.meetingNumber is number && request.resource.data.meetingNumber > 0 && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber)
+            )
+          )
+          && (
+            ('recordedBy' in resource.data && resource.data.recordedBy is string && resource.data.recordedBy.matches('^\\S+$')) ? (
+              'recordedBy' in request.resource.data &&
+              (request.resource.data.recordedBy == resource.data.recordedBy ||
+               (isSuperAdmin() && request.resource.data.recordedBy is string && request.resource.data.recordedBy.matches('^\\S+$')))
+            ) :
+            ('recordedBy' in resource.data) ? (
+              'recordedBy' in request.resource.data &&
+              (request.resource.data.recordedBy == request.auth.uid ||
+               (isSuperAdmin() && request.resource.data.recordedBy is string && request.resource.data.recordedBy.matches('^\\S+$')))
+            ) :
+            (
+              !('recordedBy' in request.resource.data) ||
+              request.resource.data.recordedBy == request.auth.uid ||
+              (isSuperAdmin() && request.resource.data.recordedBy is string && request.resource.data.recordedBy.matches('^\\S+$'))
+            )
+          );
       }
 
       match /dailyAttendanceSessions/{sessionId} {

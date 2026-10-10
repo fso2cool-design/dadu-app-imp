@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-test \"vitest run --config vitest.rules.config.ts\"",
     "test:e2e": "firebase emulators:exec --project demo-test \"npx playwright test\"",
     "ci": "npm run lint && npm run type-check && npm run check:boundaries && npm test && npm run build",
     "check:boundaries": "depcruise src --config .dependency-cruiser.cjs"
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.1.14",
     "@testing-library/jest-dom": "^7.0.1",

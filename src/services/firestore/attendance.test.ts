@@ -41,7 +41,7 @@ vi.mock('../firebase/config', () => ({
   db: { type: 'firestore' },
 }));
 
-import { saveSubjectAttendance } from './attendance';
+import { saveSubjectAttendance, sanitizeRecordedBy } from './attendance';
 
 describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
   const uid = 'teacher-1';
@@ -507,6 +507,37 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
         })
       );
       expect(oldMeetingUpdate.status).toBeUndefined();
+    });
+  });
+
+  describe('sanitizeRecordedBy()', () => {
+    const fallbackUid = 'current-teacher-uid';
+
+    it('retains valid non-empty string without whitespace', () => {
+      expect(sanitizeRecordedBy('teacher-123', fallbackUid)).toBe('teacher-123');
+      expect(sanitizeRecordedBy('user_xyz', fallbackUid)).toBe('user_xyz');
+    });
+
+    it('falls back to currentUid when input is empty string', () => {
+      expect(sanitizeRecordedBy('', fallbackUid)).toBe(fallbackUid);
+    });
+
+    it('falls back to currentUid when input is whitespace-only string', () => {
+      expect(sanitizeRecordedBy('   ', fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy("\t\n", fallbackUid)).toBe(fallbackUid);
+    });
+
+    it('falls back to currentUid when input has whitespace inside', () => {
+      expect(sanitizeRecordedBy('teacher 123', fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy(' teacher123 ', fallbackUid)).toBe(fallbackUid);
+    });
+
+    it('falls back to currentUid when input is null, undefined, or non-string', () => {
+      expect(sanitizeRecordedBy(null, fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy(undefined, fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy(12345, fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy({}, fallbackUid)).toBe(fallbackUid);
+      expect(sanitizeRecordedBy(true, fallbackUid)).toBe(fallbackUid);
     });
   });
 });

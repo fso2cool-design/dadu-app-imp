@@ -15,6 +15,7 @@ import { db } from '../firebase/config';
 import { Student, Enrollment } from '../../types';
 import { sanitizeExcelDate } from '../../utils/excelImportSanitizer';
 import { buildStudentSearchTokens } from './students';
+import { getDeterministicAttendanceId, sanitizeRecordedBy } from './attendance';
 
 
 
@@ -255,6 +256,7 @@ export async function executeZeroResidueDeduplication(
   // Array operasi batch yang akan di-commit
   type BatchOp =
     | { type: 'UPDATE'; ref: any; data: any }
+    | { type: 'SET'; ref: any; data: any }
     | { type: 'DELETE'; ref: any };
 
   const operations: BatchOp[] = [];
@@ -263,6 +265,28 @@ export async function executeZeroResidueDeduplication(
   for (const group of scan.groups) {
     const master = group.masterStudent;
     const masterRef = doc(studentsColRef, master.id);
+
+    // Ambil rekam presensi (mapel & harian) milik master untuk mendeteksi sesi yang sudah ada
+    const [masterAttSnap, masterDailyAttSnap] = await Promise.all([
+      getDocs(query(attColRef, where('studentId', '==', master.id))),
+      getDocs(query(dailyAttColRef, where('studentId', '==', master.id))),
+    ]);
+    const masterAttDocIds = new Set<string>(masterAttSnap.docs.map(d => d.id));
+    const masterDailyDocsById = new Map<string, any>();
+    const masterDailyDocsBySession = new Map<string, any>();
+
+    masterDailyAttSnap.docs.forEach(d => {
+      masterDailyDocsById.set(d.id, d);
+      const mData = d.data() as any;
+      if (mData.sessionId) {
+        masterDailyDocsBySession.set(mData.sessionId, d);
+      }
+      if (mData.academicYearId && mData.classId && mData.date) {
+        masterDailyDocsBySession.set(`${mData.academicYearId}_${mData.classId}_${mData.date}`, d);
+      } else if (mData.classId && mData.date) {
+        masterDailyDocsBySession.set(`${mData.classId}_${mData.date}`, d);
+      }
+    });
 
     // Siapkan enrichment data untuk master jika master memiliki kolom yang kosong tapi terisi di duplikat
     const enrichmentData: Record<string, any> = {};
@@ -371,24 +395,186 @@ export async function executeZeroResidueDeduplication(
         result.relinkedAcademicRecordsCount++;
       });
 
-      // Alihkan attendanceRecords
+      // Alihkan attendanceRecords (menggunakan deterministic ID dan atomic set-new + delete-old)
       attSnap.docs.forEach(d => {
-        operations.push({
-          type: 'UPDATE',
-          ref: doc(attColRef, d.id),
-          data: { studentId: master.id },
-        });
-        result.relinkedAcademicRecordsCount++;
+        const attData = d.data() as any;
+        const academicYearId = attData.academicYearId;
+        const semester = attData.semester;
+        const classId = attData.classId;
+        const date = attData.date;
+        const teachingAssignmentId = attData.teachingAssignmentId;
+
+        const masterDocId = (academicYearId && semester && classId && date && teachingAssignmentId)
+          ? getDeterministicAttendanceId(
+              academicYearId,
+              semester,
+              classId,
+              date,
+              teachingAssignmentId,
+              master.id
+            )
+          : `${d.id}_${master.id}`;
+
+        if (masterAttDocIds.has(masterDocId)) {
+          // Master sudah memiliki record presensi pada sesi/pertemuan ini -> hapus duplikat
+          operations.push({
+            type: 'DELETE',
+            ref: doc(attColRef, d.id),
+          });
+        } else {
+          // Master belum memiliki record presensi pada sesi ini -> buat record baru untuk master & hapus duplikat
+          const cleanRecordedBy = sanitizeRecordedBy(attData.recordedBy, uid);
+          const newAttRecord: Record<string, any> = {
+            studentId: master.id,
+            academicYearId: academicYearId || '',
+            classId: classId || '',
+            subjectId: attData.subjectId || '',
+            teachingAssignmentId: teachingAssignmentId || '',
+            date: date || '',
+            semester: semester === 'GENAP' ? 'GENAP' : 'GANJIL',
+            status: ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'].includes(attData.status)
+              ? attData.status
+              : 'PRESENT',
+            recordedBy: cleanRecordedBy,
+            createdAt: attData.createdAt || serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          };
+
+          if (master.fullName || attData.studentName) {
+            newAttRecord.studentName = master.fullName || attData.studentName;
+          }
+          if (typeof attData.rollNumber === 'number') {
+            newAttRecord.rollNumber = attData.rollNumber;
+          }
+          if (master.gender || attData.gender) {
+            newAttRecord.gender = master.gender || attData.gender;
+          }
+          if (attData.note !== undefined && attData.note !== null) newAttRecord.note = String(attData.note);
+          if (
+            typeof attData.meetingId === 'string' &&
+            attData.meetingId.trim().length > 0 &&
+            typeof attData.meetingNumber === 'number' &&
+            attData.meetingNumber > 0
+          ) {
+            newAttRecord.meetingId = attData.meetingId.trim();
+            newAttRecord.meetingNumber = Math.floor(attData.meetingNumber);
+          }
+
+          operations.push({
+            type: 'SET',
+            ref: doc(attColRef, masterDocId),
+            data: newAttRecord,
+          });
+          operations.push({
+            type: 'DELETE',
+            ref: doc(attColRef, d.id),
+          });
+          masterAttDocIds.add(masterDocId);
+          result.relinkedAcademicRecordsCount++;
+        }
       });
 
-      // Alihkan dailyAttendanceRecords
+      // Alihkan dailyAttendanceRecords (menggunakan deterministic ID dan atomic set-new + delete-old)
       dailyAttSnap.docs.forEach(d => {
-        operations.push({
-          type: 'UPDATE',
-          ref: doc(dailyAttColRef, d.id),
-          data: { studentId: master.id },
-        });
-        result.relinkedAcademicRecordsCount++;
+        const dailyData = d.data() as any;
+        const academicYearId = dailyData.academicYearId;
+        const classId = dailyData.classId;
+        const date = dailyData.date;
+        const sessionId = dailyData.sessionId || (academicYearId && classId && date ? `${academicYearId}_${classId}_${date}` : undefined);
+
+        const masterDailyDocId = (academicYearId && classId && date)
+          ? `${academicYearId}_${classId}_${date}_${master.id}`
+          : (sessionId
+              ? `${sessionId}_${master.id}`
+              : `${d.id}_${master.id}`);
+
+        const sessionKey = sessionId || (academicYearId && classId && date ? `${academicYearId}_${classId}_${date}` : (classId && date ? `${classId}_${date}` : null));
+
+        const existingMasterDoc = masterDailyDocsById.get(masterDailyDocId) || (sessionKey ? masterDailyDocsBySession.get(sessionKey) : undefined);
+
+        if (existingMasterDoc) {
+          // Master sudah memiliki record presensi harian pada sesi/tanggal ini.
+          // Jangan menimpa status master, tetapi cegah kehilangan data (note/keterangan dari duplikat).
+          const masterData = typeof existingMasterDoc.data === 'function' ? existingMasterDoc.data() : existingMasterDoc;
+          let noteEnrichment = '';
+          const dupNote = (dailyData.note !== undefined && dailyData.note !== null) ? String(dailyData.note).trim() : '';
+          const masterNote = (masterData.note !== undefined && masterData.note !== null) ? String(masterData.note).trim() : '';
+
+          if (dupNote) {
+            if (!masterNote) {
+              noteEnrichment = dupNote;
+            } else if (!masterNote.includes(dupNote)) {
+              noteEnrichment = `${masterNote}; Duplikat (${dailyData.status || 'Presensi'}): ${dupNote}`;
+            }
+          } else if (dailyData.status && dailyData.status !== masterData.status && dailyData.status !== 'PRESENT') {
+            const statusNote = `Status pada duplikat: ${dailyData.status}`;
+            if (!masterNote.includes(statusNote)) {
+              noteEnrichment = masterNote ? `${masterNote}; ${statusNote}` : statusNote;
+            }
+          }
+
+          if (noteEnrichment) {
+            operations.push({
+              type: 'UPDATE',
+              ref: doc(dailyAttColRef, existingMasterDoc.id),
+              data: {
+                note: noteEnrichment,
+                updatedAt: serverTimestamp(),
+              },
+            });
+          }
+
+          // Hapus dokumen duplikat untuk mencegah residu dan dokumen yatim
+          operations.push({
+            type: 'DELETE',
+            ref: doc(dailyAttColRef, d.id),
+          });
+        } else {
+          // Master belum memiliki record presensi harian pada sesi ini -> buat record baru untuk master & hapus duplikat
+          const newDailyRecord: Record<string, any> = {
+            studentId: master.id,
+            academicYearId: academicYearId || '',
+            classId: classId || '',
+            date: date || '',
+            status: ['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION'].includes(dailyData.status)
+              ? dailyData.status
+              : 'PRESENT',
+            createdAt: dailyData.createdAt || serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          };
+
+          if (sessionId) {
+            newDailyRecord.sessionId = sessionId;
+          }
+          if (master.fullName || dailyData.studentName) {
+            newDailyRecord.studentName = master.fullName || dailyData.studentName;
+          }
+          if (typeof dailyData.rollNumber === 'number') {
+            newDailyRecord.rollNumber = dailyData.rollNumber;
+          }
+          if (master.gender || dailyData.gender) {
+            newDailyRecord.gender = master.gender || dailyData.gender;
+          }
+          if (dailyData.note !== undefined && dailyData.note !== null && String(dailyData.note).trim() !== '') {
+            newDailyRecord.note = String(dailyData.note).trim();
+          }
+
+          operations.push({
+            type: 'SET',
+            ref: doc(dailyAttColRef, masterDailyDocId),
+            data: newDailyRecord,
+          });
+          operations.push({
+            type: 'DELETE',
+            ref: doc(dailyAttColRef, d.id),
+          });
+
+          masterDailyDocsById.set(masterDailyDocId, { id: masterDailyDocId, data: () => newDailyRecord });
+          if (sessionKey) {
+            masterDailyDocsBySession.set(sessionKey, { id: masterDailyDocId, data: () => newDailyRecord });
+          }
+          result.relinkedAcademicRecordsCount++;
+        }
       });
 
       // Alihkan studentNotes
@@ -454,6 +640,8 @@ export async function executeZeroResidueDeduplication(
     chunk.forEach(op => {
       if (op.type === 'UPDATE') {
         batch.update(op.ref, op.data);
+      } else if (op.type === 'SET') {
+        batch.set(op.ref, op.data);
       } else if (op.type === 'DELETE') {
         batch.delete(op.ref);
       }

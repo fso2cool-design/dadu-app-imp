@@ -1,4 +1,4 @@
-﻿export type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
+export type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
 import type { SaveAttendanceItem, SaveSubjectAttendancePayload } from '../../domain/attendance.types';
 import {
   collection,
@@ -70,6 +70,16 @@ export function normalizeAttendanceRecord(
  * @returns Ringkasan kalkulasi kehadiran (hadir, sakit, izin, alpa, persentase kehadiran).
  * @throws Error bila payload tidak lengkap, status tidak sah, atau terjadi konflik konkurensi.
  */
+/**
+ * Normalizes recordedBy to ensure it is a valid non-empty string without whitespace.
+ * If invalid or absent, falls back to current authenticated user UID.
+ */
+export function sanitizeRecordedBy(recordedBy: unknown, fallbackUid: string): string {
+  if (typeof recordedBy === 'string' && recordedBy.trim().length > 0 && !/\s/.test(recordedBy)) {
+    return recordedBy;
+  }
+  return fallbackUid;
+}
 export async function saveSubjectAttendance(
   uid: string,
   payload: SaveSubjectAttendancePayload
@@ -301,7 +311,7 @@ export async function saveSubjectAttendance(
             meetingNumber: (meetingId && meetingNumber !== undefined && meetingNumber !== null)
               ? meetingNumber
               : (meetingId ? (targetMeetingData?.meetingNumber ?? null) : null),
-            recordedBy: oldData.recordedBy || uid,
+            recordedBy: sanitizeRecordedBy(oldData.recordedBy, uid),
             updatedAt: now,
           };
           if (oldData.createdAt) {
