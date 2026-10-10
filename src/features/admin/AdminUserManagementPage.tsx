@@ -65,7 +65,28 @@ interface AdminUserManagementPageProps {
 export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = ({
   onSwitchToTeacherApp,
 }) => {
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, refreshAdminClaim } = useAuth();
+  const [syncingClaim, setSyncingClaim] = useState<boolean>(false);
+
+  const handleSyncAdminClaim = async () => {
+    if (syncingClaim) return;
+    setSyncingClaim(true);
+    try {
+      const res = await refreshAdminClaim();
+      if (res === 'verified-admin') {
+        showToast('success', 'Izin administratif berhasil disinkronkan!');
+        await loadAllUsers();
+      } else if (res === 'verification-error') {
+        showToast('error', 'Gagal memverifikasi ke server otentikasi. Periksa koneksi internet Anda.');
+      } else {
+        showToast('error', 'Klaim administratif belum aktif di server otentikasi. Hubungi pemilik sistem.');
+      }
+    } catch (err: any) {
+      showToast('error', 'Terjadi kesalahan saat sinkronisasi izin: ' + (err?.message || 'Koneksi gagal'));
+    } finally {
+      setSyncingClaim(false);
+    }
+  };
   const { success: toastSuccess, error: toastError } = useToast();
   const app = useApplication();
   const getAllUsers = app.admin.getAllUsers;
@@ -109,6 +130,17 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
   // Pencil user modal state
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [fetchError, setFetchError] = useState<{ isPermissionDenied: boolean; message: string } | null>(null);
+
+  const formatAdminErrorMessage = (err: any, fallbackMessage: string): string => {
+    const isPerm =
+      err?.code === 'permission-denied' ||
+      (err?.message && String(err.message).toLowerCase().includes('permission'));
+    if (isPerm) {
+      return 'Akses administratif belum aktif atau akun Anda tidak memiliki izin untuk operasi ini.';
+    }
+    return fallbackMessage + ': ' + (err?.message || 'Periksa koneksi jaringan.');
+  };
 
   const showToast = (type: 'success' | 'error', text: string) => {
     if (type === 'success') {
@@ -129,12 +161,24 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
 
   const loadAllUsers = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const data = await app.admin.getAllUsers();
       setUsersList(data);
     } catch (err: any) {
       console.error('Error fetching users:', err);
-      showToast('error', 'Gagal memuat daftar pengguna: ' + (err.message || 'Periksa koneksi/aturan database'));
+      const isPermissionDenied =
+        err?.code === 'permission-denied' ||
+        (err?.message && String(err.message).toLowerCase().includes('permission'));
+      const friendlyMessage = isPermissionDenied
+        ? 'Akses administratif belum aktif atau akun Anda tidak memiliki izin untuk mengelola data pengguna.'
+        : 'Gagal memuat daftar pengguna: ' + (err?.message || 'Periksa koneksi/aturan database');
+
+      setFetchError({
+        isPermissionDenied,
+        message: friendlyMessage,
+      });
+      showToast('error', friendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -159,7 +203,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       }
     } catch (err: any) {
       console.error('Scan orphans error:', err);
-      showToast('error', 'Gagal memindai residu: ' + (err.message || 'Periksa aturan Firestore'));
+      showToast('error', formatAdminErrorMessage(err, 'Gagal memindai residu'));
     } finally {
       setScanningOrphans(false);
     }
@@ -178,7 +222,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       });
     } catch (err: any) {
       console.error('Error sweeping detected orphan:', err);
-      showToast('error', 'Gagal menyapu: ' + err.message);
+      showToast('error', formatAdminErrorMessage(err, 'Gagal menyapu'));
     } finally {
       setSweepingResidual(false);
     }
@@ -202,7 +246,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       showToast('success', `Sapu massal tuntas: ${totalPurged} dokumen terhapus.`);
     } catch (err: any) {
       console.error('Error sweeping all orphans:', err);
-      showToast('error', 'Gagal sapu massal: ' + err.message);
+      showToast('error', formatAdminErrorMessage(err, 'Gagal sapu massal'));
     } finally {
       setSweepingAll(false);
     }
@@ -247,7 +291,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
       showToast('success', `Status akun ${targetUser.displayName || targetUser.email} berhasil diubah menjadi ${newStatus === 'ACTIVE' ? 'Aktif' : 'Ditangguhkan (Suspend)'}.`);
     } catch (err: any) {
       console.error('Error updating status:', err);
-      showToast('error', 'Gagal mengubah status: ' + err.message);
+      showToast('error', formatAdminErrorMessage(err, 'Gagal mengubah status'));
     }
   };
 
@@ -401,6 +445,14 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
           </button>
         </div>
 
+        {profile?.role !== 'ADMIN' && (
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2.5">
+            <WarningCircle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>
+              Akun Anda memiliki izin administratif penuh (custom claim terverifikasi), namun dokumen profil tercatat sebagai Guru. Operasi backend tetap berjalan normal.
+            </span>
+          </div>
+        )}
         {activeAdminTab === 'FEEDBACK' ? (
           <AdminFeedbackTab onFeedbackCountChange={loadUnreadFeedbackCount} />
         ) : (
@@ -545,6 +597,42 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                       </div>
                     </td>
                   </tr>
+                ) : fetchError ? (
+                  <tr>
+                    <td colSpan={7} className="py-10 px-4 text-center">
+                      <div className="max-w-md mx-auto p-5 rounded-2xl border border-rose-500/30 bg-rose-500/10 text-rose-300 space-y-3">
+                        <div className="flex items-center justify-center gap-2 text-rose-400 font-bold text-sm">
+                          <WarningCircle className="w-5 h-5 shrink-0" />
+                          <span>{fetchError.isPermissionDenied ? 'Izin Akses Administratif Ditolak' : 'Gagal Memuat Pengguna'}</span>
+                        </div>
+                        <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
+                          {fetchError.message}
+                        </p>
+                        <div className="flex items-center justify-center gap-2 pt-1">
+                          {fetchError.isPermissionDenied && (
+                            <button
+                              type="button"
+                              onClick={handleSyncAdminClaim}
+                              disabled={syncingClaim}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                            >
+                              <ArrowClockwise className={`w-3.5 h-3.5 ${syncingClaim ? "animate-spin" : ""}`} />
+                              <span>{syncingClaim ? 'Menyinkronkan...' : 'Sinkronkan Izin Token'}</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={loadAllUsers}
+                            disabled={syncingClaim}
+                            className="px-3.5 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-emerald-600 dark:text-emerald-300 text-xs font-semibold border border-[var(--ds-border)] transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <ArrowClockwise className="w-3.5 h-3.5" />
+                            <span>Coba Muat Ulang</span>
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-[var(--ds-text-muted)]">
@@ -568,8 +656,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                   filteredUsers.map((u) => {
                     const isSelf = u.uid === user?.uid;
                     const isSuspended = u.accountStatus === 'SUSPENDED';
-                    const isSuper = (u.role === 'ADMIN' && (u.email === 'johanrovian90@gmail.com'));
-                    const isProtected = isSelf || isSuper;
+                    const isProtected = isSelf || u.role === 'ADMIN';
 
                     return (
                       <tr key={u.uid} className="hover:bg-[var(--ds-accent-soft)]/50 transition-colors">
@@ -594,7 +681,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         </td>
 
                         <td className="py-3.5 px-4">
-                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
+                          {u.role === 'ADMIN' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
                               <ShieldCheck className="w-3 h-3 text-emerald-400" />
                               <span>Admin</span>
@@ -619,7 +706,7 @@ export const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (
                         </td>
 
                         <td className="py-3.5 px-4 text-center">
-                          {u.role === 'ADMIN' || u.email === 'johanrovian90@gmail.com' ? (
+                          {u.role === 'ADMIN' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)] text-[10px] font-semibold">
                               <Shield className="w-3 h-3 text-emerald-400 shrink-0" />
                               <span>Administrator</span>

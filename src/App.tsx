@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
-import { BrowserRouter, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import { DesignSystemProvider } from './context/DesignSystemContext';
@@ -38,8 +38,8 @@ function getPublicShareToken(pathname: string, searchParams: URLSearchParams): s
   return null;
 }
 
-function AuthenticatedApp() {
-  const { user, profile, loading: authLoading } = useAuth();
+export function AuthenticatedApp() {
+  const { user, profile, loading: authLoading, isAdmin, adminStatus, refreshAdminClaim } = useAuth();
   const { loading: workspaceLoading } = useWorkspace();
   const app = useApplication();
   const location = useLocation();
@@ -53,8 +53,6 @@ function AuthenticatedApp() {
     return resolvePathToRouteKey(location.pathname);
   }, [location.pathname]);
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
-
   // Quota-friendly unread count check: only run once on load if admin
   useEffect(() => {
     if (isAdmin) {
@@ -62,7 +60,7 @@ function AuthenticatedApp() {
         .then(count => setAdminBadgeCount(count))
         .catch(err => console.warn('Unread feedback count check failed:', err));
     }
-  }, [isAdmin]);
+  }, [isAdmin, app.feedback]);
 
   // If user is logged in and visits /login, redirect cleanly to /dashboard
   useEffect(() => {
@@ -104,15 +102,53 @@ function AuthenticatedApp() {
     );
   }
 
-  // If Admin is viewing the Admin Panel route
-  if (isAdmin && location.pathname === '/admin') {
-    return (
-      <Suspense fallback={<LoadingScreen message="Menyiapkan panel admin..." />}>
-        <AdminUserManagementPage
-          onSwitchToTeacherApp={() => handleNavigate('dashboard')}
-        />
-      </Suspense>
-    );
+  // Admin route guard for /admin
+  if (location.pathname === '/admin') {
+    if (adminStatus === 'loading') {
+      return <LoadingScreen message="Memverifikasi izin administratif..." />;
+    }
+    if (adminStatus === 'verification-error') {
+      return (
+        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-slate-900 border border-rose-500/30 rounded-3xl p-6 text-center space-y-4 shadow-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 mx-auto flex items-center justify-center text-2xl font-bold">
+              ⚠️
+            </div>
+            <h2 className="text-lg font-bold text-white">Verifikasi Izin Terkendala</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Gagal memverifikasi klaim token administratif karena kendala jaringan atau server otentikasi.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => refreshAdminClaim()}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Coba Verifikasi Ulang
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavigate('dashboard')}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+              >
+                Kembali ke Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (isAdmin) {
+      return (
+        <Suspense fallback={<LoadingScreen message="Menyiapkan panel admin..." />}>
+          <AdminUserManagementPage
+            onSwitchToTeacherApp={() => handleNavigate('dashboard')}
+          />
+        </Suspense>
+      );
+    }
+    // not-admin: Redirect cleanly to /dashboard
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Logged in but not onboarded yet -> Show 6-Step Onboarding Wizard

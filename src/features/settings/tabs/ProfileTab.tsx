@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '../../../components/common/Badge';
-import { PenNib, CheckCircle, FloppyDisk } from '@phosphor-icons/react';
+import { PenNib, CheckCircle, FloppyDisk, ShieldCheck, ArrowClockwise } from '@phosphor-icons/react';
+import { useAuth } from '../../auth/AuthContext';
 import type { ProfileFormData, ProfileTabProps } from './types';
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -11,6 +12,45 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   isTeacherSigModalOpen,
   setIsTeacherSigModalOpen,
 }) => {
+  const { isAdmin, adminStatus, refreshAdminClaim } = useAuth();
+  const [isSyncingClaim, setIsSyncingClaim] = useState(false);
+  const [claimFeedback, setClaimFeedback] = useState<{
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  } | null>(null);
+
+  const handleSyncClaim = async () => {
+    if (isSyncingClaim) return;
+    setIsSyncingClaim(true);
+    setClaimFeedback(null);
+    try {
+      const res = await refreshAdminClaim();
+      if (res === 'verified-admin') {
+        setClaimFeedback({
+          type: 'success',
+          message: 'Hak administrator berhasil diverifikasi! Menu dan akses panel admin kini aktif.',
+        });
+      } else if (res === 'verification-error') {
+        setClaimFeedback({
+          type: 'error',
+          message: 'Gagal menghubungi server otentikasi. Periksa koneksi internet Anda.',
+        });
+      } else {
+        setClaimFeedback({
+          type: 'warning',
+          message: 'Klaim administratif belum aktif di server. Jika operator baru saja menetapkan izin, silakan logout lalu login ulang atau hubungi operator sistem.',
+        });
+      }
+    } catch {
+      setClaimFeedback({
+        type: 'error',
+        message: 'Terjadi kendala saat menyinkronkan izin akun.',
+      });
+    } finally {
+      setIsSyncingClaim(false);
+    }
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="flex items-center justify-between border-b border-[var(--ds-border)] pb-3">
@@ -147,6 +187,57 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         ) : (
           <p className="text-xs text-[var(--ds-text-muted)] italic">Belum ada tanda tangan digital yang disimpan.</p>
+        )}
+      </div>
+
+      {/* Account Permissions & Admin Claim Recovery Section */}
+      <div className="p-4 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h4 className="font-bold text-xs text-[var(--ds-text)] flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              Izin Sistem & Status Administrator
+            </h4>
+            <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">
+              Status akses administratif diverifikasi langsung melalui custom claim token Firebase Auth.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border ${
+                isAdmin
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-[var(--ds-surface)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
+              }`}
+            >
+              {isAdmin ? 'ADMINISTRATOR AKTIF' : 'GURU (NON-ADMIN)'}
+            </span>
+            <button
+              type="button"
+              onClick={handleSyncClaim}
+              disabled={isSyncingClaim}
+              className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface)] border border-[var(--ds-border)] hover:bg-[var(--ds-surface-elevated)] text-xs font-semibold text-[var(--ds-text)] flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+            >
+              <ArrowClockwise className={`w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 ${isSyncingClaim ? 'animate-spin' : ''}`} />
+              <span>{isSyncingClaim ? 'Menyinkronkan...' : 'Sinkronkan Izin Token'}</span>
+            </button>
+          </div>
+        </div>
+
+        {claimFeedback && (
+          <div
+            role="status"
+            className={`p-3 rounded-xl text-xs leading-relaxed border ${
+              claimFeedback.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                : claimFeedback.type === 'warning'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+            }`}
+          >
+            {claimFeedback.message}
+          </div>
         )}
       </div>
 

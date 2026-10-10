@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FeedbackItem, FeedbackStatus, FeedbackType } from '../../types';
 import { useApplication } from '../../application/ApplicationContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../auth/AuthContext';
 import { Bug, Lightbulb, Sparkle, Question, Clock, CheckCircle, WarningCircle, Trash, Chat, ArrowClockwise, Funnel, MagnifyingGlass, ArrowSquareOut, CaretRight, ShieldCheck, Warning } from '@phosphor-icons/react';
 import { Modal } from '../../components/common/Modal';
 
@@ -14,6 +15,28 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
   onFeedbackCountChange,
 }) => {
   const { success: toastSuccess, error: toastError } = useToast();
+  const { refreshAdminClaim } = useAuth();
+  const [syncingClaim, setSyncingClaim] = useState<boolean>(false);
+
+  const handleSyncAdminClaim = async () => {
+    if (syncingClaim) return;
+    setSyncingClaim(true);
+    try {
+      const res = await refreshAdminClaim();
+      if (res === 'verified-admin') {
+        toastSuccess('Izin administratif berhasil disinkronkan!');
+        await fetchFeedbacks();
+      } else if (res === 'verification-error') {
+        toastError('Gagal memverifikasi ke server otentikasi. Periksa koneksi internet Anda.');
+      } else {
+        toastError('Klaim administratif belum aktif di server otentikasi. Hubungi pemilik sistem.');
+      }
+    } catch (err: any) {
+      toastError('Terjadi kesalahan saat sinkronisasi izin: ' + (err?.message || 'Koneksi gagal'));
+    } finally {
+      setSyncingClaim(false);
+    }
+  };
   const app = useApplication();
   const getAllFeedbacks = app.admin.getFeedbackList;
   const updateFeedbackStatus = app.admin.updateFeedbackStatus;
@@ -32,16 +55,23 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
   // Delete feedback modal state
   const [feedbackToDelete, setFeedbackToDelete] = useState<FeedbackItem | null>(null);
   const [deleting, setDeleting] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<{ isPermissionDenied: boolean; message: string } | null>(null);
 
   const fetchFeedbacks = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const data = await app.admin.getFeedbackList();
       setFeedbacks(data);
       if (onFeedbackCountChange) onFeedbackCountChange();
     } catch (err: any) {
       console.error('Error fetching feedbacks:', err);
-      toastError('Gagal memuat feedback: ' + (err.message || 'Cek koneksi database'));
+      const isPerm = err?.code === 'permission-denied' || (err?.message && String(err.message).toLowerCase().includes('permission'));
+      const friendlyMsg = isPerm
+        ? 'Akses administratif belum aktif atau akun Anda tidak memiliki izin untuk mengelola masukan.'
+        : 'Gagal memuat masukan: ' + (err?.message || 'Cek koneksi database');
+      setFetchError({ isPermissionDenied: isPerm, message: friendlyMsg });
+      toastError(friendlyMsg);
     } finally {
       setLoading(false);
     }
@@ -274,6 +304,40 @@ export const AdminFeedbackTab: React.FC<AdminFeedbackTabProps> = ({
         <div className="p-12 text-center text-[var(--ds-text-muted)] space-y-3">
           <ArrowClockwise className="w-6 h-6 animate-spin mx-auto text-emerald-400" />
           <p className="text-xs">Memuat laporan feedback...</p>
+        </div>
+      ) : fetchError ? (
+        <div className="p-8 text-center rounded-2xl bg-rose-500/10 border border-rose-500/30 space-y-3 max-w-md mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center">
+            <WarningCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-rose-300">
+            {fetchError.isPermissionDenied ? 'Izin Akses Administratif Ditolak' : 'Gagal Memuat Masukan'}
+          </h3>
+          <p className="text-xs text-[var(--ds-text-muted)] leading-relaxed">
+            {fetchError.message}
+          </p>
+          <div className="flex items-center justify-center gap-2 pt-1">
+            {fetchError.isPermissionDenied && (
+              <button
+                type="button"
+                onClick={handleSyncAdminClaim}
+                disabled={syncingClaim}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                <ArrowClockwise className={`w-3.5 h-3.5 ${syncingClaim ? "animate-spin" : ""}`} />
+                <span>{syncingClaim ? 'Menyinkronkan...' : 'Sinkronkan Izin Token'}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={fetchFeedbacks}
+              disabled={syncingClaim}
+              className="px-3.5 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] text-emerald-600 dark:text-emerald-300 text-xs font-semibold border border-[var(--ds-border)] transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <ArrowClockwise className="w-3.5 h-3.5" />
+              <span>Coba Muat Ulang</span>
+            </button>
+          </div>
         </div>
       ) : filteredFeedbacks.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] space-y-3">

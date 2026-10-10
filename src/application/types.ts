@@ -95,6 +95,17 @@ import type {
 import type { LoadWorkspaceResult } from './workspace/loadWorkspace.usecase';
 import type { ImportStudentsInput, ImportStudentsResult } from './students/importStudents.usecase';
 
+export type AdminVerificationStatus =
+  | 'loading'
+  | 'verified-admin'
+  | 'not-admin'
+  | 'verification-error';
+
+export interface AdminClaimVerificationResult {
+  status: AdminVerificationStatus;
+  error?: string;
+}
+
 export interface ApplicationOperations {
   auth: {
     getProfile: (uid: string) => Promise<UserProfile | null>;
@@ -106,6 +117,7 @@ export interface ApplicationOperations {
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     onAuthStateChanged: (callback: (user: FirebaseAuthUser | null) => void) => () => void;
+    getAdminClaimStatus: (forceRefresh?: boolean) => Promise<AdminClaimVerificationResult>;
   };
   workspace: {
     loadWorkspace: (uid: string, profileSemester?: SemesterType) => Promise<LoadWorkspaceResult>;

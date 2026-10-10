@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import { useApplication } from '../../application/ApplicationContext';
+import type { AdminVerificationStatus } from '../../application/types';
 import { UserProfile } from '../../types';
+
+export type { AdminVerificationStatus };
 
 interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
+  adminStatus: AdminVerificationStatus;
+  isAdmin: boolean;
+  refreshAdminClaim: () => Promise<AdminVerificationStatus>;
   login: (email: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -20,7 +26,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [adminStatus, setAdminStatus] = useState<AdminVerificationStatus>('loading');
   const app = useApplication();
+  const authSeqRef = React.useRef(0);
+
+  const verifyTokenClaim = React.useCallback(
+    async (firebaseUser: User | null, forceRefresh = false): Promise<AdminVerificationStatus> => {
+      const currentSeq = ++authSeqRef.current;
+      if (!firebaseUser) {
+        setAdminStatus('not-admin');
+        return 'not-admin';
+      }
+
+      if (forceRefresh) {
+        setAdminStatus('loading');
+      }
+
+      try {
+        const res = await app.auth.getAdminClaimStatus(forceRefresh);
+        if (authSeqRef.current !== currentSeq) {
+          return 'loading';
+        }
+        setAdminStatus(res.status);
+        return res.status;
+      } catch (err) {
+        if (authSeqRef.current !== currentSeq) {
+          return 'loading';
+        }
+        setAdminStatus('verification-error');
+        return 'verification-error';
+      }
+    },
+    [app]
+  );
 
   const fetchProfile = React.useCallback(async (firebaseUser: User) => {
     try {
@@ -68,15 +106,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             sessionStorage.setItem('login_session_recorded', currentUser.uid);
           }
         } catch {}
-        await fetchProfile(currentUser);
+        await Promise.all([
+          fetchProfile(currentUser),
+          verifyTokenClaim(currentUser, false),
+        ]);
       } else {
         setProfile(null);
+        setAdminStatus('not-admin');
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [app, fetchProfile]);
+  }, [app, fetchProfile, verifyTokenClaim]);
 
   const login = React.useCallback(async (email: string, pass: string) => {
     const resUser = await app.auth.login(email, pass);
@@ -84,8 +126,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       sessionStorage.setItem('login_session_recorded', resUser.uid);
     } catch {}
-    await fetchProfile(resUser);
-  }, [app, fetchProfile]);
+    await Promise.all([
+      fetchProfile(resUser),
+      verifyTokenClaim(resUser, false),
+    ]);
+  }, [app, fetchProfile, verifyTokenClaim]);
 
   const signup = React.useCallback(async (email: string, pass: string, name: string) => {
     const resUser = await app.auth.signup(email, pass, name);
@@ -102,7 +147,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sessionStorage.setItem('login_session_recorded', resUser.uid);
     } catch {}
     setProfile(initialProfile);
-  }, [app]);
+    await verifyTokenClaim(resUser, false);
+  }, [app, verifyTokenClaim]);
 
   const logout = React.useCallback(async () => {
     try {
@@ -112,6 +158,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       setUser(null);
       setProfile(null);
+      setAdminStatus('not-admin');
       try {
         sessionStorage.clear();
       } catch (e) {
@@ -130,16 +177,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [user, fetchProfile]);
 
+  const refreshAdminClaim = React.useCallback(async (): Promise<AdminVerificationStatus> => {
+    if (!user) {
+      setAdminStatus('not-admin');
+      return 'not-admin';
+    }
+    return verifyTokenClaim(user, true);
+  }, [user, verifyTokenClaim]);
+
+  const isAdmin = adminStatus === 'verified-admin';
+
   const contextValue = React.useMemo(() => ({
     user,
     profile,
     loading,
+    adminStatus,
+    isAdmin,
+    refreshAdminClaim,
     login,
     signup,
     logout,
     resetPassword,
     refreshProfile,
-  }), [user, profile, loading, login, signup, logout, resetPassword, refreshProfile]);
+  }), [user, profile, loading, adminStatus, isAdmin, refreshAdminClaim, login, signup, logout, resetPassword, refreshProfile]);
 
   return (
     <AuthContext.Provider value={contextValue}>

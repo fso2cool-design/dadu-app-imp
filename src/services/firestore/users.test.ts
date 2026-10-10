@@ -104,7 +104,7 @@ describe('Firestore Users Service', () => {
       expect(mockSetDoc).toHaveBeenCalledTimes(1);
     });
 
-    it('automatically grants ADMIN role for configured super admin emails', async () => {
+    it('creates new profile with default TEACHER role and does not grant ADMIN by email', async () => {
       mockGetDoc.mockResolvedValue({ exists: () => false });
       mockSetDoc.mockResolvedValueOnce(undefined);
 
@@ -113,7 +113,7 @@ describe('Firestore Users Service', () => {
         email: 'johanrovian90@gmail.com',
       });
 
-      expect(profile.role).toBe('ADMIN');
+      expect(profile.role).toBe('TEACHER');
       expect(profile.uid).toBe('admin-789');
     });
   });

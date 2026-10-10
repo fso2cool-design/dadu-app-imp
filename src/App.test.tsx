@@ -21,6 +21,7 @@ vi.mock('firebase/auth', () => ({
   signOut: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
   updateProfile: vi.fn(),
+  getIdTokenResult: vi.fn().mockResolvedValue({ claims: {} }),
 
 }));
 
@@ -95,6 +96,7 @@ describe('Production Composition Root & ApplicationProvider Wiring', () => {
     expect(capturedApp).toBeDefined();
     expect(capturedApp).toBe(container.app);
     expect(capturedApp.auth).toBeDefined();
+    expect(capturedApp.auth.getAdminClaimStatus).toBeDefined();
     expect(capturedApp.workspace).toBeDefined();
     expect(capturedApp.students).toBeDefined();
     expect(capturedApp.master).toBeDefined();

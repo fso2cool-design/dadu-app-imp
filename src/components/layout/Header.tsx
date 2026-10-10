@@ -45,7 +45,44 @@ export const Header: React.FC<HeaderProps> = ({
   adminBadgeCount = 0,
   onOpenFeedbackModal,
 }) => {
-  const { profile, logout } = useAuth();
+  const { profile, logout, isAdmin, refreshAdminClaim } = useAuth();
+  const [isSyncingClaim, setIsSyncingClaim] = useState(false);
+  const [claimSyncFeedback, setClaimSyncFeedback] = useState<{
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  } | null>(null);
+
+  const handleSyncAdminClaim = async () => {
+    if (isSyncingClaim) return;
+    setIsSyncingClaim(true);
+    setClaimSyncFeedback(null);
+    try {
+      const res = await refreshAdminClaim();
+      if (res === 'verified-admin') {
+        setClaimSyncFeedback({
+          type: 'success',
+          message: 'Hak administrator aktif! Menu Panel Administrator telah terbuka.',
+        });
+      } else if (res === 'verification-error') {
+        setClaimSyncFeedback({
+          type: 'error',
+          message: 'Gagal memverifikasi klaim ke server otentikasi. Periksa koneksi Anda.',
+        });
+      } else {
+        setClaimSyncFeedback({
+          type: 'warning',
+          message: 'Klaim admin belum aktif di server. Jika baru dipasang, silakan login ulang atau hubungi operator.',
+        });
+      }
+    } catch {
+      setClaimSyncFeedback({
+        type: 'error',
+        message: 'Terjadi kendala saat sinkronisasi izin token.',
+      });
+    } finally {
+      setIsSyncingClaim(false);
+    }
+  };
   const { 
     academicYears,
     activeAcademicYear, 
@@ -83,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.email === 'johanrovian90@gmail.com';
+  // isAdmin is consumed from useAuth() based on verified token claim
 
   // Live Local Time Updater with dynamic Local Timezone
   useEffect(() => {
@@ -371,6 +408,34 @@ export const Header: React.FC<HeaderProps> = ({
                 <Gear className="w-4 h-4 text-[var(--ds-text-muted)] shrink-0" />
                 Pengaturan Profil & Madrasah
               </button>
+
+              <button
+                type="button"
+                onClick={handleSyncAdminClaim}
+                disabled={isSyncingClaim}
+                className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <div className="flex items-center gap-2">
+                  <ArrowClockwise className={`w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 ${isSyncingClaim ? 'animate-spin' : ''}`} />
+                  <span>{isSyncingClaim ? 'Memeriksa Izin...' : 'Periksa / Sinkronkan Izin Akun'}</span>
+                </div>
+                <span className="text-[10px] text-[var(--ds-text-muted)] font-medium">Sinkronkan</span>
+              </button>
+
+              {claimSyncFeedback && (
+                <div
+                  role="status"
+                  className={`p-2 rounded-xl text-[10px] leading-relaxed my-1 border ${
+                    claimSyncFeedback.type === 'success'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                      : claimSyncFeedback.type === 'warning'
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'
+                      : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+                  }`}
+                >
+                  {claimSyncFeedback.message}
+                </div>
+              )}
 
               <div className="border-t border-[var(--ds-border)] my-1" />
 

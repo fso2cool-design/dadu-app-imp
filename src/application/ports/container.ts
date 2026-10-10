@@ -75,6 +75,7 @@ const app: ApplicationOperations = {
     logout: () => authRepository.logout(),
     resetPassword: (email) => authRepository.resetPassword(email),
     onAuthStateChanged: (callback) => authRepository.onAuthStateChanged(callback),
+    getAdminClaimStatus: (forceRefresh) => authRepository.getAdminClaimStatus(forceRefresh),
   },
   workspace: {
     loadWorkspace: useCases.loadWorkspace,

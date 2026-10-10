@@ -34,7 +34,6 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     return { uid: existing.id, ...existing.data() } as UserProfile;
   }
   const now = serverTimestamp();
-  const isAdminEmail = data.email === 'johanrovian90@gmail.com';
   
   const profileData: Omit<UserProfile, 'uid'> = {
     displayName: data.displayName || '',
@@ -43,7 +42,7 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
     nik: data.nik || '',
     phone: data.phone || '',
     photoUrl: data.photoUrl || '',
-    role: isAdminEmail ? 'ADMIN' : (data.role || 'TEACHER'),
+    role: data.role || 'TEACHER',
     accountStatus: data.accountStatus || 'ACTIVE',
     defaultAcademicYearId: data.defaultAcademicYearId || '',
     defaultSemester: data.defaultSemester || 'GANJIL',

@@ -5,9 +5,11 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   updateProfile as updateFirebaseProfile,
+  getIdTokenResult,
   User as FirebaseAuthUser
 } from 'firebase/auth';
 import { auth } from '../../services/firebase/config';
+import type { AdminClaimVerificationResult } from '../../application/types';
 
 export const authRepository = {
   login: async (email: string, pass: string) => {
@@ -29,5 +31,23 @@ export const authRepository = {
   },
   onAuthStateChanged: (callback: (user: FirebaseAuthUser | null) => void) => {
     return onAuthStateChanged(auth, callback);
-  }
+  },
+  getAdminClaimStatus: async (forceRefresh = false): Promise<AdminClaimVerificationResult> => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return { status: 'not-admin' };
+    }
+    try {
+      const tokenResult = await getIdTokenResult(currentUser, forceRefresh);
+      if (tokenResult?.claims?.admin === true) {
+        return { status: 'verified-admin' };
+      }
+      return { status: 'not-admin' };
+    } catch (err: any) {
+      return {
+        status: 'verification-error',
+        error: err?.message || 'Gagal memverifikasi klaim token.',
+      };
+    }
+  },
 };
