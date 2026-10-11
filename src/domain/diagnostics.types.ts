@@ -1,7 +1,3 @@
-import { 
-  // TODO: Add missing imports here
-} from '../types';
-
 export interface DiagnosticResult {
   timestamp: string;
   totalIssues: number;
@@ -43,4 +39,3 @@ export interface IntegrityIssue {
   collectionName: string;
   details?: any;
 }
-

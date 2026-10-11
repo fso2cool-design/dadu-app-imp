@@ -1,7 +1,3 @@
-import { 
-  // TODO: Add missing imports here
-} from '../types';
-
 export interface OnboardingData {
   profile: {
     displayName: string;
@@ -40,4 +36,3 @@ export interface OnboardingData {
     subjectIndex: number;
   }>;
 }
-

@@ -1,14 +1,19 @@
 import type { Student, StudentPaginationOptions, PaginatedStudentsResult } from '../../types';
-import type { StudentUsageSummary } from '../../domain/student.types';
+import type {
+  StudentUsageSummary,
+  StudentSearchFilterOptions,
+  ImportStudentItem,
+  ImportStudentResult,
+  AtomicImportEnrollmentConfig,
+} from '../../domain/student.types';
 
-export type { StudentUsageSummary } from '../../domain/student.types';
-
-export interface StudentSearchFilterOptions {
-  status?: string;
-  gender?: string;
-  maxResults?: number;
-  limitPerToken?: number;
-}
+export type {
+  StudentUsageSummary,
+  StudentSearchFilterOptions,
+  ImportStudentItem,
+  ImportStudentResult,
+  AtomicImportEnrollmentConfig,
+} from '../../domain/student.types';
 
 export interface StudentRepository {
   getAll(uid: string, status?: string): Promise<Student[]>;
@@ -25,5 +30,5 @@ export interface StudentRepository {
   unarchive(uid: string, id: string): Promise<void>;
   delete(uid: string, id: string): Promise<void>;
   batchCreate(uid: string, list: Array<Omit<Student, 'id' | 'createdAt' | 'updatedAt'>>): Promise<Student[]>;
-  atomicImport(uid: string, list: Array<Omit<Student, 'id' | 'createdAt' | 'updatedAt'> & { rollNumber?: number; classId?: string; className?: string }>, enrollmentConfig?: { academicYearId: string; classId?: string; className?: string; academicYearLabel?: string; overwriteExisting?: boolean }): Promise<{ count: number; enrolledCount: number; createdCount: number; updatedCount: number }>;
+  atomicImport(uid: string, list: ImportStudentItem[], enrollmentConfig?: AtomicImportEnrollmentConfig): Promise<ImportStudentResult>;
 }

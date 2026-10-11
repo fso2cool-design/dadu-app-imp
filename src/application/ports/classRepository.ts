@@ -1,19 +1,7 @@
 import type { ClassItem } from '../../types';
+import type { ClassUsageSummary } from '../../domain/class.types';
 
-export interface ClassUsageSummary {
-  isUsed: boolean;
-  canDelete: boolean;
-  reasons: string[];
-  counts: {
-    enrollments: number;
-    teachingAssignments: number;
-    meetings: number;
-    subjectAttendance?: number;
-    dailyAttendance: number;
-    assessmentItems: number;
-    studentNotes: number;
-  };
-}
+export type { ClassUsageSummary } from '../../domain/class.types';
 
 export interface ClassRepository {
   getAll(uid: string, academicYearId?: string): Promise<ClassItem[]>;

@@ -1,5 +1,17 @@
-export type { StudentUsageSummary } from '../../domain/student.types';
-import type { StudentUsageSummary } from '../../domain/student.types';
+export type {
+  StudentUsageSummary,
+  StudentSearchFilterOptions,
+  ImportStudentItem,
+  ImportStudentResult,
+  AtomicImportEnrollmentConfig,
+} from '../../domain/student.types';
+import type {
+  StudentUsageSummary,
+  StudentSearchFilterOptions,
+  ImportStudentItem,
+  ImportStudentResult,
+  AtomicImportEnrollmentConfig,
+} from '../../domain/student.types';
 import { 
   collection, 
   doc, 
@@ -99,12 +111,7 @@ export async function getStudentById(uid: string, studentId: string): Promise<St
 
 export { buildStudentSearchTokens } from '../../domain/students/studentSearchTokens';
 
-export interface StudentSearchFilterOptions {
-  status?: string;
-  gender?: string;
-  maxResults?: number;
-  limitPerToken?: number;
-}
+// Canonical StudentSearchFilterOptions imported from domain/student.types
 
 /**
  * Targeted exact search untuk NIS atau NISN.
@@ -545,29 +552,12 @@ export async function batchCreateStudents(
   return results;
 }
 
-export interface ImportStudentItem extends Omit<Student, 'id' | 'createdAt' | 'updatedAt'> {
-  rollNumber?: number;
-  classId?: string;
-  className?: string;
-}
-
-export interface ImportStudentResult {
-  count: number;
-  enrolledCount: number;
-  createdCount: number;
-  updatedCount: number;
-}
+// Canonical ImportStudentItem, ImportStudentResult, AtomicImportEnrollmentConfig imported from domain/student.types
 
 export async function atomicImportStudentsWithEnrollment(
   uid: string,
   studentsList: ImportStudentItem[],
-  enrollmentConfig?: {
-    academicYearId: string;
-    classId?: string;
-    className?: string;
-    academicYearLabel?: string;
-    overwriteExisting?: boolean;
-  }
+  enrollmentConfig?: AtomicImportEnrollmentConfig
 ): Promise<ImportStudentResult> {
   if (studentsList.length === 0) {
     return { count: 0, enrolledCount: 0, createdCount: 0, updatedCount: 0 };

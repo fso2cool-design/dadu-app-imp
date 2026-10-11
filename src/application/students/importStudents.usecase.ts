@@ -1,30 +1,9 @@
 import type { StudentRepository } from '../ports/studentRepository';
 import type { EnrollmentRepository } from '../ports/enrollmentRepository';
 import { buildStudentSearchTokens } from '../../domain/students/studentSearchTokens';
+import type { ImportStudentItem } from '../../domain/student.types';
 
-export interface ImportStudentItem {
-  nis?: string;
-  nisn?: string;
-  fullName: string;
-  gender?: 'L' | 'P';
-  classId?: string;
-  className?: string;
-  rollNumber?: number;
-  birthPlace?: string;
-  birthDate?: string;
-  address?: string;
-  parentName?: string;
-  parentPhone?: string;
-  phone?: string;
-  email?: string;
-  religion?: string;
-  nikSiswa?: string;
-  nikIbu?: string;
-  nkk?: string;
-  status?: string;
-  notes?: string;
-  customAttributes?: Record<string, any>;
-}
+export type { ImportStudentItem } from '../../domain/student.types';
 
 export interface ImportStudentsInput {
   uid: string;
@@ -50,14 +29,14 @@ export async function importStudentsUseCase(
   const { uid, items, enrollmentConfig, shouldOverwrite } = input;
 
   // Enrich with domain searchTokens before persistence
-  const enriched = items.map(it => ({
+  const enriched: ImportStudentItem[] = items.map(it => ({
     ...it,
     searchTokens: buildStudentSearchTokens(it.fullName, it.parentName),
   }));
 
   const res = await deps.studentRepo.atomicImport(
     uid,
-    enriched as any,
+    enriched,
     enrollmentConfig ? { ...enrollmentConfig, overwriteExisting: !!shouldOverwrite } : undefined
   );
 

@@ -1,7 +1,3 @@
-import { 
-  // TODO: Add missing imports here
-} from '../types';
-
 export interface AcademicYearUsageSummary {
   isUsed: boolean;
   canDelete: boolean;
@@ -19,4 +15,3 @@ export interface AcademicYearUsageSummary {
     teacherAttendanceRecords: number;
   };
 }
-

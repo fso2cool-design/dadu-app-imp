@@ -10,6 +10,6 @@ export const enrollmentRepository: EnrollmentRepository = {
   archive: (uid, id, status) => E.archiveEnrollment(uid, id, status),
   canDelete: (uid, id) => E.canDeleteEnrollment(uid, id),
   delete: (uid, id) => E.deleteEnrollment(uid, id),
-  batchEnroll: (uid, items) => E.batchEnrollStudents(uid, items as any),
+  batchEnroll: (uid, items) => E.batchEnrollStudents(uid, items),
   batchReorderRollNumbers: (uid, ids) => E.batchReorderRollNumbers(uid, ids),
 };

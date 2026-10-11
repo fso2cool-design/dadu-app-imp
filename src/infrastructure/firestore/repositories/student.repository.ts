@@ -6,8 +6,8 @@ export const studentRepository: StudentRepository = {
   getPaginated: (uid, opts) => S.getStudentsPaginated(uid, opts),
   getById: (uid, id) => S.getStudentById(uid, id),
   checkNisnAvailability: (uid, nisn, exc) => S.checkNisnAvailability(uid, nisn, exc),
-  searchByExactIdentifier: (uid, q, opts) => S.searchStudentsByExactIdentifier(uid, q, opts as any),
-  searchByNameToken: (uid, q, opts) => S.searchStudentsByNameToken(uid, q, opts as any),
+  searchByExactIdentifier: (uid, q, opts) => S.searchStudentsByExactIdentifier(uid, q, opts),
+  searchByNameToken: (uid, q, opts) => S.searchStudentsByNameToken(uid, q, opts),
   create: (uid, data) => S.createStudent(uid, data),
   update: (uid, id, data) => S.updateStudent(uid, id, data),
   checkUsage: (uid, id) => S.checkStudentUsage(uid, id),
@@ -16,6 +16,5 @@ export const studentRepository: StudentRepository = {
   unarchive: (uid, id) => S.unarchiveStudent(uid, id),
   delete: (uid, id) => S.deleteStudent(uid, id),
   batchCreate: (uid, list) => S.batchCreateStudents(uid, list),
-  atomicImport: (uid, list, cfg) => S.atomicImportStudentsWithEnrollment(uid, list as any, cfg as any),
+  atomicImport: (uid, list, cfg) => S.atomicImportStudentsWithEnrollment(uid, list, cfg),
 };
- 

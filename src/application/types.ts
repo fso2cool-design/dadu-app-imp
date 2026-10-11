@@ -32,6 +32,8 @@ import type {
   ClassSchedule,
   DesignSystemKey,
   DesignSystemMode,
+  AccountStatus,
+  UserRole,
 } from '../types';
 
 import type {
@@ -61,6 +63,7 @@ import type { GetEnrollmentsOptions, BatchEnrollItem } from './ports/enrollmentR
 import type { MeetingFilterOptions } from './ports/meetingRepository';
 import type { AcademicYearUsageSummary } from './ports/academicYearRepository';
 import type { ClassUsageSummary } from './ports/classRepository';
+import type { TeachingAssignmentUsageSummary } from '../domain/teachingAssignment.types';
 
 import type {
   DeduplicationScanResult,
@@ -150,7 +153,6 @@ export interface ApplicationOperations {
     scanDuplicates: (uid: string, options?: { academicYearId?: string; classId?: string }) => Promise<DeduplicationScanResult>;
     executeDeduplication: (uid: string, options?: { academicYearId?: string; classId?: string }) => Promise<DeduplicationExecutionResult>;
     getCustomFields: (uid: string) => Promise<StudentCustomFieldDefinition[]>;
-    saveCustomFields: (uid: string, fields: StudentCustomFieldDefinition[]) => Promise<void>;
     createCustomField: (uid: string, data: Omit<StudentCustomFieldDefinition, 'id' | 'createdAt' | 'updatedAt'>) => Promise<StudentCustomFieldDefinition>;
     updateCustomField: (uid: string, id: string, data: Partial<Omit<StudentCustomFieldDefinition, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
     deleteCustomField: (uid: string, id: string) => Promise<void>;
@@ -246,7 +248,7 @@ export interface ApplicationOperations {
       create: (uid: string, data: Omit<TeachingAssignment, 'id' | 'createdAt' | 'updatedAt'>) => Promise<TeachingAssignment>;
       update: (uid: string, id: string, data: Partial<TeachingAssignment>) => Promise<void>;
       delete: (uid: string, id: string) => Promise<void>;
-      checkUsage: (uid: string, id: string) => Promise<{ isUsed: boolean; counts: { meetings: number; attendanceRecords: number; assessmentItems: number } }>;
+      checkUsage: (uid: string, id: string) => Promise<TeachingAssignmentUsageSummary>;
       archive: (uid: string, id: string, activeAyId?: string) => Promise<void>;
       unarchive: (uid: string, id: string, activeAyId?: string) => Promise<void>;
       canDelete: (uid: string, id: string) => Promise<{ canDelete: boolean; reason?: string }>;
@@ -254,8 +256,8 @@ export interface ApplicationOperations {
   };
   admin: {
     getAllUsers: () => Promise<UserProfile[]>;
-    setAccountStatus: (uid: string, status: string) => Promise<void>;
-    setAccountRole: (uid: string, role: string) => Promise<void>;
+    setAccountStatus: (uid: string, status: AccountStatus) => Promise<void>;
+    setAccountRole: (uid: string, role: UserRole) => Promise<void>;
     adminUpdateProfile: (targetUid: string, data: Partial<Omit<UserProfile, 'uid' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
     getStorageStats: (targetUid: string) => Promise<UserStorageStats>;
     purgeWorkspace: (targetUid: string) => Promise<number>;

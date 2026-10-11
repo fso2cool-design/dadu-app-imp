@@ -82,7 +82,6 @@ const app: ApplicationOperations = {
     scanDuplicates: (uid, options) => deduplicationRepository.scanDuplicateStudents(uid, options),
     executeDeduplication: (uid, options) => deduplicationRepository.executeZeroResidueDeduplication(uid, options),
     getCustomFields: (uid) => studentCustomFieldRepository.getAll(uid),
-    saveCustomFields: (uid, fields) => studentCustomFieldRepository.saveAll(uid, fields),
     createCustomField: (uid, data) => studentCustomFieldRepository.create(uid, data),
     updateCustomField: (uid, id, data) => studentCustomFieldRepository.update(uid, id, data),
     deleteCustomField: (uid, id) => studentCustomFieldRepository.delete(uid, id),
