@@ -1,5 +1,7 @@
+import type { SharedReportRepository } from '../../../application/ports/sharedReportRepository';
 import * as S from '../../../services/firestore/sharedReports';
-export const sharedReportRepository = {
+
+export const sharedReportRepository: SharedReportRepository = {
   create: S.createSharedReport,
   getByToken: S.getSharedReportByToken,
   decrypt: S.decryptSharedReport,

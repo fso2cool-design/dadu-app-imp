@@ -1,6 +1,9 @@
+import type { FeedbackItem, FeedbackStatus } from '../../types';
+
 export interface FeedbackRepository {
-  getAll(uid: string): Promise<any[]>;
-  create(uid: string, data: any): Promise<any>;
-  update(uid: string, id: string, data: any): Promise<void>;
-  delete(uid: string, id: string): Promise<void>;
+  getAll(): Promise<FeedbackItem[]>;
+  getUnreadCount(): Promise<number>;
+  updateStatus(id: string, status: FeedbackStatus | string, reply?: string): Promise<void>;
+  delete(id: string): Promise<void>;
+  create(data: Partial<FeedbackItem>): Promise<string>;
 }
