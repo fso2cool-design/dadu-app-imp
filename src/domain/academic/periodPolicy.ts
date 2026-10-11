@@ -1,5 +1,5 @@
 // Pure domain: academic period resolution - extracted from WorkspaceContext:190-230
-export type PeriodResolveInput = { years: Array<{ id: string; name: string; isActive?: boolean }>; prefs?: { defaultAcademicYearId?: string; defaultSemester?: string} | null; profileDefaultSemester?: string; };
+export type PeriodResolveInput = { years: Array<{ id: string; label: string; isActive?: boolean }>; prefs?: { defaultAcademicYearId?: string; defaultSemester?: string} | null; profileDefaultSemester?: string; };
 export function resolveApplicableYear(input: PeriodResolveInput): {pickedYearId: string | null; pickedSemester: string | null } {
   const yearsList = input.years; if (!yearsList.length) return { pickedYearId: null, pickedSemester: null };
   let current = yearsList.find(y => y.isActive) || yearsList[0];

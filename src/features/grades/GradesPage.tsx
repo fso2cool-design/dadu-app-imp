@@ -274,7 +274,7 @@ export const GradesPage: React.FC = () => {
       setIsDirty(false);
 
       // 1. Fetch assessment columns for this assignment
-      const items = await app.grades.getItems(user.uid, {
+      const items = await app.grades.getAssessmentItems(user.uid, {
         teachingAssignmentId: activeAssignment.id,
       });
       setAssessmentItems(items);
@@ -461,7 +461,7 @@ export const GradesPage: React.FC = () => {
     if (!user) return;
 
     try {
-      const check = await app.grades.canDeleteItem(user.uid, itemId);
+      const check = await app.grades.canDeleteAssessmentItem(user.uid, itemId);
       if (!check.canDelete) {
         toastWarning(check.reason || 'Kolom penilaian tidak dapat dihapus karena sudah memiliki nilai siswa.');
         return;
@@ -478,7 +478,7 @@ export const GradesPage: React.FC = () => {
     setDeletingItem(true);
     try {
       triggerSyncFeedback('syncing', `Menghapus kolom penilaian ${itemToDelete.name}...`);
-      await app.grades.deleteItem(user.uid, itemToDelete.id);
+      await app.grades.deleteAssessmentItem(user.uid, itemToDelete.id);
       triggerSyncFeedback('saved', 'Kolom penilaian berhasil dihapus.');
       toastSuccess(`Kolom "${itemToDelete.name}" berhasil dihapus.`);
       setItemToDelete(null);

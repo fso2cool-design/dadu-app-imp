@@ -200,12 +200,12 @@ export interface ApplicationOperations {
     delete: (uid: string, id: string) => Promise<void>;
   };
   grades: {
-    getItems: (uid: string, filters?: AssessmentFilterOptions) => Promise<AssessmentItem[]>;
-    getItemById: (uid: string, itemId: string) => Promise<AssessmentItem | null>;
-    createItem: (uid: string, data: Omit<AssessmentItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
-    updateItem: (uid: string, id: string, data: Partial<Omit<AssessmentItem, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
-    deleteItem: (uid: string, id: string) => Promise<void>;
-    canDeleteItem: (uid: string, id: string) => Promise<{ canDelete: boolean; reason?: string; hasScores: boolean; scoresCount?: number }>;
+    getAssessmentItems: (uid: string, filters?: AssessmentFilterOptions) => Promise<AssessmentItem[]>;
+    getAssessmentItemById: (uid: string, itemId: string) => Promise<AssessmentItem | null>;
+    createAssessmentItem: (uid: string, data: Omit<AssessmentItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>;
+    updateAssessmentItem: (uid: string, id: string, data: Partial<Omit<AssessmentItem, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+    deleteAssessmentItem: (uid: string, id: string) => Promise<void>;
+    canDeleteAssessmentItem: (uid: string, id: string) => Promise<{ canDelete: boolean; reason?: string; hasScores: boolean; scoresCount?: number }>;
     getScoresByItemIds: (uid: string, itemIds: string[]) => Promise<Score[]>;
     saveScoresBatch: (uid: string, itemId: string, scores: Array<{ studentId: string; score: number; note?: string }>) => Promise<void>;
     saveMatrixScores: (uid: string, payload: MatrixScoreInput[]) => Promise<void>;

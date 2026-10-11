@@ -101,7 +101,7 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
       setEnrollments(enrs);
 
       // 3. Assessment Items
-      const items = await app.grades.getItems(user.uid, {
+      const items = await app.grades.getAssessmentItems(user.uid, {
         academicYearId: activeAcademicYear.id,
         classId: currentClassId,
         semester: activeSemester,

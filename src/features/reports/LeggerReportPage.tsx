@@ -118,7 +118,7 @@ export const LeggerReportPage: React.FC = () => {
       setEnrollments(enrs);
 
       // 3. Fetch all assessment items for this class & academic year & semester
-      const items = await app.grades.getItems(user.uid, {
+      const items = await app.grades.getAssessmentItems(user.uid, {
         academicYearId: activeAcademicYear.id,
         classId: selectedClassId,
         semester: activeSemester,

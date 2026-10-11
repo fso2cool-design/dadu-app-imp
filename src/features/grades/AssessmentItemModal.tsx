@@ -180,7 +180,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
       triggerSyncFeedback('syncing', 'Menyimpan kolom penilaian ke cloud...');
 
       if (itemToEdit) {
-        await app.grades.updateItem(user.uid, itemToEdit.id, {
+        await app.grades.updateAssessmentItem(user.uid, itemToEdit.id, {
           name: name.trim(),
           category,
           assessmentDate,
@@ -191,7 +191,7 @@ export const AssessmentItemModal: React.FC<AssessmentItemModalProps> = ({
         });
         triggerSyncFeedback('saved', 'Kolom penilaian berhasil diperbarui!');
       } else {
-        await app.grades.createItem(user.uid, {
+        await app.grades.createAssessmentItem(user.uid, {
           academicYearId: assignment.academicYearId,
           semester: assignment.semester,
           teachingAssignmentId: assignment.id,

@@ -74,7 +74,7 @@ export const GradesReportPage: React.FC = () => {
       if (!cached) setLoading(true);
       try {
         // 1. Fetch assessment columns
-        const items = await app.grades.getItems(user.uid, {
+        const items = await app.grades.getAssessmentItems(user.uid, {
           teachingAssignmentId: selectedAssignment.id,
         });
         if (!isMounted) return;

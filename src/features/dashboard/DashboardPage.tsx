@@ -63,7 +63,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             semester: activeSemester,
           }),
           app.enrollment.getByAcademicYear(user.uid, activeAcademicYear.id),
-          app.grades.getItems(user.uid, {
+          app.grades.getAssessmentItems(user.uid, {
             academicYearId: activeAcademicYear.id,
             semester: activeSemester,
           }),
