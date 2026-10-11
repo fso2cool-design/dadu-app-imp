@@ -126,7 +126,7 @@ export interface ApplicationOperations {
     saveAttendanceSettings: (uid: string, settings: AttendanceSettings) => Promise<void>;
     checkHoliday: (dateStr: string, settings: AttendanceSettings) => { isHoliday: boolean; reason?: string };
   };
-  theme: {
+  appearance: {
     updateDesignSystem: (uid: string, system: DesignSystemKey) => Promise<void>;
     updateModePreference: (uid: string, mode: DesignSystemMode) => Promise<void>;
   };

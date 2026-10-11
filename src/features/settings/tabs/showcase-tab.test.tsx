@@ -10,11 +10,11 @@ import {
 } from './showcaseTokens';
 
 const ds = {
-  activeSystem: 'shadcn-ui' as DesignSystemKey,
+  activePreset: 'shadcn-ui' as DesignSystemKey,
   mode: 'light' as DesignSystemMode,
   tokens: DESIGN_SYSTEMS[1].tokens,
-  setSystem: vi.fn(),
-  applyAndSaveSystem: vi.fn(),
+  setPreset: vi.fn(),
+  applyAndSavePreset: vi.fn(),
   setMode: vi.fn(),
   toggleMode: vi.fn(),
   applyAndSaveMode: vi.fn(),
@@ -108,8 +108,8 @@ describe('ShowcaseTab', () => {
       fireEvent.click(within(modeGroup()).getByRole('button', { name: 'Gelap' }));
       fireEvent.click(within(systemGroup()).getByRole('button', { name: 'Paper Craft' }));
     });
-    expect(ds.setSystem).not.toHaveBeenCalled();
-    expect(ds.applyAndSaveSystem).not.toHaveBeenCalled();
+    expect(ds.setPreset).not.toHaveBeenCalled();
+    expect(ds.applyAndSavePreset).not.toHaveBeenCalled();
     expect(ds.setMode).not.toHaveBeenCalled();
     expect(ds.toggleMode).not.toHaveBeenCalled();
     expect(ds.applyAndSaveMode).not.toHaveBeenCalled();

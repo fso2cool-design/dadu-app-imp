@@ -4,11 +4,11 @@ import { useApplication } from '../application/ApplicationContext';
 import { DesignSystemKey, DesignSystemMode, DesignSystemTokens, DESIGN_SYSTEMS } from '../types';
 
 interface DesignSystemContextType {
-  activeSystem: DesignSystemKey;
+  activePreset: DesignSystemKey;
   tokens: DesignSystemTokens;
   mode: DesignSystemMode;
-  setSystem: (system: DesignSystemKey) => void;
-  applyAndSaveSystem: (system: DesignSystemKey) => void;
+  setPreset: (preset: DesignSystemKey) => void;
+  applyAndSavePreset: (preset: DesignSystemKey) => void;
   setMode: (mode: DesignSystemMode) => void;
   toggleMode: () => void;
   applyAndSaveMode: (mode: DesignSystemMode) => void;
@@ -22,13 +22,13 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const { user, profile } = useAuth();
   const app = useApplication();
 
-  const [activeSystem, setActiveSystem] = useState<DesignSystemKey>(DEFAULT_SYSTEM);
+  const [activePreset, setActivePreset] = useState<DesignSystemKey>(DEFAULT_SYSTEM);
   const [mode, setModeState] = useState<DesignSystemMode>('light');
 
-  // Synchronize design system + mode based on authenticated user preference
+  // Synchronize design system preset + mode based on authenticated user preference
   useEffect(() => {
     if (!user) {
-      setActiveSystem(DEFAULT_SYSTEM);
+      setActivePreset(DEFAULT_SYSTEM);
       setModeState('light');
       return;
     }
@@ -37,19 +37,19 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (profile?.designSystemPreference) {
       const resolved = resolveDesignSystem(profile.designSystemPreference);
       if (resolved) {
-        setActiveSystem(resolved);
+        setActivePreset(resolved);
       }
     } else if (profile?.themePreference) {
       // 2. Backward compat: map old themePreference to new design system
-      setActiveSystem(mapLegacyThemeToDesignSystem(profile.themePreference));
+      setActivePreset(mapLegacyThemeToDesignSystem(profile.themePreference));
     } else {
       // 3. Local storage preference tied to this user's UID
       try {
         const userSaved = localStorage.getItem(`app_design_system_${user.uid}`);
         const resolved = userSaved ? resolveDesignSystem(userSaved) : null;
-        setActiveSystem(resolved ?? DEFAULT_SYSTEM);
+        setActivePreset(resolved ?? DEFAULT_SYSTEM);
       } catch {
-        setActiveSystem(DEFAULT_SYSTEM);
+        setActivePreset(DEFAULT_SYSTEM);
       }
     }
 
@@ -67,7 +67,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [user, profile?.themePreference, profile?.designSystemPreference, profile?.designSystemModePreference]);
 
   const baseTokens =
-    DESIGN_SYSTEMS.find((ds) => ds.id === activeSystem)?.tokens ?? DESIGN_SYSTEMS[1].tokens;
+    DESIGN_SYSTEMS.find((ds) => ds.id === activePreset)?.tokens ?? DESIGN_SYSTEMS[1].tokens;
   const activeColors = mode === 'dark' ? baseTokens.darkColors : baseTokens.colors;
   // tokens.colors always reflects the active mode palette (backward compat for
   // consumers reading tokens.colors); full light+dark pair stays available.
@@ -77,9 +77,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     const root = document.documentElement;
 
-    root.setAttribute('data-design-system', activeSystem);
-    root.setAttribute('data-theme', activeSystem);
-    root.setAttribute('data-mode', mode);
+    root.setAttribute('data-design-system', activePreset);
     root.classList.toggle('dark', mode === 'dark');
 
     root.style.setProperty('--ds-accent', activeColors.accent);
@@ -150,15 +148,15 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     root.style.setProperty('--card-border', activeColors.border);
     root.style.setProperty('--text-main', activeColors.text);
     root.style.setProperty('--text-muted', activeColors.textMuted);
-  }, [activeSystem, mode, tokens, activeColors]);
+  }, [activePreset, mode, tokens, activeColors]);
 
-  const applyAndSaveSystem = useCallback((system: DesignSystemKey) => {
-    setActiveSystem(system);
+  const applyAndSavePreset = useCallback((preset: DesignSystemKey) => {
+    setActivePreset(preset);
     if (user) {
       try {
-        localStorage.setItem(`app_design_system_${user.uid}`, system);
+        localStorage.setItem(`app_design_system_${user.uid}`, preset);
       } catch {}
-      app.theme.updateDesignSystem(user.uid, system);
+      app.appearance.updateDesignSystem(user.uid, preset);
     }
   }, [user, app]);
 
@@ -169,7 +167,7 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
         try {
           localStorage.setItem(`app_design_system_mode_${user.uid}`, next);
         } catch {}
-        app.theme.updateModePreference(user.uid, next);
+        app.appearance.updateModePreference(user.uid, next);
       }
     },
     [user, app],
@@ -188,15 +186,15 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [persistMode]);
 
   const contextValue = React.useMemo(() => ({
-    activeSystem,
+    activePreset,
     tokens,
     mode,
-    setSystem: setActiveSystem,
-    applyAndSaveSystem,
+    setPreset: setActivePreset,
+    applyAndSavePreset,
     setMode,
     toggleMode,
     applyAndSaveMode,
-  }), [activeSystem, tokens, mode, applyAndSaveSystem, setMode, toggleMode, applyAndSaveMode]);
+  }), [activePreset, tokens, mode, applyAndSavePreset, setMode, toggleMode, applyAndSaveMode]);
 
   return (
     <DesignSystemContext.Provider value={contextValue}>
@@ -217,43 +215,32 @@ export const useOptionalDesignSystem = (): DesignSystemContextType | null => {
   return useContext(DesignSystemContext) || null;
 };
 
-// Helper: Validate design system key (new ids only)
+// Helper: Validate design system key (active ids only)
 export function isValidDesignSystem(key: string): key is DesignSystemKey {
   return (['paper-craft', 'neo-brutalism', 'shadcn-ui'] as string[]).includes(key);
 }
 
-// Helper: Resolve stored value — new id or legacy id mapping; null if unknown
+export const LEGACY_PRESET_MAPPINGS: Record<string, DesignSystemKey> = {
+  'atelier': 'neo-brutalism',
+  'minimalist': 'shadcn-ui',
+  'brutalism': 'paper-craft',
+  'neo-skeuomorphic': 'shadcn-ui',
+  'apple-glass': 'neo-brutalism',
+  'light': 'shadcn-ui',
+  'dark-crimson': 'neo-brutalism',
+  'obsidian-tactile': 'neo-brutalism',
+  'swiss-manuscript': 'shadcn-ui',
+  'solarized-comfort': 'neo-brutalism',
+  'chalkboard-school': 'paper-craft',
+};
+
+// Helper: Resolve stored value — active id or legacy id mapping; null if unknown
 export function resolveDesignSystem(key: string): DesignSystemKey | null {
   if (isValidDesignSystem(key)) return key;
-  const legacy: Record<string, DesignSystemKey> = {
-    'atelier': 'neo-brutalism',
-    'minimalist': 'shadcn-ui',
-    'brutalism': 'paper-craft',
-    'neo-skeuomorphic': 'shadcn-ui',
-    'apple-glass': 'neo-brutalism',
-    'light': 'shadcn-ui',
-    'dark-crimson': 'neo-brutalism',
-    'obsidian-tactile': 'neo-brutalism',
-    'swiss-manuscript': 'shadcn-ui',
-    'solarized-comfort': 'neo-brutalism',
-    'chalkboard-school': 'paper-craft',
-  };
-  return legacy[key] ?? null;
+  return LEGACY_PRESET_MAPPINGS[key] ?? null;
 }
 
-// Helper: Map legacy theme to new design system
+// Helper: Map legacy theme to active design system preset
 export function mapLegacyThemeToDesignSystem(theme: string): DesignSystemKey {
-  const resolved = resolveDesignSystem(theme);
-  if (resolved) return resolved;
-  const mapping: Record<string, DesignSystemKey> = {
-    'atelier': 'neo-brutalism',
-    'minimalist': 'shadcn-ui',
-    'light': 'shadcn-ui',
-    'dark-crimson': 'neo-brutalism',
-    'obsidian-tactile': 'neo-brutalism',
-    'swiss-manuscript': 'shadcn-ui',
-    'solarized-comfort': 'neo-brutalism',
-    'chalkboard-school': 'paper-craft',
-  };
-  return mapping[theme] || 'shadcn-ui';
+  return resolveDesignSystem(theme) ?? DEFAULT_SYSTEM;
 }

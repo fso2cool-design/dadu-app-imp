@@ -84,7 +84,7 @@ const app: ApplicationOperations = {
     saveAttendanceSettings: (uid, settings) => settingsRepository.saveAttendanceSettings(uid, settings),
     checkHoliday: useCases.checkHoliday,
   },
-  theme: {
+  appearance: {
     updateDesignSystem: (uid, system) => userRepository.updateDesignSystem(uid, system),
     updateModePreference: (uid, mode) => userRepository.updateProfile(uid, { designSystemModePreference: mode }),
   },

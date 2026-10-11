@@ -9,9 +9,9 @@ One domain = one provider/context. Shim/alias allowed, but shim MUST NOT own `us
 ### Rules
 
 1. **Design System is single source** — `DesignSystemContext` owns:
-   - DOM: `data-design-system` + `data-theme` + `--ds-*` vars
-   - Persistence: `localStorage app_design_system_*` + `container.repos.user.updateDesignSystem` (`designSystemPreference`)
-   - `ThemeContext` is pure alias: `activeTheme = ds.activeSystem`, `setTheme = ds.setSystem`, `applyAndSaveTheme = ds.applyAndSaveSystem`, `isDark = false` (all 3 systems light). No state, no effect, no storage.
+   - DOM: `data-design-system` + `.dark` + `--ds-*` vars (no `data-theme` or `data-mode`)
+   - Persistence: `localStorage app_design_system_*` / `app_design_system_mode_*` + `app.appearance.updateDesignSystem` / `updateModePreference`
+   - Canonical API: `activePreset`, `setPreset`, `applyAndSavePreset`, `mode`, `setMode`, `toggleMode`, `applyAndSaveMode`. The redundant Theme layer is completely removed.
 
 2. **User profile — no dual field drift** — `UserProfile` has `designSystemPreference` (primary) + `themePreference` (deprecated read-fallback only). Writes go only to `designSystemPreference`. Reads: try `designSystemPreference` first, fallback `mapLegacyThemeToDesignSystem(themePreference)`.
 
@@ -29,7 +29,7 @@ One domain = one provider/context. Shim/alias allowed, but shim MUST NOT own `us
 
 ### Detection checklist (run when touching these areas)
 
-- `grep -R "THEME_OPTIONS\|ThemeKey\|themePreference\|designSystemPreference" src --include="*.ts" --include="*.tsx"`
-- `grep -R "data-theme\|data-design-system" src --include="*.ts" --include="*.tsx" | grep -v "DesignSystemContext"`
+- `grep -R "themePreference\|designSystemPreference" src --include="*.ts" --include="*.tsx"`
+- `grep -R "data-design-system" src --include="*.ts" --include="*.tsx" | grep -v "DesignSystemContext"`
 - Verify `firebase.json` has `database` key
 - Verify `package.json` vs `package-lock.json` version sync after bump (`npm install --package-lock-only`)

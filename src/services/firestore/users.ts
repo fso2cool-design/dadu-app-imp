@@ -15,7 +15,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { UserProfile, ThemeKey } from '../../types';
+import { UserProfile } from '../../types';
 import { WORKSPACE_SUBCOLLECTIONS } from '../../constants/firestoreCollections';
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -77,10 +77,6 @@ export async function recordUserLastLogin(uid: string): Promise<void> {
   }
 }
 
-export async function updateUserThemePreference(uid: string, theme: ThemeKey): Promise<void> {
-  // Deprecated shim — single source is designSystemPreference; keep fallback read path.
-  return updateUserDesignSystemPreference(uid, theme as unknown as string);
-}
 
 export async function updateUserDesignSystemPreference(uid: string, designSystem: string): Promise<void> {
   const docRef = doc(db, 'users', uid);

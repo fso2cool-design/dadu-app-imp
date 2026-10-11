@@ -32,12 +32,12 @@ const CLASS_OPTIONS = [
 /**
  * Read-only design system preview. Selection lives in local state and is applied
  * as scoped --ds-* variables on the preview container only. It never calls
- * setSystem/setMode/applyAndSave*, so the teacher's saved theme (localStorage and
+ * setPreset/setMode/applyAndSave*, so the teacher's saved appearance (localStorage and
  * Firestore) and the rest of the app are untouched.
  */
 export const ShowcaseTab: React.FC = () => {
-  const { activeSystem, mode } = useDesignSystem();
-  const [previewSystem, setPreviewSystem] = useState<DesignSystemKey>(activeSystem);
+  const { activePreset, mode } = useDesignSystem();
+  const [previewSystem, setPreviewSystem] = useState<DesignSystemKey>(activePreset);
   const [previewMode, setPreviewMode] = useState<DesignSystemMode>(mode);
 
   const previewVars = useMemo(

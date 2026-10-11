@@ -5,7 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AuthenticatedApp } from '../App';
 import * as authModule from '../features/auth/AuthContext';
 import * as workspaceModule from '../context/WorkspaceContext';
-import * as themeModule from '../context/ThemeContext';
+import * as dsModule from '../context/DesignSystemContext';
 import { ApplicationProvider } from '../application/ApplicationContext';
 import { ToastProvider } from '../context/ToastContext';
 import type { ApplicationOperations } from '../application/types';
@@ -71,18 +71,16 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       triggerSyncFeedback: vi.fn(),
     } as any);
 
-    vi.spyOn(themeModule, 'useAppTheme').mockReturnValue({
-      theme: 'emerald-slate',
-      themeConfig: { name: 'Emerald Slate' } as any,
-      availableThemes: [],
-      setTheme: vi.fn(),
-      activeTheme: 'emerald-slate',
-      previewTheme: 'emerald-slate',
-      setPreviewTheme: vi.fn(),
-      applyAndSaveTheme: vi.fn(),
-      resetPreview: vi.fn(),
-      isDark: false,
-    } as any);
+    vi.spyOn(dsModule, 'useDesignSystem').mockReturnValue({
+      activePreset: 'shadcn-ui',
+      mode: 'light',
+      tokens: {} as any,
+      setPreset: vi.fn(),
+      applyAndSavePreset: vi.fn(),
+      setMode: vi.fn(),
+      toggleMode: vi.fn(),
+      applyAndSaveMode: vi.fn(),
+    });
   });
 
   it('allows access to /admin when claim is verified (isAdmin: true, verified-admin)', async () => {

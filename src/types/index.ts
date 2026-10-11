@@ -26,7 +26,8 @@ export interface UserProfile {
   defaultAcademicYearId?: string;
   defaultSemester: SemesterType;
   isOnboarded?: boolean;
-  themePreference?: ThemeKey;
+  // Deprecated read-only fallback for pre-v2.3.0 profiles; never write
+  themePreference?: string;
   designSystemPreference?: DesignSystemKey;
   designSystemModePreference?: DesignSystemMode;
   lastLoginAt?: any;
@@ -444,11 +445,6 @@ export const DESIGN_SYSTEMS: DesignSystemOption[] = [
   },
 ];
 
-// ==========================================================================
-// THEME KEYS (ALIAS \u2014 single source, do NOT duplicate literals)
-// ==========================================================================
-
-export type ThemeKey = DesignSystemKey;
 
 export interface AcademicYear {
   id: string;

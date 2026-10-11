@@ -3,7 +3,6 @@ import { createBrowserRouter, RouterProvider, useNavigate, useLocation, useSearc
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import { DesignSystemProvider } from './context/DesignSystemContext';
-import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { LoginPage } from './features/auth/LoginPage';
 import { AppLayout } from './components/layout/AppLayout';
@@ -254,11 +253,9 @@ export function AppShell() {
     <ApplicationProvider app={container.app}>
       <AuthProvider>
         <DesignSystemProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              <MainApp />
-            </ToastProvider>
-          </ThemeProvider>
+          <ToastProvider>
+            <MainApp />
+          </ToastProvider>
         </DesignSystemProvider>
       </AuthProvider>
     </ApplicationProvider>

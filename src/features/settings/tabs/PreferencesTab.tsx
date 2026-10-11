@@ -12,8 +12,7 @@ import {
   FloppyDisk,
 } from '@phosphor-icons/react';
 import { useDesignSystem } from '../../../context/DesignSystemContext';
-import { useAppTheme, THEME_OPTIONS } from '../../../context/ThemeContext';
-import { DESIGN_SYSTEMS } from '../../../types';
+import { DESIGN_SYSTEMS, type DesignSystemKey } from '../../../types';
 import { APP_CONFIG } from '../../../constants/app';
 import { APP_CHANGELOGS } from '../../../constants/changelog';
 import type { PreferencesTabProps } from './types';
@@ -30,14 +29,12 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
   setIsChangeLogModalOpen,
   onSuccess,
 }) => {
-  const { activeSystem, setSystem, applyAndSaveSystem, mode, applyAndSaveMode } = useDesignSystem();
-  const { activeTheme, setTheme, applyAndSaveTheme, isDark } = useAppTheme();
+  const { activePreset, applyAndSavePreset, mode, applyAndSaveMode } = useDesignSystem();
 
-  const [selectedTheme, setSelectedTheme] = React.useState(activeTheme);
+  const [selectedPreset, setSelectedPreset] = React.useState<DesignSystemKey>(activePreset);
   const [previewMode, setPreviewMode] = React.useState<'light' | 'dark'>(mode);
 
-  const currentPreviewOption = THEME_OPTIONS.find(t => t.id === selectedTheme) || THEME_OPTIONS[0];
-  const activeDS = DESIGN_SYSTEMS.find(ds => ds.id === selectedTheme) || DESIGN_SYSTEMS[1];
+  const activeDS = DESIGN_SYSTEMS.find((ds) => ds.id === selectedPreset) || DESIGN_SYSTEMS[1];
   const isSelectedDark = previewMode === 'dark';
 
   const previewColors = isSelectedDark ? activeDS.tokens.darkColors : activeDS.tokens.colors;
@@ -131,23 +128,23 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
             <button
               type="button"
               onClick={() => {
-                applyAndSaveTheme(selectedTheme);
+                applyAndSavePreset(selectedPreset);
                 applyAndSaveMode(previewMode);
-                onSuccess('Tema visual dan mode tampilan berhasil diterapkan dan disimpan!');
+                onSuccess('Preset visual dan mode tampilan berhasil diterapkan dan disimpan!');
               }}
-              disabled={selectedTheme === activeTheme && previewMode === mode}
-              style={selectedTheme !== activeTheme ? {
-                backgroundColor: currentPreviewOption.accentHex,
-                color: currentPreviewOption.buttonText,
+              disabled={selectedPreset === activePreset && previewMode === mode}
+              style={selectedPreset !== activePreset ? {
+                backgroundColor: previewColors.accent,
+                color: previewColors.accentFg,
               } : undefined}
               className={`tactile-press flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer ${
-                selectedTheme !== activeTheme
+                selectedPreset !== activePreset
                   ? 'shadow-sm active:scale-95'
                   : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
               }`}
             >
               <FloppyDisk className="w-4 h-4" />
-              <span>{selectedTheme === activeTheme && previewMode === mode ? 'Tema & Mode Aktif' : 'Terapkan & Simpan'}</span>
+              <span>{selectedPreset === activePreset && previewMode === mode ? 'Preset & Mode Aktif' : 'Terapkan & Simpan'}</span>
             </button>
           </div>
         </div>
@@ -163,13 +160,13 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                 </label>
                 <div className="relative">
                   <select
-                    value={selectedTheme}
-                    onChange={(e) => setSelectedTheme(e.target.value as any)}
+                    value={selectedPreset}
+                    onChange={(e) => setSelectedPreset(e.target.value as DesignSystemKey)}
                     className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
                   >
-                    {THEME_OPTIONS.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
+                    {DESIGN_SYSTEMS.map((ds) => (
+                      <option key={ds.id} value={ds.id}>
+                        {ds.name}
                       </option>
                     ))}
                   </select>
@@ -218,7 +215,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
                     {isSelectedDark ? '🌙 Mode Gelap' : '☀️ Mode Terang'}
                   </span>
-                  {selectedTheme === activeTheme && previewMode === mode && (
+                  {selectedPreset === activePreset && previewMode === mode && (
                     <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       Sedang Digunakan
@@ -226,10 +223,10 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                  {currentPreviewOption.tagline}
+                  {activeDS.tagline}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {currentPreviewOption.description}
+                  {activeDS.description}
                 </p>
               </div>
             </div>

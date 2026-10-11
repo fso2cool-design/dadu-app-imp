@@ -5,7 +5,6 @@ export const userRepository: UserRepository = {
   createProfile: (uid,d) => U.createUserProfile(uid,d),
   updateProfile: (uid,d) => U.updateUserProfile(uid,d),
   recordLastLogin: (uid) => U.recordUserLastLogin(uid),
-  updateTheme: (uid,t) => U.updateUserDesignSystemPreference(uid, t as any),
   updateDesignSystem: (uid,t) => U.updateUserDesignSystemPreference(uid, t as any),
   getAllUsers: () => U.getAllUsers(),
   setAccountStatus: (uid,s) => U.setAccountStatus(uid, s as any),

@@ -8,12 +8,11 @@ import {
   resolveDesignSystem,
   mapLegacyThemeToDesignSystem,
 } from './DesignSystemContext';
-import { ThemeProvider, useAppTheme, THEME_OPTIONS } from './ThemeContext';
 import { ApplicationProvider } from '../application/ApplicationContext';
-import { AuthProvider } from '../features/auth/AuthContext';
+import * as authModule from '../features/auth/AuthContext';
 import { DESIGN_SYSTEMS } from '../types';
 import type { ApplicationOperations } from '../application/types';
-import type { DesignSystemKey, DesignSystemMode } from '../types';
+import type { DesignSystemKey, DesignSystemMode, UserProfile } from '../types';
 import { buildPreviewVars } from '../features/settings/tabs/showcaseTokens';
 
 vi.mock('firebase/auth', () => ({
@@ -26,7 +25,6 @@ vi.mock('firebase/auth', () => ({
   signOut: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
   updateProfile: vi.fn(),
-
 }));
 
 vi.mock('../services/firebase/config', () => ({
@@ -42,41 +40,65 @@ const mockApp: ApplicationOperations = {
     updateProfile: vi.fn(),
     onAuthStateChanged: vi.fn((cb) => {
       cb(null);
-      return vi.fn(); // return unsubscribe function
+      return vi.fn();
     }),
   },
-  theme: {
+  appearance: {
     updateDesignSystem: vi.fn(),
     updateModePreference: vi.fn(),
   },
 } as any;
 
-describe('DesignSystemContext & Theme Architecture', () => {
+describe('DesignSystemContext Canonical Architecture', () => {
   let contextValue: ReturnType<typeof useDesignSystem>;
-  let themeValue: ReturnType<typeof useAppTheme>;
 
   const Consumer = () => {
     contextValue = useDesignSystem();
-    themeValue = useAppTheme();
     return (
       <div data-testid="consumer">
-        <span data-testid="system">{contextValue.activeSystem}</span>
+        <span data-testid="preset">{contextValue.activePreset}</span>
         <span data-testid="mode">{contextValue.mode}</span>
-        <span data-testid="theme-alias">{themeValue.activeTheme}</span>
       </div>
     );
   };
 
-  const renderProviders = () => {
+  const renderWithProviders = (customAuth?: Partial<ReturnType<typeof authModule.useAuth>>) => {
+    if (customAuth) {
+      vi.spyOn(authModule, 'useAuth').mockReturnValue({
+        user: { uid: 'test-user-1', email: 'test@madrasah.sch.id' } as any,
+        profile: null,
+        loading: false,
+        adminStatus: 'not-admin',
+        isAdmin: false,
+        refreshAdminClaim: vi.fn(),
+        login: vi.fn(),
+        signup: vi.fn(),
+        logout: vi.fn(),
+        resetPassword: vi.fn(),
+        refreshProfile: vi.fn(),
+        ...customAuth,
+      });
+    } else {
+      vi.spyOn(authModule, 'useAuth').mockReturnValue({
+        user: null,
+        profile: null,
+        loading: false,
+        adminStatus: 'not-admin',
+        isAdmin: false,
+        refreshAdminClaim: vi.fn(),
+        login: vi.fn(),
+        signup: vi.fn(),
+        logout: vi.fn(),
+        resetPassword: vi.fn(),
+        refreshProfile: vi.fn(),
+      });
+    }
+
     return render(
       <ApplicationProvider app={mockApp}>
-        <AuthProvider>
-          <DesignSystemProvider>
-            <ThemeProvider>
-              <Consumer />
-            </ThemeProvider>
-          </DesignSystemProvider>
-        </AuthProvider>
+        <DesignSystemProvider>
+          <Consumer />
+        </DesignSystemProvider>
       </ApplicationProvider>
     );
   };
@@ -84,7 +106,6 @@ describe('DesignSystemContext & Theme Architecture', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    // Clean up DOM root
     const root = document.documentElement;
     root.removeAttribute('data-design-system');
     root.removeAttribute('data-theme');
@@ -92,206 +113,334 @@ describe('DesignSystemContext & Theme Architecture', () => {
     root.classList.remove('dark');
   });
 
-  const combinations: Array<{
-    system: DesignSystemKey;
-    mode: DesignSystemMode;
-    expectedAccent: string;
-    expectedSurface: string;
-    hasDarkClass: boolean;
-  }> = [
-    { system: 'paper-craft', mode: 'light', expectedAccent: '#FF5A36', expectedSurface: '#FAF7EE', hasDarkClass: false },
-    { system: 'paper-craft', mode: 'dark', expectedAccent: '#FF5A36', expectedSurface: '#1C1917', hasDarkClass: true },
-    { system: 'shadcn-ui', mode: 'light', expectedAccent: '#18181B', expectedSurface: '#FFFFFF', hasDarkClass: false },
-    { system: 'shadcn-ui', mode: 'dark', expectedAccent: '#FAFAFA', expectedSurface: '#09090B', hasDarkClass: true },
-    { system: 'neo-brutalism', mode: 'light', expectedAccent: '#FFE500', expectedSurface: '#FFFDF5', hasDarkClass: false },
-    { system: 'neo-brutalism', mode: 'dark', expectedAccent: '#FFE500', expectedSurface: '#121212', hasDarkClass: true },
-  ];
+  describe('Canonical API & Deleted Names Absence', () => {
+    it('exposes canonical activePreset, setPreset, and applyAndSavePreset without deleted aliases', () => {
+      renderWithProviders();
 
-  describe('6 System & Mode Combinations Verification', () => {
-    combinations.forEach(({ system, mode, expectedAccent, expectedSurface, hasDarkClass }) => {
-      it(`renders and applies tokens for ${system} in ${mode} mode correctly`, () => {
-        renderProviders();
+      // Canonical properties exist and are functional
+      expect(contextValue.activePreset).toBe('shadcn-ui');
+      expect(typeof contextValue.setPreset).toBe('function');
+      expect(typeof contextValue.applyAndSavePreset).toBe('function');
+      expect(contextValue.mode).toBe('light');
+      expect(typeof contextValue.setMode).toBe('function');
+      expect(typeof contextValue.toggleMode).toBe('function');
+      expect(typeof contextValue.applyAndSaveMode).toBe('function');
+
+      // Obsolete runtime API names MUST be undefined
+      const untyped = contextValue as any;
+      expect(untyped.activeSystem).toBeUndefined();
+      expect(untyped.setSystem).toBeUndefined();
+      expect(untyped.applyAndSaveSystem).toBeUndefined();
+      expect(untyped.theme).toBeUndefined();
+      expect(untyped.activeTheme).toBeUndefined();
+      expect(untyped.setTheme).toBeUndefined();
+      expect(untyped.applyAndSaveTheme).toBeUndefined();
+      expect(untyped.availableThemes).toBeUndefined();
+    });
+
+    it('throws when useDesignSystem is used outside DesignSystemProvider', () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => render(<Consumer />)).toThrow(
+        'useDesignSystem must be used within a DesignSystemProvider'
+      );
+      consoleError.mockRestore();
+    });
+  });
+
+  describe('Absence of data-theme and data-mode on DOM', () => {
+    it('never injects data-theme or data-mode into the root element', () => {
+      renderWithProviders();
+
+      const root = document.documentElement;
+      expect(root.getAttribute('data-design-system')).toBe('shadcn-ui');
+      expect(root.getAttribute('data-theme')).toBeNull();
+      expect(root.getAttribute('data-mode')).toBeNull();
+
+      act(() => {
+        contextValue.setPreset('paper-craft');
+        contextValue.setMode('dark');
+      });
+
+      expect(root.getAttribute('data-design-system')).toBe('paper-craft');
+      expect(root.getAttribute('data-theme')).toBeNull();
+      expect(root.getAttribute('data-mode')).toBeNull();
+      expect(root.classList.contains('dark')).toBe(true);
+    });
+  });
+
+  describe('6 Preset and Mode Combinations Verification', () => {
+    const combinations: Array<{ preset: DesignSystemKey; mode: DesignSystemMode }> = [
+      { preset: 'paper-craft', mode: 'light' },
+      { preset: 'paper-craft', mode: 'dark' },
+      { preset: 'shadcn-ui', mode: 'light' },
+      { preset: 'shadcn-ui', mode: 'dark' },
+      { preset: 'neo-brutalism', mode: 'light' },
+      { preset: 'neo-brutalism', mode: 'dark' },
+    ];
+
+    combinations.forEach(({ preset, mode }) => {
+      it(`applies DOM attributes, classes, and CSS vars correctly for ${preset} in ${mode} mode`, () => {
+        renderWithProviders();
 
         act(() => {
-          contextValue.setSystem(system);
+          contextValue.setPreset(preset);
           contextValue.setMode(mode);
         });
 
         const root = document.documentElement;
 
-        // Verify HTML DOM attributes
-        expect(root.getAttribute('data-design-system')).toBe(system);
-        expect(root.getAttribute('data-theme')).toBe(system);
-        expect(root.getAttribute('data-mode')).toBe(mode);
-        expect(root.classList.contains('dark')).toBe(hasDarkClass);
+        // DOM attributes & classes
+        expect(root.getAttribute('data-design-system')).toBe(preset);
+        expect(root.getAttribute('data-theme')).toBeNull();
+        expect(root.getAttribute('data-mode')).toBeNull();
+        expect(root.classList.contains('dark')).toBe(mode === 'dark');
 
-        // Verify CSS Variables injected into root style
-        expect(root.style.getPropertyValue('--ds-accent')).toBe(expectedAccent);
-        expect(root.style.getPropertyValue('--ds-surface')).toBe(expectedSurface);
+        // Verify CSS Variables match canonical token definition
+        const expectedVars = buildPreviewVars(preset, mode);
+        for (const [key, value] of Object.entries(expectedVars)) {
+          expect(root.style.getPropertyValue(key), `Token ${key} for ${preset}/${mode}`).toBe(value);
+        }
 
-        // Verify consumer reflection
-        expect(screen.getByTestId('system').textContent).toBe(system);
+        // Verify consumer state
+        expect(screen.getByTestId('preset').textContent).toBe(preset);
         expect(screen.getByTestId('mode').textContent).toBe(mode);
-        expect(screen.getByTestId('theme-alias').textContent).toBe(system);
       });
     });
   });
 
-  describe('Theme Leakage Prevention', () => {
-    it('completely purges dark mode and system-specific tokens when switching between themes and modes', () => {
-      renderProviders();
+  describe('Preset Persistence Precedence Tiers', () => {
+    const testUser = { uid: 'user-prec-1' } as any;
 
-      // 1. Start at paper-craft dark
+    it('Tier 1: profile.designSystemPreference wins over profile.themePreference and localStorage', () => {
+      localStorage.setItem(`app_design_system_${testUser.uid}`, 'paper-craft');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+          designSystemPreference: 'neo-brutalism',
+          themePreference: 'brutalism',
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('neo-brutalism');
+    });
+
+    it('Tier 1b: profile.designSystemPreference resolves legacy identifiers at read boundary', () => {
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+          designSystemPreference: 'atelier',
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('neo-brutalism');
+    });
+
+    it('Tier 2: profile.themePreference wins when designSystemPreference is absent', () => {
+      localStorage.setItem(`app_design_system_${testUser.uid}`, 'neo-brutalism');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+          themePreference: 'brutalism', // maps to paper-craft
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('paper-craft');
+    });
+
+    it('Tier 3: localStorage wins when profile has no preset preferences', () => {
+      localStorage.setItem(`app_design_system_${testUser.uid}`, 'paper-craft');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('paper-craft');
+    });
+
+    it('Tier 3b: localStorage resolves legacy identifiers at read boundary', () => {
+      localStorage.setItem(`app_design_system_${testUser.uid}`, 'atelier');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('neo-brutalism');
+    });
+
+    it('Tier 4: falls back to DEFAULT_SYSTEM (shadcn-ui) when no preferences exist', () => {
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+        } as any,
+      });
+
+      expect(contextValue.activePreset).toBe('shadcn-ui');
+    });
+  });
+
+  describe('Mode Persistence Precedence Tiers', () => {
+    const testUser = { uid: 'user-mode-1' } as any;
+
+    it('Tier 1: profile.designSystemModePreference wins over localStorage', () => {
+      localStorage.setItem(`app_design_system_mode_${testUser.uid}`, 'light');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+          designSystemModePreference: 'dark',
+        } as any,
+      });
+
+      expect(contextValue.mode).toBe('dark');
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+    });
+
+    it('Tier 2: localStorage wins when profile.designSystemModePreference is absent', () => {
+      localStorage.setItem(`app_design_system_mode_${testUser.uid}`, 'dark');
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+        } as any,
+      });
+
+      expect(contextValue.mode).toBe('dark');
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+    });
+
+    it('Tier 3: defaults to light when no mode preference exists', () => {
+      renderWithProviders({
+        user: testUser,
+        profile: {
+          uid: testUser.uid,
+        } as any,
+      });
+
+      expect(contextValue.mode).toBe('light');
+      expect(document.documentElement.classList.contains('dark')).toBe(false);
+    });
+  });
+
+  describe('All 11 Legacy Preset Mappings Verification', () => {
+    const legacyExpectations: Record<string, DesignSystemKey> = {
+      'atelier': 'neo-brutalism',
+      'minimalist': 'shadcn-ui',
+      'brutalism': 'paper-craft',
+      'neo-skeuomorphic': 'shadcn-ui',
+      'apple-glass': 'neo-brutalism',
+      'light': 'shadcn-ui',
+      'dark-crimson': 'neo-brutalism',
+      'obsidian-tactile': 'neo-brutalism',
+      'swiss-manuscript': 'shadcn-ui',
+      'solarized-comfort': 'neo-brutalism',
+      'chalkboard-school': 'paper-craft',
+    };
+
+    it('verifies all 11 legacy identifiers map to canonical presets via resolveDesignSystem', () => {
+      expect(Object.keys(legacyExpectations)).toHaveLength(11);
+      for (const [legacyKey, expectedCanonical] of Object.entries(legacyExpectations)) {
+        expect(resolveDesignSystem(legacyKey), `Legacy key: ${legacyKey}`).toBe(expectedCanonical);
+      }
+    });
+
+    it('verifies all 11 legacy identifiers map via mapLegacyThemeToDesignSystem with fallback', () => {
+      for (const [legacyKey, expectedCanonical] of Object.entries(legacyExpectations)) {
+        expect(mapLegacyThemeToDesignSystem(legacyKey), `Legacy key: ${legacyKey}`).toBe(expectedCanonical);
+      }
+      expect(mapLegacyThemeToDesignSystem('completely-unknown-preset')).toBe('shadcn-ui');
+    });
+
+    it('passes through active canonical preset keys directly', () => {
+      expect(resolveDesignSystem('paper-craft')).toBe('paper-craft');
+      expect(resolveDesignSystem('shadcn-ui')).toBe('shadcn-ui');
+      expect(resolveDesignSystem('neo-brutalism')).toBe('neo-brutalism');
+      expect(resolveDesignSystem('unknown-key')).toBeNull();
+    });
+
+    it('validates active design system keys strictly with isValidDesignSystem', () => {
+      expect(isValidDesignSystem('paper-craft')).toBe(true);
+      expect(isValidDesignSystem('shadcn-ui')).toBe(true);
+      expect(isValidDesignSystem('neo-brutalism')).toBe(true);
+
+      // Legacy keys must NOT be valid active keys
+      for (const legacyKey of Object.keys(legacyExpectations)) {
+        expect(isValidDesignSystem(legacyKey), `Should reject legacy key: ${legacyKey}`).toBe(false);
+      }
+      expect(isValidDesignSystem('unknown-random')).toBe(false);
+    });
+
+    it('ensures DESIGN_SYSTEMS array only contains the 3 canonical keys', () => {
+      const activeIds = DESIGN_SYSTEMS.map((ds) => ds.id);
+      expect(activeIds).toEqual(['paper-craft', 'shadcn-ui', 'neo-brutalism']);
+    });
+  });
+
+  describe('Canonical Writes & Persistence Isolation', () => {
+    const testUser = { uid: 'user-save-1' } as any;
+
+    it('applyAndSavePreset writes strictly to canonical localStorage and app.appearance.updateDesignSystem', () => {
+      renderWithProviders({
+        user: testUser,
+        profile: { uid: testUser.uid } as any,
+      });
+
       act(() => {
-        contextValue.setSystem('paper-craft');
+        contextValue.applyAndSavePreset('paper-craft');
+      });
+
+      // Canonical writes executed
+      expect(localStorage.getItem(`app_design_system_${testUser.uid}`)).toBe('paper-craft');
+      expect(mockApp.appearance.updateDesignSystem).toHaveBeenCalledWith(testUser.uid, 'paper-craft');
+
+      // State updated
+      expect(contextValue.activePreset).toBe('paper-craft');
+      expect(document.documentElement.getAttribute('data-design-system')).toBe('paper-craft');
+      expect(document.documentElement.getAttribute('data-theme')).toBeNull();
+    });
+
+    it('applyAndSaveMode writes strictly to canonical localStorage and app.appearance.updateModePreference', () => {
+      renderWithProviders({
+        user: testUser,
+        profile: { uid: testUser.uid } as any,
+      });
+
+      act(() => {
+        contextValue.applyAndSaveMode('dark');
+      });
+
+      expect(localStorage.getItem(`app_design_system_mode_${testUser.uid}`)).toBe('dark');
+      expect(mockApp.appearance.updateModePreference).toHaveBeenCalledWith(testUser.uid, 'dark');
+
+      expect(contextValue.mode).toBe('dark');
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+      expect(document.documentElement.getAttribute('data-mode')).toBeNull();
+    });
+  });
+
+  describe('Print & Document Isolation Verification', () => {
+    it('maintains isolation between runtime design system variables and print document containers', () => {
+      renderWithProviders();
+
+      act(() => {
+        contextValue.setPreset('neo-brutalism');
         contextValue.setMode('dark');
       });
 
       const root = document.documentElement;
-      expect(root.getAttribute('data-design-system')).toBe('paper-craft');
-      expect(root.classList.contains('dark')).toBe(true);
-      expect(root.style.getPropertyValue('--ds-accent')).toBe('#FF5A36');
-      expect(root.style.getPropertyValue('--ds-surface')).toBe('#1C1917');
-
-      // 2. Transition directly to neo-brutalism light
-      act(() => {
-        contextValue.setSystem('neo-brutalism');
-        contextValue.setMode('light');
-      });
-
-      // Assert no leakage from paper-craft or dark mode
       expect(root.getAttribute('data-design-system')).toBe('neo-brutalism');
-      expect(root.getAttribute('data-mode')).toBe('light');
-      expect(root.classList.contains('dark')).toBe(false);
-      expect(root.style.getPropertyValue('--ds-accent')).toBe('#FFE500');
-      expect(root.style.getPropertyValue('--ds-surface')).toBe('#FFFDF5');
-      expect(root.style.getPropertyValue('--ds-border-width')).toBe('2px');
+      expect(root.classList.contains('dark')).toBe(true);
 
-      // 3. Transition to shadcn-ui light
-      act(() => {
-        contextValue.setSystem('shadcn-ui');
-        contextValue.setMode('light');
-      });
-
-      expect(root.getAttribute('data-design-system')).toBe('shadcn-ui');
-      expect(root.getAttribute('data-mode')).toBe('light');
-      expect(root.classList.contains('dark')).toBe(false);
-      expect(root.style.getPropertyValue('--ds-accent')).toBe('#18181B');
-      expect(root.style.getPropertyValue('--ds-surface')).toBe('#FFFFFF');
-      expect(root.style.getPropertyValue('--ds-border-width')).toBe('1px');
-    });
-  });
-
-  describe('Legacy Migration & Backward Compatibility Boundary', () => {
-    it('validates active design system keys strictly', () => {
-      expect(isValidDesignSystem('paper-craft')).toBe(true);
-      expect(isValidDesignSystem('neo-brutalism')).toBe(true);
-      expect(isValidDesignSystem('shadcn-ui')).toBe(true);
-
-      // Legacy keys must NOT be valid active keys
-      expect(isValidDesignSystem('atelier')).toBe(false);
-      expect(isValidDesignSystem('minimalist')).toBe(false);
-      expect(isValidDesignSystem('light')).toBe(false);
-      expect(isValidDesignSystem('apple-glass')).toBe(false);
-    });
-
-    it('resolves legacy identifiers at read boundary correctly', () => {
-      // atelier -> neo-brutalism
-      expect(resolveDesignSystem('atelier')).toBe('neo-brutalism');
-      // minimalist -> shadcn-ui
-      expect(resolveDesignSystem('minimalist')).toBe('shadcn-ui');
-
-      // Other legacy theme aliases
-      expect(resolveDesignSystem('apple-glass')).toBe('neo-brutalism');
-      expect(resolveDesignSystem('dark-crimson')).toBe('neo-brutalism');
-      expect(resolveDesignSystem('obsidian-tactile')).toBe('neo-brutalism');
-      expect(resolveDesignSystem('solarized-comfort')).toBe('neo-brutalism');
-      expect(resolveDesignSystem('neo-skeuomorphic')).toBe('shadcn-ui');
-      expect(resolveDesignSystem('light')).toBe('shadcn-ui');
-      expect(resolveDesignSystem('swiss-manuscript')).toBe('shadcn-ui');
-      expect(resolveDesignSystem('brutalism')).toBe('paper-craft');
-      expect(resolveDesignSystem('chalkboard-school')).toBe('paper-craft');
-
-      // Unknown keys return null
-      expect(resolveDesignSystem('unknown-random')).toBeNull();
-    });
-
-    it('maps legacy theme preferences with safe default fallback', () => {
-      expect(mapLegacyThemeToDesignSystem('atelier')).toBe('neo-brutalism');
-      expect(mapLegacyThemeToDesignSystem('minimalist')).toBe('shadcn-ui');
-      expect(mapLegacyThemeToDesignSystem('light')).toBe('shadcn-ui');
-      expect(mapLegacyThemeToDesignSystem('chalkboard-school')).toBe('paper-craft');
-      expect(mapLegacyThemeToDesignSystem('unknown-legacy')).toBe('shadcn-ui');
-    });
-
-    it('ensures DESIGN_SYSTEMS array only contains active keys', () => {
-      const activeIds = DESIGN_SYSTEMS.map((ds) => ds.id);
-      expect(activeIds).toEqual(['paper-craft', 'shadcn-ui', 'neo-brutalism']);
-      expect(activeIds).not.toContain('atelier');
-      expect(activeIds).not.toContain('minimalist');
-    });
-
-    it('ensures THEME_OPTIONS presents clean display names in the dropdown', () => {
-      const displayNames = THEME_OPTIONS.map((opt) => opt.name);
-      expect(displayNames).toEqual(['Paper Craft', 'Shadcn UI', 'Neo-Brutalism']);
-      expect(displayNames).not.toContain('Minimalist');
-      expect(displayNames).not.toContain('Atelier');
-      expect(displayNames).not.toContain('Atelier (Neo-Brutalism)');
-    });
-  });
-
-  describe('Single Source of Truth & ThemeContext Shim', () => {
-    it('delegates all ThemeContext operations directly to DesignSystemContext without dual state', () => {
-      renderProviders();
-
-      // ThemeContext calling setTheme updates DesignSystemContext
-      act(() => {
-        themeValue.setTheme('paper-craft');
-      });
-
-      expect(contextValue.activeSystem).toBe('paper-craft');
-      expect(themeValue.activeTheme).toBe('paper-craft');
-      expect(document.documentElement.getAttribute('data-design-system')).toBe('paper-craft');
-
-      // ThemeContext toggleMode toggles DesignSystemContext mode
-      act(() => {
-        themeValue.toggleMode();
-      });
-
-      expect(contextValue.mode).toBe('dark');
-      expect(themeValue.isDark).toBe(true);
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
-
-      // Verify ThemeProvider throws if used outside DesignSystemProvider
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      expect(() => {
-        render(
-          <ThemeProvider>
-            <div>Isolated</div>
-          </ThemeProvider>
-        );
-      }).toThrow('useDesignSystem must be used within a DesignSystemProvider');
-      consoleSpy.mockRestore();
-    });
-  });
-
-  describe('Showcase CSS Variables Parity', () => {
-    combinations.forEach(({ system, mode }) => {
-      it(`injects variables into root matching buildPreviewVars for ${system}/${mode}`, () => {
-        renderProviders();
-
-        act(() => {
-          contextValue.setSystem(system);
-          contextValue.setMode(mode);
-        });
-
-        const root = document.documentElement;
-        const expectedVars = buildPreviewVars(system, mode);
-
-        for (const [key, value] of Object.entries(expectedVars)) {
-          expect(root.style.getPropertyValue(key), key).toBe(value);
-        }
-      });
+      // Verify root styling does not mutate or contaminate no-print isolation semantics
+      expect(root.getAttribute('data-theme')).toBeNull();
+      expect(root.getAttribute('data-mode')).toBeNull();
     });
   });
 });

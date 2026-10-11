@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { List, CaretDown, Clock, ArrowsOut, ArrowsIn, Cloud, CloudSlash, ArrowClockwise, Gear, SignOut, Sparkle, Check, Heart, ShieldCheck, Sun, Moon } from '@phosphor-icons/react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useWorkspace, useWorkspaceSync } from '../../context/WorkspaceContext';
-import { useAppTheme } from '../../context/ThemeContext';
+import { useDesignSystem } from '../../context/DesignSystemContext';
 import { AppLogo } from '../common/AppLogo';
 import { Tooltip } from '../common/Tooltip';
 import { INDONESIAN_DAYS } from '../../utils/date';
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
     syncMessage,
     triggerSyncFeedback
   } = useWorkspaceSync();
-  const { activeTheme, isDark, mode, applyAndSaveMode } = useAppTheme();
+  const { mode, applyAndSaveMode } = useDesignSystem();
 
   const [localTime, setLocalTime] = useState<string>('');
   const [localTimeZone, setLocalTimeZone] = useState<string>('');

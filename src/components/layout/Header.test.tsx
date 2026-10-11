@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Header } from './Header';
 import * as authModule from '../../features/auth/AuthContext';
 import * as workspaceModule from '../../context/WorkspaceContext';
-import * as themeModule from '../../context/ThemeContext';
+import * as dsModule from '../../context/DesignSystemContext';
 
 vi.mock('../../utils/date', () => ({
   INDONESIAN_DAYS: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
@@ -37,18 +37,16 @@ describe('Header Administrator UX & Navigation Affordance', () => {
       triggerSyncFeedback: vi.fn(),
     } as any);
 
-    vi.spyOn(themeModule, 'useAppTheme').mockReturnValue({
-      theme: 'emerald-slate',
-      themeConfig: { name: 'Emerald Slate' } as any,
-      availableThemes: [],
-      setTheme: vi.fn(),
-      activeTheme: 'emerald-slate',
-      previewTheme: 'emerald-slate',
-      setPreviewTheme: vi.fn(),
-      applyAndSaveTheme: vi.fn(),
-      resetPreview: vi.fn(),
-      isDark: false,
-    } as any);
+    vi.spyOn(dsModule, 'useDesignSystem').mockReturnValue({
+      activePreset: 'shadcn-ui',
+      mode: 'light',
+      tokens: {} as any,
+      setPreset: vi.fn(),
+      applyAndSavePreset: vi.fn(),
+      setMode: vi.fn(),
+      toggleMode: vi.fn(),
+      applyAndSaveMode: vi.fn(),
+    });
   });
 
   it('renders Administrator role and affordance when isAdmin is true (verified claim)', () => {
