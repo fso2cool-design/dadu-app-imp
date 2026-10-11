@@ -1,6 +1,6 @@
 # DADU — Architecture Document
 
-> **Version**: 2.3.0 | **Last Updated**: 2026-09-30 | **Baseline Commit**: `48a7697` (main)
+> **Version**: 2.4.0 | **Last Updated**: 2026-10-11 | **Baseline Commit**: `83e0b50` (main)
 
 ---
 
@@ -60,6 +60,7 @@ dadu-app-imp/
 │   ├── types/index.ts           # Centralized TypeScript interfaces
 │   ├── domain/                  # Domain policies & pure domain types (periodPolicy, attendancePolicy, etc.)
 │   ├── application/             # Application Layer (ApplicationOperations, use-cases, repository ports)
+│   │   ├── ApplicationContext.tsx # ApplicationProvider & useApplication React context
 │   │   ├── types.ts             # ApplicationOperations interface definition
 │   │   ├── ports/               # Hexagonal repository port contracts and container
 │   │   ├── workspace/           # Workspace use-cases (loadWorkspace)
@@ -124,13 +125,14 @@ DADU enforces a Clean / Hexagonal (Ports & Adapters) architectural structure:
    - Adheres to repository port interfaces without leaking Firestore-specific SDK types into the domain.
 
 4. **Presentation / Feature Layer (`src/features/`, `src/components/`, `src/context/`)**:
-   - React 19 UI components consuming high-level application operations via `app.*` or domain repositories via `container.repos.*`.
+   - React 19 UI components consuming high-level application operations via `useApplication()` (`app.*`).
+   - The Application Container (`src/application/ports/container.ts`) wires infrastructure repository adapters directly to `app` and application use-cases, keeping UI components strictly decoupled from persistence details.
 
 ---
 
 ### 3.2 Canonical Application Namespaces (Milestone B4 Decomposition)
 
-The monolithic `app.settings` namespace has been decomposed into distinct, domain-aligned application boundaries:
+The monolithic `app.settings` namespace has been decomposed into distinct, domain-aligned application boundaries. The canonical `ApplicationOperations` interface (`src/application/types.ts`) exposes 17 dedicated namespaces:
 
 | Application Namespace | Responsibility | Operations |
 |---|---|---|
@@ -138,16 +140,18 @@ The monolithic `app.settings` namespace has been decomposed into distinct, domai
 | **`app.maintenance`** | Workspace backup/restore lifecycle & semester reset | `exportBackup`, `importBackup`, `getDatabaseStats`, `previewResetSemester`, `resetSemesterData` |
 | **`app.diagnostics`** | System referential integrity audit & relation recovery | `runIntegrityAudit`, `findStudentCandidatesByNisn`, `relinkEnrollmentClass`, `relinkStudentRelationship` |
 | **`app.classSchedule`** | Class timetable management (deterministic key: `{classId}_{ayId}_{sem}`) | `getClassSchedule`, `saveClassSchedule`, `deleteClassSchedule` |
-| **`app.appearance`** | Visual design system & mode preferences | `updateDesignSystem`, `updateModePreference` |
-| **`app.workspace`** | Academic workspace loader & preferences | `loadWorkspace`, `getUserPreferences`, `saveUserPreferences`, `saveAttendanceSettings`, `checkHoliday` |
-| **`app.students`** | Student master records, import, search, custom fields, deduplication | `getAll`, `getById`, `create`, `update`, `delete`, `import`, `search`, `scanDuplicates`, etc. |
+| **`app.appearance`** | Visual design system & mode preference persistence | `updateDesignSystem`, `updateModePreference` |
+| **`app.workspace`** | Academic workspace loader & settings | `loadWorkspace`, `getUserPreferences`, `saveUserPreferences`, `saveAttendanceSettings`, `checkHoliday` |
+| **`app.auth`** | User authentication, profile lifecycle, session recording, admin claim verification | `getProfile`, `createProfile`, `recordLastLogin`, `updateProfile`, `login`, `signup`, `logout`, `resetPassword`, `onAuthStateChanged`, `getAdminClaimStatus` |
+| **`app.students`** | Student master records, import, search, custom fields, notes, deduplication | `getAll`, `getPaginated`, `getById`, `create`, `update`, `delete`, `import`, `search`, `searchByExactIdentifier`, `searchByNameToken`, `checkUsage`, `canDelete`, `archive`, `unarchive`, `checkNisnAvailability`, `batchCreate`, `scanDuplicates`, `executeDeduplication`, `getCustomFields`, `saveCustomFields`, `createCustomField`, `updateCustomField`, `deleteCustomField`, `getStudentNotes`, `getStudentNotesByClass`, `createStudentNote`, `updateStudentNote`, `deleteStudentNote` |
+| **`app.enrollment`** | Student class enrollments, transfers, roll numbers | `getByClass`, `getByAcademicYear`, `create`, `update`, `archive`, `canDelete`, `batchEnroll`, `batchReorderRollNumbers`, `transfer`, `delete` |
 | **`app.master`** | Master academic data (years, classes, subjects, assignments) | `academicYears.*`, `classes.*`, `subjects.*`, `teachingAssignments.*` |
-| **`app.teacher`** | Teaching journal & subject attendance | `meetings.*`, `attendance.*` |
-| **`app.homeroom`** | Homeroom attendance roll-call & guidance | `dailyAttendance.*`, `studentNotes.*` |
-| **`app.grades`** | Assessment items & grade matrix entry | `items.*`, `scores.*` |
-| **`app.admin`** | School administrator operations | `getAllUsers`, `setAccountStatus`, `setAccountRole`, `getStorageStats`, `purgeWorkspace`, etc. |
-| **`app.reports`** | Shared encrypted reports | `createSharedReport`, `getSharedReportByToken`, `revokeSharedReport`, `decrypt`, etc. |
-| **`app.onboarding`** | 6-step teacher onboarding wizard | `submitOnboarding` |
+| **`app.meetings`** | Teaching journal & meeting agenda CRUD | `getAll`, `getById`, `create`, `update`, `delete` |
+| **`app.attendance`** | Unified subject, homeroom daily roll-call, and teacher attendance | `saveSubjectAttendance`, `saveMeetingAttendance`, `getByMeeting`, `getByMeetingIds`, `getByAssignment`, `getByDate`, `getByClassAndPeriod`, `saveDailyAttendance`, `getDailySession`, `getDailyAttendanceRecords`, `getAllDailyForClass`, `getMonthlyDaily`, `getHomeroomAssignments`, `getTeacherAttendance`, `getMonthlyTeacherAttendance`, `getMonthlyAttendance`, `saveTeacherAttendance`, `saveMonthlyAttendance` |
+| **`app.grades`** | Assessment items & grade score matrix | `getAssessmentItems`, `getAssessmentItemById`, `createAssessmentItem`, `updateAssessmentItem`, `deleteAssessmentItem`, `canDeleteAssessmentItem`, `getScoresByItemIds`, `saveScoresBatch`, `saveMatrixScores` |
+| **`app.reports`** | Shared encrypted reports | `createSharedReport`, `getSharedReportByToken`, `getUserSharedReports`, `deleteSharedReport`, `revokeSharedReport`, `decrypt`, `incrementView` |
+| **`app.admin`** | School administrator operations & user governance | `getAllUsers`, `setAccountStatus`, `setAccountRole`, `adminUpdateProfile`, `getStorageStats`, `purgeWorkspace`, `purgeOrphans`, `scanOrphans`, `getFeedbackList`, `updateFeedbackStatus`, `deleteFeedback` |
+| **`app.onboarding`** | 6-step teacher onboarding wizard submission | `submitOnboarding` |
 | **`app.feedback`** | Bug reporting & feature requests | `create`, `getUnreadCount` |
 
 ---
@@ -157,11 +161,11 @@ The monolithic `app.settings` namespace has been decomposed into distinct, domai
 A fundamental architectural distinction exists between **Application APIs** and **Repository Ports**:
 
 - **Application APIs (`app.*` / `ApplicationOperations`)**:
-  Provide user-facing, task-oriented entry points for features. They orchestrate domain policies, trigger cross-cutting events (such as `trackSync`), and compose multiple repositories into cohesive application use-cases.
+  Provide user-facing, task-oriented entry points for features consumed via `useApplication()`. They orchestrate domain policies, trigger cross-cutting events (such as `trackSync`), and compose multiple repositories into cohesive application use-cases.
   *Example*: `app.maintenance.exportBackup(uid)` coordinates metadata assembly and returns a typed `DatabaseBackup` domain object.
 
-- **Repository Ports (`container.repos.*` / `*Repository` in `src/application/ports/`)**:
-  Provide low-level, collection-specific persistence contracts implemented by infrastructure adapters.
+- **Repository Ports (`*Repository` in `src/application/ports/`)**:
+  Provide low-level, collection-specific persistence contracts implemented by concrete infrastructure adapters in `src/infrastructure/firestore/repositories/` and wired into `container.app` and `container.useCases`.
   *Example*: `backupRepository.exportFullDatabase(uid)` executes the physical batch reads across subcollections.
 
 Similarly, for homeroom attendance:
@@ -184,17 +188,68 @@ Repository ports in `src/application/ports/` are strictly typed and explicitly i
 | **`OnboardingRepository`** | `submitOnboarding` | Hardened. Obsolete generic `getStatus` / `complete` purged. |
 | **`SettingsRepository`** | `getSchoolSettings`, `saveSchoolSettings`, `getDocumentSettings`, `saveDocumentSettings`, `getUserPreferences`, `saveUserPreferences`, `getAttendanceSettings`, `saveAttendanceSettings` | Hardened. Obsolete generic `get` / `save` purged. |
 | **`HomeroomAttendanceRepository`** | `getAllForClass`, `getByDate`, `getSession`, `getMonthly`, `saveDailyAttendance` | Hardened. Redundant adapter aliases (`getAllDailyForClass`, `getDailySession`) purged from adapter. |
+| **`FeedbackRepository`** | `getAll`, `getUnreadCount`, `updateStatus`, `delete`, `create` | Hardened. Explicit domain typing for feedback item CRUD and unread count. |
+| **`SharedReportRepository`** | `create`, `getByToken`, `decrypt`, `incrementView`, `getUserReports`, `revoke`, `delete`, `generateToken` | Hardened. Strongly typed parameter and payload contracts. |
 
 ---
 
 ### 3.5 Design System Single Source of Truth
 
-`DesignSystemContext` is the canonical single source of truth for all visual tokens, presets, and color modes:
-- **Visual Presets**: `brutalism`, `apple-glass`, `neo-skeuomorphic`.
-- **Modes**: `light`, `dark`.
-- **CSS Injection**: Injects 35 custom properties (`--ds-*`) into `:root` and manages `data-design-system` attribute and `.dark` class on `<html>`.
-- **Canonical API**: `activePreset`, `setPreset`, `applyAndSavePreset`, `mode`, `setMode`, `toggleMode`, `applyAndSaveMode`.
-- **Legacy Architecture Purged**: The legacy theme architecture (`ThemeContext`, `ThemeProvider`, `useAppTheme`, `activeSystem`, `setSystem`) has been completely removed. Features consume `useDesignSystem` and `app.appearance`.
+`DesignSystemContext` (`src/context/DesignSystemContext.tsx`) is the canonical single source of truth for all visual tokens, presets, and color modes:
+
+- **Canonical Active Presets (`DesignSystemKey`)**:
+  ```typescript
+  export type DesignSystemKey = 'paper-craft' | 'neo-brutalism' | 'shadcn-ui';
+  export const DEFAULT_SYSTEM: DesignSystemKey = 'shadcn-ui';
+  ```
+  These are the only active selectable presets in the application.
+
+- **Legacy Preset Mappings (`LEGACY_PRESET_MAPPINGS`)**:
+  To ensure seamless backward compatibility with previously persisted user configurations, legacy theme/preset names are mapped on read to active presets via `resolveDesignSystem`:
+  - `'atelier'` ➔ `'neo-brutalism'`
+  - `'minimalist'` ➔ `'shadcn-ui'`
+  - `'brutalism'` ➔ `'paper-craft'`
+  - `'neo-skeuomorphic'` ➔ `'shadcn-ui'`
+  - `'apple-glass'` ➔ `'neo-brutalism'`
+  - `'light'` ➔ `'shadcn-ui'`
+  - `'dark-crimson'` ➔ `'neo-brutalism'`
+  - `'obsidian-tactile'` ➔ `'neo-brutalism'`
+  - `'swiss-manuscript'` ➔ `'shadcn-ui'`
+  - `'solarized-comfort'` ➔ `'neo-brutalism'`
+  - `'chalkboard-school'` ➔ `'paper-craft'`
+  *Important*: These keys are legacy compatibility aliases only and are not active selectable presets.
+
+- **Modes**: `'light'`, `'dark'`.
+
+- **Persistence Precedence & Read Fallback**:
+  - **Preset Read Precedence**:
+    1. `profile.designSystemPreference` (from Firestore `users/{uid}`)
+    2. `profile.themePreference` (deprecated legacy read-fallback, mapped via `mapLegacyThemeToDesignSystem`)
+    3. `localStorage.getItem('app_design_system_${uid}')`
+    4. Default: `DEFAULT_SYSTEM` (`'shadcn-ui'`)
+  - **Mode Read Precedence**:
+    1. `profile.designSystemModePreference` (`'light' | 'dark'`)
+    2. `localStorage.getItem('app_design_system_mode_${uid}')`
+    3. Default: `'light'`
+  - **Canonical Writes**:
+    `applyAndSavePreset(preset)` writes exclusively to `localStorage app_design_system_${uid}` and `app.appearance.updateDesignSystem(uid, preset)` (persisting to Firestore `users/{uid}.designSystemPreference`). Writes never modify legacy `themePreference`.
+    `applyAndSaveMode(mode)` writes to `localStorage app_design_system_mode_${uid}` and `app.appearance.updateModePreference(uid, mode)`.
+
+- **DOM & CSS Variable Architecture**:
+  - Injects 35 custom properties (`--ds-*`) into `:root` (surfaces, elevated surfaces, borders, text, text-muted, accent colors, semantic status colors, spacing, typography scales, elevation shadows, radii, and transitions).
+  - Manages `data-design-system="<preset>"` attribute and toggles `.dark` class on document root `<html>`.
+  - Mirrors core tokens to legacy CSS variables (`--accent-primary`, `--app-bg`, `--card-bg`, `--text-main`, etc.) for seamless compatibility across existing components.
+
+- **Print / Document Visual Isolation**:
+  - Containers marked with `.printable-document`, `.print-sheet`, `#printable-progress-report` (and their descendants) isolate printed official reports from active visual presets:
+    - Forces pure white background (`--ds-surface: #ffffff`, `--app-bg: #ffffff`)
+    - Forces high-contrast slate text (`--ds-text: #0f172a`, `--text-main: #0f172a`) and border (`--ds-border: #e2e8f0`)
+    - Locks `color-scheme: light`
+    - Strips all design system shadow and border radius artifacts: `box-shadow: none !important`, `text-shadow: none !important`, `border-radius: 0 !important`
+  - Guarantees formal madrasah reports (rapor, legger, student ID cards) render cleanly regardless of the user's active preset or dark mode.
+
+- **Legacy Theme Architecture Purged**:
+  The obsolete theme architecture (`ThemeContext`, `ThemeProvider`, `ThemeKey`, `ThemeOption`, `THEME_OPTIONS`, `useAppTheme`, `useOptionalAppTheme`, `AppearanceContext`, `activeSystem`, `setSystem`) has been completely removed. Features consume `useDesignSystem()` and `app.appearance`.
 
 ---
 
@@ -204,41 +259,50 @@ The application uses **React Router v7** (`react-router-dom`) with URL-driven na
 
 ### 4.1 Route Hierarchy & Page Resolution
 
-Inside [`src/App.tsx`](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/src/App.tsx):
+Inside [`src/App.tsx`](src/App.tsx):
 
 ```text
-ErrorBoundary (Root)
-└── BrowserRouter
-    └── AuthProvider
-        └── WorkspaceProvider
-            └── ThemeProvider
-                └── ToastProvider
-                    └── MainApp
-                        ├── publicShareToken? (URL /share/:token or ?share=:token) → PublicReportViewerPage
-                        ├── authLoading? → LoadingScreen
-                        ├── !user? → LoginPage
-                        ├── !profile || workspaceLoading? → LoadingScreen
-                        ├── profile.accountStatus === 'SUSPENDED' → Suspended notice
-                        ├── isAdmin && location.pathname === '/admin' → AdminUserManagementPage
-                        ├── !profile.isOnboarded? → OnboardingWizard
-                        └── Authenticated App:
-                            └── AppLayout
-                                └── ErrorBoundary (Page Level)
-                                    └── Suspense (Lazy Page)
-                                        ├── / or /dashboard → DashboardPage
-                                        ├── /teacher/*      → TeacherHubPage
-                                        ├── /homeroom/*     → HomeroomHubPage
-                                        ├── /reports/*      → ReportsHubPage
-                                        ├── /master/*       → MasterDataPage
-                                        ├── /settings/*     → SettingsPage
-                                        └── *               → NotFoundPage (404)
+ErrorBoundary (Root, isRoot)
+└── RouterProvider (router={appRouter})
+    └── AppShell
+        └── ApplicationProvider (app={container.app})
+            └── AuthProvider
+                └── DesignSystemProvider
+                    └── ToastProvider
+                        └── MainApp
+                            ├── publicShareToken? (URL /share/:token or ?share=:token) → PublicReportViewerPage (isolated, lightweight)
+                            ├── authLoading? → LoadingScreen
+                            ├── !user? → LoginPage (isolated, lightweight)
+                            └── Authenticated User:
+                                └── WorkspaceProvider (loads academic years, classes, subjects, etc.)
+                                    └── AuthenticatedApp
+                                        ├── !profile || workspaceLoading? → LoadingScreen
+                                        ├── profile.accountStatus === 'SUSPENDED' → Suspended notice
+                                        ├── isAdmin && location.pathname === '/admin' → AdminUserManagementPage
+                                        ├── !profile.isOnboarded? → OnboardingWizard
+                                        └── Authenticated Pages:
+                                            └── AppLayout
+                                                └── ErrorBoundary (Page Level)
+                                                    └── Suspense (Lazy Page)
+                                                        ├── / or /dashboard → DashboardPage
+                                                        ├── /teacher/*      → TeacherHubPage
+                                                        ├── /homeroom/*     → HomeroomHubPage
+                                                        ├── /reports/*      → ReportsHubPage
+                                                        ├── /master/*       → MasterDataPage
+                                                        ├── /settings/*     → SettingsPage
+                                                        └── *               → NotFoundPage (404)
 ```
+
+> **Performance Isolation**: `WorkspaceProvider` is deliberately mounted inside `MainApp` only for authenticated sessions. Unauthenticated visitors accessing the login page (`LoginPage`) or shared report recipients accessing `PublicReportViewerPage` do not mount `WorkspaceProvider`, preventing premature Firestore queries and avoiding 573 KB of unnecessary workspace data fetching.
+
+---
 
 ### 4.2 Backward Compatibility with `paths.ts`
 
-To maintain seamless interoperability with legacy internal navigation callbacks (`onNavigate(routeKey, state)`), [`src/routes/paths.ts`](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/src/routes/paths.ts) provides a bidirectional adapter:
-- `resolveRoutePath(routeKey)`: Maps keys like `'dashboard'` ➔ `'/dashboard'`, `'teacher/meetings'` ➔ `'/teacher'`.
-- `resolvePathToRouteKey(pathname)`: Maps browser URL path back to active tab identifier for Sidebar and Header active states.
+To maintain seamless interoperability with legacy internal navigation callbacks (`onNavigate(routeKey, state)`), [`src/routes/paths.ts`](src/routes/paths.ts) provides a bidirectional adapter:
+- **`ROUTE_PATH_MAP`**: Dictionary mapping legacy route keys (e.g., `'dashboard'`, `'teacher'`, `'homeroom'`, `'reports'`, `'master'`, `'settings'`, `'admin'`, `'login'`) to canonical URL paths.
+- **`resolveRoutePath(routeKey)`**: Maps route keys or legacy identifiers to canonical browser paths (e.g., `'dashboard'` ➔ `'/dashboard'`, `'teacher/meetings'` ➔ `'/teacher'`).
+- **`resolvePathToRouteKey(pathname)`**: Maps browser URL path back to active tab identifier for Sidebar and Header active states.
 
 ---
 
@@ -301,8 +365,14 @@ All operational data lives under `/users/{userId}/` (workspace isolation):
 | `teacherAttendanceRecords` | `teacherAttendance.ts` | `TeacherAttendanceRecord` |
 | `teacherMonthlyAttendance` | `teacherAttendance.ts` | `TeacherMonthlyAttendanceRecord` |
 | `classSchedules` | `classSchedule.ts` / `misc.repository.ts` | `ClassSchedule` (deterministic id: `{classId}_{ayId}_{sem}`) |
-| `settings` | `settings.ts` / `settings.repository.ts` | `SchoolSettings`, `DocumentSettings`, `AttendanceSettings`, `UserPreferences` |
+| `settings` | `settings.ts` / `settings.repository.ts` | `SchoolSettings` (canonical: `schoolLogoUrl`; fallback: `logoUrl`), `DocumentSettings`, `AttendanceSettings`, `UserPreferences` |
 | `studentCustomFields` | `studentCustomFields.ts` | `StudentCustomFieldDefinition` |
+
+> **Compatibility Field Invariants**:
+> - `AcademicYear`: `label` is canonical (`AcademicYear.name` is obsolete and purged).
+> - `AttendanceSummary`: `permitted` is canonical (`permit` is an optional legacy alias retained for read compatibility).
+> - `SchoolSettings`: `schoolLogoUrl` is canonical (`logoUrl` is an optional legacy alias retained for read compatibility).
+> - `UserProfile`: `designSystemPreference` is canonical (`themePreference` is a deprecated read-only fallback).
 
 Top-level collections (NOT under `/users/{userId}/`):
 
@@ -323,19 +393,13 @@ TEACHER  → Default role for all new users
 ADMIN    → Set by Super Admin via AdminUserManagementPage
 ```
 
-### 7.2 Super Admin
+### 7.2 Super Admin & Admin Verification
 
-Hardcoded in both source code AND Firestore rules:
+Super Admin privileges are governed by:
+- **Firestore Security Rules**: Hardcoded emails in `firestore.rules` (`johanrovian90@gmail.com` and `fso2cool@gmail.com`) guard administrative collection-group queries and elevated operations via `isSuperAdmin()`.
+- **Application UI Verification**: In the React application, admin route gating and privileged actions are driven by `useAuth().isAdmin` (derived from `adminStatus === 'verified-admin'`). `AuthContext` verifies the Firebase Auth token claim asynchronously via `app.auth.getAdminClaimStatus()`.
 
-- `johanrovian90@gmail.com`
-- `fso2cool@gmail.com`
-
-Super Admin check in `App.tsx`:
-```typescript
-const isAdmin = profile?.role === 'ADMIN' 
-  || profile?.email === 'johanrovian90@gmail.com' 
-  || profile?.email === 'fso2cool@gmail.com';
-```
+---
 
 ### 7.3 Account Status
 
@@ -361,7 +425,7 @@ Suspended users see a blocked screen.
 
 | Item | Location | Risk Level | Description & Remediation |
 |---|---|---|---|
-| **Hardcoded Super Admin Emails** | `firestore.rules:7-8`, `src/App.tsx:49`, `src/services/firestore/users.ts:31`, `src/components/layout/Header.tsx:111`, `src/features/admin/EditUserModal.tsx:63`, `src/features/admin/AdminUserManagementPage.tsx:600` | **High** | Hardcoding `johanrovian90@gmail.com` and `fso2cool@gmail.com` requires code modification and deployment whenever admin personnel changes. <br>**Target Fix**: Migrate to Firebase Auth Custom Claims (`request.auth.token.role == 'ADMIN'`) or a secured `system_admins` root collection. |
+| **Hardcoded Super Admin Emails** | `firestore.rules:7-8`, `src/features/admin/EditUserModal.tsx:51`, `src/features/admin/AdminUserManagementPage.tsx` (UI route gating and header affordances now use token claims via `useAuth().isAdmin`) | **High** | Hardcoding `johanrovian90@gmail.com` and `fso2cool@gmail.com` requires code modification and deployment whenever admin personnel changes. <br>**Target Fix**: Migrate to Firebase Auth Custom Claims (`request.auth.token.role == 'ADMIN'`) or a secured `system_admins` root collection. |
 | **Unvalidated Settings Write** | `firestore.rules:256-258` | **Medium** | `match /settings/{settingId} { allow read, write, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin()); }` permits arbitrary schema mutations without checking data types or size limits. <br>**Target Fix**: Introduce granular schema constraints for `school`, `document`, `preferences`, and `attendance` setting documents. |
 | **Feedback Spam Vector** | `firestore.rules:268-270` | **Low-Medium** | `allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;` lacks rate limiting or payload length validation, allowing malicious authenticated users to flood the collection. |
 
@@ -413,11 +477,12 @@ GitHub (main branch) ──push──> Vercel (auto-deploy)
 - **Coverage Provider**: `@vitest/coverage-v8` generating text summaries and lcov reports.
 
 ### 10.2 Quality Gates Pipeline
-Every code push and pull request executes 4 automated gates in `.github/workflows/ci.yml`:
+Every code push and pull request executes 5 automated gates in `.github/workflows/ci.yml`:
 1. `npm run lint`: Biome linter runs across all files in `< 400ms`.
-2. `npm run type-check`: `tsc --noEmit` validates complete type safety.
-3. `npm test`: Executes 12 test suites (67 tests, 100% pass rate).
-4. `npm run build`: Generates production assets with 0 chunk size warnings.
+2. `npm run type-check`: `tsc --noEmit` validates complete TypeScript type safety.
+3. `npm run check:boundaries`: `depcruise` enforces architectural boundary and layer isolation constraints.
+4. `npm test`: Executes 37 test suites (277 tests, 100% pass rate).
+5. `npm run build`: Generates optimized production assets with 0 chunk size warnings.
 
 ---
 
@@ -455,7 +520,7 @@ Super Admin emails documented; env variable precedence established for storage b
 Biome sub-second linter configured, `tsconfig.json` strictness enabled, GitHub Actions CI workflow automated.
 
 ### 12.5 Testing Infrastructure — ✅ RESOLVED (Phase 6)
-Vitest + React Testing Library + JSDOM installed with 12 suites / 67 tests passing (100%).
+Vitest + React Testing Library + JSDOM installed with 37 suites / 277 tests passing (100%).
 
 ### 12.6 Performance & UX — ✅ RESOLVED (Phase 8)
 Default native WebChannel streaming enabled, skeletons added across 4 heavy views, multi-tier ErrorBoundary deployed, and `firestore.indexes.json` composite indexes defined. See also [DADU-ERD.md](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/docs/DADU-ERD.md).
@@ -465,7 +530,7 @@ Default native WebChannel streaming enabled, skeletons added across 4 heavy view
 
 ### 12.8 Post-Upgrade Technical Debt & Audit Findings — ✅ AUDITED (Phase 10)
 - **Security & Authorization**: Hardcoded emails persist in `firestore.rules` and UI components. Missing server-side role validation on account creation permits client-driven privilege escalation attempts.
-- **Testing Gaps**: Mission-critical business logic (`assessments.ts`, `attendance.ts`, `students.ts`) and Firestore security rules lack automated tests (0% coverage on calculation algorithms).
+- **Testing Status**: Mission-critical business logic (`attendance.ts`, `attendancePolicy.ts`, `periodPolicy.ts`, `studentPolicy.ts`, `grading.service.ts`) is now covered by automated tests (37 suites, 277 tests). Firestore security rules continue to be verified via manual audit.
 - **Component Complexity**: Monolithic views (`SettingsPage` 2,310 LOC, `StudentsMasterPage` 1,478 LOC, `GradesPage` 1,326 LOC) create excessive re-render scopes and maintainability friction.
 - **Dynamic Bundling**: Static `xlsx` imports across 19 modules eagerly download 425 KB of parsing code on pages where export is rarely triggered.
 - **Observability**: Zero remote crash analytics; runtime failures are isolated to the end-user's local console.
