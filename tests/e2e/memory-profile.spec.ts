@@ -16,24 +16,12 @@ function toMB(bytes: number) {
 
 test.describe('Memory Profiling for LRUCache (CDP)', () => {
   test.beforeEach(async ({ page }) => {
-    // Log in (Required because Firebase Auth uses IndexedDB, not saved by Playwright storageState)
-    await page.goto('/login');
-    await page.fill('input[id="auth-email"]', 'teacher@example.com');
-    await page.fill('input[id="auth-password"]', 'password123');
-    await page.click('button:has-text("Masuk ke Akun")');
-
-    // Wait for Dashboard to load to confirm login success
-    await expect(page.locator('h1:has-text("Selamat")')).toBeVisible({ timeout: 15000 });
-
-    // Dismiss Changelog modal if it appears
-    try {
-      const changelogButton = page.locator('button:has-text("Mengerti & Lanjutkan")');
-      await expect(changelogButton).toBeVisible({ timeout: 5000 });
-      await changelogButton.click();
-      await expect(changelogButton).toBeHidden({ timeout: 5000 });
-    } catch (e) {
-      // Modal didn't appear, ignore
-    }
+    // Suppress changelog popup in browser localStorage
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem('dadu_seen_changelog_2.4.0-JRA', 'true');
+      } catch {}
+    });
   });
 
   test('SubjectAttendancePage - LRU Eviction by 55 unique dates', async ({ page }) => {

@@ -8,25 +8,6 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
         localStorage.setItem("dadu_seen_changelog_2.4.0-JRA", "true");
       } catch {}
     });
-
-    // Login using seeded test teacher credentials
-    await page.goto("/login");
-    await page.fill('input[id="auth-email"]', "teacher@example.com");
-    await page.fill('input[id="auth-password"]', "password123");
-    await page.click('button:has-text("Masuk ke Akun")');
-
-    // Wait for Dashboard to confirm authenticated state
-    await expect(page.locator("text=Ruang Guru").first()).toBeVisible({
-      timeout: 15000,
-    });
-
-    // Dismiss Changelog modal if present
-    const changelogButton = page.locator(
-      'button:has-text("Mengerti & Lanjutkan")',
-    );
-    if (await changelogButton.isVisible().catch(() => false)) {
-      await changelogButton.click();
-    }
   });
 
   test("0. Persiapan data: Tambahkan siswa contoh jika kelas masih kosong", async ({
@@ -41,7 +22,9 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
     await expect(page.locator("text=Master Data Siswa & Rombel")).toBeVisible({
       timeout: 10000,
     });
-    await page.waitForTimeout(500);
+    await expect(
+      page.locator("table tbody tr").first().or(page.locator("text=Belum Ada Data Siswa")),
+    ).toBeVisible({ timeout: 15000 });
 
     const currentCount = await page.locator("table tbody tr").count();
     if (currentCount === 0) {

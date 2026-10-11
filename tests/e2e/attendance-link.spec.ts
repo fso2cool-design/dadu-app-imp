@@ -16,24 +16,6 @@ test.describe('Subject Attendance Consolidation & Meeting Linking (AC-1 to AC-13
 
     // G3: Install fail-closed network guard before first navigation
     guard = await installNetworkGuard(page);
-
-    // Login with seeded test teacher
-    await page.goto('/login');
-    await page.fill('input[id="auth-email"]', 'teacher@example.com');
-    await page.fill('input[id="auth-password"]', 'password123');
-    await page.click('button:has-text("Masuk ke Akun")');
-
-    // Wait for Dashboard
-    await expect(page.locator('text=Ruang Guru').first()).toBeVisible({ timeout: 15000 });
-
-    try {
-      const changelogButton = page.locator('button:has-text("Mengerti & Lanjutkan")');
-      if (await changelogButton.isVisible({ timeout: 2000 })) {
-        await changelogButton.click();
-      }
-    } catch {
-      // Ignored if changelog modal not present
-    }
   });
 
   test.afterEach(async () => {
@@ -49,7 +31,9 @@ test.describe('Subject Attendance Consolidation & Meeting Linking (AC-1 to AC-13
 
     await page.click('button:has-text("Data Siswa Terpadu")');
     await expect(page.locator('text=Master Data Siswa & Rombel')).toBeVisible({ timeout: 10000 });
-    await page.waitForTimeout(1000);
+    await expect(
+      page.locator('table tbody tr').first().or(page.locator('text=Belum Ada Data Siswa'))
+    ).toBeVisible({ timeout: 15000 });
 
     const currentCount = await page.locator('table tbody tr').count();
 
@@ -189,7 +173,10 @@ test.describe('Subject Attendance Consolidation & Meeting Linking (AC-1 to AC-13
     await expect(cardA_after.locator('text=Presensi Belum Diisi')).toBeVisible({ timeout: 10000 });
 
     // 6. AC-3: Penautan pertama (Link to Meeting A)
-    await cardA_after.locator('button:has-text("Presensi")').click();
+    await page.goto('/teacher/meetings');
+    const cardA_link = page.locator('h3', { hasText: topicA }).locator('xpath=ancestor::div[contains(@class, "group")]');
+    await expect(cardA_link.locator('text=Presensi Belum Diisi')).toBeVisible({ timeout: 10000 });
+    await cardA_link.locator('button:has-text("Presensi")').click();
     await expect(page.locator('h1:has-text("Presensi Siswa Mata Pelajaran")')).toBeVisible({ timeout: 10000 });
 
     // Link to Meeting A (index 1 in dropdown)

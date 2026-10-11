@@ -44,7 +44,7 @@ service cloud.firestore {
 
       match /students/{studentId} {
         allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
-        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.isArchived != true));
+        allow delete: if request.auth != null && (isSuperAdmin() || (request.auth.uid == userId && resource.data.get('isArchived', false) != true));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.fullName is string;
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());

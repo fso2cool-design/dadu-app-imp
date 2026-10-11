@@ -2,28 +2,16 @@ import { test, expect } from '@playwright/test';
 
 test.describe('LRU Cache Eviction Validation', () => {
   test.beforeEach(async ({ page }) => {
-    // Log in (Required because Firebase Auth uses IndexedDB, not saved by Playwright storageState)
-    await page.goto('/login');
-    await page.fill('input[id="auth-email"]', 'teacher@example.com');
-    await page.fill('input[id="auth-password"]', 'password123');
-    await page.click('button:has-text("Masuk ke Akun")');
-
-    // Wait for Dashboard to load to confirm login success
-    await expect(page.locator('h1:has-text("Selamat")')).toBeVisible({ timeout: 15000 });
-
-    // Dismiss Changelog modal if it appears
-    try {
-      const changelogButton = page.locator('button:has-text("Mengerti & Lanjutkan")');
-      await expect(changelogButton).toBeVisible({ timeout: 5000 });
-      await changelogButton.click();
-      await expect(changelogButton).toBeHidden({ timeout: 5000 });
-    } catch (e) {
-      // Modal didn't appear, ignore
-    }
+    // Suppress changelog popup in browser localStorage
+    await page.addInitScript(() => {
+      try {
+        localStorage.setItem('dadu_seen_changelog_2.4.0-JRA', 'true');
+      } catch {}
+    });
   });
 
   test('HomeroomMonthlyAttendancePage cache limits are respected and do not crash', async ({ page }) => {
-    // Navigate to Homeroom
+    // Navigate to Homeroom directly via restored session
     await page.goto('/homeroom');
     // Click the "Rekap Presensi Siswa" tab to show HomeroomMonthlyAttendancePage
     await page.click('button:has-text("Rekap Presensi Siswa")');
@@ -53,7 +41,7 @@ test.describe('LRU Cache Eviction Validation', () => {
   });
 
   test('SubjectAttendancePage cache limits are respected and do not crash', async ({ page }) => {
-    // Navigate to Subject Attendance
+    // Navigate to Subject Attendance directly via restored session
     await page.goto('/teacher/attendance');
     await expect(page.locator('h1:has-text("Presensi Siswa Mata Pelajaran")')).toBeVisible({ timeout: 15000 });
 

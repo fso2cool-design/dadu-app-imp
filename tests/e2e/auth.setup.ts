@@ -88,6 +88,6 @@ setup('authenticate and onboard', async ({ page }) => {
   }
 
   // Save storage state for all tests to use
-  await page.context().storageState({ path: authFile });
+  await page.context().storageState({ path: authFile, indexedDB: true });
   guard.assertNoViolations();
 });

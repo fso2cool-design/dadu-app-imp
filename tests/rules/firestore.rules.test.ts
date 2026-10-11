@@ -472,4 +472,110 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
       await assertFails(getDoc(ref));
     });
   });
+
+  // =========================================================================
+  // SEC-03: STUDENT DOCUMENT DELETION & OPTIONAL isArchived SAFEGUARD
+  // =========================================================================
+  describe('SEC-03: Student Deletion Optional isArchived Field and Authorization Safeguards', () => {
+    it('TC-STD-01: allows document owner to delete student when isArchived field is absent', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-no-archive'), {
+          fullName: 'Budi Santoso',
+          nis: '1001',
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'students', 'student-no-archive');
+      await assertSucceeds(deleteDoc(ref));
+    });
+
+    it('TC-STD-02: allows document owner to delete student when isArchived is explicitly false', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-archived-false'), {
+          fullName: 'Siti Aminah',
+          nis: '1002',
+          isArchived: false,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'students', 'student-archived-false');
+      await assertSucceeds(deleteDoc(ref));
+    });
+
+    it('TC-STD-03: rejects document owner from deleting student when isArchived is true', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-archived-true'), {
+          fullName: 'Dewi Lestari',
+          nis: '1003',
+          isArchived: true,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'students', 'student-archived-true');
+      await assertFails(deleteDoc(ref));
+    });
+
+    it('TC-STD-04: rejects a different authenticated teacher from deleting owner student document', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-diff-user-1'), {
+          fullName: 'Ahmad Dahlan',
+          nis: '1004',
+        });
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-diff-user-2'), {
+          fullName: 'Hasyim Asyari',
+          nis: '1005',
+          isArchived: false,
+        });
+      });
+
+      const otherDb = testEnv.authenticatedContext(OTHER_TEACHER_UID).firestore();
+      const ref1 = doc(otherDb, 'users', TEACHER_UID, 'students', 'student-diff-user-1');
+      const ref2 = doc(otherDb, 'users', TEACHER_UID, 'students', 'student-diff-user-2');
+      await assertFails(deleteDoc(ref1));
+      await assertFails(deleteDoc(ref2));
+    });
+
+    it('TC-STD-05: allows super-admin to delete student whether archived or unarchived', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-admin-archived'), {
+          fullName: 'Siswa Arsip Admin',
+          nis: '1006',
+          isArchived: true,
+        });
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-admin-unarchived'), {
+          fullName: 'Siswa Bebas Admin',
+          nis: '1007',
+        });
+      });
+
+      const adminDb = testEnv.authenticatedContext(ADMIN_UID, { admin: true }).firestore();
+      const refArchived = doc(adminDb, 'users', TEACHER_UID, 'students', 'student-admin-archived');
+      const refUnarchived = doc(adminDb, 'users', TEACHER_UID, 'students', 'student-admin-unarchived');
+      await assertSucceeds(deleteDoc(refArchived));
+      await assertSucceeds(deleteDoc(refUnarchived));
+    });
+
+    it('TC-STD-06: rejects unauthenticated user from deleting student document', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'students', 'student-unauth'), {
+          fullName: 'Siswa Anonim Target',
+          nis: '1008',
+        });
+      });
+
+      const unauthDb = testEnv.unauthenticatedContext().firestore();
+      const ref = doc(unauthDb, 'users', TEACHER_UID, 'students', 'student-unauth');
+      await assertFails(deleteDoc(ref));
+    });
+  });
+
 });
