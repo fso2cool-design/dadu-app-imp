@@ -24,32 +24,6 @@ import { searchStudentsUseCase } from '../students/searchStudents.usecase';
 import { importStudentsUseCase } from '../students/importStudents.usecase';
 import type { ApplicationOperations } from '../types';
 
-const repos = {
-  student: studentRepository,
-  academicYear: academicYearRepository,
-  class: classRepository,
-  subject: subjectRepository,
-  teachingAssignment: teachingAssignmentRepository,
-  enrollment: enrollmentRepository,
-  meeting: meetingRepository,
-  attendance: attendanceRepository,
-  assessment: assessmentRepository,
-  teacherAttendance: teacherAttendanceRepository,
-  user: userRepository,
-  settings: settingsRepository,
-  homeroomAttendance: homeroomAttendanceRepository,
-  studentNote: studentNoteRepository,
-  sharedReport: sharedReportRepository,
-  studentCustomField: studentCustomFieldRepository,
-  feedback: feedbackRepository,
-  backup: backupRepository,
-  diagnostics: diagnosticsRepository,
-  deduplication: deduplicationRepository,
-  relationshipRecovery: relationshipRecoveryRepository,
-  classSchedule: classScheduleRepository,
-  onboarding: onboardingRepository,
-};
-
 const useCases = {
   loadWorkspace: (uid: string, profileSemester?: any) => loadWorkspaceUseCase({ uid, profileDefaultSemester: profileSemester }, {
     academicYearRepo: academicYearRepository,
@@ -238,8 +212,6 @@ const app: ApplicationOperations = {
     incrementView: (id) => sharedReportRepository.incrementView(id),
   },
   settings: {
-    getSettings: (uid) => settingsRepository.get(uid),
-    saveSettings: (uid, data) => settingsRepository.save(uid, data),
     getSchoolSettings: (uid) => settingsRepository.getSchoolSettings(uid),
     saveSchoolSettings: (uid, data) => settingsRepository.saveSchoolSettings(uid, data),
     getDocumentSettings: (uid) => settingsRepository.getDocumentSettings(uid),
@@ -266,7 +238,6 @@ const app: ApplicationOperations = {
 };
 
 export const container = {
-  repos,
   useCases,
   app,
 };

@@ -9,7 +9,4 @@ export const settingsRepository = {
   saveUserPreferences: S.saveUserPreferences,
   getAttendanceSettings: S.getAttendanceSettings,
   saveAttendanceSettings: S.saveAttendanceSettings,
-  // legacy aliases for container compatibility
-  get: S.getSchoolSettings,
-  save: S.saveSchoolSettings,
 };

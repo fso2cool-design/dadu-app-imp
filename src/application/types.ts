@@ -284,8 +284,6 @@ export interface ApplicationOperations {
     incrementView: (id: string) => Promise<void>;
   };
   settings: {
-    getSettings: (uid: string) => Promise<SchoolSettings | null>;
-    saveSettings: (uid: string, data: SchoolSettings) => Promise<void>;
     getSchoolSettings: (uid: string) => Promise<SchoolSettings | null>;
     saveSchoolSettings: (uid: string, data: SchoolSettings) => Promise<void>;
     getDocumentSettings: (uid: string) => Promise<DocumentSettings | null>;
