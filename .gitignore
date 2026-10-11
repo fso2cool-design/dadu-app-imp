@@ -15,3 +15,9 @@ tools/serviceAccountKey.json
 test-results/
 playwright-report/
 tests/e2e/.auth/
+
+# Local migration, patch, and diagnostic artifacts
+scratch/
+patch*.cjs
+patch*.js
+any_types_list.txt
