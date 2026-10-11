@@ -45,7 +45,7 @@ However, deep static inspection reveals significant design system leaks, accessi
 
 ## 2. Task 1: DS Token Injection Completeness
 
-Inspection of `src/context/DesignSystemContext.tsx` (lines 60–130) verifies that the `DesignSystemProvider` dynamically synchronizes with `activeSystem` and updates `:root` with 35 custom properties whenever the active system changes.
+Inspection of `src/context/DesignSystemContext.tsx` (lines 60–130) verifies that the `DesignSystemProvider` dynamically synchronizes with `activePreset` and updates `:root` with 35 custom properties whenever the active system changes.
 
 ### 2.1 Injected Tokens Inventory
 | Category | Property Name | Injected Value Source | Status in `:root` |

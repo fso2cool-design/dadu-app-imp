@@ -83,8 +83,11 @@ dadu-app-imp/
 │   └── GITHUB-WORKFLOW-GUIDE.md # Panduan branch protection & preview Vercel
 ├── public/                      # Asset statis, logo, manifest PWA
 ├── src/
+│   ├── application/             # Application Layer (ApplicationOperations, use-cases, repository ports)
+│   ├── domain/                  # Pure Domain policies & types (periodPolicy, attendancePolicy, dll.)
+│   ├── infrastructure/          # Infrastructure Layer (Firestore repository adapters)
 │   ├── components/              # Komponen UI bersama (AppLayout, ErrorBoundary, Modal, dll.)
-│   ├── context/                 # React Contexts (WorkspaceContext, DesignSystemContext, ThemeContext, ToastContext)
+│   ├── context/                 # React Contexts (WorkspaceContext, DesignSystemContext, ToastContext)
 │   ├── features/                # Modul fitur berbasis domain (auth, teacher, homeroom, reports, dll.)
 │   ├── routes/                  # Definisi rute, mapping path, dan bidirectional adapter
 │   ├── services/

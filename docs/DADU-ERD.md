@@ -23,12 +23,13 @@ erDiagram
     %% Subcollection Relationships
     ACADEMIC_YEAR ||--o{ ENROLLMENT : "scopes"
     ACADEMIC_YEAR ||--o{ TEACHING_ASSIGNMENT : "schedules"
+    ACADEMIC_YEAR ||--o{ CLASS_SCHEDULE : "schedules"
     CLASS_ITEM ||--o{ ENROLLMENT : "contains"
+    CLASS_ITEM ||--o{ CLASS_SCHEDULE : "has"
     STUDENT ||--o{ ENROLLMENT : "enrolled_in"
 
     TEACHING_ASSIGNMENT ||--o{ MEETING : "conducts"
     TEACHING_ASSIGNMENT ||--o{ ASSESSMENT_ITEM : "evaluates"
-    TEACHING_ASSIGNMENT ||--o{ CLASS_SCHEDULE : "scheduled_in"
 
     MEETING ||--o{ ATTENDANCE_RECORD : "tracks"
     STUDENT ||--o{ ATTENDANCE_RECORD : "marked_for"
@@ -56,16 +57,18 @@ erDiagram
 
     ACADEMIC_YEAR {
         string id PK
-        string name "Contoh: 2025/2026"
-        string startDate
-        string endDate
-        boolean isCurrent
+        string label "Contoh: 2025/2026"
+        number startYear
+        number endYear
+        string currentSemester "GANJIL | GENAP"
+        boolean isActive
+        boolean isArchived
     }
 
     CLASS_ITEM {
         string id PK
         string name "Contoh: 7-A, 8-B"
-        string grade "7 | 8 | 9"
+        string gradeLevel "Contoh: 7 | 8 | 9 | 10"
         string academicYearId FK
     }
 
@@ -199,6 +202,19 @@ erDiagram
         number viewCount
         timestamp expiresAt
     }
+
+    CLASS_SCHEDULE {
+        string id PK "{classId}_{academicYearId}_{semester}"
+        string classId FK
+        string academicYearId FK
+        string semester "GANJIL | GENAP"
+        json items "ClassScheduleItem[]"
+    }
+
+    SETTINGS {
+        string id PK "'school' | 'document' | 'attendance' | 'preferences'"
+        string userId FK
+    }
 ```
 
 ---
@@ -223,9 +239,9 @@ Aplikasi DADU menerapkan arsitektur isolasi multi-tenant pada tingkat path Fires
    ├── scores/{scoreId}                        <-- Subcollection Nilai Siswa
    ├── studentNotes/{noteId}                   <-- Subcollection Catatan Bimbingan Santri
    ├── teacherAttendanceRecords/{tarId}        <-- Subcollection Kehadiran Guru Mapel
-   ├── classSchedules/{scheduleId}             <-- Subcollection Jadwal Pelajaran
+   ├── classSchedules/{scheduleId}             <-- Subcollection Jadwal Pelajaran (terpisah dari settings)
    ├── studentCustomFields/{fieldId}           <-- Subcollection Kustomisasi Kolom Siswa
-   └── settings/{settingDocId}                 <-- Konfigurasi ('school', 'document', 'attendance')
+   └── settings/{settingDocId}                 <-- Konfigurasi ('school', 'document', 'attendance', 'preferences')
 ```
 
 ### Koleksi Tingkat Atas (Global Top-Level):

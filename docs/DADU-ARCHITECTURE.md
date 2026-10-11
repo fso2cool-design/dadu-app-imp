@@ -58,22 +58,30 @@ dadu-app-imp/
 │   ├── App.tsx                  # Root ErrorBoundary, Router, Providers, and AppLayout
 │   ├── index.css                # Global styles + Tailwind v4
 │   ├── types/index.ts           # Centralized TypeScript interfaces
+│   ├── domain/                  # Domain policies & pure domain types (periodPolicy, attendancePolicy, etc.)
+│   ├── application/             # Application Layer (ApplicationOperations, use-cases, repository ports)
+│   │   ├── types.ts             # ApplicationOperations interface definition
+│   │   ├── ports/               # Hexagonal repository port contracts and container
+│   │   ├── workspace/           # Workspace use-cases (loadWorkspace)
+│   │   └── students/            # Student use-cases (importStudents)
+│   ├── infrastructure/          # Infrastructure Layer (Firestore repository adapters)
+│   │   └── firestore/
+│   │       └── repositories/    # Concrete repository implementations conforming to ports
 │   ├── context/
-│   │   ├── WorkspaceContext.tsx  # Academic data loader (classes, subjects, etc.)
-│   │   ├── DesignSystemContext.tsx # Design system (brutalism/apple-glass/neo-skeuomorphic) + CSS vars
-│   │   ├── ThemeContext.tsx      # Thin wrapper over DesignSystemContext (backward compat)
-│   │   └── ToastContext.tsx      # Toast notification system
+│   │   ├── WorkspaceContext.tsx # Academic data loader (classes, subjects, etc.)
+│   │   ├── DesignSystemContext.tsx # Single Source of Truth for design system & tokens
+│   │   └── ToastContext.tsx     # Toast notification system
 │   ├── features/
-│   │   ├── admin/               # Admin user management, feedback tab
+│   │   ├── admin/               # Admin user management, storage stats, feedback tab
 │   │   ├── auth/                # AuthContext, LoginPage, WorkflowDemoModal
 │   │   ├── dashboard/           # DashboardPage (with schedule skeletons)
 │   │   ├── grades/              # Assessment items, score entry, paste Excel
-│   │   ├── homeroom/            # Homeroom hub (daily attendance, notes skeletons)
+│   │   ├── homeroom/            # Homeroom hub (daily attendance, class schedule, notes)
 │   │   ├── master/              # Academic years, classes, subjects, assignments
 │   │   ├── onboarding/          # 6-step onboarding wizard
 │   │   ├── public/              # Public report viewer (shared reports)
 │   │   ├── reports/             # Attendance, grades, legger skeletons, print
-│   │   ├── settings/            # Settings page, relationship recovery
+│   │   ├── settings/            # Settings page (school, document, preferences)
 │   │   ├── students/            # Student CRUD, import, dedup, table skeletons
 │   │   └── teacher/             # Teacher hub (meetings, attendance, schedule)
 │   ├── components/
@@ -94,6 +102,99 @@ dadu-app-imp/
 ├── vite.config.ts               # Vite build config with vendor chunks & visualizer
 └── vitest.config.ts             # Vitest test runner configuration
 ```
+
+---
+
+### 3.1 Hexagonal Architecture & Architectural Layers
+
+DADU enforces a Clean / Hexagonal (Ports & Adapters) architectural structure:
+
+1. **Domain Layer (`src/domain/`)**:
+   - Contains pure business policies and domain rules completely independent of UI, React, or Firebase.
+   - Examples: `periodPolicy.ts` (resolving academic year label, semester boundary calculation, and year spans), `attendancePolicy.ts`, `assessmentPolicy.ts`.
+   - Defines pure domain types such as `backup.types.ts`, `diagnostics.types.ts`, `deduplication.types.ts`, `relationshipRecovery.types.ts`.
+
+2. **Application Layer (`src/application/`)**:
+   - Defines the top-level application contract (`ApplicationOperations` in `src/application/types.ts`) exposed via `app.*` and DI root `container.app`.
+   - Houses application use-cases (`loadWorkspace.usecase.ts`, `importStudents.usecase.ts`).
+   - Defines strongly typed, hardened repository ports (`src/application/ports/*Repository.ts`).
+
+3. **Infrastructure Layer (`src/infrastructure/`)**:
+   - Implements repository ports via concrete Cloud Firestore adapters (`src/infrastructure/firestore/repositories/*`).
+   - Adheres to repository port interfaces without leaking Firestore-specific SDK types into the domain.
+
+4. **Presentation / Feature Layer (`src/features/`, `src/components/`, `src/context/`)**:
+   - React 19 UI components consuming high-level application operations via `app.*` or domain repositories via `container.repos.*`.
+
+---
+
+### 3.2 Canonical Application Namespaces (Milestone B4 Decomposition)
+
+The monolithic `app.settings` namespace has been decomposed into distinct, domain-aligned application boundaries:
+
+| Application Namespace | Responsibility | Operations |
+|---|---|---|
+| **`app.settings`** | Genuine school metadata & official document configuration | `getSchoolSettings`, `saveSchoolSettings`, `getDocumentSettings`, `saveDocumentSettings` |
+| **`app.maintenance`** | Workspace backup/restore lifecycle & semester reset | `exportBackup`, `importBackup`, `getDatabaseStats`, `previewResetSemester`, `resetSemesterData` |
+| **`app.diagnostics`** | System referential integrity audit & relation recovery | `runIntegrityAudit`, `findStudentCandidatesByNisn`, `relinkEnrollmentClass`, `relinkStudentRelationship` |
+| **`app.classSchedule`** | Class timetable management (deterministic key: `{classId}_{ayId}_{sem}`) | `getClassSchedule`, `saveClassSchedule`, `deleteClassSchedule` |
+| **`app.appearance`** | Visual design system & mode preferences | `updateDesignSystem`, `updateModePreference` |
+| **`app.workspace`** | Academic workspace loader & preferences | `loadWorkspace`, `getUserPreferences`, `saveUserPreferences`, `saveAttendanceSettings`, `checkHoliday` |
+| **`app.students`** | Student master records, import, search, custom fields, deduplication | `getAll`, `getById`, `create`, `update`, `delete`, `import`, `search`, `scanDuplicates`, etc. |
+| **`app.master`** | Master academic data (years, classes, subjects, assignments) | `academicYears.*`, `classes.*`, `subjects.*`, `teachingAssignments.*` |
+| **`app.teacher`** | Teaching journal & subject attendance | `meetings.*`, `attendance.*` |
+| **`app.homeroom`** | Homeroom attendance roll-call & guidance | `dailyAttendance.*`, `studentNotes.*` |
+| **`app.grades`** | Assessment items & grade matrix entry | `items.*`, `scores.*` |
+| **`app.admin`** | School administrator operations | `getAllUsers`, `setAccountStatus`, `setAccountRole`, `getStorageStats`, `purgeWorkspace`, etc. |
+| **`app.reports`** | Shared encrypted reports | `createSharedReport`, `getSharedReportByToken`, `revokeSharedReport`, `decrypt`, etc. |
+| **`app.onboarding`** | 6-step teacher onboarding wizard | `submitOnboarding` |
+| **`app.feedback`** | Bug reporting & feature requests | `create`, `getUnreadCount` |
+
+---
+
+### 3.3 Application Operations vs. Repository Ports
+
+A fundamental architectural distinction exists between **Application APIs** and **Repository Ports**:
+
+- **Application APIs (`app.*` / `ApplicationOperations`)**:
+  Provide user-facing, task-oriented entry points for features. They orchestrate domain policies, trigger cross-cutting events (such as `trackSync`), and compose multiple repositories into cohesive application use-cases.
+  *Example*: `app.maintenance.exportBackup(uid)` coordinates metadata assembly and returns a typed `DatabaseBackup` domain object.
+
+- **Repository Ports (`container.repos.*` / `*Repository` in `src/application/ports/`)**:
+  Provide low-level, collection-specific persistence contracts implemented by infrastructure adapters.
+  *Example*: `backupRepository.exportFullDatabase(uid)` executes the physical batch reads across subcollections.
+
+Similarly, for homeroom attendance:
+- **Application API**: `app.attendance.getDailySession` and `app.attendance.getAllDailyForClass` coordinate presentation queries.
+- **Repository Port**: `homeroomAttendanceRepository.getSession` and `homeroomAttendanceRepository.getAllForClass` execute the Firestore document queries.
+
+---
+
+### 3.4 Hardened Repository Ports & Adapters (Milestones B2 & B3)
+
+Repository ports in `src/application/ports/` are strictly typed and explicitly implemented by infrastructure adapters in `src/infrastructure/firestore/repositories/`:
+
+| Repository Port | Canonical Port Contract | Status / Alignment |
+|---|---|---|
+| **`BackupRepository`** | `exportFullDatabase`, `importFullDatabase`, `getDatabaseStatistics`, `resetSemesterData`, `previewSemesterReset` | Hardened. Obsolete generic `exportAll` / `importAll` purged. |
+| **`DiagnosticsRepository`** | `runIntegrityAudit` | Hardened. Obsolete generic `run` purged. |
+| **`ClassScheduleRepository`** | `getScheduleDocId`, `getClassSchedule`, `saveClassSchedule`, `deleteClassSchedule` | Hardened. Obsolete generic `getAll` / `save` purged. |
+| **`DeduplicationRepository`** | `scanDuplicateStudents`, `executeZeroResidueDeduplication` | Hardened. Obsolete generic `findDuplicates` / `merge` purged. |
+| **`RelationshipRecoveryRepository`** | `findStudentCandidatesByNisn`, `relinkEnrollmentClass`, `relinkStudentRelationship` | Hardened. Obsolete generic `scan` / `recover` purged. |
+| **`OnboardingRepository`** | `submitOnboarding` | Hardened. Obsolete generic `getStatus` / `complete` purged. |
+| **`SettingsRepository`** | `getSchoolSettings`, `saveSchoolSettings`, `getDocumentSettings`, `saveDocumentSettings`, `getUserPreferences`, `saveUserPreferences`, `getAttendanceSettings`, `saveAttendanceSettings` | Hardened. Obsolete generic `get` / `save` purged. |
+| **`HomeroomAttendanceRepository`** | `getAllForClass`, `getByDate`, `getSession`, `getMonthly`, `saveDailyAttendance` | Hardened. Redundant adapter aliases (`getAllDailyForClass`, `getDailySession`) purged from adapter. |
+
+---
+
+### 3.5 Design System Single Source of Truth
+
+`DesignSystemContext` is the canonical single source of truth for all visual tokens, presets, and color modes:
+- **Visual Presets**: `brutalism`, `apple-glass`, `neo-skeuomorphic`.
+- **Modes**: `light`, `dark`.
+- **CSS Injection**: Injects 35 custom properties (`--ds-*`) into `:root` and manages `data-design-system` attribute and `.dark` class on `<html>`.
+- **Canonical API**: `activePreset`, `setPreset`, `applyAndSavePreset`, `mode`, `setMode`, `toggleMode`, `applyAndSaveMode`.
+- **Legacy Architecture Purged**: The legacy theme architecture (`ThemeContext`, `ThemeProvider`, `useAppTheme`, `activeSystem`, `setSystem`) has been completely removed. Features consume `useDesignSystem` and `app.appearance`.
 
 ---
 
@@ -184,7 +285,7 @@ All operational data lives under `/users/{userId}/` (workspace isolation):
 
 | Subcollection | Service File | TypeScript Interface |
 |---|---|---|
-| `academicYears` | `academicYears.ts` | `AcademicYear` |
+| `academicYears` | `academicYears.ts` / `academicYear.repository.ts` | `AcademicYear` (canonical: `label`, `startYear`, `endYear`, `currentSemester`, `isActive`) |
 | `classes` | `classes.ts` | `ClassItem` |
 | `students` | `students.ts` | `Student` |
 | `subjects` | `subjects.ts` | `Subject` |
@@ -199,8 +300,8 @@ All operational data lives under `/users/{userId}/` (workspace isolation):
 | `studentNotes` | `studentNotes.ts` | `StudentNote` |
 | `teacherAttendanceRecords` | `teacherAttendance.ts` | `TeacherAttendanceRecord` |
 | `teacherMonthlyAttendance` | `teacherAttendance.ts` | `TeacherMonthlyAttendanceRecord` |
-| `classSchedules` | `classSchedule.ts` | `ClassSchedule` |
-| `settings` | `settings.ts` | `SchoolSettings`, `DocumentSettings`, `AttendanceSettings` |
+| `classSchedules` | `classSchedule.ts` / `misc.repository.ts` | `ClassSchedule` (deterministic id: `{classId}_{ayId}_{sem}`) |
+| `settings` | `settings.ts` / `settings.repository.ts` | `SchoolSettings`, `DocumentSettings`, `AttendanceSettings`, `UserPreferences` |
 | `studentCustomFields` | `studentCustomFields.ts` | `StudentCustomFieldDefinition` |
 
 Top-level collections (NOT under `/users/{userId}/`):

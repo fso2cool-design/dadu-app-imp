@@ -364,11 +364,9 @@ All 26 P2 issues represent code hygiene, polish, documentation, and long-term op
    *Suggested fix*: Replace with `bg-[var(--ds-surface)]`.  
    *Effort*: 10m
 
-3. **Clean Type Casts in ThemeContext**  
-   *Source*: L1 — [`src/context/ThemeContext.tsx:107-108`](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/src/context/ThemeContext.tsx#L107-L108)  
-   *What is broken*: `as unknown as any` casting used in theme setter shims.  
-   *Suggested fix*: Align union types between `ThemeKey` and `DesignSystemKey`.  
-   *Effort*: 10m
+3. **Clean Type Casts in ThemeContext** — ✅ RESOLVED
+   *Source*: L1 — `src/context/ThemeContext.tsx` (Purged)
+   *Resolution*: Legacy `ThemeContext.tsx` and its unsafe type shims were completely removed in favor of single-source `DesignSystemContext.tsx` and `app.appearance`.
 
 4. **Refactor 506 Arbitrary Hex Classes to Theme CSS Variables**  
    *Source*: L1 — Codebase-wide (506 instances)  
