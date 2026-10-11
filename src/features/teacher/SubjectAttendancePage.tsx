@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useBlocker, UNSAFE_DataRouterContext, type Blocker } from 'react-router-dom';
 import React, { useState, useEffect, useMemo, useRef, useImperativeHandle } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -171,6 +171,42 @@ const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, han
   return prev.row === next.row && prev.isArchivedYear === next.isArchivedYear;
 });
 
+interface DataRouterBlockerProps {
+  isDirty: boolean;
+  onBlocked: (blocker: Blocker) => void;
+  onUnblocked: () => void;
+}
+
+const DataRouterBlocker: React.FC<DataRouterBlockerProps> = ({
+  isDirty,
+  onBlocked,
+  onUnblocked,
+}) => {
+  const blocker = useBlocker(
+    React.useCallback(
+      ({ currentLocation, nextLocation }: { currentLocation: any; nextLocation: any }) => {
+        if (!isDirty) return false;
+        return (
+          currentLocation.pathname !== nextLocation.pathname ||
+          currentLocation.search !== nextLocation.search ||
+          currentLocation.hash !== nextLocation.hash
+        );
+      },
+      [isDirty]
+    )
+  );
+
+  React.useEffect(() => {
+    if (blocker.state === 'blocked') {
+      onBlocked(blocker);
+    } else if (blocker.state === 'unblocked') {
+      onUnblocked();
+    }
+  }, [blocker.state, blocker, onBlocked, onUnblocked]);
+
+  return null;
+};
+
 export interface SubjectAttendancePageHandle {
   requestTabChange: (targetTab: string, state?: any) => boolean;
 }
@@ -273,14 +309,39 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     isDirtyRef.current = val;
     _setIsDirty(val);
   };
+  const isDataRouter = Boolean(React.useContext(UNSAFE_DataRouterContext));
+  const blockerRef = useRef<Blocker | null>(null);
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
-    type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back' | 'parent-tab';
+    type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back' | 'parent-tab' | 'browser-navigation';
     targetValue?: string;
     targetState?: any;
   } | null>(null);
   const isSavingRef = useRef(false);
+
+  const handleBlockerBlocked = React.useCallback((b: Blocker) => {
+    blockerRef.current = b;
+    setPendingAction({ type: 'browser-navigation' });
+    setIsDirtyModalOpen(true);
+  }, []);
+
+  const handleBlockerUnblocked = React.useCallback(() => {
+    blockerRef.current = null;
+  }, []);
+
+  const handleModalClose = () => {
+    if (blockerRef.current && blockerRef.current.state === 'blocked') {
+      try {
+        blockerRef.current.reset();
+      } catch (err) {
+        console.warn('Blocker reset error:', err);
+      }
+      blockerRef.current = null;
+    }
+    setPendingAction(null);
+    setIsDirtyModalOpen(false);
+  };
 
   useImperativeHandle(ref, () => ({
     requestTabChange: (targetTab: string, state?: any) => {
@@ -812,19 +873,30 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   };
 
   const handleSaveAndProceed = async () => {
+    if (isSavingRef.current) return;
     try {
       const success = await handleSaveAttendance();
       if (!success) return;
 
-      if (pendingAction) {
+      const b = blockerRef.current;
+      blockerRef.current = null;
+      if (b && b.state === 'blocked') {
+        try {
+          b.proceed();
+        } catch (err) {
+          console.warn('Blocker proceed error:', err);
+        }
+      }
+
+      if (pendingAction && pendingAction.type !== 'browser-navigation') {
         if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
         else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
         else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
         else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
-        setPendingAction(null);
       }
+      setPendingAction(null);
       setIsDirtyModalOpen(false);
     } catch (e) {
       console.error(e);
@@ -834,15 +906,26 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const handleDiscardAndProceed = () => {
     isRowsDirtyRef.current = false;
     setIsDirty(false);
-    if (pendingAction) {
+
+    const b = blockerRef.current;
+    blockerRef.current = null;
+    if (b && b.state === 'blocked') {
+      try {
+        b.proceed();
+      } catch (err) {
+        console.warn('Blocker proceed error:', err);
+      }
+    }
+
+    if (pendingAction && pendingAction.type !== 'browser-navigation') {
       if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
       else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
       else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
       else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
       else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
       else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
-      setPendingAction(null);
     }
+    setPendingAction(null);
     setIsDirtyModalOpen(false);
   };
 
@@ -1544,13 +1627,18 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         onClose={() => setIsHolidayModalOpen(false)}
       />
 
+      {isDataRouter && (
+        <DataRouterBlocker
+          isDirty={isDirty}
+          onBlocked={handleBlockerBlocked}
+          onUnblocked={handleBlockerUnblocked}
+        />
+      )}
+
       {/* Unsaved Changes Warning Modal */}
       <UnsavedChangesModal
         isOpen={isDirtyModalOpen}
-        onClose={() => {
-          setIsDirtyModalOpen(false);
-          setPendingAction(null);
-        }}
+        onClose={handleModalClose}
         onDiscard={handleDiscardAndProceed}
         onSave={handleSaveAndProceed}
         title="Presensi Siswa Belum Disimpan"

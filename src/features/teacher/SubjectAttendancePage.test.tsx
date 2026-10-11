@@ -1,7 +1,7 @@
 import React, { createRef } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
+import { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-dom';
 import {
   SubjectAttendancePage,
   type SubjectAttendancePageHandle,
@@ -125,6 +125,47 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
         </ToastProvider>
       </MemoryRouter>
     );
+  };
+
+  const renderWithDataRouter = (
+    props: Partial<SubjectAttendancePageProps> = {},
+    options: { initialEntries?: string[]; initialIndex?: number } = {}
+  ) => {
+    let capturedRouter: any = null;
+
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/teacher/journal',
+          element: <div data-testid="journal-page">Halaman Jurnal</div>,
+        },
+        {
+          path: '/teacher/attendance',
+          element: (
+            <ToastProvider>
+              <ApplicationProvider app={mockApp}>
+                <SubjectAttendancePage
+                  initialContext={{ assignmentId: 'asg-1', date: '2026-10-10' }}
+                  {...props}
+                />
+              </ApplicationProvider>
+            </ToastProvider>
+          ),
+        },
+      ],
+      {
+        initialEntries: options.initialEntries || ['/teacher/journal', '/teacher/attendance'],
+        initialIndex: options.initialIndex !== undefined ? options.initialIndex : 1,
+      }
+    );
+
+    capturedRouter = router;
+    const renderResult = render(<RouterProvider router={router} />);
+
+    return {
+      ...renderResult,
+      router: capturedRouter,
+    };
   };
 
   // 1. Rendering daftar siswa
@@ -382,5 +423,188 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const allowed = handleRef.current?.requestTabChange('journal');
     expect(allowed).toBe(true);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  // 11. Form bersih: browser Back tidak diblokir
+  it('11. does not block browser back navigation when attendance form is clean', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/teacher/journal');
+      expect(screen.getByTestId('journal-page')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  // 12. Form kotor: browser Back diblokir dan modal konfirmasi muncul
+  it('12. blocks browser back navigation and displays modal when form is dirty', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    // Mark dirty
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    // Navigation must be intercepted, staying on attendance page
+    expect(router.state.location.pathname).toBe('/teacher/attendance');
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByText('Presensi Siswa Belum Disimpan')).toBeInTheDocument();
+  });
+
+  // 13. Batal di modal Back: navigasi dibatalkan, URL tetap, dan input dipertahankan
+  it('13. cancels browser back navigation on modal cancel, keeping URL and unsaved inputs', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    const dialog = await screen.findByRole('dialog');
+    const cancelButton = within(dialog).getByRole('button', { name: /Batal/i });
+    fireEvent.click(cancelButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    expect(router.state.location.pathname).toBe('/teacher/attendance');
+    expect(screen.getByText('Ahmad Dahlan')).toBeInTheDocument();
+  });
+
+  // 14. Buang perubahan di modal Back: navigasi dilanjutkan satu kali dan dirty state dibersihkan
+  it('14. proceeds browser back navigation exactly once and clears dirty state on discard', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    const dialog = await screen.findByRole('dialog');
+    const discardButton = within(dialog).getByRole('button', { name: /Buang Perubahan/i });
+    fireEvent.click(discardButton);
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/teacher/journal');
+      expect(screen.getByTestId('journal-page')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  // 15. Simpan berhasil di modal Back: presensi disimpan dulu lalu navigasi dilanjutkan
+  it('15. saves attendance before proceeding with browser back navigation on save selection', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    const dialog = await screen.findByRole('dialog');
+    const saveButton = within(dialog).getByRole('button', { name: /Simpan Presensi/i });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+      expect(mockTriggerSyncFeedback).toHaveBeenCalledWith('saved', expect.any(String));
+      expect(router.state.location.pathname).toBe('/teacher/journal');
+      expect(screen.getByTestId('journal-page')).toBeInTheDocument();
+    });
+  });
+
+  // 16. Simpan gagal di modal Back: navigasi dibatalkan, input dan pesan error dipertahankan
+  it('16. halts browser back navigation on save error, retaining input and showing error feedback', async () => {
+    mockSaveSubjectAttendance.mockRejectedValueOnce(new Error('Koneksi Firestore terputus'));
+
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+    });
+
+    const dialog = await screen.findByRole('dialog');
+    const saveButton = within(dialog).getByRole('button', { name: /Simpan Presensi/i });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+    });
+
+    // Navigation must remain halted on attendance page
+    expect(router.state.location.pathname).toBe('/teacher/attendance');
+    expect(screen.getByText('Ahmad Dahlan')).toBeInTheDocument();
+    expect(await screen.findByText(/Koneksi Firestore terputus/i)).toBeInTheDocument();
+  });
+
+  // 17. Klik Back berulang saat form kotor tidak memunculkan dialog ganda atau history trap
+  it('17. prevents duplicate confirmation dialogs and history traps on repeated back navigation', async () => {
+    const { router } = renderWithDataRouter();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    act(() => {
+      router.navigate(-1);
+      router.navigate(-1);
+    });
+
+    await screen.findByRole('dialog');
+    const dialogs = screen.getAllByRole('dialog');
+    expect(dialogs).toHaveLength(1);
+
+    const discardButton = within(dialogs[0]).getByRole('button', { name: /Buang Perubahan/i });
+    fireEvent.click(discardButton);
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/teacher/journal');
+      expect(screen.getByTestId('journal-page')).toBeInTheDocument();
+    });
+  });
+
+  // 18. beforeunload event memicu konfirmasi reload/tutup tab saat form dirty
+  it('18. triggers beforeunload preventDefault when form is dirty to protect page reload/close', async () => {
+    renderComponent();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    const event = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
   });
 });

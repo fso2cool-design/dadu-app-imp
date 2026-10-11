@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
-import { BrowserRouter, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
 import { DesignSystemProvider } from './context/DesignSystemContext';
@@ -249,22 +249,33 @@ function MainApp() {
   );
 }
 
+export function AppShell() {
+  return (
+    <ApplicationProvider app={container.app}>
+      <AuthProvider>
+        <DesignSystemProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <MainApp />
+            </ToastProvider>
+          </ThemeProvider>
+        </DesignSystemProvider>
+      </AuthProvider>
+    </ApplicationProvider>
+  );
+}
+
+export const appRouter = createBrowserRouter([
+  {
+    path: '*',
+    element: <AppShell />,
+  },
+]);
+
 export default function App() {
   return (
     <ErrorBoundary isRoot fallbackTitle="Terjadi Kendala Aplikasi">
-      <BrowserRouter>
-        <ApplicationProvider app={container.app}>
-          <AuthProvider>
-            <DesignSystemProvider>
-              <ThemeProvider>
-                <ToastProvider>
-                  <MainApp />
-                </ToastProvider>
-              </ThemeProvider>
-            </DesignSystemProvider>
-          </AuthProvider>
-        </ApplicationProvider>
-      </BrowserRouter>
+      <RouterProvider router={appRouter} />
     </ErrorBoundary>
   );
 }
