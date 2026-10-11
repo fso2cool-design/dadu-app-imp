@@ -288,17 +288,24 @@ export interface ApplicationOperations {
     saveSchoolSettings: (uid: string, data: SchoolSettings) => Promise<void>;
     getDocumentSettings: (uid: string) => Promise<DocumentSettings | null>;
     saveDocumentSettings: (uid: string, data: DocumentSettings) => Promise<void>;
+  };
+  maintenance: {
     exportBackup: (uid: string, displayName?: string, schoolName?: string) => Promise<DatabaseBackup>;
     importBackup: (uid: string, backup: DatabaseBackup, mode?: 'merge' | 'overwrite', onProgress?: (prog: { message: string; percentage: number }) => void) => Promise<{ success: boolean; totalRestored: number }>;
     getDatabaseStats: (uid: string) => Promise<DatabaseStatistics>;
     previewResetSemester: (uid: string, options: ResetSemesterOptions) => Promise<ResetSemesterSummary>;
     resetSemesterData: (uid: string, options: ResetSemesterOptions) => Promise<ResetSemesterSummary>;
+  };
+  diagnostics: {
     runIntegrityAudit: (uid: string) => Promise<DiagnosticResult>;
     findStudentCandidatesByNisn: (uid: string, nisn: string) => Promise<Student[]>;
     relinkEnrollmentClass: (uid: string, params: RelinkClassParams) => Promise<void>;
     relinkStudentRelationship: (uid: string, params: RelinkStudentParams) => Promise<void>;
+  };
+  classSchedule: {
     getClassSchedule: (uid: string, classId: string, academicYearId: string, semester: SemesterType) => Promise<ClassSchedule | null>;
     saveClassSchedule: (uid: string, schedule: Omit<ClassSchedule, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => Promise<ClassSchedule>;
+    deleteClassSchedule: (uid: string, scheduleId: string) => Promise<void>;
   };
   onboarding: {
     submitOnboarding: (uid: string, email: string, data: OnboardingData) => Promise<void>;

@@ -216,17 +216,24 @@ const app: ApplicationOperations = {
     saveSchoolSettings: (uid, data) => settingsRepository.saveSchoolSettings(uid, data),
     getDocumentSettings: (uid) => settingsRepository.getDocumentSettings(uid),
     saveDocumentSettings: (uid, data) => settingsRepository.saveDocumentSettings(uid, data),
+  },
+  maintenance: {
     exportBackup: (uid, displayName, schoolName) => backupRepository.exportFullDatabase(uid, displayName, schoolName),
     importBackup: (uid, backup, mode, onProgress) => backupRepository.importFullDatabase(uid, backup, mode, onProgress),
     getDatabaseStats: (uid) => backupRepository.getDatabaseStatistics(uid),
     previewResetSemester: (uid, options) => backupRepository.previewSemesterReset(uid, options),
     resetSemesterData: (uid, options) => backupRepository.resetSemesterData(uid, options),
+  },
+  diagnostics: {
     runIntegrityAudit: (uid) => diagnosticsRepository.runIntegrityAudit(uid),
     findStudentCandidatesByNisn: (uid, nisn) => relationshipRecoveryRepository.findStudentCandidatesByNisn(uid, nisn),
     relinkEnrollmentClass: (uid, params) => relationshipRecoveryRepository.relinkEnrollmentClass(uid, params),
     relinkStudentRelationship: (uid, params) => relationshipRecoveryRepository.relinkStudentRelationship(uid, params),
+  },
+  classSchedule: {
     getClassSchedule: (uid, classId, academicYearId, semester) => classScheduleRepository.getClassSchedule(uid, classId, academicYearId, semester),
     saveClassSchedule: (uid, schedule) => classScheduleRepository.saveClassSchedule(uid, schedule),
+    deleteClassSchedule: (uid, scheduleId) => classScheduleRepository.deleteClassSchedule(uid, scheduleId),
   },
   onboarding: {
     submitOnboarding: (uid, email, data) => onboardingRepository.submitOnboarding(uid, email, data),

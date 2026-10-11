@@ -145,7 +145,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
     const loadSchedule = async () => {
       setLoading(true);
       try {
-        const data = await app.settings.getClassSchedule(
+        const data = await app.classSchedule.getClassSchedule(
           user.uid,
           currentClass.id,
           activeAcademicYear.id,
@@ -367,7 +367,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         currentItems.push(newItem);
       }
 
-      const updated = await app.settings.saveClassSchedule(user.uid, {
+      const updated = await app.classSchedule.saveClassSchedule(user.uid, {
         classId: currentClass.id,
         className: currentClass.name,
         academicYearId: activeAcademicYear.id,
@@ -393,7 +393,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
 
     try {
       const updatedItems = customSchedule.items.filter(i => i.id !== itemId);
-      const updated = await app.settings.saveClassSchedule(user.uid, {
+      const updated = await app.classSchedule.saveClassSchedule(user.uid, {
         ...customSchedule,
         items: updatedItems,
       });

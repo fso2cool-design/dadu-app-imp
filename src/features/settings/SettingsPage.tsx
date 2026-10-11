@@ -302,7 +302,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     if (!user) return;
     try {
       setStatsLoading(true);
-      const stats = await app.settings.getDatabaseStats(user.uid);
+      const stats = await app.maintenance.getDatabaseStats(user.uid);
       setDbStats(stats);
     } catch (err) {
       console.error('Error getting stats:', err);
@@ -446,7 +446,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setSuccessMsg(null);
       setErrorMsg(null);
 
-      const backup = await app.settings.exportBackup(
+      const backup = await app.maintenance.exportBackup(
         user.uid,
         profileData.displayName || user.displayName || 'Guru',
         schoolData.schoolName || 'Madrasah'
@@ -506,7 +506,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setErrorMsg(null);
       setSuccessMsg(null);
 
-      const result = await app.settings.importBackup(
+      const result = await app.maintenance.importBackup(
         user.uid,
         backupFileContent,
         importMode,
@@ -535,7 +535,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     if (!user) return;
     try {
       setIsExporting(true);
-      const backupData = await app.settings.exportBackup(
+      const backupData = await app.maintenance.exportBackup(
         user.uid,
         profileData.displayName,
         schoolData.schoolName
@@ -562,7 +562,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setIsPreviewLoading(true);
       setErrorMsg(null);
       const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
-      const preview = await app.settings.previewResetSemester(user.uid, {
+      const preview = await app.maintenance.previewResetSemester(user.uid, {
         academicYearId: resetAcademicYearId,
         semester: targetSemester,
         scope: resetScope,
@@ -605,7 +605,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
       setSuccessMsg(null);
 
       const targetSemester: 'ALL' | SemesterType = resetSemester === '1' ? 'GANJIL' : resetSemester === '2' ? 'GENAP' : 'ALL';
-      const summary = await app.settings.resetSemesterData(user.uid, {
+      const summary = await app.maintenance.resetSemesterData(user.uid, {
         academicYearId: resetAcademicYearId,
         semester: targetSemester,
         scope: resetScope,

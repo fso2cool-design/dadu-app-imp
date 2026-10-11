@@ -20,7 +20,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
   onRefreshStats
 }) => {
   const app = useApplication();
-  const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn } = app.settings as any;
+  const { relinkEnrollmentClass, relinkStudentRelationship, findStudentCandidatesByNisn, runIntegrityAudit } = app.diagnostics;
   const [auditResult, setAuditResult] = useState<DiagnosticResult | null>(null);
   const [isAuditing, setIsAuditing] = useState(false);
   const [activeSeverityFilter, setActiveSeverityFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING'>('ALL');
@@ -48,7 +48,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
     try {
       setIsAuditing(true);
       setOperationSuccessMsg(null);
-      const result = await app.settings.runIntegrityAudit(uid);
+      const result = await runIntegrityAudit(uid);
       setAuditResult(result);
     } catch (err: any) {
       console.error('Audit failed:', err);
@@ -83,7 +83,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setRelinkClassIssue(null);
 
       // Re-run audit to update issues list
-      const freshAudit = await app.settings.runIntegrityAudit(uid);
+      const freshAudit = await runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {
@@ -150,7 +150,7 @@ export const RelationshipRecoverySection: React.FC<RelationshipRecoverySectionPr
       setOperationSuccessMsg('Relasi transaksi siswa berhasil ditautkan kembali ke master siswa secara atomik!');
       setRelinkStudentIssue(null);
 
-      const freshAudit = await app.settings.runIntegrityAudit(uid);
+      const freshAudit = await runIntegrityAudit(uid);
       setAuditResult(freshAudit);
       if (onRefreshStats) onRefreshStats();
     } catch (err: any) {
