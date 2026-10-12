@@ -46,4 +46,8 @@ export class LRUCache<K, V> {
     }
     return this;
   }
+
+  clear(): void {
+    this.cache.clear();
+  }
 }

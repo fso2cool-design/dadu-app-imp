@@ -49,6 +49,7 @@ interface SettingsPageProps {
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profile' }) => {
+  const isDev = Boolean(import.meta.env?.DEV);
   const { user, profile, refreshProfile } = useAuth();
   const app = useApplication();
   const { academicYears, activeAcademicYear, reloadWorkspaceData, triggerSyncFeedback, attendanceSettings } = useWorkspace();
@@ -154,8 +155,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   useEffect(() => {
     if (initialTab) {
       const cleanTab = initialTab.replace('settings-', '') as TabType;
-      if (['profile', 'school', 'document', 'preferences', 'backup', 'stats', 'maintenance', 'showcase'].includes(cleanTab)) {
+      const validTabs: TabType[] = [
+        'profile',
+        'school',
+        'document',
+        'preferences',
+        'backup',
+        'stats',
+        'maintenance',
+        ...(isDev ? ['showcase' as const] : []),
+      ];
+      if (validTabs.includes(cleanTab)) {
         setActiveTab(cleanTab);
+      } else if (cleanTab === 'showcase') {
+        setActiveTab('preferences');
       }
     }
   }, [initialTab]);
@@ -634,7 +647,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
     { id: 'stats', label: 'Kesehatan Database', icon: Pulse },
     { id: 'preferences', label: 'Preferensi', icon: Sliders },
     { id: 'maintenance', label: 'Pemeliharaan', icon: Trash },
-    { id: 'showcase', label: 'Design System', icon: Palette, badge: 'Pratinjau' },
+    ...(isDev ? [{ id: 'showcase' as const, label: 'Design System', icon: Palette, badge: 'Pratinjau' }] : []),
   ];
 
   return (
@@ -823,7 +836,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           </Suspense>
         )}
 
-        {activeTab === 'showcase' && (
+        {isDev && activeTab === 'showcase' && (
           <Suspense fallback={<TabLoadingFallback />}>
             <ShowcaseTab />
           </Suspense>

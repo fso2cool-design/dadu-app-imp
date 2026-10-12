@@ -40,9 +40,21 @@ interface MatrixColumn {
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
 import { LRUCache } from '../../utils/lruCache';
+const normalizeMeetingId = (id: string | null | undefined): string | null => {
+  if (!id) return null;
+  const trimmed = id.trim();
+  return trimmed === '' ? null : trimmed;
+};
+
 const subjectMeetingsCache = new LRUCache<string, Meeting[]>(20);
 const classEnrollmentsCache = new LRUCache<string, Enrollment[]>(20);
-const subjectAttendanceCache = new LRUCache<string, { rows: StudentRow[]; linkedMeetingId: string | null }>(50);
+const subjectAttendanceCache = new LRUCache<string, { rows: StudentRow[]; linkedMeetingId: string | null; isNewRecord: boolean }>(50);
+
+export const clearSubjectAttendanceCaches = () => {
+  subjectMeetingsCache.clear();
+  classEnrollmentsCache.clear();
+  subjectAttendanceCache.clear();
+};
 
 
 const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, handleNoteChange }: any) => {
@@ -319,6 +331,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     targetState?: any;
   } | null>(null);
   const isSavingRef = useRef(false);
+  const hasUnsavedChangesRef = useRef(false);
+  const initialIsNewRecordRef = useRef(false);
 
   const handleBlockerBlocked = React.useCallback((b: Blocker) => {
     blockerRef.current = b;
@@ -345,7 +359,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
   useImperativeHandle(ref, () => ({
     requestTabChange: (targetTab: string, state?: any) => {
-      if (isDirtyRef.current) {
+      if (hasUnsavedChangesRef.current) {
         setPendingAction({ type: 'parent-tab', targetValue: targetTab, targetState: state });
         setIsDirtyModalOpen(true);
         return false;
@@ -357,14 +371,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   // Warning when leaving or reloading browser tab with unsaved attendance
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (hasUnsavedChangesRef.current) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+  }, []);
 
   // 1. Initial selection of teaching assignment and navContext validation (D2)
   useEffect(() => {
@@ -461,8 +475,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         initialMeetingIdRef.current = cachedSession.linkedMeetingId;
         initialRowsRef.current = JSON.stringify(cachedSession.rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
         isRowsDirtyRef.current = false;
-        const targetMeetingNorm = selectedMeetingId || cachedSession.linkedMeetingId || null;
-        const isMeetingLinkDirty = targetMeetingNorm !== (cachedSession.linkedMeetingId || null);
+        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || cachedSession.linkedMeetingId);
+        const isMeetingLinkDirty = targetMeetingNorm !== normalizeMeetingId(cachedSession.linkedMeetingId);
+        setIsNewRecord(cachedSession.isNewRecord);
+        initialIsNewRecordRef.current = cachedSession.isNewRecord;
         setIsDirty(isMeetingLinkDirty);
       }
       setLoadingRows(false);
@@ -496,7 +512,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         if (!isMounted) return;
 
         // D1 & B6: Validate mixed relations or split meetings
-        const uniqueMeetings = new Set(existingRecords.map(r => r.meetingId || null));
+        const uniqueMeetings = new Set(existingRecords.map(r => normalizeMeetingId(r.meetingId)));
         if (uniqueMeetings.size > 1) {
           setRosterError('Terdeteksi rekaman presensi dengan relasi pertemuan yang bercampur atau terpecah. Penyimpanan normal diblokir.');
         } else {
@@ -517,14 +533,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setRosterError(`Ditemukan status presensi tidak sah ("${invalidStatusRecord.status}") pada data tersimpan. Penyimpanan diblokir.`);
         }
 
-        setIsNewRecord(existingRecords.length === 0);
+        const isSessionNew = existingRecords.length === 0;
+        setIsNewRecord(isSessionNew);
+        initialIsNewRecordRef.current = isSessionNew;
 
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
         // Sync selectedMeetingId from canonical persistent record if available
-        const currentLinkedMeeting = existingRecords.length > 0 ? (existingRecords[0].meetingId || '') : '';
-        initialMeetingIdRef.current = currentLinkedMeeting || null;
+        const currentLinkedMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
+        initialMeetingIdRef.current = currentLinkedMeeting;
 
         if (!selectedMeetingId && currentLinkedMeeting) {
           setSelectedMeetingId(currentLinkedMeeting);
@@ -548,7 +566,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           });
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
-        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: currentLinkedMeeting || null });
+        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: currentLinkedMeeting || null, isNewRecord: existingRecords.length === 0 });
 
         // Preserve in-flight user edits if user started editing before background fetch completed
         if (!isRowsDirtyRef.current) {
@@ -557,8 +575,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           isRowsDirtyRef.current = false;
         }
 
-        const targetMeetingNorm = selectedMeetingId || currentLinkedMeeting || null;
-        const isMeetingLinkDirty = targetMeetingNorm !== (currentLinkedMeeting || null);
+        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || currentLinkedMeeting);
+        const isMeetingLinkDirty = targetMeetingNorm !== currentLinkedMeeting;
         setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
         setSessionLoaded(true);
       } catch (err) {
@@ -690,13 +708,19 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     return { present, sick, permitted, absent, dispensation, total, percentage };
   }, [studentRows]);
 
+  // Single canonical source of truth for dirty state and unsaved changes
+  const isMeetingLinkDirty = normalizeMeetingId(selectedMeetingId) !== normalizeMeetingId(initialMeetingIdRef.current);
+  const isFormDirty = isDirty || isMeetingLinkDirty;
+  const hasUnsavedChanges = activeTab === 'TAKE' ? (isFormDirty || isNewRecord) : false;
+  hasUnsavedChangesRef.current = hasUnsavedChanges;
+
   // Handle single status change
   const handleStatusChange = (studentId: string, newStatus: AttendanceStatus) => {
     setStudentRows(prev => {
       const updated = prev.map(r => r.studentId === studentId ? { ...r, status: newStatus } : r);
       const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
       isRowsDirtyRef.current = rowsDirty;
-      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      const meetingDirty = normalizeMeetingId(selectedMeetingId) !== normalizeMeetingId(initialMeetingIdRef.current);
       setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
@@ -708,7 +732,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       const updated = prev.map(r => r.studentId === studentId ? { ...r, note: newNote } : r);
       const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
       isRowsDirtyRef.current = rowsDirty;
-      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      const meetingDirty = normalizeMeetingId(selectedMeetingId) !== normalizeMeetingId(initialMeetingIdRef.current);
       setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
@@ -720,7 +744,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       const updated = prev.map(r => ({ ...r, status: 'PRESENT' as const }));
       const rowsDirty = JSON.stringify(updated.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
       isRowsDirtyRef.current = rowsDirty;
-      const meetingDirty = (selectedMeetingId || null) !== (initialMeetingIdRef.current || null);
+      const meetingDirty = normalizeMeetingId(selectedMeetingId) !== normalizeMeetingId(initialMeetingIdRef.current);
       setIsDirty(rowsDirty || meetingDirty);
       return updated;
     });
@@ -747,8 +771,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         note: r.note.trim(),
       }));
 
-      const targetMeetingId = selectedMeetingId ? selectedMeetingId : null;
-      const expectedPrev = initialMeetingIdRef.current || null;
+      const targetMeetingId = normalizeMeetingId(selectedMeetingId);
+      const expectedPrev = normalizeMeetingId(initialMeetingIdRef.current);
 
       const summary = await app.attendance.saveSubjectAttendance(user.uid, {
         academicYearId: activeAcademicYear.id,
@@ -765,7 +789,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
       // Update local attendance cache
       const sessionCacheKey = `${user.uid}_${currentAssignment.id}_${selectedDate}`;
-      subjectAttendanceCache.set(sessionCacheKey, { rows: studentRows, linkedMeetingId: targetMeetingId });
+      subjectAttendanceCache.set(sessionCacheKey, { rows: studentRows, linkedMeetingId: targetMeetingId, isNewRecord: false });
 
       // Update meetings list locally: target meeting gets summary, old unlinked meeting gets null summary
       setMeetings(prev => {
@@ -794,9 +818,11 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
       initialRowsRef.current = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
       initialMeetingIdRef.current = targetMeetingId;
+      setSelectedMeetingId(targetMeetingId || '');
       isRowsDirtyRef.current = false;
       setIsDirty(false);
       setIsNewRecord(false);
+      initialIsNewRecordRef.current = false;
 
       triggerSyncFeedback('saved', 'Presensi siswa berhasil disimpan!');
       setFeedbackMsg({ type: 'success', text: 'Presensi siswa berhasil disimpan ke database!' });
@@ -815,7 +841,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
   const handleAssignmentChange = (targetAssignmentId: string) => {
     if (targetAssignmentId === selectedAssignmentId) return;
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       setPendingAction({ type: 'assignment', targetValue: targetAssignmentId });
       setIsDirtyModalOpen(true);
     } else {
@@ -825,7 +851,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
   const handleDateChange = (targetDate: string) => {
     if (targetDate === selectedDate) return;
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       setPendingAction({ type: 'date', targetValue: targetDate });
       setIsDirtyModalOpen(true);
     } else {
@@ -837,16 +863,19 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   };
 
   const handleMeetingChange = (targetMeetingId: string) => {
-    if (targetMeetingId === selectedMeetingId) return;
-    setSelectedMeetingId(targetMeetingId);
-    if (targetMeetingId) {
-      const m = meetings.find(item => item.id === targetMeetingId);
-      if (m?.date) {
-        setSelectedDate(m.date);
-      }
+    if (normalizeMeetingId(targetMeetingId) === normalizeMeetingId(selectedMeetingId)) return;
+    if (hasUnsavedChanges) {
+      setPendingAction({ type: 'meeting', targetValue: targetMeetingId });
+      setIsDirtyModalOpen(true);
+      return;
     }
-    const targetNorm = targetMeetingId || null;
-    const initialNorm = initialMeetingIdRef.current || null;
+    setSelectedMeetingId(targetMeetingId);
+    const targetMeeting = meetings.find(item => item.id === targetMeetingId);
+    if (targetMeeting?.date) {
+      setSelectedDate(targetMeeting.date);
+    }
+    const targetNorm = normalizeMeetingId(targetMeetingId);
+    const initialNorm = normalizeMeetingId(initialMeetingIdRef.current);
     const isMeetingLinkDirty = targetNorm !== initialNorm;
     const isRowsDirty = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
     isRowsDirtyRef.current = isRowsDirty;
@@ -854,7 +883,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   };
 
   const handleBackToJournal = () => {
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       setPendingAction({ type: 'back' });
       setIsDirtyModalOpen(true);
     } else {
@@ -864,7 +893,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
   const handleTabChange = (targetTab: 'TAKE' | 'MATRIX') => {
     if (targetTab === activeTab) return;
-    if (isDirty) {
+    if (hasUnsavedChanges) {
       setPendingAction({ type: 'tab', targetValue: targetTab });
       setIsDirtyModalOpen(true);
     } else {
@@ -891,7 +920,11 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       if (pendingAction && pendingAction.type !== 'browser-navigation') {
         if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
-        else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
+        else if (pendingAction.type === 'meeting') {
+          setSelectedMeetingId(pendingAction.targetValue || '');
+          const m = meetings.find(item => item.id === pendingAction.targetValue);
+          if (m?.date) setSelectedDate(m.date);
+        }
         else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
         else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
         else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
@@ -906,6 +939,24 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const handleDiscardAndProceed = () => {
     isRowsDirtyRef.current = false;
     setIsDirty(false);
+    setIsNewRecord(initialIsNewRecordRef.current);
+    hasUnsavedChangesRef.current = false;
+    setSelectedMeetingId(initialMeetingIdRef.current || '');
+
+    if (initialRowsRef.current) {
+      try {
+        const initial = JSON.parse(initialRowsRef.current);
+        const initMap = new Map<string, { s: AttendanceStatus; n: string }>(
+          initial.map((x: any) => [x.id, { s: x.s, n: x.n }])
+        );
+        setStudentRows(prev => prev.map(r => {
+          const match = initMap.get(r.studentId);
+          return match ? { ...r, status: match.s, note: match.n } : r;
+        }));
+      } catch (err) {
+        console.warn('Failed to restore initial rows on discard:', err);
+      }
+    }
 
     const b = blockerRef.current;
     blockerRef.current = null;
@@ -920,7 +971,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     if (pendingAction && pendingAction.type !== 'browser-navigation') {
       if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
       else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
-      else if (pendingAction.type === 'meeting') setSelectedMeetingId(pendingAction.targetValue || '');
+      else if (pendingAction.type === 'meeting') {
+        const targetMeetingId = pendingAction.targetValue || '';
+        setSelectedMeetingId(targetMeetingId);
+        const m = meetings.find(item => item.id === targetMeetingId);
+        if (m?.date) setSelectedDate(m.date);
+      }
       else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
       else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
       else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
@@ -1106,7 +1162,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                 <input
                   type="date"
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
+                  onChange={(e) => handleDateChange(e.target.value)}
                   className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
                 />
               </div>
@@ -1155,7 +1211,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                     className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px]"
                   >
                     <option value="">-- Tidak ditautkan --</option>
-                    {todayMeetings.map(m => (
+                    {meetingOptions.map(m => (
                       <option key={m.id} value={m.id}>
                         Jurnal Ke-{m.meetingNumber}
                       </option>
@@ -1184,10 +1240,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || (!isDirty && !isNewRecord && selectedMeetingId === initialMeetingIdRef.current) || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || !hasUnsavedChanges || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  isDirty || isNewRecord || selectedMeetingId !== initialMeetingIdRef.current
+                  hasUnsavedChanges
                     ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md'
                     : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
@@ -1284,9 +1340,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
               <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-slate-400">
                   <span className="font-bold uppercase tracking-wider text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isNewRecord || isDirty ? 'bg-[var(--ds-warning-fg)] motion-safe:animate-pulse' : 'bg-emerald-500'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasUnsavedChanges ? 'bg-[var(--ds-warning-fg)] motion-safe:animate-pulse' : 'bg-emerald-500'}`} />
                     Spektrum Kehadiran Kelas
-                    {(isNewRecord || isDirty || selectedMeetingId !== initialMeetingIdRef.current) && (
+                    {hasUnsavedChanges && (
                       <span className="ml-1 px-1.5 py-0.5 rounded-md normal-case tracking-normal text-[10px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)]">
                         {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
                       </span>
@@ -1618,6 +1674,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           if (saved.date) {
             setSelectedDate(saved.date);
           }
+          const meetingDirty = normalizeMeetingId(saved.id) !== normalizeMeetingId(initialMeetingIdRef.current);
+          const rowsDirty = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note }))) !== initialRowsRef.current;
+          isRowsDirtyRef.current = rowsDirty;
+          setIsDirty(meetingDirty || rowsDirty);
         }}
       />
 
@@ -1626,14 +1686,6 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         isOpen={isHolidayModalOpen}
         onClose={() => setIsHolidayModalOpen(false)}
       />
-
-      {isDataRouter && (
-        <DataRouterBlocker
-          isDirty={isDirty}
-          onBlocked={handleBlockerBlocked}
-          onUnblocked={handleBlockerUnblocked}
-        />
-      )}
 
       {/* Unsaved Changes Warning Modal */}
       <UnsavedChangesModal
@@ -1647,6 +1699,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         discardButtonText="Buang Perubahan"
       />
     </React.Suspense>
+      {isDataRouter && (
+        <DataRouterBlocker
+          isDirty={hasUnsavedChanges}
+          onBlocked={handleBlockerBlocked}
+          onUnblocked={handleBlockerUnblocked}
+        />
+      )}
     </div>
   );
 });
