@@ -117,7 +117,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   // Preferences Form
   const [preferencesData, setPreferencesData] = useState<UserPreferences>({
     defaultSemester: 'GANJIL',
-    theme: 'light',
   });
 
   // Signature Pad Modals

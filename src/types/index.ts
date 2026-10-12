@@ -790,7 +790,6 @@ export interface UserPreferences {
   defaultAcademicYearId?: string;
   defaultSemester?: SemesterType;
   defaultClassId?: string;
-  theme?: 'light' | 'dark';
 }
 
 export type SchoolDaysOption = 5 | 6; // 5: Senin - Jumat, 6: Senin - Sabtu (Madrasah / 6 Hari)

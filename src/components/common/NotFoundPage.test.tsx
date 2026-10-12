@@ -1,7 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
+import { renderWithProviders, screen, fireEvent } from '../../test/test-utils';
 import { NotFoundPage } from './NotFoundPage';
 
 const mockNavigate = vi.fn();
@@ -15,11 +14,7 @@ vi.mock('react-router-dom', async () => {
 
 describe('NotFoundPage Component', () => {
   it('renders 404 indicator and not-found message', () => {
-    render(
-      <MemoryRouter>
-        <NotFoundPage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<NotFoundPage />, { withRouter: true });
 
     expect(screen.getByText('404')).toBeInTheDocument();
     expect(screen.getByText('Halaman Tidak Ditemukan')).toBeInTheDocument();
@@ -28,11 +23,7 @@ describe('NotFoundPage Component', () => {
   });
 
   it('navigates back when clicking "Kembali"', () => {
-    render(
-      <MemoryRouter>
-        <NotFoundPage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<NotFoundPage />, { withRouter: true });
 
     const backButton = screen.getByText('Kembali');
     fireEvent.click(backButton);
@@ -42,11 +33,7 @@ describe('NotFoundPage Component', () => {
 
   it('calls onNavigate callback when provided upon clicking "Dashboard"', () => {
     const handleNavigate = vi.fn();
-    render(
-      <MemoryRouter>
-        <NotFoundPage onNavigate={handleNavigate} />
-      </MemoryRouter>
-    );
+    renderWithProviders(<NotFoundPage onNavigate={handleNavigate} />, { withRouter: true });
 
     const homeButton = screen.getByText('Dashboard');
     fireEvent.click(homeButton);
@@ -55,11 +42,7 @@ describe('NotFoundPage Component', () => {
   });
 
   it('navigates to /dashboard directly if onNavigate is not provided', () => {
-    render(
-      <MemoryRouter>
-        <NotFoundPage />
-      </MemoryRouter>
-    );
+    renderWithProviders(<NotFoundPage />, { withRouter: true });
 
     const homeButton = screen.getByText('Dashboard');
     fireEvent.click(homeButton);

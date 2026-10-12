@@ -1,14 +1,11 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { screen, fireEvent, waitFor, renderWithProviders, createMockApplicationOperations } from '../test/test-utils';
+import { Routes, Route } from 'react-router-dom';
 import { AuthenticatedApp } from '../App';
 import * as authModule from '../features/auth/AuthContext';
 import * as workspaceModule from '../context/WorkspaceContext';
 import * as dsModule from '../context/DesignSystemContext';
-import { ApplicationProvider } from '../application/ApplicationContext';
-import { ToastProvider } from '../context/ToastContext';
-import type { ApplicationOperations } from '../application/types';
 
 vi.mock('../utils/date', () => ({
   INDONESIAN_DAYS: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
@@ -33,15 +30,7 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
   const mockRefreshAdminClaim = vi.fn();
   const mockLogout = vi.fn();
 
-  const mockApp: ApplicationOperations = {
-    auth: {
-      getAdminClaimStatus: vi.fn(),
-      getProfile: vi.fn(),
-    },
-    feedback: {
-      getUnreadCount: vi.fn().mockResolvedValue(0),
-    },
-  } as any;
+  const mockApp = createMockApplicationOperations();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -94,16 +83,16 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       logout: mockLogout,
     } as any);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/admin']}>
-            <Routes>
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+    renderWithProviders(
+      <Routes>
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>,
+      {
+        app: mockApp,
+        withToast: true,
+        withRouter: true,
+        routerInitialEntries: ['/admin'],
+      }
     );
 
     // Expect the admin management page to be rendered
@@ -124,17 +113,17 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       logout: mockLogout,
     } as any);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/admin']}>
-            <Routes>
-              <Route path="/dashboard" element={<div data-testid="redirected-dashboard">Redirect Berhasil</div>} />
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+    renderWithProviders(
+      <Routes>
+        <Route path="/dashboard" element={<div data-testid="redirected-dashboard">Redirect Berhasil</div>} />
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>,
+      {
+        app: mockApp,
+        withToast: true,
+        withRouter: true,
+        routerInitialEntries: ['/admin'],
+      }
     );
 
     // Should redirect cleanly to /dashboard via <Navigate to="/dashboard" replace />
@@ -155,16 +144,16 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       logout: mockLogout,
     } as any);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/admin']}>
-            <Routes>
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+    renderWithProviders(
+      <Routes>
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>,
+      {
+        app: mockApp,
+        withToast: true,
+        withRouter: true,
+        routerInitialEntries: ['/admin'],
+      }
     );
 
     // Error recovery screen must appear
@@ -195,16 +184,16 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       logout: mockLogout,
     } as any);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/dashboard']}>
-            <Routes>
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+    renderWithProviders(
+      <Routes>
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>,
+      {
+        app: mockApp,
+        withToast: true,
+        withRouter: true,
+        routerInitialEntries: ['/dashboard'],
+      }
     );
 
     // Non-admin route is completely unobstructed by admin verification failure
@@ -230,16 +219,16 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
 
     const authSpy = vi.spyOn(authModule, 'useAuth').mockReturnValue(authState as any);
 
-    const { rerender } = render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/dashboard']}>
-            <Routes>
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+    const { rerender } = renderWithProviders(
+      <Routes>
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>,
+      {
+        app: mockApp,
+        withToast: true,
+        withRouter: true,
+        routerInitialEntries: ['/dashboard'],
+      }
     );
 
     // Ensure dashboard loads
@@ -271,15 +260,9 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
 
     // Re-render simulates the AuthContext state change triggered by refreshAdminClaim
     rerender(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <MemoryRouter initialEntries={['/dashboard']}>
-            <Routes>
-              <Route path="*" element={<AuthenticatedApp />} />
-            </Routes>
-          </MemoryRouter>
-        </ToastProvider>
-      </ApplicationProvider>
+      <Routes>
+        <Route path="*" element={<AuthenticatedApp />} />
+      </Routes>
     );
 
     // "Panel Administrator" affordance is now visible!

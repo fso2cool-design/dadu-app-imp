@@ -426,7 +426,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 text-xs">
                 <WarningCircle className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div>
-                  <p className="font-bold">Penempatan Rombel Terkunci</p>
+                  <p className="font-bold">Penempatan Kelas Terkunci</p>
                   <p className="text-[11px] text-blue-800 dark:text-blue-300 mt-0.5">
                     Siswa sudah ditempatkan di rombel ini. Untuk memindahkan siswa ke rombel lain, gunakan menu <strong>"Mutasi / Pindah Kelas"</strong> pada halaman siswa agar riwayat kelas sebelumnya tetap tersimpan secara historis.
                   </p>
@@ -436,7 +436,7 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kelas Rombel</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Pilih Kelas</label>
                 <select
                   disabled={Boolean(existingEnrollment)}
                   value={enrollClassId}

@@ -42,8 +42,8 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
   return (
     <div className="space-y-8">
       <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Preferensi Workspace & Personalisasi Tema</h3>
-        <p className="text-[11px] text-slate-400">Sesuaikan semester default dan pilih tema visual workspace Anda.</p>
+        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Preferensi Workspace & Tampilan</h3>
+        <p className="text-[11px] text-slate-400">Sesuaikan semester default dan pilih gaya visual serta mode warna workspace Anda.</p>
       </div>
 
       {/* Semester Bawaan Form */}
@@ -120,7 +120,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
           <div className="flex items-center gap-2">
             <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-              Pilihan Tema & Mode Tampilan
+              Preset Tampilan & Mode Warna
             </h4>
           </div>
 
@@ -130,7 +130,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               onClick={() => {
                 applyAndSavePreset(selectedPreset);
                 applyAndSaveMode(previewMode);
-                onSuccess('Preset visual dan mode tampilan berhasil diterapkan dan disimpan!');
+                onSuccess('Preset gaya visual dan mode warna berhasil diterapkan dan disimpan!');
               }}
               disabled={selectedPreset === activePreset && previewMode === mode}
               style={selectedPreset !== activePreset ? {
@@ -156,7 +156,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Pilih Desain Tema
+                  Preset Gaya Visual
                 </label>
                 <div className="relative">
                   <select
@@ -179,7 +179,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               {/* Mode Terang / Gelap Switcher */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Mode Tampilan
+                  Mode Warna
                 </label>
                 <div className="grid grid-cols-2 gap-2 p-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-2xs">
                   <button
@@ -192,7 +192,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                     }`}
                   >
                     <Sun className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>Mode Terang</span>
+                    <span>Terang</span>
                   </button>
                   <button
                     type="button"
@@ -204,7 +204,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                     }`}
                   >
                     <Moon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    <span>Mode Gelap</span>
+                    <span>Gelap</span>
                   </button>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
               <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
-                    {isSelectedDark ? '🌙 Mode Gelap' : '☀️ Mode Terang'}
+                    {isSelectedDark ? '🌙 Gelap' : '☀️ Terang'}
                   </span>
                   {selectedPreset === activePreset && previewMode === mode && (
                     <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -354,7 +354,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   Ergonomi Kontras: <strong style={{ color: previewColors.accent }}>WCAG {isSelectedDark ? 'AAA' : 'AA'}</strong>
                 </span>
                 <span style={{ color: previewColors.textMuted }}>
-                  {activeDS.name} ({isSelectedDark ? 'Mode Gelap' : 'Mode Terang'})
+                  {activeDS.name} ({isSelectedDark ? 'Gelap' : 'Terang'})
                 </span>
               </div>
             </div>
@@ -365,7 +365,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
         <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-slate-900 border border-emerald-100 dark:border-slate-800 flex items-start gap-3 text-xs text-slate-600 dark:text-slate-400">
           <Info className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <p>
-            Seluruh skema tema dirancang khusus dengan standar <strong>Anti-AI Slop</strong> dan rasio kontras tinggi, memastikan tampilan nyaman untuk mata guru saat bekerja di siang hari maupun lembur malam. Preferensi tersinkronisasi otomatis ke akun Firestore Anda.
+            Seluruh skema preset dirancang khusus dengan standar <strong>Anti-AI Slop</strong> dan rasio kontras tinggi, memastikan tampilan nyaman untuk mata guru saat bekerja di siang hari maupun lembur malam. Preferensi tersinkronisasi otomatis ke akun Firestore Anda.
           </p>
         </div>
 

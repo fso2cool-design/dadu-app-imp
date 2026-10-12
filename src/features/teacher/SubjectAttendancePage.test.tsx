@@ -12,6 +12,7 @@ import { ApplicationProvider } from '../../application/ApplicationContext';
 import { ToastProvider } from '../../context/ToastContext';
 import * as authModule from '../auth/AuthContext';
 import * as workspaceModule from '../../context/WorkspaceContext';
+import { renderWithProviders } from '../../test/test-utils';
 
 vi.mock('./MeetingsJournalPage', () => ({
   invalidateMeetingsJournalCache: vi.fn(),
@@ -411,7 +412,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const sickButtons = screen.getAllByTitle('Sakit (S)');
     fireEvent.click(sickButtons[0]);
 
-    handleRef.current?.requestTabChange('journal');
+    act(() => { handleRef.current?.requestTabChange('journal'); });
 
     await screen.findByRole('dialog');
     const dialogs = screen.getAllByRole('dialog');
@@ -760,7 +761,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(saveButton).not.toBeDisabled();
 
     // Navigasi berbahaya tetap dicegah
-    expect(handleRef.current?.requestTabChange('journal')).toBe(false);
+    let allowedC: boolean | undefined;
+    act(() => { allowedC = handleRef.current?.requestTabChange('journal'); });
+    expect(allowedC).toBe(false);
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
     // Tutup modal agar bisa mencoba simpan lagi dari toolbar
@@ -859,7 +862,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(saveButton.className).toContain('ring-2');
 
     // 2. Mencoba navigasi tanpa mengubah baris apapun: navigasi dicegah dan dialog muncul
-    const allowed = handleRef.current?.requestTabChange('journal');
+    let allowed: boolean | undefined;
+    act(() => { allowed = handleRef.current?.requestTabChange('journal'); });
     expect(allowed).toBe(false);
 
     const dialog = await screen.findByRole('dialog');
@@ -877,7 +881,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
 
     // 4. Coba simpan dari dialog: setelah simpan sukses, navigasi dilanjutkan
-    handleRef.current?.requestTabChange('journal');
+    act(() => { handleRef.current?.requestTabChange('journal'); });
     const dialogAgain = await screen.findByRole('dialog');
     const dialogSaveButton = within(dialogAgain).getByRole('button', { name: /Simpan Presensi/i });
     fireEvent.click(dialogSaveButton);
@@ -1043,6 +1047,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     await waitFor(() => {
       expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
     });
+    expect(await screen.findByText(/Koneksi database terputus/i)).toBeInTheDocument();
 
     // Navigasi tetap tertahan: dialog tetap terbuka atau feedback error muncul, meeting tidak berganti ke meet-2
     expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();

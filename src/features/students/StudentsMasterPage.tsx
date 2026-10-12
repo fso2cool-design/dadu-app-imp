@@ -686,7 +686,7 @@ export const StudentsMasterPage: React.FC<StudentsMasterPageProps> = ({ isHomero
                   : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              Per Rombel / Kelas ({enrollments.length})
+              Anggota Kelas ({enrollments.length})
             </button>
             <button
               type="button"

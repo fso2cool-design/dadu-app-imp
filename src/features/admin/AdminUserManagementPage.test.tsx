@@ -1,9 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent, renderWithProviders, createMockApplicationOperations } from '../../test/test-utils';
 import { AdminUserManagementPage } from './AdminUserManagementPage';
-import { ApplicationProvider } from '../../application/ApplicationContext';
-import { ToastProvider } from '../../context/ToastContext';
 import * as authModule from '../auth/AuthContext';
 
 vi.mock('../../utils/date', () => ({
@@ -17,20 +15,14 @@ describe('AdminUserManagementPage UX & Error Handling', () => {
   const mockGetUnreadCount = vi.fn().mockResolvedValue(0);
   const mockRefreshAdminClaim = vi.fn();
 
-  const mockApp = {
+  const mockApp = createMockApplicationOperations({
     admin: {
       getAllUsers: mockGetAllUsers,
-      setAccountStatus: vi.fn(),
-      adminUpdateProfile: vi.fn(),
-      purgeWorkspace: vi.fn(),
-      purgeOrphans: vi.fn(),
-      scanOrphans: vi.fn(),
-      getStorageStats: vi.fn(),
     },
     feedback: {
       getUnreadCount: mockGetUnreadCount,
     },
-  } as any;
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,13 +38,10 @@ describe('AdminUserManagementPage UX & Error Handling', () => {
     (permError as any).code = 'permission-denied';
     mockGetAllUsers.mockRejectedValueOnce(permError);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <AdminUserManagementPage />
-        </ToastProvider>
-      </ApplicationProvider>
-    );
+    renderWithProviders(<AdminUserManagementPage />, {
+      app: mockApp,
+      withToast: true,
+    });
 
     // Initial loading indicator
     expect(screen.getByText(/Memuat data pengguna dari Firestore/i)).toBeInTheDocument();
@@ -88,13 +77,10 @@ describe('AdminUserManagementPage UX & Error Handling', () => {
     mockGetAllUsers.mockRejectedValueOnce(permError);
     mockRefreshAdminClaim.mockResolvedValueOnce('verified-admin');
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <AdminUserManagementPage />
-        </ToastProvider>
-      </ApplicationProvider>
-    );
+    renderWithProviders(<AdminUserManagementPage />, {
+      app: mockApp,
+      withToast: true,
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Izin Akses Administratif Ditolak')).toBeInTheDocument();
@@ -124,13 +110,10 @@ describe('AdminUserManagementPage UX & Error Handling', () => {
 
     mockGetAllUsers.mockResolvedValueOnce([]);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <AdminUserManagementPage />
-        </ToastProvider>
-      </ApplicationProvider>
-    );
+    renderWithProviders(<AdminUserManagementPage />, {
+      app: mockApp,
+      withToast: true,
+    });
 
     await waitFor(() => {
       expect(
@@ -142,13 +125,10 @@ describe('AdminUserManagementPage UX & Error Handling', () => {
   it('differentiates empty search/filter state from error state', async () => {
     mockGetAllUsers.mockResolvedValueOnce([]);
 
-    render(
-      <ApplicationProvider app={mockApp}>
-        <ToastProvider>
-          <AdminUserManagementPage />
-        </ToastProvider>
-      </ApplicationProvider>
-    );
+    renderWithProviders(<AdminUserManagementPage />, {
+      app: mockApp,
+      withToast: true,
+    });
 
     await waitFor(() => {
       expect(

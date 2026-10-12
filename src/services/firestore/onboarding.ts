@@ -135,7 +135,6 @@ export async function submitOnboarding(uid: string, email: string, data: Onboard
     defaultAcademicYearId: yearId,
     defaultSemester: data.academicYear.currentSemester,
     defaultClassId: createdClassRefs[0]?.id || '',
-    theme: 'light',
   };
   batch.set(prefDocRef, prefData);
 

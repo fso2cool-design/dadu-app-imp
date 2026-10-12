@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { ApplicationProvider } from '../../application/ApplicationContext';
 import { AuthProvider } from '../auth/AuthContext';
-import type { ApplicationOperations } from '../../application/types';
+import { createMockApplicationOperations } from '../../test/mocks/mockApplication';
 
 let authStateCallback: ((user: any) => void) | null = null;
 const mockUnsubscribe = vi.fn();
@@ -26,20 +26,13 @@ vi.mock('../../services/firebase/config', () => ({
   db: {},
 }));
 
-const mockApp: ApplicationOperations = {
+const mockApp = createMockApplicationOperations({
   auth: {
     getProfile: vi.fn().mockResolvedValue({
       uid: 'user-print-1',
       displayName: 'Guru Cetak',
       role: 'TEACHER',
     }),
-    createProfile: vi.fn(),
-    recordLastLogin: vi.fn(),
-    updateProfile: vi.fn(),
-    login: vi.fn(),
-    signup: vi.fn(),
-    logout: vi.fn(),
-    resetPassword: vi.fn(),
     onAuthStateChanged: vi.fn((cb) => { 
       if (typeof authStateCallback !== 'undefined' && authStateCallback) { 
         // will be triggered in test
@@ -58,10 +51,11 @@ const mockApp: ApplicationOperations = {
     getDocumentSettings: vi.fn().mockResolvedValue({
       showLetterhead: true,
       showSignatures: true,
-      city: 'Jakarta',
+      paperSize: 'A4',
+      orientation: 'PORTRAIT',
     }),
   },
-} as any;
+});
 
 describe('Print Isolation & Screen Rendering', () => {
   beforeEach(() => {
