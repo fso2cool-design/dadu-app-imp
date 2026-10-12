@@ -17,6 +17,11 @@ import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolid
 const dailyEnrollmentsCache = new Map();
 const dailyAttendanceCache = new Map();
 
+export const clearDailyAttendanceCaches = () => {
+  dailyEnrollmentsCache.clear();
+  dailyAttendanceCache.clear();
+};
+
 interface HomeroomDailyAttendancePageProps {
   initialClassId?: string;
   initialDate?: string;
@@ -49,7 +54,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   const holidayInfo = useMemo(() => checkIsHoliday(date), [checkIsHoliday, date]);
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [attendanceState, setAttendanceState] = useState<Record<string, { status: AttendanceStatus; note: string }>>({});
+  const [attendanceState, setAttendanceState] = useState<Record<string, { status: AttendanceStatus | null; note: string }>>({});
   const [sessionNotes, setSessionNotes] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -146,25 +151,24 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           setEnrollments(activeEnrs);
           setSessionNotes(session?.notes || '');
 
-          const stateMap: Record<string, { status: AttendanceStatus; note: string }> = {};
+          const stateMap: Record<string, { status: AttendanceStatus | null; note: string }> = {};
+          const recordMap = new Map<string, DailyAttendanceRecord>(records.map(r => [r.studentId, r]));
           
           setIsNewRecord(records.length === 0);
-          if (records.length > 0) {
-            records.forEach(r => {
-              stateMap[r.studentId] = {
-                status: r.status,
-                note: r.note || '',
-              };
-            });
-          } else {
-            // Default: initialize all active students with 'PRESENT'
-            activeEnrs.forEach(e => {
+          activeEnrs.forEach(e => {
+            const existing = recordMap.get(e.studentId);
+            if (existing) {
               stateMap[e.studentId] = {
-                status: 'PRESENT',
+                status: existing.status,
+                note: existing.note || '',
+              };
+            } else {
+              stateMap[e.studentId] = {
+                status: null,
                 note: '',
               };
-            });
-          }
+            }
+          });
 
           dailyAttendanceCache.set(attendanceCacheKey, { stateMap, sessionNotes: session?.notes || '' });
           setAttendanceState(stateMap);
@@ -184,7 +188,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
   // Set all students to a specific status
   const handleSetAllStatus = (status: AttendanceStatus) => {
-    const updated: Record<string, { status: AttendanceStatus; note: string }> = {};
+    const updated: Record<string, { status: AttendanceStatus | null; note: string }> = {};
     enrollments.forEach(e => {
       updated[e.studentId] = {
         status,
@@ -213,10 +217,11 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   // Update single student note
   const handleNoteChange = (studentId: string, note: string) => {
     setAttendanceState(prev => {
+      const current = prev[studentId];
       const updated = {
         ...prev,
         [studentId]: {
-          status: prev[studentId]?.status || 'PRESENT',
+          status: current ? current.status : null,
           note,
         },
       };
@@ -228,10 +233,11 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   // Preset note clicked
   const handlePresetNote = (studentId: string, preset: string) => {
     setAttendanceState(prev => {
+      const current = prev[studentId];
       const updated = {
         ...prev,
         [studentId]: {
-          status: prev[studentId]?.status || 'PRESENT',
+          status: current ? current.status : null,
           note: preset,
         },
       };
@@ -276,7 +282,8 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
   const handleSaveAndProceed = async () => {
     try {
-      await handleSave();
+      const success = await handleSave();
+      if (!success) return;
       if (pendingAction) {
         if (pendingAction.type === 'class') setSelectedClassId(pendingAction.targetValue);
         else if (pendingAction.type === 'date') setDate(pendingAction.targetValue);
@@ -289,6 +296,15 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   };
 
   const handleDiscardAndProceed = () => {
+    if (initialSnapshotRef.current) {
+      try {
+        const parsed = JSON.parse(initialSnapshotRef.current);
+        if (parsed.stateMap) setAttendanceState(parsed.stateMap);
+        if (parsed.sessionNotes !== undefined) setSessionNotes(parsed.sessionNotes);
+      } catch (e) {
+        console.error('Error restoring snapshot on discard:', e);
+      }
+    }
     setIsDirty(false);
     if (pendingAction) {
       if (pendingAction.type === 'class') setSelectedClassId(pendingAction.targetValue);
@@ -305,37 +321,62 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
     let permitted = 0;
     let absent = 0;
     let dispensation = 0;
+    let unrecorded = 0;
 
     enrollments.forEach(e => {
-      const s = attendanceState[e.studentId]?.status || 'PRESENT';
+      const s = attendanceState[e.studentId]?.status;
       if (s === 'PRESENT') present++;
       else if (s === 'SICK') sick++;
       else if (s === 'PERMITTED') permitted++;
       else if (s === 'ABSENT') absent++;
       else if (s === 'DISPENSATION') dispensation++;
+      else unrecorded++;
     });
 
     const total = enrollments.length;
-    const rate = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
+    const isComplete = total > 0 && unrecorded === 0;
+    const rate = isComplete
+      ? `${Math.round(((present + dispensation) / total) * 100)}%`
+      : '—';
 
-    return { present, sick, permitted, absent, dispensation, total, rate };
+    return { present, sick, permitted, absent, dispensation, unrecorded, total, rate, isComplete };
   }, [enrollments, attendanceState]);
 
   // FloppyDisk handler
-  const handleSave = async () => {
-    if (!user || !activeAcademicYear || !currentClass) return;
+  const handleSave = async (): Promise<boolean> => {
+    if (!user || !activeAcademicYear || !currentClass) return false;
+
+    // Runtime guard: all active students must have an explicit non-null status
+    const unrecordedCount = enrollments.filter(e => {
+      const s = attendanceState[e.studentId]?.status;
+      return s === null || s === undefined;
+    }).length;
+
+    if (unrecordedCount > 0) {
+      toastError(`Gagal menyimpan: Masih ada ${unrecordedCount} siswa yang belum ditentukan status kehadirannya.`);
+      return false;
+    }
 
     setSaving(true);
     try {
       triggerSyncFeedback('syncing', `Menyimpan presensi harian Kelas ${currentClass.name}...`);
-      const itemsToSave: SaveDailyAttendanceItem[] = enrollments.map(e => ({
-        studentId: e.studentId,
-        rollNumber: e.rollNumber,
-        studentName: e.student?.fullName || '',
-        gender: e.student?.gender || 'L',
-        status: attendanceState[e.studentId]?.status || 'PRESENT',
-        note: attendanceState[e.studentId]?.note || '',
-      }));
+
+      const itemsToSave: SaveDailyAttendanceItem[] = [];
+      for (const e of enrollments) {
+        const itemState = attendanceState[e.studentId];
+        const status = itemState?.status;
+        if (!status) {
+          throw new Error(`Status kehadiran tidak valid/kosong untuk siswa ${e.studentId}`);
+        }
+        itemsToSave.push({
+          studentId: e.studentId,
+          rollNumber: e.rollNumber,
+          studentName: e.student?.fullName || '',
+          gender: e.student?.gender || 'L',
+          status: status,
+          note: itemState.note || '',
+        });
+      }
 
       await app.attendance.saveDailyAttendance(
         user.uid,
@@ -356,10 +397,12 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
       triggerSyncFeedback('saved', 'Presensi harian berhasil disimpan!');
       toastSuccess('Presensi harian berhasil disimpan ke cloud database!');
+      return true;
     } catch (err: any) {
       console.error('Error saving daily attendance:', err);
       triggerSyncFeedback('synced');
       toastError('Gagal menyimpan presensi harian. Periksa koneksi Anda.');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -375,9 +418,10 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
       if (!nameMatch) return false;
 
-      const st = attendanceState[e.studentId]?.status || 'PRESENT';
+      const st = attendanceState[e.studentId]?.status;
       if (filterStatus === 'ALL') return true;
-      if (filterStatus === 'NOT_PRESENT') return st !== 'PRESENT';
+      if (filterStatus === 'UNSET') return st === null || st === undefined;
+      if (filterStatus === 'NOT_PRESENT') return Boolean(st && st !== 'PRESENT');
       return st === filterStatus;
     });
   }, [enrollments, searchQuery, filterStatus, attendanceState]);
@@ -388,12 +432,23 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
     if (enrollments.length === 0) return;
 
     const dataRows = enrollments.map((enr, idx) => {
-      const record = attendanceState[enr.studentId] || { status: 'PRESENT', note: '' };
+      const record = attendanceState[enr.studentId];
+      const status = record?.status;
       const statusIndo = 
-        record.status === 'PRESENT' ? 'Hadir (H)' :
-        record.status === 'SICK' ? 'Sakit (S)' :
-        record.status === 'PERMITTED' ? 'Izin (I)' :
-        record.status === 'ABSENT' ? 'Alpa (A)' : 'Dispensasi (D)';
+        status === 'PRESENT' ? 'Hadir (H)' :
+        status === 'SICK' ? 'Sakit (S)' :
+        status === 'PERMITTED' ? 'Izin (I)' :
+        status === 'ABSENT' ? 'Alpa (A)' :
+        status === 'DISPENSATION' ? 'Dispensasi (D)' :
+        'Belum Ditentukan (-)';
+
+      const kode =
+        status === 'PRESENT' ? 'H' :
+        status === 'SICK' ? 'S' :
+        status === 'PERMITTED' ? 'I' :
+        status === 'ABSENT' ? 'A' :
+        status === 'DISPENSATION' ? 'D' :
+        '-';
 
       return {
         'No': enr.rollNumber || idx + 1,
@@ -403,8 +458,8 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         'L/P': enr.student?.gender || 'L',
         'Tanggal': date,
         'Status Presensi': statusIndo,
-        'Kode': record.status === 'PRESENT' ? 'H' : record.status === 'SICK' ? 'S' : record.status === 'PERMITTED' ? 'I' : record.status === 'ABSENT' ? 'A' : 'D',
-        'Keterangan / Alasan': record.note || '',
+        'Kode': kode,
+        'Keterangan / Alasan': record?.note || '',
       };
     });
 
@@ -464,22 +519,30 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
               <FileCsv className="w-4 h-4 text-emerald-600" />
               Export Excel
             </button>
-            {(isNewRecord || isDirty) && !loading && (
+            {isDirty && !loading && (
               <span
                 role="status"
                 className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)] flex items-center gap-1.5"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--ds-warning-fg)] motion-safe:animate-pulse" />
-                {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
+                Perubahan belum disimpan
               </span>
             )}
             <button
                 type="button"
                 onClick={handleSave}
-                disabled={(!isDirty && !isNewRecord) || saving || loading || isArchivedYear}
-                title={isArchivedYear ? 'Tahun Ajaran telah diarsipkan (read-only)' : 'Simpan Presensi'}
+                disabled={!isDirty || !summaryStats.isComplete || saving || loading || isArchivedYear}
+                title={
+                  isArchivedYear
+                    ? 'Tahun Ajaran telah diarsipkan (read-only)'
+                    : !summaryStats.isComplete
+                    ? `Masih ada ${summaryStats.unrecorded} siswa belum ditentukan status kehadirannya`
+                    : !isDirty
+                    ? 'Belum ada perubahan'
+                    : 'Simpan Presensi'
+                }
                 className={`px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 transition-all cursor-pointer ${
-                  isDirty || isNewRecord 
+                  isDirty && summaryStats.isComplete
                     ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md' 
                     : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
@@ -602,7 +665,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           )}
 
           {/* Summary KPI Pills */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] text-center">
           <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Total Siswa</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">{summaryStats.total}</p>
@@ -633,9 +696,14 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           <p className="text-xl font-bold text-violet-700 dark:text-violet-300 mt-0.5">{summaryStats.dispensation}</p>
         </div>
 
+        <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-amber-200 dark:border-amber-500/40 bg-amber-50/20 dark:bg-amber-950/10 text-center">
+          <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase">Belum Diisi</p>
+          <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">{summaryStats.unrecorded}</p>
+        </div>
+
         <div className="col-span-2 sm:col-span-1 bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/50 text-center">
           <p className="text-[10px] font-semibold text-[var(--ds-text-muted)] uppercase">% Kehadiran</p>
-          <p className="text-xl font-bold text-[var(--ds-accent)] mt-0.5">{summaryStats.rate}%</p>
+          <p className="text-xl font-bold text-[var(--ds-accent)] mt-0.5">{summaryStats.rate}</p>
         </div>
       </div>
 
@@ -672,6 +740,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
             className="px-3 py-1.5 text-xs font-medium text-[var(--ds-text)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ds-focus)]"
           >
             <option value="ALL">Semua Siswa</option>
+            <option value="UNSET">Belum Ditentukan</option>
             <option value="NOT_PRESENT">Hanya yang Tidak Hadir</option>
             <option value="PRESENT">Hadir Saja</option>
             <option value="SICK">Sakit Saja</option>
@@ -717,7 +786,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                 </tr>
               ) : (
                 filteredList.map((enr) => {
-                  const state = attendanceState[enr.studentId] || { status: 'PRESENT', note: '' };
+                  const state = attendanceState[enr.studentId] || { status: null, note: '' };
 
                   return (
                     <tr key={enr.id} className="hover:bg-[var(--ds-accent-soft)]/50 transition-colors group">
@@ -776,7 +845,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                           className="w-full px-2.5 py-1 text-xs bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[var(--ds-focus)] mb-1 disabled:opacity-60 disabled:cursor-not-allowed"
                         />
                         {/* Quick Presets for non-present */}
-                        {state.status !== 'PRESENT' && !isArchivedYear && (
+                        {Boolean(state.status && state.status !== 'PRESENT') && !isArchivedYear && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {(state.status === 'DISPENSATION'
                               ? ['Tugas Lomba KSM', 'Porseni / AKSIOMA', 'Tugas OSIM/Madrasah', 'Petugas Upacara', 'Kepramukaan']

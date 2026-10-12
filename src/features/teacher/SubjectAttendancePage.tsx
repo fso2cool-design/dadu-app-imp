@@ -23,7 +23,7 @@ interface StudentRow {
   rollNumber: number;
   nis: string;
   gender: 'L' | 'P';
-  status: AttendanceStatus;
+  status: AttendanceStatus | null;
   note: string;
   recordId?: string;
 }
@@ -541,11 +541,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
         // Sync selectedMeetingId from canonical persistent record if available
-        const currentLinkedMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
-        initialMeetingIdRef.current = currentLinkedMeeting;
+        const persistentMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
+        const effectiveBaselineMeeting = existingRecords.length > 0 ? persistentMeeting : normalizeMeetingId(selectedMeetingId);
+        initialMeetingIdRef.current = effectiveBaselineMeeting;
 
-        if (!selectedMeetingId && currentLinkedMeeting) {
-          setSelectedMeetingId(currentLinkedMeeting);
+        if (!selectedMeetingId && persistentMeeting) {
+          setSelectedMeetingId(persistentMeeting);
         }
 
         const rows: StudentRow[] = enrollments
@@ -559,14 +560,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
               rollNumber: en.rollNumber || (idx + 1),
               nis: stud.nis || '',
               gender: stud.gender || 'L',
-              status: existing ? (existing.status as AttendanceStatus) : 'PRESENT',
+              status: existing ? (existing.status as AttendanceStatus) : null,
               note: existing?.note || '',
               recordId: existing?.id,
             };
           });
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
-        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: currentLinkedMeeting || null, isNewRecord: existingRecords.length === 0 });
+        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: effectiveBaselineMeeting, isNewRecord: existingRecords.length === 0 });
 
         // Preserve in-flight user edits if user started editing before background fetch completed
         if (!isRowsDirtyRef.current) {
@@ -575,8 +576,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           isRowsDirtyRef.current = false;
         }
 
-        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || currentLinkedMeeting);
-        const isMeetingLinkDirty = targetMeetingNorm !== currentLinkedMeeting;
+        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || effectiveBaselineMeeting);
+        const isMeetingLinkDirty = targetMeetingNorm !== effectiveBaselineMeeting;
         setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
         setSessionLoaded(true);
       } catch (err) {
@@ -694,24 +695,28 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     let absent = 0;
     let dispensation = 0;
 
+    let unrecorded = 0;
+
     studentRows.forEach(r => {
       if (r.status === 'PRESENT') present++;
       else if (r.status === 'SICK') sick++;
       else if (r.status === 'PERMITTED') permitted++;
       else if (r.status === 'ABSENT') absent++;
       else if (r.status === 'DISPENSATION') dispensation++;
+      else unrecorded++;
     });
 
     const total = studentRows.length;
-    const percentage = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
+    const isComplete = total > 0 && unrecorded === 0;
+    const percentage = isComplete ? Math.round(((present + dispensation) / total) * 100) : null;
 
-    return { present, sick, permitted, absent, dispensation, total, percentage };
+    return { present, sick, permitted, absent, dispensation, unrecorded, total, percentage, isComplete };
   }, [studentRows]);
 
   // Single canonical source of truth for dirty state and unsaved changes
   const isMeetingLinkDirty = normalizeMeetingId(selectedMeetingId) !== normalizeMeetingId(initialMeetingIdRef.current);
   const isFormDirty = isDirty || isMeetingLinkDirty;
-  const hasUnsavedChanges = activeTab === 'TAKE' ? (isFormDirty || isNewRecord) : false;
+  const hasUnsavedChanges = activeTab === 'TAKE' ? isFormDirty : false;
   hasUnsavedChangesRef.current = hasUnsavedChanges;
 
   // Handle single status change
@@ -761,15 +766,31 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       setFeedbackMsg(null);
       triggerSyncFeedback('syncing', 'Menyimpan presensi siswa ke cloud...');
 
-      const items: SaveAttendanceItem[] = studentRows.map(r => ({
-        id: r.recordId,
-        studentId: r.studentId,
-        rollNumber: r.rollNumber,
-        studentName: r.studentName,
-        gender: r.gender,
-        status: r.status,
-        note: r.note.trim(),
-      }));
+      const unrecordedRows = studentRows.filter(r => r.status === null);
+      if (unrecordedRows.length > 0) {
+        setFeedbackMsg({
+          type: 'error',
+          text: `Presensi tidak dapat disimpan: Masih ada ${unrecordedRows.length} siswa yang belum ditentukan status kehadirannya.`
+        });
+        isSavingRef.current = false;
+        setSavingAttendance(false);
+        return false;
+      }
+
+      const items: SaveAttendanceItem[] = studentRows.map(r => {
+        if (r.status === null) {
+          throw new Error(`Status siswa ${r.studentName} belum ditentukan.`);
+        }
+        return {
+          id: r.recordId,
+          studentId: r.studentId,
+          rollNumber: r.rollNumber,
+          studentName: r.studentName,
+          gender: r.gender,
+          status: r.status,
+          note: r.note.trim(),
+        };
+      });
 
       const targetMeetingId = normalizeMeetingId(selectedMeetingId);
       const expectedPrev = normalizeMeetingId(initialMeetingIdRef.current);
@@ -946,7 +967,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     if (initialRowsRef.current) {
       try {
         const initial = JSON.parse(initialRowsRef.current);
-        const initMap = new Map<string, { s: AttendanceStatus; n: string }>(
+        const initMap = new Map<string, { s: AttendanceStatus | null; n: string }>(
           initial.map((x: any) => [x.id, { s: x.s, n: x.n }])
         );
         setStudentRows(prev => prev.map(r => {
@@ -1240,10 +1261,18 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || !hasUnsavedChanges || savingAttendance || studentRows.length === 0 || isArchivedYear}
-                title={isArchivedYear ? 'Tahun Ajaran ini telah diarsipkan (read-only)' : 'Simpan Presensi'}
+                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || !hasUnsavedChanges || !stats.isComplete || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                title={
+                  isArchivedYear
+                    ? 'Tahun Ajaran ini telah diarsipkan (read-only)'
+                    : !stats.isComplete
+                    ? `Masih ada ${stats.unrecorded} siswa belum ditentukan status kehadirannya`
+                    : hasUnsavedChanges
+                    ? 'Simpan Presensi'
+                    : 'Belum ada perubahan'
+                }
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  hasUnsavedChanges
+                  hasUnsavedChanges && stats.isComplete
                     ? 'bg-[var(--ds-accent)] text-[var(--ds-accent-fg)] hover:opacity-90 ring-2 ring-[var(--ds-accent)] ring-offset-2 ring-offset-[var(--ds-surface)] motion-safe:animate-pulse shadow-md'
                     : 'bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)]'
                 }`}
@@ -1313,9 +1342,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
               <div className="text-right">
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                  stats.percentage >= 85 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/40' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/40'
+                  stats.percentage !== null && stats.percentage >= 85 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/40' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/40'
                 }`}>
-                  {stats.percentage}% Tingkat Kehadiran
+                  {stats.percentage !== null ? `${stats.percentage}%` : '—'} Tingkat Kehadiran
                 </span>
               </div>
             </div>
@@ -1344,12 +1373,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                     Spektrum Kehadiran Kelas
                     {hasUnsavedChanges && (
                       <span className="ml-1 px-1.5 py-0.5 rounded-md normal-case tracking-normal text-[10px] font-bold bg-[var(--ds-warning-bg)] text-[var(--ds-warning-fg)] border border-[var(--ds-border)]">
-                        {isNewRecord ? 'Draf — belum disimpan' : 'Perubahan belum disimpan'}
+                        Perubahan belum disimpan
                       </span>
                     )}
                   </span>
                   <span className="font-semibold text-slate-700 dark:text-slate-300 font-mono text-[11px]">
-                    {stats.present}/{stats.total} Hadir ({stats.percentage}%)
+                    {stats.present}/{stats.total} Hadir ({stats.percentage !== null ? `${stats.percentage}%` : '—'}){stats.unrecorded > 0 && <span className="ml-1.5 text-amber-600 dark:text-amber-400 font-sans font-normal text-[10px]">({stats.unrecorded} belum diisi)</span>}
                   </span>
                 </div>
                 <div className="h-2 w-full bg-[var(--ds-surface-muted)] rounded-full overflow-hidden flex border border-[var(--ds-border)] gap-0.5">

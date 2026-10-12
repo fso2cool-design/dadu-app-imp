@@ -303,7 +303,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigateParentTab).toHaveBeenCalledWith('journal', undefined);
+      // When clean, requestTabChange returns true directly and no modal is opened
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
@@ -357,8 +357,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await waitFor(() => {
       expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(2);
-      expect(mockNavigateParentTab).toHaveBeenCalledWith('journal', undefined);
-    });
+      });
   });
 
   // 8. Guard mencegah pemanggilan penyimpanan ganda
@@ -843,8 +842,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(saveButton).toBeDisabled();
   });
 
-  // E. Sesi baru (draf belum disimpan) melindungi seluruh navigasi meski belum ada edit baris siswa
-  it('E. protects navigation for new unsaved draft sessions even before any student status changes', async () => {
+  // E. Sesi baru dimulai dengan status netral/unrecorded, save disabled, dan tidak memblokir navigasi
+  it('E. starts fresh session with unselected status, disabled save, and permits clean navigation', async () => {
     // Sesi baru: tidak ada record tersimpan di database untuk tanggal ini
     mockGetByDate.mockResolvedValue([]);
 
@@ -854,98 +853,55 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
 
-    // 1. Status draf tampil dan tombol simpan aktif/berdenyut
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
+    // 1. Tidak ada banner draf false-dirty, tombol simpan dinonaktifkan
+    expect(screen.queryByText('Draf — belum disimpan')).not.toBeInTheDocument();
     expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
-    expect(saveButton).not.toBeDisabled();
-    expect(saveButton.className).toContain('ring-2');
+    expect(saveButton).toBeDisabled();
 
-    // 2. Mencoba navigasi tanpa mengubah baris apapun: navigasi dicegah dan dialog muncul
+    // 2. Seluruh status unselected
+    expect(screen.getByText(/2 belum diisi/i)).toBeInTheDocument();
+    expect(screen.getByText(/— Tingkat Kehadiran/i)).toBeInTheDocument();
+
+    // 3. Navigasi tanpa edit baris: diizinkan langsung tanpa dialog
     let allowed: boolean | undefined;
     act(() => { allowed = handleRef.current?.requestTabChange('journal'); });
-    expect(allowed).toBe(false);
-
-    const dialog = await screen.findByRole('dialog');
-    expect(dialog).toBeInTheDocument();
-    expect(within(dialog).getByText('Presensi Siswa Belum Disimpan')).toBeInTheDocument();
-
-    // 3. Membatalkan dialog: dialog tertutup, sesi tetap berada di halaman draf
-    const cancelButton = within(dialog).getByRole('button', { name: /Batal/i });
-    fireEvent.click(cancelButton);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-    expect(mockNavigateParentTab).not.toHaveBeenCalled();
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
-
-    // 4. Coba simpan dari dialog: setelah simpan sukses, navigasi dilanjutkan
-    act(() => { handleRef.current?.requestTabChange('journal'); });
-    const dialogAgain = await screen.findByRole('dialog');
-    const dialogSaveButton = within(dialogAgain).getByRole('button', { name: /Simpan Presensi/i });
-    fireEvent.click(dialogSaveButton);
-
-    await waitFor(() => {
-      expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
-    });
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-    expect(mockNavigateParentTab).toHaveBeenCalledWith('journal', undefined);
-
-    // 5. Setelah simpan sukses, indikator draf hilang dan tombol simpan dinonaktifkan
-    await waitFor(() => {
-      expect(screen.queryByText('Draf — belum disimpan')).not.toBeInTheDocument();
-      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
-    });
-    expect(saveButton).toBeDisabled();
+    expect(allowed).toBe(true);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  // F. Sesi baru: browser Back diblokir dan dicegah meninggalkan halaman tanpa menyimpan
-  it('F. blocks browser back navigation for new unsaved draft sessions until explicitly discarded or saved', async () => {
+  // F. Sesi baru: browser Back tidak diblokir sebelum guru melakukan tindakan eksplisit
+  it('F. does not block browser back navigation for fresh unedited sessions', async () => {
     mockGetByDate.mockResolvedValue([]);
 
     const { router } = renderWithDataRouter();
 
     await screen.findByText('Ahmad Dahlan');
 
-    // Verifikasi sesi adalah draf baru
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
-
     // Browser back ditekan tanpa edit baris
     act(() => {
       router.navigate(-1);
     });
 
-    // Harus dicegat oleh DataRouterBlocker
-    const dialog = await screen.findByRole('dialog');
-    expect(dialog).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/teacher/attendance');
-
-    // Buang perubahan
-    const discardButton = within(dialog).getByRole('button', { name: /Buang Perubahan/i });
-    fireEvent.click(discardButton);
-
+    // Tidak ada dialog, langsung berpindah
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/teacher/journal');
     });
   });
 
-  // G. beforeunload memicu peringatan untuk sesi baru draf yang belum disimpan
-  it('G. triggers beforeunload preventDefault for new unsaved draft sessions', async () => {
+  // G. beforeunload tidak memicu peringatan untuk sesi baru yang belum diedit
+  it('G. does not trigger beforeunload preventDefault for fresh unedited sessions', async () => {
     mockGetByDate.mockResolvedValue([]);
 
     renderComponent();
 
     await screen.findByText('Ahmad Dahlan');
 
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
-
     const event = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(event);
 
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
   });
 
   // H. Pergantian jurnal dengan tanggal sama ketika ada perubahan belum disimpan
@@ -1054,45 +1010,23 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(noteInputs[0]).toHaveValue('Catatan penting');
   });
 
-  // J. Pergantian tanggal ketika ada draf baru tanpa perubahan baris siswa
-  it('J. protects date input change when there is an unsaved new draft even without row modifications', async () => {
+  // J. Pergantian tanggal pada sesi baru tanpa perubahan baris siswa diizinkan tanpa dialog
+  it('J. allows clean date input change on fresh sessions without confirmation dialog', async () => {
     mockGetByDate.mockResolvedValue([]);
 
     renderComponent();
 
     await screen.findByText('Ahmad Dahlan');
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
+    expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
 
     const dateInput = screen.getByDisplayValue('2026-10-10');
 
-    // 1. Coba ganti tanggal via input date
+    // Ganti tanggal via input date pada form bersih
     fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
 
-    // Dialog konfirmasi harus muncul
-    const dialog = await screen.findByRole('dialog');
-    expect(dialog).toBeInTheDocument();
-    expect(within(dialog).getByText('Presensi Siswa Belum Disimpan')).toBeInTheDocument();
-    expect(dateInput).toHaveValue('2026-10-10');
-
-    // 2. Batalkan: tanggal tetap 2026-10-10
-    const cancelButton = within(dialog).getByRole('button', { name: /Batal/i });
-    fireEvent.click(cancelButton);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
-    expect(dateInput).toHaveValue('2026-10-10');
-
-    // 3. Buang perubahan: tanggal beralih ke 2026-10-15
-    fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
-    const dialog2 = await screen.findByRole('dialog');
-    const discardButton = within(dialog2).getByRole('button', { name: /Buang Perubahan/i });
-    fireEvent.click(discardButton);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(dateInput).toHaveValue('2026-10-15');
-    });
+    // Tidak ada dialog konfirmasi
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(dateInput).toHaveValue('2026-10-15');
   });
 
   // K. Sesi tersimpan yang bersih dapat berpindah jurnal atau tanggal tanpa dialog
@@ -1161,8 +1095,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
   });
 
 
-  // M. Skenario 1 — Buang draf lalu kembali dari Rekap Matriks
-  it('M. maintains draft status and permits saving when returning to Input Presensi after discarding to Rekap Matriks', async () => {
+  // M. Skenario 1 — Sesi bersih berpindah ke Rekap Matriks dan kembali dengan status netral terjaga
+  it('M. maintains neutral draft state when returning to Input Presensi after visiting Rekap Matriks', async () => {
     // 1. Sesi draf baru (tidak ada record di database)
     mockGetByDate.mockResolvedValue([]);
 
@@ -1170,27 +1104,17 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
 
-    // 2. Status draf muncul dan tombol simpan aktif
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
+    // 2. Status bersih dan tombol simpan dinonaktifkan
+    expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
-    expect(saveButton).not.toBeDisabled();
+    expect(saveButton).toBeDisabled();
 
-    // 3. Beralih ke Rekap Matriks (tombol tab "Rekap Matriks Presensi")
+    // 3. Beralih ke Rekap Matriks: langsung berpindah tanpa modal
     const matrixTabButton = screen.getByRole('tab', { name: /Rekap Matriks/i });
     fireEvent.click(matrixTabButton);
 
-    // Modal dialog konfirmasi muncul
-    const dialog = await screen.findByRole('dialog');
-    expect(dialog).toBeInTheDocument();
-    expect(within(dialog).getByText('Presensi Siswa Belum Disimpan')).toBeInTheDocument();
-
-    // Pilih Buang Perubahan
-    const discardButton = within(dialog).getByRole('button', { name: /Buang Perubahan/i });
-    fireEvent.click(discardButton);
-
-    // Sekarang berada di Rekap Matriks: unduh excel ada
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(screen.getByText(/Unduh Rekap Matriks/i)).toBeInTheDocument();
     });
 
@@ -1198,28 +1122,35 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const takeTabButton = screen.getByRole('tab', { name: /Input Presensi/i });
     fireEvent.click(takeTabButton);
 
-    // 5. Sesi harus kembali dikenali sebagai draf dan pengguna tetap dapat menyimpan presensi
+    // 5. Sesi tetap netral, save disabled
     await waitFor(() => {
-      expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
+      expect(screen.getByText(/2 belum diisi/i)).toBeInTheDocument();
     });
     const saveButtonAgain = screen.getByRole('button', { name: /Simpan Presensi/i });
+    expect(saveButtonAgain).toBeDisabled();
+
+    // 6. Guru mengeklik Set Semua Hadir (H): form menjadi dirty dan lengkap
+    const setAllButton = screen.getByRole('button', { name: /Set Semua Hadir/i });
+    fireEvent.click(setAllButton);
+
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
     expect(saveButtonAgain).not.toBeDisabled();
 
-    // Pastikan pengguna tetap dapat menyimpan presensi
+    // Simpan presensi
     fireEvent.click(saveButtonAgain);
     await waitFor(() => {
       expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
     });
 
-    // Setelah disimpan, status draf hilang dan tombol simpan dinonaktifkan
+    // Setelah disimpan, status perubahan hilang dan tombol simpan dinonaktifkan
     await waitFor(() => {
-      expect(screen.queryByText('Draf — belum disimpan')).not.toBeInTheDocument();
+      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
     });
     expect(saveButtonAgain).toBeDisabled();
   });
 
-  // N. Skenario 2 — Buang perubahan lalu berpindah jurnal pada tanggal yang sama
-  it('N. reflects correct draft/saved status and context when discarding changes and switching meeting on same date', async () => {
+  // N. Skenario 2 — Buang perubahan lalu berpindah jurnal pada sesi baru
+  it('N. reflects correct neutral status and context when discarding changes and switching meeting on fresh session', async () => {
     mockApp.meetings.getAll.mockResolvedValue([
       { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
       { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-10', status: 'SCHEDULED' },
@@ -1237,6 +1168,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     // Ubah catatan siswa
     const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan sementara draf' } });
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
 
     // Pilih meet-2 pada tanggal yang sama
     const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
@@ -1253,9 +1185,14 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
     expect(noteInputs[0]).toHaveValue('');
 
-    // Karena di database belum tersimpan rekaman, status tetap draf dan tombol simpan aktif
-    expect(screen.getByText('Draf — belum disimpan')).toBeInTheDocument();
+    // Meeting berpindah ke meet-2 (perubahan meeting membuat form dirty), tetapi baris siswa belum diisi sehingga save tetap disabled
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+    expect(saveButton).toBeDisabled();
+
+    // Set Semua Hadir agar lengkap dan dapat disimpan
+    const setAllButton = screen.getByRole('button', { name: /Set Semua Hadir/i });
+    fireEvent.click(setAllButton);
     expect(saveButton).not.toBeDisabled();
 
     // Simpan presensi untuk meet-2
@@ -1303,7 +1240,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
-    expect(mockNavigateParentTab).toHaveBeenCalledWith('journal', undefined);
 
     // 3. Nilai kembali ke baseline tersimpan
     expect(noteInputs[0]).toHaveValue('Catatan asli tersimpan');
@@ -1317,6 +1253,91 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const secondAllowed = handleRef.current?.requestTabChange('classes');
     expect(secondAllowed).toBe(true);
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  // P. Incomplete attendance: satu siswa diubah membuat form dirty, tetapi Save tetap disabled & ditolak runtime
+  it('P. single student change marks form dirty, keeps others null, and blocks incomplete save', async () => {
+    mockGetByDate.mockResolvedValue([]);
+
+    renderComponent();
+
+    await screen.findByText('Ahmad Dahlan');
+
+    // Ubah siswa 1 menjadi SICK
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+
+    // Form dirty
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
+
+    // Siswa 2 masih belum diisi (stats: 1 belum diisi)
+    expect(screen.getByText(/1 belum diisi/i)).toBeInTheDocument();
+
+    // Tombol simpan tetap disabled karena belum lengkap
+    const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+    expect(saveButton).toBeDisabled();
+    expect(saveButton).toHaveAttribute('title', expect.stringContaining('belum ditentukan'));
+    expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+  });
+
+  // Q. Discard pada fresh session yang sebagian diedit mengembalikan status ke null
+  it('Q. discard restores initial null status and neutral state for fresh sessions', async () => {
+    const handleRef = createRef<SubjectAttendancePageHandle>();
+    const mockNavigateParentTab = vi.fn();
+    mockGetByDate.mockResolvedValue([]);
+
+    renderComponent({ onNavigateParentTab: mockNavigateParentTab }, handleRef);
+
+    await screen.findByText('Ahmad Dahlan');
+
+    // Ubah siswa 1
+    const sickButtons = screen.getAllByTitle('Sakit (S)');
+    fireEvent.click(sickButtons[0]);
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
+
+    // Navigasi ke journal -> modal muncul
+    const allowed = handleRef.current?.requestTabChange('journal');
+    expect(allowed).toBe(false);
+
+    const dialog = await screen.findByRole('dialog');
+    const discardButton = within(dialog).getByRole('button', { name: /Buang Perubahan/i });
+    fireEvent.click(discardButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    // Form bersih kembali, kedua siswa kembali belum diisi (2 belum diisi)
+    expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+    expect(screen.getByText(/2 belum diisi/i)).toBeInTheDocument();
+  });
+
+  // R. Meeting auto-link baseline invariants
+  it('R. preserves baseline null meeting for existing records with meetingId null, and treats auto-link as baseline for fresh session', async () => {
+    // Kasus 1: Existing record dengan meetingId: null
+    mockApp.meetings.getAll.mockResolvedValue([
+      { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+    ]);
+    mockGetByDate.mockResolvedValue([
+      { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+      { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+    ]);
+
+    renderComponent();
+
+    await screen.findByText('Ahmad Dahlan');
+    await waitFor(() => {
+      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+    });
+
+    // Meeting select tetap "-- Tidak ditautkan --", form TIDAK dirty
+    const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
+    expect(meetingSelect).toBeInTheDocument();
+    expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+
+    // Jika guru secara manual memilih meet-1 -> menjadi dirty
+    fireEvent.change(meetingSelect, { target: { value: 'meet-1' } });
+    expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
   });
 
 });
