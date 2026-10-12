@@ -76,7 +76,7 @@ DADU is hosted on Vercel with automatic Git integration:
    - Upon merging the PR to `main` (after all CI quality checks pass), Vercel automatically initiates an atomic zero-downtime production deployment.
    - SPA route rewrites are governed by [`vercel.json`](file:///vercel.json).
 3. **Production Security Rule**:
-   - As stated in `DADU-UPGRADE-ROADMAP.md` Execution Rule 7: **Never execute manual `vercel --prod` CLI deployments**. All production releases must flow through Git commits on `main`.
+   - **Never execute manual `vercel --prod` CLI deployments**. All production releases must flow through Git commits on `main`.
 
 ---
 

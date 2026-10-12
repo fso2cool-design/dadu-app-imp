@@ -78,7 +78,6 @@ dadu-app-imp/
 │   └── workflows/ci.yml         # Pipeline CI GitHub Actions (Lint, Type-check, Test, Build)
 ├── docs/
 │   ├── DADU-ARCHITECTURE.md     # Dokumen arsitektur sistem menyeluruh
-│   ├── DADU-UPGRADE-ROADMAP.md  # Roadmap peningkatan berkala (Phases 1-9)
 │   ├── DADU-ERD.md              # Diagram visual model data Firestore (Mermaid ERD)
 │   └── GITHUB-WORKFLOW-GUIDE.md # Panduan branch protection & preview Vercel
 ├── public/                      # Asset statis, logo, manifest PWA
@@ -213,7 +212,6 @@ Setiap *pull request* yang ditargetkan ke branch `main` akan diuji secara otomat
 ## 📚 Dokumentasi Lanjutan
 
 - 🏗 **[Arsitektur Sistem (DADU-ARCHITECTURE.md)](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/docs/DADU-ARCHITECTURE.md)**: Analisis menyeluruh mengenai arsitektur, provider, dan modularisasi.
-- 🗺 **[Roadmap Upgrade (DADU-UPGRADE-ROADMAP.md)](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/docs/DADU-UPGRADE-ROADMAP.md)**: Riwayat dan rencana peningkatan teknis dari Phase 1 hingga Phase 9.
 - 📊 **[Model Data & ERD (DADU-ERD.md)](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/docs/DADU-ERD.md)**: Diagram visual relasi entitas Firestore.
 - 🤝 **[Panduan Kontribusi (CONTRIBUTING.md)](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/CONTRIBUTING.md)**: Aturan branching, konvensi commit, dan panduan pull request.
 - 📝 **[Catatan Rilis (CHANGELOG.md)](file:///c:/Users/Administrator/Documents/ai/dadu/dadu-app-imp/CHANGELOG.md)**: Riwayat pembaruan dan rilis versi aplikasi.

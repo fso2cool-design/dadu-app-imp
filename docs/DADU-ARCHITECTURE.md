@@ -49,7 +49,6 @@ dadu-app-imp/
 │   └── workflows/ci.yml         # GitHub Actions CI workflow (lint, type-check, test, build)
 ├── docs/
 │   ├── DADU-ARCHITECTURE.md     # Architecture & system design document
-│   ├── DADU-UPGRADE-ROADMAP.md  # Upgrade roadmap (Phases 1-9)
 │   ├── DADU-ERD.md              # Visual Entity-Relationship Diagram (Mermaid)
 │   └── GITHUB-WORKFLOW-GUIDE.md # Branch protection and preview deployment guide
 ├── public/                      # Static assets (favicons, manifest.json, logo)

@@ -21,3 +21,12 @@ scratch/
 patch*.cjs
 patch*.js
 any_types_list.txt
+
+# Developer-local agent, IDE, and diagnostic material
+.agents/
+.claude/
+.gemini/
+.jolli/
+.vscode/
+skills-lock.json
+cache_remediation_final_report.md
