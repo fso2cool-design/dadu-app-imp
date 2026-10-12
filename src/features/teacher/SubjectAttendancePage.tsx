@@ -7,7 +7,7 @@ import { useApplication } from '../../application/ApplicationContext';
 import { invalidateMeetingsJournalCache } from './MeetingsJournalPage';
 import type { SaveAttendanceItem } from '../../domain/attendance.types';
 
-const MeetingFormModal = React.lazy(() => import('./MeetingFormModal').then(m => ({ default: m.MeetingFormModal })));
+import { MeetingFormModal } from './MeetingFormModal';
 const UnsavedChangesModal = React.lazy(() => import('../../components/common/UnsavedChangesModal').then(m => ({ default: m.UnsavedChangesModal })));
 const AttendanceHolidaysModal = React.lazy(() => import('../../components/common/AttendanceHolidaysModal').then(m => ({ default: m.AttendanceHolidaysModal })));
 import { Meeting, AttendanceStatus, AttendanceRecord, Enrollment } from '../../types';
