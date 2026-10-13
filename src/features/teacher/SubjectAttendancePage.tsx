@@ -248,7 +248,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const [rosterError, setRosterError] = useState<string | null>(null);
   const { user } = useAuth();
   const app = useApplication();
-  const { teachingAssignments, activeAcademicYear, activeSemester, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
+  const { teachingAssignments, activeAcademicYear, activeSemester, selectedAssignment, setSelectedAssignment, triggerSyncFeedback, checkIsHoliday } = useWorkspace();
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
@@ -383,20 +383,25 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   // 1. Initial selection of teaching assignment and navContext validation (D2)
   useEffect(() => {
     if (teachingAssignments.length > 0 && !selectedAssignmentId) {
-      if (navContext?.assignmentId) {
-        const found = teachingAssignments.find(t => t.id === navContext.assignmentId);
+      const explicitId = navContext?.assignmentId;
+      const workspaceId = selectedAssignment?.id;
+
+      if (explicitId) {
+        const found = teachingAssignments.find(t => t.id === explicitId);
         if (!found) {
-          setContextError(`Penugasan mengajar dengan ID "${navContext.assignmentId}" dari konteks jurnal tidak ditemukan atau tidak dapat diakses.`);
+          setContextError(`Penugasan mengajar dengan ID "${explicitId}" dari konteks jurnal tidak ditemukan atau tidak dapat diakses.`);
           return;
         }
-        setSelectedAssignmentId(navContext.assignmentId);
+        setSelectedAssignmentId(explicitId);
         if (navContext.date) setSelectedDate(navContext.date);
         if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
+      } else if (workspaceId && teachingAssignments.some(t => t.id === workspaceId)) {
+        setSelectedAssignmentId(workspaceId);
       } else {
         setSelectedAssignmentId(teachingAssignments[0].id);
       }
     }
-  }, [teachingAssignments, selectedAssignmentId, navContext]);
+  }, [teachingAssignments, selectedAssignmentId, navContext, selectedAssignment]);
 
     // 2. Fetch meetings whenever assignment changes with SWR
   useEffect(() => {
@@ -795,6 +800,19 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       const targetMeetingId = normalizeMeetingId(selectedMeetingId);
       const expectedPrev = normalizeMeetingId(initialMeetingIdRef.current);
 
+      if (targetMeetingId) {
+        const targetMeeting = meetings.find(m => m.id === targetMeetingId);
+        if (!targetMeeting || (targetMeeting.teachingAssignmentId && targetMeeting.teachingAssignmentId !== currentAssignment.id)) {
+          setFeedbackMsg({
+            type: 'error',
+            text: 'Relasi pertemuan tidak valid: Pertemuan jurnal yang dipilih tidak cocok dengan penugasan mengajar yang aktif.',
+          });
+          isSavingRef.current = false;
+          setSavingAttendance(false);
+          return false;
+        }
+      }
+
       const summary = await app.attendance.saveSubjectAttendance(user.uid, {
         academicYearId: activeAcademicYear.id,
         semester: activeSemester,
@@ -867,6 +885,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       setIsDirtyModalOpen(true);
     } else {
       setSelectedAssignmentId(targetAssignmentId);
+      setSelectedMeetingId('');
+      const found = teachingAssignments.find(t => t.id === targetAssignmentId);
+      if (found) setSelectedAssignment(found);
     }
   };
 
@@ -939,7 +960,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       }
 
       if (pendingAction && pendingAction.type !== 'browser-navigation') {
-        if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
+        if (pendingAction.type === 'assignment') {
+          const nextAssignId = pendingAction.targetValue || '';
+          setSelectedAssignmentId(nextAssignId);
+          setSelectedMeetingId('');
+          const found = teachingAssignments.find(t => t.id === nextAssignId);
+          if (found) setSelectedAssignment(found);
+        }
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
         else if (pendingAction.type === 'meeting') {
           setSelectedMeetingId(pendingAction.targetValue || '');
@@ -990,7 +1017,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     }
 
     if (pendingAction && pendingAction.type !== 'browser-navigation') {
-      if (pendingAction.type === 'assignment') setSelectedAssignmentId(pendingAction.targetValue || '');
+      if (pendingAction.type === 'assignment') {
+        const nextAssignId = pendingAction.targetValue || '';
+        setSelectedAssignmentId(nextAssignId);
+        setSelectedMeetingId('');
+        const found = teachingAssignments.find(t => t.id === nextAssignId);
+        if (found) setSelectedAssignment(found);
+      }
       else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
       else if (pendingAction.type === 'meeting') {
         const targetMeetingId = pendingAction.targetValue || '';

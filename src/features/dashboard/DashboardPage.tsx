@@ -14,7 +14,7 @@ import { Meeting, Enrollment, TeachingAssignment, AssessmentItem, Score, DailyAt
 import { getTodayISO, formatDateWithDay, INDONESIAN_DAYS } from '../../utils/date';
 
 interface DashboardPageProps {
-  onNavigate: (route: string) => void;
+  onNavigate: (route: string, state?: any) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
@@ -102,7 +102,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   const handleOpenAssignment = (assign: TeachingAssignment, targetRoute: string) => {
     setSelectedAssignment(assign);
-    onNavigate(targetRoute);
+    onNavigate(targetRoute, { assignmentId: assign.id });
   };
 
   // Map of student count per classId
