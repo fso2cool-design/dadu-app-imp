@@ -1340,4 +1340,226 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
   });
 
+  // Controlled UX Patch: Explicit Journal Selection Behavior
+  describe('Controlled UX Patch: Explicit Journal Selection Behavior', () => {
+    it('1. Changing the attendance date while unlinked does not select a journal automatically', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-15', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
+      expect(meetingSelect).toHaveValue('');
+
+      // Ganti tanggal ke tanggal yang memiliki jurnal (2026-10-15)
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+      expect(dateInput).toHaveValue('2026-10-15');
+
+      // Dropdown tetap tidak ditautkan, TIDAK memilih meet-1 secara otomatis
+      expect(meetingSelect).toHaveValue('');
+      expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
+    });
+
+    it('2. Changing the attendance date when multiple matching journals exist does not choose the first match', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Sesi Pagi', date: '2026-10-15', status: 'SCHEDULED' },
+        { id: 'meet-2', meetingNumber: 2, topic: 'Sesi Siang', date: '2026-10-15', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
+
+      // Ganti tanggal ke 2026-10-15 yang memiliki dua jurnal
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+
+      // Tetap tidak ditautkan, tidak memilih meet-1 secara otomatis
+      expect(meetingSelect).toHaveValue('');
+      expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
+
+      // Kedua opsi tersedia di dropdown
+      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByText('Jurnal Ke-2')).toBeInTheDocument();
+    });
+
+    it('3. An existing journal selection is not silently replaced when the attendance date changes', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+        { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-15', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      // Ganti tanggal ke 2026-10-15
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+
+      // meet-1 tidak digantikan secara diam-diam oleh meet-2
+      const meetingSelect = screen.getByDisplayValue(/Jurnal Ke-1/);
+      expect(meetingSelect).toHaveValue('meet-1');
+
+      // Error mismatch ditampilkan
+      expect(screen.getByText(/Tanggal pertemuan jurnal \(2026-10-10\) tidak cocok dengan tanggal presensi \(2026-10-15\)/i)).toBeInTheDocument();
+    });
+
+    it('4. The teacher can explicitly select a journal from the dropdown', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Aljabar', date: '2026-10-10', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
+
+      // Guru memilih jurnal secara eksplisit
+      fireEvent.change(meetingSelect, { target: { value: 'meet-1' } });
+
+      expect(meetingSelect).toHaveValue('meet-1');
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
+    });
+
+    it('5. Explicit journal selection retains the existing date-synchronization behavior', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+        { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-20', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-2', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'meet-2', date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      const meetingSelect = screen.getByDisplayValue(/Jurnal Ke-2/);
+
+      expect(meetingSelect).toHaveValue('meet-2');
+      expect(screen.getByText(/Tanggal pertemuan jurnal \(2026-10-20\) tidak cocok dengan tanggal presensi/i)).toBeInTheDocument();
+
+      // Guru memilih kembali meet-2 dari dropdown secara eksplisit untuk menyelaraskan tanggal
+      fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
+
+      expect(meetingSelect).toHaveValue('meet-2');
+      // Tanggal presensi tersinkronisasi ke tanggal jurnal yang dipilih
+      expect(dateInput).toHaveValue('2026-10-20');
+      expect(screen.queryByText(/tidak cocok dengan tanggal presensi/i)).not.toBeInTheDocument();
+    });
+
+    it('6. A date-mismatched relationship cannot be saved', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+
+      // Ganti tanggal ke 2026-10-15 (menyebabkan mismatch dengan meet-1 pada 2026-10-10)
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      expect(saveButton).toBeDisabled();
+      expect(saveButton).toHaveAttribute('title', expect.stringContaining('tidak cocok dengan tanggal presensi'));
+
+      // Mencoba klik tombol simpan tidak memanggil penyimpanan
+      fireEvent.click(saveButton);
+      expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+    });
+
+    it('7. Selecting "-- Tidak ditautkan --" continues to support standalone attendance', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+
+      // Lepaskan tautan ke jurnal secara eksplisit
+      fireEvent.change(meetingSelect, { target: { value: '' } });
+      expect(meetingSelect).toHaveValue('');
+      expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      expect(saveButton).not.toBeDisabled();
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+      });
+      // meetingId bernilai null untuk presensi mandiri (standalone)
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledWith('teacher-uid', expect.objectContaining({
+        meetingId: null,
+      }));
+    });
+
+    it('8. Existing unsaved-change protections and attendance persistence behavior remain intact', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Ubah catatan siswa agar form menjadi dirty
+      const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
+      fireEvent.change(noteInputs[0], { target: { value: 'Perubahan belum disimpan' } });
+      expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
+
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      // Coba ganti tanggal saat form dirty
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+
+      // Modal proteksi perubahan belum disimpan muncul
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+
+      // Batal di modal
+      const cancelButton = within(dialog).getByRole('button', { name: /Batal/i });
+      fireEvent.click(cancelButton);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+
+      // Tanggal tidak berubah, input tetap dipertahankan
+      expect(dateInput).toHaveValue('2026-10-10');
+      expect(noteInputs[0]).toHaveValue('Perubahan belum disimpan');
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+    });
+  });
+
 });

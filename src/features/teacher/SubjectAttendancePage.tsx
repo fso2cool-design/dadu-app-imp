@@ -456,6 +456,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     return meetings.find(m => m.id === selectedMeetingId);
   }, [meetings, selectedMeetingId]);
 
+  // Validation: Meeting date must match attendance date when a meeting is linked
+  const meetingMismatchError = useMemo(() => {
+    if (!selectedMeetingId) return null;
+    const meeting = meetings.find(m => m.id === selectedMeetingId);
+    if (meeting?.date && meeting.date !== selectedDate) {
+      return `Tanggal pertemuan jurnal (${meeting.date}) tidak cocok dengan tanggal presensi (${selectedDate}). Pilih jurnal yang sesuai atau pilih '-- Tidak ditautkan --'.`;
+    }
+    return null;
+  }, [selectedMeetingId, meetings, selectedDate]);
+
   // Check holiday status on the selected date
   const dateHolidayInfo = useMemo(() => {
     return selectedDate ? checkIsHoliday(selectedDate) : { isHoliday: false };
@@ -811,6 +821,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setSavingAttendance(false);
           return false;
         }
+
+        if (targetMeeting.date && targetMeeting.date !== selectedDate) {
+          setFeedbackMsg({
+            type: 'error',
+            text: `Relasi pertemuan tidak valid: Tanggal pertemuan jurnal (${targetMeeting.date}) tidak cocok dengan tanggal presensi (${selectedDate}).`,
+          });
+          isSavingRef.current = false;
+          setSavingAttendance(false);
+          return false;
+        }
       }
 
       const summary = await app.attendance.saveSubjectAttendance(user.uid, {
@@ -898,14 +918,17 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       setIsDirtyModalOpen(true);
     } else {
       setSelectedDate(targetDate);
-      // Auto-link meeting if one matches this date, otherwise clear meeting link
-      const match = meetings.find(m => m.date === targetDate);
-      setSelectedMeetingId(match ? match.id : '');
     }
   };
 
   const handleMeetingChange = (targetMeetingId: string) => {
-    if (normalizeMeetingId(targetMeetingId) === normalizeMeetingId(selectedMeetingId)) return;
+    if (normalizeMeetingId(targetMeetingId) === normalizeMeetingId(selectedMeetingId)) {
+      const targetMeeting = meetings.find(item => item.id === targetMeetingId);
+      if (targetMeeting?.date && targetMeeting.date !== selectedDate) {
+        setSelectedDate(targetMeeting.date);
+      }
+      return;
+    }
     if (hasUnsavedChanges) {
       setPendingAction({ type: 'meeting', targetValue: targetMeetingId });
       setIsDirtyModalOpen(true);
@@ -1142,13 +1165,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         </div>
       )}
 
-      {/* Error & Warning Banners (D2 Context & D1 Roster) */}
-      {(contextError || rosterError) && (
+      {/* Error & Warning Banners (D2 Context & D1 Roster & Meeting Mismatch) */}
+      {(contextError || rosterError || meetingMismatchError) && (
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-200 text-xs">
           <WarningCircle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
           <div>
             <span className="font-bold">Peringatan Integritas Data & Konteks:</span>
-            <p className="mt-1">{contextError || rosterError}</p>
+            <p className="mt-1">{contextError || rosterError || meetingMismatchError}</p>
           </div>
         </div>
       )}
@@ -1265,11 +1288,19 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                     className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px]"
                   >
                     <option value="">-- Tidak ditautkan --</option>
-                    {meetingOptions.map(m => (
-                      <option key={m.id} value={m.id}>
-                        Jurnal Ke-{m.meetingNumber}
-                      </option>
-                    ))}
+                    {meetingOptions.map(m => {
+                      const isMismatch = m.date !== selectedDate;
+                      const mismatchSuffix = isMismatch ? ` (Tgl: ${m.date})` : '';
+                      return (
+                        <option
+                          key={m.id}
+                          value={m.id}
+                          title={m.topic ? `Pertemuan #${m.meetingNumber}: ${m.topic}${m.timeSlot ? ` (${m.timeSlot})` : ''}` : undefined}
+                        >
+                          Jurnal Ke-{m.meetingNumber}{mismatchSuffix}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
@@ -1294,10 +1325,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || !hasUnsavedChanges || !stats.isComplete || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || Boolean(meetingMismatchError) || !hasUnsavedChanges || !stats.isComplete || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={
                   isArchivedYear
                     ? 'Tahun Ajaran ini telah diarsipkan (read-only)'
+                    : meetingMismatchError
+                    ? meetingMismatchError
                     : !stats.isComplete
                     ? `Masih ada ${stats.unrecorded} siswa belum ditentukan status kehadirannya`
                     : hasUnsavedChanges
