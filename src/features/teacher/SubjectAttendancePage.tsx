@@ -26,6 +26,8 @@ interface StudentRow {
   status: AttendanceStatus | null;
   note: string;
   recordId?: string;
+  isHistorical?: boolean;
+  enrollmentStatus?: string;
 }
 
 interface MatrixColumn {
@@ -86,7 +88,23 @@ const AttendanceRow = React.memo(({ row, isArchivedYear, handleStatusChange, han
         {row.rollNumber}
       </td>
       <td className={`sticky left-12 z-10 py-3 px-4 border-r border-[var(--ds-border)] ${stickyCellClass}`}>
-        <span className="font-bold text-slate-800 dark:text-slate-100 block">{row.studentName}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-800 dark:text-slate-100 block">{row.studentName}</span>
+          {row.isHistorical && (
+            <span
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shrink-0"
+              title={row.enrollmentStatus ? `Status pendaftaran: ${row.enrollmentStatus}` : 'Siswa tidak ada di roster aktif saat ini'}
+            >
+              {row.enrollmentStatus === 'TRANSFERRED'
+                ? 'Mutasi'
+                : row.enrollmentStatus === 'INACTIVE'
+                ? 'Nonaktif'
+                : row.enrollmentStatus === 'GRADUATED'
+                ? 'Alumni'
+                : 'Di luar roster aktif'}
+            </span>
+          )}
+        </div>
       </td>
       <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 border-r border-[var(--ds-border)]">
         {row.nis || '-'}
@@ -513,7 +531,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           enrollments = await app.enrollment.getByClass(
             user.uid,
             activeAcademicYear.id,
-            currentAssignment.classId
+            currentAssignment.classId,
+            { status: 'ALL' }
           );
           classEnrollmentsCache.set(enrollKey, enrollments);
         }
@@ -532,13 +551,6 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setRosterError('Terdeteksi rekaman presensi dengan relasi pertemuan yang bercampur atau terpecah. Penyimpanan normal diblokir.');
         } else {
           setRosterError(null);
-        }
-
-        // D1: Check for inactive or orphan records
-        const activeStudentIds = new Set(enrollments.filter(en => en.status === 'ACTIVE' && en.student).map(en => en.student!.id));
-        const orphanRecords = existingRecords.filter(r => !activeStudentIds.has(r.studentId));
-        if (orphanRecords.length > 0) {
-          setRosterError(`Ditemukan ${orphanRecords.length} rekaman presensi tersimpan untuk siswa yang tidak ada di roster aktif. Penyimpanan diblokir.`);
         }
 
         // B5: Check for invalid status in saved records
@@ -564,22 +576,53 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setSelectedMeetingId(persistentMeeting);
         }
 
-        const rows: StudentRow[] = enrollments
-          .filter(en => en.status === 'ACTIVE' && en.student)
-          .map((en, idx) => {
-            const stud = en.student!;
-            const existing = recordMap.get(stud.id);
-            return {
-              studentId: stud.id,
-              studentName: stud.fullName,
-              rollNumber: en.rollNumber || (idx + 1),
-              nis: stud.nis || '',
-              gender: stud.gender || 'L',
-              status: existing ? (existing.status as AttendanceStatus) : null,
-              note: existing?.note || '',
-              recordId: existing?.id,
-            };
+        const activeEnrollments = enrollments.filter(en => en.status === 'ACTIVE' && en.student);
+        const activeStudentIds = new Set(activeEnrollments.map(en => en.student!.id));
+
+        const allEnrollmentsByStudentId = new Map<string, Enrollment>();
+        enrollments.forEach(en => {
+          if (en.student?.id) {
+            allEnrollmentsByStudentId.set(en.student.id, en);
+          } else if (en.studentId) {
+            allEnrollmentsByStudentId.set(en.studentId, en);
+          }
+        });
+
+        // 1. Active students roster
+        const rows: StudentRow[] = activeEnrollments.map((en, idx) => {
+          const stud = en.student!;
+          const existing = recordMap.get(stud.id);
+          return {
+            studentId: stud.id,
+            studentName: stud.fullName,
+            rollNumber: en.rollNumber || (idx + 1),
+            nis: stud.nis || '',
+            gender: (stud.gender || 'L') as 'L' | 'P',
+            status: existing ? (existing.status as AttendanceStatus) : null,
+            note: existing?.note || '',
+            recordId: existing?.id,
+            isHistorical: false,
+          };
+        });
+
+        // 2. Recover historical-only students with valid saved records in this exact session
+        const historicalRecords = existingRecords.filter(r => !activeStudentIds.has(r.studentId));
+        for (const r of historicalRecords) {
+          const en = allEnrollmentsByStudentId.get(r.studentId);
+          const stud = en?.student;
+          rows.push({
+            studentId: r.studentId,
+            studentName: stud?.fullName || r.studentName || 'Siswa',
+            rollNumber: r.rollNumber || en?.rollNumber || 999,
+            nis: stud?.nis || '',
+            gender: (r.gender || stud?.gender || 'L') as 'L' | 'P',
+            status: r.status as AttendanceStatus,
+            note: r.note || '',
+            recordId: r.id,
+            isHistorical: true,
+            enrollmentStatus: en?.status,
           });
+        }
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
         subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: effectiveBaselineMeeting, isNewRecord: existingRecords.length === 0 });

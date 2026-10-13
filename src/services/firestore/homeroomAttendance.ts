@@ -109,8 +109,39 @@ export async function saveDailyAttendance(
   items: SaveDailyAttendanceItem[],
   sessionNotes?: string
 ): Promise<AttendanceSummary> {
+  // 1. Pre-validation: metadata sesi harian wajib
+  if (!uid || !uid.trim()) {
+    throw new Error('Data sesi presensi harian tidak valid: ID Pengguna (guru) wajib diisi.');
+  }
+  if (!academicYearId || !classId || !date) {
+    throw new Error('Data sesi presensi harian tidak lengkap (Tahun Ajaran, Kelas, dan Tanggal wajib diisi).');
+  }
+
+  // 2. Pre-validation: roster tidak boleh kosong
+  if (!items || items.length === 0) {
+    throw new Error('Data presensi harian tidak valid: Roster siswa tidak boleh kosong.');
+  }
+
+  // 3. Pre-validation: ID siswa unik & status presensi sah (tanpa fallback diam-diam)
+  const studentIds = new Set<string>();
+  const validStatuses = new Set<AttendanceStatus>(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
+
+  for (const item of items) {
+    if (!item.studentId || !item.studentId.trim()) {
+      throw new Error('Data presensi harian tidak valid: ID Siswa wajib diisi.');
+    }
+    if (studentIds.has(item.studentId)) {
+      throw new Error(`Data presensi harian tidak valid: Duplikasi ID Siswa terdeteksi (${item.studentId}).`);
+    }
+    studentIds.add(item.studentId);
+
+    if (!item.status || !validStatuses.has(item.status)) {
+      throw new Error(`Data presensi harian tidak valid: Status presensi tidak sah (${String(item.status)}).`);
+    }
+  }
+
   return trackSync((async () => {
-    // 1. Check if academic year is archived
+    // 4. Check if academic year is archived
     if (academicYearId) {
       const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
       if (ayDoc.exists() && ayDoc.data()?.isArchived) {
@@ -118,7 +149,7 @@ export async function saveDailyAttendance(
       }
     }
 
-    // 2. Validate class relationship
+    // 5. Validate class relationship
     if (classId) {
       const classDoc = await getDoc(doc(db, 'users', uid, 'classes', classId));
       if (classDoc.exists()) {
@@ -143,9 +174,6 @@ export async function saveDailyAttendance(
     let absent = 0;
     let dispensation = 0;
 
-    // Validate and write each student record deterministically
-    const sessionId = `${academicYearId}_${classId}_${date}`;
-
     for (const item of items) {
       if (item.status === 'PRESENT') present++;
       else if (item.status === 'SICK') sick++;
@@ -153,6 +181,9 @@ export async function saveDailyAttendance(
       else if (item.status === 'ABSENT') absent++;
       else if (item.status === 'DISPENSATION') dispensation++;
     }
+
+    // Validate and write each student record deterministically
+    const sessionId = `${academicYearId}_${classId}_${date}`;
 
     // Chunking writes in batches of safe threshold 300
     const chunkSize = 300;
@@ -173,7 +204,7 @@ export async function saveDailyAttendance(
           rollNumber: item.rollNumber || 0,
           studentName: item.studentName || '',
           gender: item.gender || 'L',
-          status: item.status || 'PRESENT',
+          status: item.status,
           note: item.note || '',
           updatedAt: now,
           createdAt: now,

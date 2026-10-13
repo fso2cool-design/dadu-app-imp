@@ -151,6 +151,35 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       ).rejects.toThrow('Status presensi tidak sah');
     });
 
+    it('rejects literal null and undefined attendance status at service boundary', async () => {
+      const itemsWithNull: any[] = [
+        {
+          studentId: 'stud-1',
+          studentName: 'Siswa 1',
+          rollNumber: 1,
+          gender: 'L',
+          status: null,
+          note: '',
+        },
+      ];
+      await expect(
+        saveSubjectAttendance(uid, { ...basePayload, items: itemsWithNull })
+      ).rejects.toThrow('Status presensi tidak sah (null)');
+
+      const itemsWithUndefined: any[] = [
+        {
+          studentId: 'stud-1',
+          studentName: 'Siswa 1',
+          rollNumber: 1,
+          gender: 'L',
+          note: '',
+        },
+      ];
+      await expect(
+        saveSubjectAttendance(uid, { ...basePayload, items: itemsWithUndefined })
+      ).rejects.toThrow('Status presensi tidak sah (undefined)');
+    });
+
     it('rejects if extra stored records exist in DB that are not in items (residual risk check)', async () => {
       mockGetDocs.mockResolvedValueOnce({
         docs: [

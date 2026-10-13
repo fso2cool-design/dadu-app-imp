@@ -1562,4 +1562,144 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
   });
 
+  describe('Controlled Fix B: Historical Student Attendance Recovery', () => {
+    it('1. includes saved historical student absent from current active roster when reopening existing session', async () => {
+      mockGetByClass.mockResolvedValue([
+        {
+          id: 'enr-1',
+          studentId: 'std-1',
+          rollNumber: 1,
+          status: 'ACTIVE',
+          student: { id: 'std-1', fullName: 'Ahmad Dahlan', nis: '1001', gender: 'L' as const },
+        },
+        {
+          id: 'enr-transferred',
+          studentId: 'std-transferred',
+          rollNumber: 3,
+          status: 'TRANSFERRED',
+          student: { id: 'std-transferred', fullName: 'Citra Kirana', nis: '1003', gender: 'P' as const },
+        },
+      ]);
+
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+        { id: 'rec-trans', studentId: 'std-transferred', status: 'PRESENT', note: 'Catatan siswa pindah', meetingId: null, date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+      expect(screen.getByText('Citra Kirana')).toBeInTheDocument();
+      expect(screen.getByText('Mutasi')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Catatan siswa pindah')).toBeInTheDocument();
+      expect(screen.queryByText(/rekaman presensi tersimpan untuk siswa yang tidak ada di roster aktif/i)).not.toBeInTheDocument();
+    });
+
+    it('2. allows correcting historical session without losing historical student record and satisfies reconciliation', async () => {
+      mockGetByClass.mockResolvedValue([
+        {
+          id: 'enr-1',
+          studentId: 'std-1',
+          rollNumber: 1,
+          status: 'ACTIVE',
+          student: { id: 'std-1', fullName: 'Ahmad Dahlan', nis: '1001', gender: 'L' as const },
+        },
+        {
+          id: 'enr-transferred',
+          studentId: 'std-transferred',
+          rollNumber: 3,
+          status: 'TRANSFERRED',
+          student: { id: 'std-transferred', fullName: 'Citra Kirana', nis: '1003', gender: 'P' as const },
+        },
+      ]);
+
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+        { id: 'rec-trans', studentId: 'std-transferred', status: 'PRESENT', note: 'Catatan siswa pindah', meetingId: null, date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      await screen.findByText('Citra Kirana');
+
+      const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
+      fireEvent.change(noteInputs[0], { target: { value: 'Koreksi catatan Ahmad' } });
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      expect(saveButton).not.toBeDisabled();
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledWith('teacher-uid', expect.objectContaining({
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            studentId: 'std-1',
+            note: 'Koreksi catatan Ahmad',
+            status: 'PRESENT',
+          }),
+          expect.objectContaining({
+            studentId: 'std-transferred',
+            studentName: 'Citra Kirana',
+            status: 'PRESENT',
+            note: 'Catatan siswa pindah',
+          }),
+        ]),
+      }));
+    });
+
+    it('3. does not automatically include historical-only student in a new session on another date', async () => {
+      mockGetByClass.mockResolvedValue([
+        {
+          id: 'enr-1',
+          studentId: 'std-1',
+          rollNumber: 1,
+          status: 'ACTIVE',
+          student: { id: 'std-1', fullName: 'Ahmad Dahlan', nis: '1001', gender: 'L' as const },
+        },
+        {
+          id: 'enr-transferred',
+          studentId: 'std-transferred',
+          rollNumber: 3,
+          status: 'TRANSFERRED',
+          student: { id: 'std-transferred', fullName: 'Citra Kirana', nis: '1003', gender: 'P' as const },
+        },
+      ]);
+
+      mockGetByDate.mockResolvedValue([]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      expect(screen.queryByText('Citra Kirana')).not.toBeInTheDocument();
+      expect(screen.queryByText('Mutasi')).not.toBeInTheDocument();
+    });
+
+    it('4. displays neutral "Di luar roster aktif" badge when historical record student is not in enrollment list', async () => {
+      mockGetByClass.mockResolvedValue([
+        {
+          id: 'enr-1',
+          studentId: 'std-1',
+          rollNumber: 1,
+          status: 'ACTIVE',
+          student: { id: 'std-1', fullName: 'Ahmad Dahlan', nis: '1001', gender: 'L' as const },
+        },
+      ]);
+
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+        { id: 'rec-old', studentId: 'std-non-enrolled', studentName: 'Siswa Non-Enroll', rollNumber: 99, gender: 'L', status: 'SICK', note: '', meetingId: null, date: '2026-10-10' },
+      ]);
+
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+      expect(screen.getByText('Siswa Non-Enroll')).toBeInTheDocument();
+      expect(screen.getByText('Di luar roster aktif')).toBeInTheDocument();
+    });
+  });
+
 });
