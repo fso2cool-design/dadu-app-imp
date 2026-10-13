@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Meeting, SemesterType, AttendanceSummary } from '../../types';
+import { getMeetingSlotId, isValidMeetingNumber } from '../../domain/academic/meetingPolicy';
 import { getTodayISO } from '../../utils/date';
 import { trackSync } from '../../utils/syncEvents';
 
@@ -22,14 +23,7 @@ import { trackSync } from '../../utils/syncEvents';
  * Menghasilkan ID dokumen deterministik untuk reservasi nomor pertemuan.
  * Format: slot_{teachingAssignmentId}_{semester}_{meetingNumber}
  */
-export function getMeetingSlotId(
-  teachingAssignmentId: string,
-  semester: SemesterType,
-  meetingNumber: number
-): string {
-  const safeTaId = teachingAssignmentId.replace(/[^a-zA-Z0-9_-]/g, '_');
-  return `slot_${safeTaId}_${semester}_${meetingNumber}`;
-}
+export { getMeetingSlotId } from '../../domain/academic/meetingPolicy';
 
 /**
  * Filter options for querying meetings.
@@ -181,7 +175,7 @@ export async function createMeeting(
 
   const colRef = collection(db, 'users', uid, 'meetings');
   const meetingNumber = Number(data.meetingNumber);
-  if (!Number.isInteger(meetingNumber) || meetingNumber < 1) {
+  if (!isValidMeetingNumber(meetingNumber)) {
     throw new Error('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
   }
 
@@ -306,7 +300,7 @@ export async function updateMeeting(
   let targetNumber: number | undefined = undefined;
   if (data.meetingNumber !== undefined) {
     targetNumber = Number(data.meetingNumber);
-    if (!Number.isInteger(targetNumber) || targetNumber < 1) {
+    if (!isValidMeetingNumber(targetNumber)) {
       throw new Error('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
     }
 

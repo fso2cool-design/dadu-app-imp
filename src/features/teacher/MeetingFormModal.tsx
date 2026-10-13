@@ -4,6 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
+import { isValidMeetingNumber } from '../../domain/academic/meetingPolicy';
 import { CalendarCheck, Clock, BookOpen, FileText, Sparkle, CheckCircle, WarningCircle, Bank } from '@phosphor-icons/react';
 
 interface MeetingFormModalProps {
@@ -162,7 +163,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
     }
 
     const parsedMeetingNumber = Number(meetingNumber);
-    if (!Number.isInteger(parsedMeetingNumber) || parsedMeetingNumber < 1) {
+    if (!isValidMeetingNumber(parsedMeetingNumber)) {
       setErrorMsg('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
       return;
     }
