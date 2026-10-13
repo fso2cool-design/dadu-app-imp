@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { DailyAttendanceRecord, DailyAttendanceSession, AttendanceSummary, AttendanceStatus, GenderType } from '../../types';
+import { isAttendanceStatus, calculateAttendanceSummary } from '../../domain/attendance/attendancePolicy';
 import { trackSync } from '../../utils/syncEvents';
 
 
@@ -124,7 +125,6 @@ export async function saveDailyAttendance(
 
   // 3. Pre-validation: ID siswa unik & status presensi sah (tanpa fallback diam-diam)
   const studentIds = new Set<string>();
-  const validStatuses = new Set<AttendanceStatus>(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
 
   for (const item of items) {
     if (!item.studentId || !item.studentId.trim()) {
@@ -135,7 +135,7 @@ export async function saveDailyAttendance(
     }
     studentIds.add(item.studentId);
 
-    if (!item.status || !validStatuses.has(item.status)) {
+    if (!isAttendanceStatus(item.status)) {
       throw new Error(`Data presensi harian tidak valid: Status presensi tidak sah (${String(item.status)}).`);
     }
   }
@@ -167,20 +167,6 @@ export async function saveDailyAttendance(
     const recordsColRef = collection(db, 'users', uid, 'dailyAttendanceRecords');
 
     const now = serverTimestamp();
-
-    let present = 0;
-    let sick = 0;
-    let permitted = 0;
-    let absent = 0;
-    let dispensation = 0;
-
-    for (const item of items) {
-      if (item.status === 'PRESENT') present++;
-      else if (item.status === 'SICK') sick++;
-      else if (item.status === 'PERMITTED') permitted++;
-      else if (item.status === 'ABSENT') absent++;
-      else if (item.status === 'DISPENSATION') dispensation++;
-    }
 
     // Validate and write each student record deterministically
     const sessionId = `${academicYearId}_${classId}_${date}`;
@@ -214,18 +200,7 @@ export async function saveDailyAttendance(
       await batch.commit();
     }
 
-    const total = items.length;
-    const presentPercentage = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
-
-    const summary: AttendanceSummary = {
-      present,
-      sick,
-      permitted,
-      absent,
-      dispensation,
-      total,
-      presentPercentage,
-    };
+    const summary: AttendanceSummary = calculateAttendanceSummary(items);
 
     // Upsert Daily Attendance Session Document with deterministic ID
     const sessionDocRef = doc(sessionsColRef, sessionId);

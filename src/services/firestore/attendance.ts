@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { AttendanceRecord, AttendanceSummary, AttendanceStatus, SemesterType, MeetingStatus } from '../../types';
+import { isAttendanceStatus, calculateAttendanceSummary } from '../../domain/attendance/attendancePolicy';
 import { trackSync } from '../../utils/syncEvents';
 
 /**
@@ -114,7 +115,6 @@ export async function saveSubjectAttendance(
 
   // 4. Pre-validation: ID siswa unik & status presensi sah (tanpa fallback diam-diam)
   const studentIds = new Set<string>();
-  const validStatuses = new Set<AttendanceStatus>(['PRESENT', 'SICK', 'PERMITTED', 'ABSENT', 'DISPENSATION']);
 
   for (const item of items) {
     if (!item.studentId || !item.studentId.trim()) {
@@ -125,37 +125,13 @@ export async function saveSubjectAttendance(
     }
     studentIds.add(item.studentId);
 
-    if (!validStatuses.has(item.status)) {
+    if (!isAttendanceStatus(item.status)) {
       throw new Error(`Data presensi tidak valid: Status presensi tidak sah (${String(item.status)}).`);
     }
   }
 
   // 5. Hitung ringkasan hanya dari status yang telah divalidasi
-  let present = 0;
-  let sick = 0;
-  let permitted = 0;
-  let absent = 0;
-  let dispensation = 0;
-
-  for (const item of items) {
-    if (item.status === 'PRESENT') present++;
-    else if (item.status === 'SICK') sick++;
-    else if (item.status === 'PERMITTED') permitted++;
-    else if (item.status === 'ABSENT') absent++;
-    else if (item.status === 'DISPENSATION') dispensation++;
-  }
-
-  const total = items.length;
-  const presentPercentage = total > 0 ? Math.round(((present + dispensation) / total) * 100) : 0;
-  const summary: AttendanceSummary = {
-    present,
-    sick,
-    permitted,
-    absent,
-    dispensation,
-    total,
-    presentPercentage,
-  };
+  const summary: AttendanceSummary = calculateAttendanceSummary(items);
 
   // 6. Archive Governance: periksa tahun ajaran tidak diarsipkan
   const ayDoc = await getDoc(doc(db, 'users', uid, 'academicYears', academicYearId));
