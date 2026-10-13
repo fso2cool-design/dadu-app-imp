@@ -61,6 +61,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
   
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [hasLinkedAttendance, setHasLinkedAttendance] = useState<boolean>(false);
 
   // Auto-calculate next meeting number when assignment changes
   const handleAssignmentChange = async (newAssignId: string) => {
@@ -115,6 +116,27 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       }
     }
   }, [meetingToEdit, defaultAssignmentId, teachingAssignments, isOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen && meetingToEdit && user) {
+      app.attendance.getByMeeting(user.uid, meetingToEdit.id)
+        .then(records => {
+          if (isMounted) {
+            setHasLinkedAttendance(records.length > 0);
+          }
+        })
+        .catch(err => {
+          console.error('Error checking linked attendance:', err);
+          if (isMounted) {
+            setHasLinkedAttendance(!!meetingToEdit.attendanceSummary);
+          }
+        });
+    } else if (!meetingToEdit) {
+      setHasLinkedAttendance(false);
+    }
+    return () => { isMounted = false; };
+  }, [isOpen, meetingToEdit, user, app]);
 
   const handleSelectPresetTopic = (presetText: string) => {
     setTopic(presetText);
@@ -352,20 +374,29 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1">
               Tanggal Kegiatan <span className="text-rose-500">*</span>
+              {meetingToEdit && hasLinkedAttendance && (
+                <span className="text-[10px] text-amber-600 font-normal ml-1">(Terkunci)</span>
+              )}
             </label>
             <input
               type="date"
               required
+              disabled={!!meetingToEdit && hasLinkedAttendance}
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)]"
+              className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs text-[var(--ds-text)] focus:ring-2 focus:ring-[var(--ds-accent)] disabled:bg-[var(--ds-surface-muted)] disabled:text-[var(--ds-text-muted)] disabled:cursor-not-allowed"
             />
-            {holidayInfo.isHoliday && (
+            {meetingToEdit && hasLinkedAttendance ? (
+              <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400 flex items-start gap-1 font-medium leading-tight">
+                <WarningCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <span>Tanggal jurnal dikunci karena masih terhubung dengan presensi. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.</span>
+              </p>
+            ) : holidayInfo.isHoliday ? (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
                 <WarningCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>Libur: {holidayInfo.reason}</span>
               </p>
-            )}
+            ) : null}
           </div>
 
           <div>

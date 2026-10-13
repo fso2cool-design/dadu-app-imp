@@ -252,7 +252,21 @@ export async function updateMeeting(
     }
   }
 
-  // 2. Strict Edit Governance:
+  // 2. Reject date changes if any attendance records remain linked to this meeting
+  if (data.date !== undefined && data.date !== existingData.date) {
+    if (existingData.attendanceSummary !== null && existingData.attendanceSummary !== undefined) {
+      throw new Error('Tanggal jurnal tidak dapat diubah karena masih terhubung dengan presensi siswa. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.');
+    }
+
+    const attColRef = collection(db, 'users', uid, 'attendanceRecords');
+    const attQ = query(attColRef, where('meetingId', '==', id));
+    const attSnap = await getDocs(attQ);
+    if (!attSnap.empty) {
+      throw new Error('Tanggal jurnal tidak dapat diubah karena masih terhubung dengan presensi siswa. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.');
+    }
+  }
+
+  // 3. Strict Edit Governance:
   // Fields that are strictly IMMUTABLE on update:
   // - academicYearId, semester, teachingAssignmentId, classId, subjectId, meetingNumber
   // Any attempt to modify these is stripped to protect linked attendance records and deterministic keys.
@@ -267,9 +281,24 @@ export async function updateMeeting(
   } = data;
 
   return trackSync((async () => {
-    await updateDoc(docRef, {
-      ...safeEditableData,
-      updatedAt: serverTimestamp(),
+    await runTransaction(db, async (transaction) => {
+      const freshSnap = await transaction.get(docRef);
+      if (!freshSnap.exists()) {
+        throw new Error('Jurnal pertemuan tidak ditemukan.');
+      }
+      const freshData = freshSnap.data() as Meeting;
+
+      // In-transaction guard: If date is changing, ensure no attendance was attached concurrently
+      if (data.date !== undefined && data.date !== freshData.date) {
+        if (freshData.attendanceSummary !== null && freshData.attendanceSummary !== undefined) {
+          throw new Error('Tanggal jurnal tidak dapat diubah karena masih terhubung dengan presensi siswa. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.');
+        }
+      }
+
+      transaction.update(docRef, {
+        ...safeEditableData,
+        updatedAt: serverTimestamp(),
+      });
     });
   })(), {
     startMessage: 'Memperbarui jurnal pertemuan...',
