@@ -120,15 +120,57 @@ service cloud.firestore {
           && request.resource.data.subjectId is string
           && request.resource.data.academicYearId is string
           && request.resource.data.meetingNumber is number
-          && (!('semester' in request.resource.data) || request.resource.data.semester in ['GANJIL', 'GENAP']);
+          && request.resource.data.meetingNumber > 0
+          && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber
+          && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && existsAfter(/databases/$(database)/documents/users/$(userId)/meetingSlots/$(
+               'slot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + string(request.resource.data.meetingNumber)
+             ));
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
-          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId', 'classId', 'subjectId', 'academicYearId', 'meetingNumber', 'semester'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId', 'classId', 'subjectId', 'academicYearId', 'semester'])
               || (resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId 
                   && resource.data.classId == request.resource.data.classId
                   && resource.data.subjectId == request.resource.data.subjectId
                   && resource.data.academicYearId == request.resource.data.academicYearId
-                  && resource.data.meetingNumber == request.resource.data.meetingNumber
-                  && (!('semester' in resource.data) || resource.data.semester == request.resource.data.semester)));
+                  && (!('semester' in resource.data) || resource.data.semester == request.resource.data.semester)))
+          && request.resource.data.meetingNumber is number
+          && request.resource.data.meetingNumber > 0
+          && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber
+          && (
+            resource.data.meetingNumber == request.resource.data.meetingNumber
+            || existsAfter(/databases/$(database)/documents/users/$(userId)/meetingSlots/$(
+                 'slot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + string(request.resource.data.meetingNumber)
+               ))
+          );
+      }
+
+      match /meetingSlots/{slotId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.keys().hasOnly(['meetingId', 'teachingAssignmentId', 'semester', 'meetingNumber', 'createdAt', 'updatedAt'])
+          && request.resource.data.meetingId is string
+          && request.resource.data.teachingAssignmentId is string
+          && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && request.resource.data.meetingNumber is number
+          && request.resource.data.meetingNumber > 0
+          && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber
+          && slotId == ('slot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + string(request.resource.data.meetingNumber))
+          && existsAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId))
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.meetingNumber == request.resource.data.meetingNumber
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.teachingAssignmentId == request.resource.data.teachingAssignmentId
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.semester == request.resource.data.semester;
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && resource.data.meetingId == request.resource.data.meetingId
+          && request.resource.data.keys().hasOnly(['meetingId', 'teachingAssignmentId', 'semester', 'meetingNumber', 'createdAt', 'updatedAt'])
+          && request.resource.data.meetingNumber == resource.data.meetingNumber
+          && request.resource.data.teachingAssignmentId == resource.data.teachingAssignmentId
+          && request.resource.data.semester == resource.data.semester;
+        allow delete: if request.auth != null && (isSuperAdmin() || (
+          request.auth.uid == userId && (
+            !existsAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(resource.data.meetingId))
+            || getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(resource.data.meetingId)).data.meetingNumber != resource.data.meetingNumber
+          )
+        ));
       }
 
       match /attendanceRecords/{recordId} {

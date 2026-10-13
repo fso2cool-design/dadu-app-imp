@@ -292,4 +292,130 @@ describe('MeetingFormModal Date Editability & Attendance Lock (Criteria 1, 2, 3,
     });
     expect(screen.getByText('(Terkunci)')).toBeDefined();
   });
+
+  describe('MeetingFormModal Number Editing & Duplicate Error (Requirements 9 & 11)', () => {
+    it('enables meetingNumber input in edit mode with current meetingNumber initialized', async () => {
+      render(
+        <ApplicationProvider app={mockApp}>
+          <MeetingFormModal
+            isOpen={true}
+            onClose={vi.fn()}
+            onSuccess={vi.fn()}
+            meetingToEdit={mockMeetingToEdit}
+            defaultAssignmentId="ta-1"
+          />
+        </ApplicationProvider>
+      );
+
+      await waitFor(() => {
+        const numberInput = screen.getByDisplayValue('2') as HTMLInputElement;
+        expect(numberInput.disabled).toBe(false);
+      });
+      expect(screen.queryByText('(Kunci)')).toBeNull();
+    });
+
+    it('displays clear Indonesian error when updateMeeting rejects duplicate meeting number', async () => {
+      mockUpdateMeeting.mockRejectedValueOnce(
+        new Error('Pertemuan ke-4 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal.')
+      );
+
+      render(
+        <ApplicationProvider app={mockApp}>
+          <MeetingFormModal
+            isOpen={true}
+            onClose={vi.fn()}
+            onSuccess={vi.fn()}
+            meetingToEdit={mockMeetingToEdit}
+            defaultAssignmentId="ta-1"
+          />
+        </ApplicationProvider>
+      );
+
+      await waitFor(() => {
+        const numberInput = screen.getByDisplayValue('2') as HTMLInputElement;
+        expect(numberInput.disabled).toBe(false);
+      });
+
+      const numberInput = screen.getByDisplayValue('2');
+      fireEvent.change(numberInput, { target: { value: '4' } });
+
+      const submitBtn = screen.getByRole('button', { name: /Simpan Perubahan/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Pertemuan ke-4 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal/i)
+        ).toBeDefined();
+      });
+    });
+
+    it('preserves form draft and user inputs after rejected correction', async () => {
+      mockUpdateMeeting.mockRejectedValueOnce(
+        new Error('Pertemuan ke-4 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal.')
+      );
+
+      render(
+        <ApplicationProvider app={mockApp}>
+          <MeetingFormModal
+            isOpen={true}
+            onClose={vi.fn()}
+            onSuccess={vi.fn()}
+            meetingToEdit={mockMeetingToEdit}
+            defaultAssignmentId="ta-1"
+          />
+        </ApplicationProvider>
+      );
+
+      await waitFor(() => {
+        const numberInput = screen.getByDisplayValue('2') as HTMLInputElement;
+        expect(numberInput.disabled).toBe(false);
+      });
+
+      const numberInput = screen.getByDisplayValue('2') as HTMLInputElement;
+      fireEvent.change(numberInput, { target: { value: '4' } });
+
+      const topicInput = screen.getByDisplayValue('Materi Rukun Islam') as HTMLInputElement;
+      fireEvent.change(topicInput, { target: { value: 'Materi Draft Yang Diedit' } });
+
+      const submitBtn = screen.getByRole('button', { name: /Simpan Perubahan/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Pertemuan ke-4 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal/i)
+        ).toBeDefined();
+      });
+
+      // Draft inputs are preserved
+      expect(numberInput.value).toBe('4');
+      expect(topicInput.value).toBe('Materi Draft Yang Diedit');
+    });
+
+    it('existing date-lock behavior remains intact while meetingNumber is editable', async () => {
+      mockGetByMeeting.mockResolvedValue([
+        { id: 'att-1', studentId: 's-1', meetingId: 'meet-1', date: '2026-10-10' },
+      ]);
+
+      render(
+        <ApplicationProvider app={mockApp}>
+          <MeetingFormModal
+            isOpen={true}
+            onClose={vi.fn()}
+            onSuccess={vi.fn()}
+            meetingToEdit={mockMeetingToEdit}
+            defaultAssignmentId="ta-1"
+          />
+        </ApplicationProvider>
+      );
+
+      await waitFor(() => {
+        const dateInput = screen.getByDisplayValue('2026-10-10') as HTMLInputElement;
+        expect(dateInput.disabled).toBe(true);
+      });
+
+      // meetingNumber is still editable even when date is locked!
+      const numberInput = screen.getByDisplayValue('2') as HTMLInputElement;
+      expect(numberInput.disabled).toBe(false);
+    });
+  });
 });

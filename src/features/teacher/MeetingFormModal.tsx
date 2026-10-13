@@ -161,6 +161,12 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       return;
     }
 
+    const parsedMeetingNumber = Number(meetingNumber);
+    if (!Number.isInteger(parsedMeetingNumber) || parsedMeetingNumber < 1) {
+      setErrorMsg('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
+      return;
+    }
+
     if (activeAcademicYear?.isArchived) {
       setErrorMsg('Tahun Ajaran ini telah diarsipkan (read-only). Tidak dapat menambah atau mengedit pertemuan.');
       return;
@@ -355,15 +361,13 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1">
               Pertemuan Ke- <span className="text-rose-500">*</span>
-              {meetingToEdit && <span className="text-[10px] text-amber-600 font-normal ml-1">(Kunci)</span>}
             </label>
             <input
               type="number"
               min={1}
               required
-              disabled={!!meetingToEdit}
               value={meetingNumber}
-              onChange={e => setMeetingNumber(Number(e.target.value))}
+              onChange={e => setMeetingNumber(parseInt(e.target.value, 10) || 1)}
               className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 text-center disabled:bg-[var(--ds-surface-muted)] disabled:text-[var(--ds-text-muted)] disabled:cursor-not-allowed"
             />
           </div>

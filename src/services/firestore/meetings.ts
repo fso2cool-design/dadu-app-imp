@@ -19,6 +19,19 @@ import { getTodayISO } from '../../utils/date';
 import { trackSync } from '../../utils/syncEvents';
 
 /**
+ * Menghasilkan ID dokumen deterministik untuk reservasi nomor pertemuan.
+ * Format: slot_{teachingAssignmentId}_{semester}_{meetingNumber}
+ */
+export function getMeetingSlotId(
+  teachingAssignmentId: string,
+  semester: SemesterType,
+  meetingNumber: number
+): string {
+  const safeTaId = teachingAssignmentId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `slot_${safeTaId}_${semester}_${meetingNumber}`;
+}
+
+/**
  * Filter options for querying meetings.
  */
 export interface MeetingFilterOptions {
@@ -167,14 +180,12 @@ export async function createMeeting(
   }
 
   const colRef = collection(db, 'users', uid, 'meetings');
-  const meetingNumber = Number(data.meetingNumber) || 1;
+  const meetingNumber = Number(data.meetingNumber);
+  if (!Number.isInteger(meetingNumber) || meetingNumber < 1) {
+    throw new Error('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
+  }
 
-  // 3. Deterministic business key guarantees zero concurrency collisions
-  // Key structure: {teachingAssignmentId}_{semester}_{meetingNumber}
-  const meetingKey = `${data.teachingAssignmentId}_${data.semester}_${meetingNumber}`;
-  const meetingDocRef = doc(colRef, meetingKey);
-
-  // 4. Check for duplicate legacy meetings created with random IDs (backward compatibility)
+  // 3. Pre-flight check for duplicate legacy meetings
   const duplicateQ = query(
     colRef,
     where('teachingAssignmentId', '==', data.teachingAssignmentId),
@@ -182,9 +193,15 @@ export async function createMeeting(
     where('meetingNumber', '==', meetingNumber)
   );
   const dupSnap = await getDocs(duplicateQ);
-  if (!dupSnap.empty && dupSnap.docs.some(d => d.id !== meetingKey)) {
+  if (!dupSnap.empty) {
     throw new Error(`Pertemuan ke-${meetingNumber} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
   }
+
+  // 4. Generate stable document ID independent of meetingNumber
+  const meetingDocRef = doc(colRef);
+  const slotId = getMeetingSlotId(data.teachingAssignmentId, data.semester, meetingNumber);
+  const slotDocRef = doc(db, 'users', uid, 'meetingSlots', slotId);
+  const legacyDeterministicDocRef = doc(colRef, `${data.teachingAssignmentId}_${data.semester}_${meetingNumber}`);
 
   const now = serverTimestamp();
   
@@ -211,13 +228,32 @@ export async function createMeeting(
     updatedAt: now,
   };
 
-  // 5. Run atomic transaction on deterministic document ID
+  // 5. Run atomic transaction for slot reservation and meeting creation
   await runTransaction(db, async (transaction) => {
-    const existingDoc = await transaction.get(meetingDocRef);
-    if (existingDoc.exists()) {
+    // Check slot document reservation
+    const slotSnap = await transaction.get(slotDocRef);
+    if (slotSnap.exists()) {
       throw new Error(`Pertemuan ke-${meetingNumber} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
     }
+
+    // Check legacy deterministic document ID
+    const legacySnap = await transaction.get(legacyDeterministicDocRef);
+    if (legacySnap.exists()) {
+      const legData = legacySnap.data() as Meeting;
+      if (legData?.meetingNumber === meetingNumber) {
+        throw new Error(`Pertemuan ke-${meetingNumber} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
+      }
+    }
+
     transaction.set(meetingDocRef, meetingData);
+    transaction.set(slotDocRef, {
+      meetingId: meetingDocRef.id,
+      teachingAssignmentId: data.teachingAssignmentId,
+      semester: data.semester,
+      meetingNumber,
+      createdAt: now,
+      updatedAt: now,
+    });
   });
 
   return { id: meetingDocRef.id, ...meetingData } as Meeting;
@@ -266,17 +302,40 @@ export async function updateMeeting(
     }
   }
 
-  // 3. Strict Edit Governance:
+  // 3. Meeting number validation & pre-flight duplicate check
+  let targetNumber: number | undefined = undefined;
+  if (data.meetingNumber !== undefined) {
+    targetNumber = Number(data.meetingNumber);
+    if (!Number.isInteger(targetNumber) || targetNumber < 1) {
+      throw new Error('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
+    }
+
+    if (targetNumber !== existingData.meetingNumber) {
+      const colRef = collection(db, 'users', uid, 'meetings');
+      const duplicateQ = query(
+        colRef,
+        where('teachingAssignmentId', '==', existingData.teachingAssignmentId),
+        where('semester', '==', existingData.semester),
+        where('meetingNumber', '==', targetNumber)
+      );
+      const dupSnap = await getDocs(duplicateQ);
+      if (!dupSnap.empty && dupSnap.docs.some(d => d.id !== id)) {
+        throw new Error(`Pertemuan ke-${targetNumber} untuk kelas dan mata pelajaran ini pada ${existingData.semester} sudah ada dalam jurnal.`);
+      }
+    }
+  }
+
+  // 4. Strict Edit Governance:
   // Fields that are strictly IMMUTABLE on update:
-  // - academicYearId, semester, teachingAssignmentId, classId, subjectId, meetingNumber
-  // Any attempt to modify these is stripped to protect linked attendance records and deterministic keys.
+  // - academicYearId, semester, teachingAssignmentId, classId, subjectId
+  // meetingNumber is mutable ordinal governed by reservation protocol.
   const {
     academicYearId,
     semester,
     teachingAssignmentId,
     classId,
     subjectId,
-    meetingNumber,
+    meetingNumber: _ignoredNumber,
     ...safeEditableData
   } = data;
 
@@ -295,9 +354,72 @@ export async function updateMeeting(
         }
       }
 
+      const currentNumber = freshData.meetingNumber;
+      const desiredNumber = targetNumber !== undefined ? targetNumber : currentNumber;
+      const isNumberChanging = desiredNumber !== currentNumber;
+
+      let targetSlotRef: any = null;
+      let oldSlotRef: any = null;
+      let shouldDeleteOldSlot = false;
+
+      if (isNumberChanging) {
+        // A. Check legacy deterministic document
+        const legacyTargetRef = doc(db, 'users', uid, 'meetings', `${freshData.teachingAssignmentId}_${freshData.semester}_${desiredNumber}`);
+        if (legacyTargetRef.id !== id) {
+          const legacyTargetSnap = await transaction.get(legacyTargetRef);
+          if (legacyTargetSnap.exists()) {
+            const legData = legacyTargetSnap.data() as Meeting;
+            if (legData?.meetingNumber === desiredNumber) {
+              throw new Error(`Pertemuan ke-${desiredNumber} untuk kelas dan mata pelajaran ini pada ${freshData.semester} sudah ada dalam jurnal.`);
+            }
+          }
+        }
+
+        // B. Read target reservation slot
+        const targetSlotId = getMeetingSlotId(freshData.teachingAssignmentId, freshData.semester, desiredNumber);
+        targetSlotRef = doc(db, 'users', uid, 'meetingSlots', targetSlotId);
+        const targetSlotSnap = await transaction.get(targetSlotRef);
+        if (targetSlotSnap.exists()) {
+          const slotData = targetSlotSnap.data() as any;
+          if (slotData?.meetingId !== id) {
+            throw new Error(`Pertemuan ke-${desiredNumber} untuk kelas dan mata pelajaran ini pada ${freshData.semester} sudah ada dalam jurnal.`);
+          }
+        }
+
+        // C. Read old reservation slot to verify ownership before releasing
+        const oldSlotId = getMeetingSlotId(freshData.teachingAssignmentId, freshData.semester, currentNumber);
+        oldSlotRef = doc(db, 'users', uid, 'meetingSlots', oldSlotId);
+        const oldSlotSnap = await transaction.get(oldSlotRef);
+        if (oldSlotSnap.exists()) {
+          const oldData = oldSlotSnap.data() as any;
+          if (oldData?.meetingId === id) {
+            shouldDeleteOldSlot = true;
+          }
+        }
+      }
+
+      const now = serverTimestamp();
+
+      // D. Atomically transfer reservations and update meeting
+      if (isNumberChanging && targetSlotRef) {
+        transaction.set(targetSlotRef, {
+          meetingId: id,
+          teachingAssignmentId: freshData.teachingAssignmentId,
+          semester: freshData.semester,
+          meetingNumber: desiredNumber,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        if (shouldDeleteOldSlot && oldSlotRef) {
+          transaction.delete(oldSlotRef);
+        }
+      }
+
       transaction.update(docRef, {
         ...safeEditableData,
-        updatedAt: serverTimestamp(),
+        meetingNumber: desiredNumber,
+        updatedAt: now,
       });
     });
   })(), {
@@ -403,8 +525,26 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
       await batch.commit();
     }
 
-    // Delete meeting document
-    await deleteDoc(docRef);
+    // Atomically delete meeting document and release reservation slot (if owned by this meeting)
+    await runTransaction(db, async (transaction) => {
+      const freshSnap = await transaction.get(docRef);
+      if (!freshSnap.exists()) return;
+      const freshData = freshSnap.data() as Meeting;
+
+      if (freshData.teachingAssignmentId && freshData.semester && freshData.meetingNumber) {
+        const slotId = getMeetingSlotId(freshData.teachingAssignmentId, freshData.semester, freshData.meetingNumber);
+        const slotRef = doc(db, 'users', uid, 'meetingSlots', slotId);
+        const slotSnap = await transaction.get(slotRef);
+        if (slotSnap.exists()) {
+          const slotData = slotSnap.data() as any;
+          if (slotData?.meetingId === id) {
+            transaction.delete(slotRef);
+          }
+        }
+      }
+
+      transaction.delete(docRef);
+    });
   })(), {
     startMessage: 'Menghapus jurnal pertemuan...',
     successMessage: 'Jurnal pertemuan dihapus (data presensi siswa tetap aman)!'

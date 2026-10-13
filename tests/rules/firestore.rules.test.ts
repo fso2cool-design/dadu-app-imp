@@ -16,6 +16,7 @@ import {
   getDocs,
   collectionGroup,
   Timestamp,
+  writeBatch,
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
@@ -578,4 +579,188 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
     });
   });
 
+
+  // =========================================================================
+  // SEC-04: Meeting Identity & Slot Reservation Protocol
+  // =========================================================================
+  describe('SEC-04: Meeting Identity & Slot Reservation Protocol', () => {
+    const validMeeting = {
+      academicYearId: 'ay-2026',
+      semester: 'GANJIL',
+      teachingAssignmentId: 'ta-001',
+      classId: 'class-10a',
+      subjectId: 'sub-matematika',
+      meetingNumber: 1,
+      date: '2026-10-10',
+      topic: 'Pengenalan Limit',
+      status: 'COMPLETED',
+    };
+
+    it('TC-MS01: allows creating meeting together with matching slot reservation in atomic batch', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1');
+
+      batch.set(meetingRef, validMeeting);
+      batch.set(slotRef, {
+        meetingId: 'meet-01',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 1,
+      });
+
+      await assertSucceeds(batch.commit());
+    });
+
+    it('TC-MS02: rejects creating meeting without a matching slot reservation', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-no-slot');
+      await assertFails(setDoc(meetingRef, validMeeting));
+    });
+
+    it('TC-MS03: rejects creating slot reservation if meeting does not match slot data', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-02');
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_2');
+
+      batch.set(meetingRef, { ...validMeeting, meetingNumber: 3 });
+      batch.set(slotRef, {
+        meetingId: 'meet-02',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 2,
+      });
+
+      await assertFails(batch.commit());
+    });
+
+    it('TC-MS04: allows updating meetingNumber with matching new reservation and releasing old slot', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      const oldSlotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1');
+      const newSlotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_2');
+
+      batch.update(meetingRef, { meetingNumber: 2 });
+      batch.set(newSlotRef, {
+        meetingId: 'meet-01',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 2,
+      });
+      batch.delete(oldSlotRef);
+
+      await assertSucceeds(batch.commit());
+    });
+
+    it('TC-MS05: rejects changing meetingNumber without creating matching new reservation slot', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      await assertFails(updateDoc(meetingRef, { meetingNumber: 2 }));
+    });
+
+    it('TC-MS06: allows safe field updates on legacy meeting without a reservation slot', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'legacy-meet'), validMeeting);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'legacy-meet');
+      await assertSucceeds(updateDoc(meetingRef, {
+        topic: 'Materi Baru yang Diperbarui',
+        notes: 'Catatan tambahan guru',
+      }));
+    });
+
+    it('TC-MS07: rejects mutating structural fields (teachingAssignmentId, classId, subjectId, academicYearId, semester)', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      await assertFails(updateDoc(meetingRef, { teachingAssignmentId: 'ta-diff' }));
+      await assertFails(updateDoc(meetingRef, { classId: 'class-diff' }));
+      await assertFails(updateDoc(meetingRef, { subjectId: 'sub-diff' }));
+      await assertFails(updateDoc(meetingRef, { academicYearId: 'ay-diff' }));
+      await assertFails(updateDoc(meetingRef, { semester: 'GENAP' }));
+    });
+
+    it('TC-MS08: allows deleting meeting and cleaning up its owned slot reservation', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'));
+      await assertSucceeds(batch.commit());
+    });
+
+    it('TC-MS09: rejects standalone slot deletion while owning meeting is unchanged', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1');
+      await assertFails(deleteDoc(slotRef));
+    });
+
+    it('TC-MS10: rejects unauthorized access from a different teacher', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+      });
+
+      const otherDb = testEnv.authenticatedContext(OTHER_TEACHER_UID).firestore();
+      const otherMeetingRef = doc(otherDb, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      const otherSlotRef = doc(otherDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1');
+
+      await assertFails(getDoc(otherMeetingRef));
+      await assertFails(getDoc(otherSlotRef));
+      await assertFails(deleteDoc(otherSlotRef));
+    });
+  });
 });
