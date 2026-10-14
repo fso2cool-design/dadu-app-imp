@@ -20,6 +20,7 @@ import {
 } from '../../types';
 import { DEFAULT_KKM } from '../../constants/grading';
 import { calculateFinalScore, getGradeScale, MissingScoreTreatment } from '../../domain/grading/grading.service';
+import { invalidateGradesReportCache } from '../../services/cache/gradesReportCache';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
@@ -401,6 +402,7 @@ export const GradesPage: React.FC = () => {
       });
 
       await app.grades.saveMatrixScores(user.uid, scoresToSave);
+      invalidateGradesReportCache();
       setInitialScoresMap({ ...scoresMap });
       setIsDirty(false);
       triggerSyncFeedback('saved', 'Nilai siswa berhasil disimpan ke cloud!');
@@ -481,6 +483,7 @@ export const GradesPage: React.FC = () => {
     try {
       triggerSyncFeedback('syncing', `Menghapus kolom penilaian ${itemToDelete.name}...`);
       await app.grades.deleteAssessmentItem(user.uid, itemToDelete.id);
+      invalidateGradesReportCache();
       triggerSyncFeedback('saved', 'Kolom penilaian berhasil dihapus.');
       toastSuccess(`Kolom "${itemToDelete.name}" berhasil dihapus.`);
       setItemToDelete(null);
@@ -1442,7 +1445,10 @@ export const GradesPage: React.FC = () => {
         }}
         assignment={activeAssignment}
         itemToEdit={editingItem}
-        onSuccess={() => loadGradesData()}
+        onSuccess={() => {
+          invalidateGradesReportCache();
+          loadGradesData();
+        }}
       />
 
       <PasteExcelModal

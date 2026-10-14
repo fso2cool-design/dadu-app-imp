@@ -9,6 +9,11 @@ import { TeachingAssignment, AssessmentItem, Score, Enrollment } from '../../typ
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
 import { calculateFinalScore } from '../../domain/grading/grading.service';
 import { loadXlsx } from '../../utils/lazyXlsx';
+import {
+  getCachedGradesReport,
+  setCachedGradesReport,
+  buildGradesReportCacheKey,
+} from '../../services/cache/gradesReportCache';
 import { Medal, MagnifyingGlass, Funnel, TrendUp, CheckCircle, WarningCircle, FileCsv, ChartBar, Percent, Sliders } from '@phosphor-icons/react';
 
 interface StudentGradeRow {
@@ -28,8 +33,6 @@ interface StudentGradeRow {
   isIncomplete: boolean;
 }
 
-// In-memory module cache for instant SWR grades report rendering
-const gradesReportCache = new Map();
 
 export const GradesReportPage: React.FC = () => {
   const { user } = useAuth();
@@ -46,6 +49,9 @@ export const GradesReportPage: React.FC = () => {
   const [scores, setScores] = useState<Score[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isRevalidating, setIsRevalidating] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isUsingCachedData, setIsUsingCachedData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   // Scoring parameters
@@ -59,23 +65,35 @@ export const GradesReportPage: React.FC = () => {
     }
   }, [teachingAssignments, selectedAssignment]);
 
-  // Fetch Assessment and Score Data with SWR
+  // Fetch Assessment and Score Data with SWR & revalidation tracking
   useEffect(() => {
-      let isMounted = true;
+    let isMounted = true;
     if (!user || !activeAcademicYear || !selectedAssignment) return;
 
-    const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
-    const cached = gradesReportCache.get(cacheKey);
+    const cacheKey = buildGradesReportCacheKey(
+      user.uid,
+      activeAcademicYear.id,
+      activeSemester,
+      selectedAssignment.id
+    );
+    const cached = getCachedGradesReport(cacheKey);
 
     if (cached) {
       setAssessmentItems(cached.assessmentItems);
       setEnrollments(cached.enrollments);
       setScores(cached.scores);
       setLoading(false);
+      setIsUsingCachedData(true);
+      setIsRevalidating(true);
+      setFetchError(null);
+    } else {
+      setLoading(true);
+      setIsUsingCachedData(false);
+      setIsRevalidating(false);
+      setFetchError(null);
     }
 
     const fetchData = async () => {
-      if (!cached) setLoading(true);
       try {
         // 1. Fetch assessment columns
         const items = await app.grades.getAssessmentItems(user.uid, {
@@ -98,26 +116,37 @@ export const GradesReportPage: React.FC = () => {
           const itemIds = items.map(it => it.id);
           scs = await app.grades.getScoresByItemIds(user.uid, itemIds);
         }
+        if (!isMounted) return;
 
-        gradesReportCache.set(cacheKey, {
+        setCachedGradesReport(cacheKey, {
           assessmentItems: items,
           enrollments: enrs,
-          scores: scs
+          scores: scs,
         });
 
         setAssessmentItems(items);
         setEnrollments(enrs);
         setScores(scs);
-      } catch (err) {
+        setIsUsingCachedData(false);
+        setFetchError(null);
+      } catch (err: any) {
         console.error('Error fetching grades report data:', err);
+        if (!isMounted) return;
+        if (cached) {
+          setFetchError('Pembaruan data terkini gagal. Laporan menampilkan data terakhir yang tersimpan di cache.');
+        } else {
+          setFetchError(err.message || 'Gagal memuat data laporan dari cloud database.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          setIsRevalidating(false);
+        }
       }
     };
-      if (!isMounted) return;
 
     fetchData();
-      return () => { isMounted = false; };
+    return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
 
   // Compute Grade Matrix per Student
@@ -412,12 +441,33 @@ export const GradesReportPage: React.FC = () => {
           <div className="py-16 text-center text-slate-400 text-xs">
             Memuat kompilasi daftar nilai...
           </div>
+        ) : fetchError && !isUsingCachedData && filteredRows.length === 0 ? (
+          <div className="py-12 px-4 text-center border border-rose-200 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20 rounded-xl flex flex-col items-center justify-center gap-2">
+            <WarningCircle className="w-8 h-8 text-rose-500" />
+            <div className="text-xs font-semibold text-rose-800 dark:text-rose-200">
+              {fetchError}
+            </div>
+            <p className="text-[11px] text-slate-500">Silakan periksa koneksi internet Anda atau muat ulang halaman.</p>
+          </div>
         ) : filteredRows.length === 0 ? (
           <div className="py-12 text-center text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
             Belum ada data siswa atau asesmen untuk mata pelajaran ini.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {isRevalidating && (
+              <div className="mb-3 px-3 py-2 rounded-lg bg-blue-50/90 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2 animate-pulse print:hidden">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shrink-0" />
+                <span>Memperbarui data laporan dari cloud database...</span>
+              </div>
+            )}
+            {fetchError && isUsingCachedData && (
+              <div className="mb-3 px-3 py-2 rounded-lg bg-amber-50/90 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 print:hidden">
+                <WarningCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{fetchError}</span>
+              </div>
+            )}
+            <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse border border-slate-900">
               <thead>
                 <tr className="bg-slate-100 text-slate-950 font-bold border-b-2 border-slate-900 text-center">
@@ -563,6 +613,7 @@ export const GradesReportPage: React.FC = () => {
               </div>
             </div>
           </div>
+          </>
         )}
       </PrintDocumentLayout>
     </div>
