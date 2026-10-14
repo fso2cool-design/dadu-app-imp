@@ -16,6 +16,7 @@ import { BatchRaporPrintModal } from './BatchRaporPrintModal';
 import { ShareReportModal } from './ShareReportModal';
 import { StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
+import { calculateFinalScore } from '../../domain/grading/grading.service';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
 import { 
   TeachingAssignment, 
@@ -209,26 +210,26 @@ export const LeggerReportPage: React.FC = () => {
           return;
         }
 
-        const totalWeight = subjectItems.reduce((acc, it) => acc + (Number(it.weight) || 1), 0);
-        let weightedSum = 0;
-        let validScoresCount = 0;
-
+        const studentScoresMap = new Map<string, number | null>();
         subjectItems.forEach(item => {
           const sc = scores.find(s => s.studentId === enr.studentId && s.assessmentItemId === item.id);
-          if (sc && typeof sc.score === 'number') {
-            const weight = Number(item.weight) || 1;
-            weightedSum += sc.score * weight;
-            validScoresCount++;
-          }
+          const scoreVal = sc && typeof sc.score === 'number' ? sc.score : null;
+          studentScoresMap.set(item.id, scoreVal);
         });
 
-        if (validScoresCount > 0 && totalWeight > 0) {
-          const finalSubScore = Math.round((weightedSum / totalWeight) * 10) / 10;
-          studentSubjectScores[subject.id] = finalSubScore;
+        const result = calculateFinalScore(
+          subjectItems,
+          undefined,
+          studentScoresMap,
+          'WEIGHTED_AVERAGE',
+          'IGNORE'
+        );
+
+        const finalSubScore = result.finalScore;
+        studentSubjectScores[subject.id] = finalSubScore;
+        if (finalSubScore !== null) {
           total += finalSubScore;
           countWithScore++;
-        } else {
-          studentSubjectScores[subject.id] = null;
         }
       });
 
@@ -499,6 +500,7 @@ export const LeggerReportPage: React.FC = () => {
     { label: 'Kelas / Rombel', value: selectedClassObj?.name || '-' },
     { label: 'Wali Kelas', value: homeroomTeacher?.name || schoolSettings?.teacherName || '-' },
     { label: 'Jumlah Siswa', value: `${filteredRows.length} Siswa` },
+    { label: 'Status Dokumen', value: 'DRAF REFERENSI DADU — Nilai resmi mengikuti RDM' },
   ];
 
   return (

@@ -14,6 +14,7 @@ import {
 } from '../../types';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
+import { calculateFinalScore } from '../../domain/grading/grading.service';
 import { aggregateAttendance } from '../../domain/attendance/attendanceAggregation';
 import { GraduationCap, Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Users, MagnifyingGlass, Sliders, CheckCircle, WarningCircle, FileText } from '@phosphor-icons/react';
 import { useToast } from '../../context/ToastContext';
@@ -192,32 +193,32 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
             subjectCode: sub.code,
             score: null,
             kkm: DEFAULT_KKM,
+            isIncomplete: false,
           };
         }
 
-        const totalWeight = subItems.reduce((acc, it) => acc + (Number(it.weight) || 1), 0);
-        let weightedSum = 0;
-        let validCount = 0;
-
+        const studentScoresMap = new Map<string, number | null>();
         subItems.forEach(item => {
           const sc = scores.find(s => s.studentId === enr.studentId && s.assessmentItemId === item.id);
-          if (sc && typeof sc.score === 'number') {
-            const weight = Number(item.weight) || 1;
-            weightedSum += sc.score * weight;
-            validCount++;
-          }
+          const scoreVal = sc && typeof sc.score === 'number' ? sc.score : null;
+          studentScoresMap.set(item.id, scoreVal);
         });
 
-        const finalScore = validCount > 0 && totalWeight > 0 
-          ? Math.round((weightedSum / totalWeight) * 10) / 10 
-          : null;
+        const result = calculateFinalScore(
+          subItems,
+          undefined,
+          studentScoresMap,
+          'WEIGHTED_AVERAGE',
+          'IGNORE'
+        );
 
         return {
           subjectId: sub.id,
           subjectName: sub.name,
           subjectCode: sub.code,
-          score: finalScore,
+          score: result.finalScore,
           kkm: DEFAULT_KKM,
+          isIncomplete: result.isIncomplete,
         };
       });
 
@@ -304,6 +305,8 @@ ${showRank && data.rank ? `🏆 *PERINGKAT KELAS*: Ke-${data.rank} dari ${data.t
 
 📝 *CATATAN WALI KELAS*:
 ${data.notes.length > 0 ? data.notes.slice(0, 2).map(n => `- ${n.note || (n as any).content}`).join('\n') : '- Ananda menunjukkan perkembangan dan kepribadian yang baik selama proses pembelajaran.'}
+
+_Catatan: Dokumen ini merupakan draf referensi DADU. Nilai resmi mengikuti RDM._
 
 Demikian laporan ini kami sampaikan. Terima kasih atas kerja sama dan bimbingan Bapak/Ibu di rumah.
 

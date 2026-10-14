@@ -12,6 +12,7 @@ export interface SubjectScoreItem {
   subjectCode?: string;
   score: number | null;
   kkm: number;
+  isIncomplete?: boolean;
 }
 
 export interface StudentRaporData {
@@ -149,6 +150,11 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
         <h1 className="text-sm sm:text-base font-black uppercase tracking-tight text-slate-950 underline decoration-2 underline-offset-4">
           {docTitle}
         </h1>
+        <div className="my-1.5">
+          <span className="inline-block text-[10px] text-amber-900 bg-amber-50 border border-amber-300 px-3 py-0.5 rounded-full font-semibold">
+            DRAF REFERENSI DADU — Nilai resmi mengikuti RDM.
+          </span>
+        </div>
         <p className="text-[11px] text-slate-600 mt-1">
           Tahun Ajaran: <strong className="text-slate-900">{academicYearLabel}</strong> — Semester: <strong className="text-slate-900">{semester === 'GANJIL' ? 'Ganjil (1)' : 'Genap (2)'}</strong>
         </p>
@@ -241,7 +247,7 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
                       {score !== null ? (
                         <span>
                           <strong className={isPassed ? 'text-emerald-700' : 'text-rose-700'}>
-                            {isPassed ? 'Tuntas' : 'Perlu Bimbingan'}
+                            {item.isIncomplete ? (isPassed ? 'Sementara Tuntas' : 'Sementara Bimbingan') : (isPassed ? 'Tuntas' : 'Perlu Bimbingan')}
                           </strong>{' '}
                           — {scale?.description}
                         </span>
@@ -266,7 +272,9 @@ export const StudentRaporSheet: React.FC<StudentRaporSheetProps> = ({
                 {averageScore > 0 ? getGradeScale(averageScore, DEFAULT_KKM).predicate : '-'}
               </td>
               <td className="border border-slate-900 px-3 py-1.5 text-[11px] text-slate-700">
-                {averageScore >= DEFAULT_KKM ? 'Memenuhi kriteria ketuntasan kelulusan rombel' : 'Memerlukan remedial bimbingan'}
+                {averageScore > 0
+                  ? (averageScore >= DEFAULT_KKM ? 'Memenuhi kriteria ketuntasan kelulusan rombel (referensi)' : 'Memerlukan remedial bimbingan (referensi)')
+                  : 'Belum ada rata-rata nilai'}
               </td>
             </tr>
           </tfoot>

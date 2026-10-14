@@ -7,6 +7,7 @@ import { useApplication } from '../../application/ApplicationContext';
 
 import { TeachingAssignment, AssessmentItem, Score, Enrollment } from '../../types';
 import { DEFAULT_KKM, getGradeScale } from '../../constants/grading';
+import { calculateFinalScore } from '../../domain/grading/grading.service';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { Medal, MagnifyingGlass, Funnel, TrendUp, CheckCircle, WarningCircle, FileCsv, ChartBar, Percent, Sliders } from '@phosphor-icons/react';
 
@@ -19,9 +20,12 @@ interface StudentGradeRow {
   name: string;
   gender: 'L' | 'P';
   scores: Record<string, number | null>; // assessmentItemId -> score
-  finalScore: number;
-  predicate: 'A' | 'B' | 'C' | 'D';
+  finalScore: number | null;
+  predicate: string;
   isPassed: boolean;
+  filledCount: number;
+  totalIncludedCount: number;
+  isIncomplete: boolean;
 }
 
 // In-memory module cache for instant SWR grades report rendering
@@ -119,37 +123,39 @@ export const GradesReportPage: React.FC = () => {
   // Compute Grade Matrix per Student
   const gradeRows = useMemo<StudentGradeRow[]>(() => {
     const includedItems = assessmentItems.filter(it => it.isIncludedInFinalScore !== false);
-    const totalWeight = includedItems.reduce((acc, it) => acc + (Number(it.weight) || 1), 0);
+    const conductedIdSet = new Set(
+      includedItems
+        .filter(item => scores.some(s => s.assessmentItemId === item.id && typeof s.score === 'number'))
+        .map(it => it.id)
+    );
 
     return enrollments.map(enr => {
       const studentScores: Record<string, number | null> = {};
-      let weightedSum = 0;
-      let scoreCount = 0;
-      let simpleSum = 0;
+      const studentScoresMap = new Map<string, number | null>();
 
       assessmentItems.forEach(item => {
         const found = scores.find(s => s.studentId === enr.studentId && s.assessmentItemId === item.id);
         const val = found && typeof found.score === 'number' ? found.score : null;
         studentScores[item.id] = val;
 
-        if (item.isIncludedInFinalScore !== false && val !== null) {
-          const weight = Number(item.weight) || 1;
-          weightedSum += val * weight;
-          simpleSum += val;
-          scoreCount++;
+        if (item.isIncludedInFinalScore !== false) {
+          studentScoresMap.set(item.id, val);
         }
       });
 
-      let finalScore = 0;
-      if (calcFormula === 'WEIGHTED' && totalWeight > 0) {
-        finalScore = Math.round((weightedSum / totalWeight) * 10) / 10;
-      } else if (scoreCount > 0) {
-        finalScore = Math.round((simpleSum / scoreCount) * 10) / 10;
-      }
+      const method = calcFormula === 'WEIGHTED' ? 'WEIGHTED_AVERAGE' : 'SIMPLE_AVERAGE';
+      const result = calculateFinalScore(
+        includedItems,
+        conductedIdSet,
+        studentScoresMap,
+        method,
+        'IGNORE'
+      );
 
-      const scale = getGradeScale(finalScore, kkmThreshold);
-      const predicate = scale.predicate;
-      const isPassed = finalScore >= kkmThreshold;
+      const finalScore = result.finalScore;
+      const scale = finalScore !== null ? getGradeScale(finalScore, kkmThreshold) : null;
+      const predicate = scale ? scale.predicate : '-';
+      const isPassed = finalScore !== null && finalScore >= kkmThreshold && !result.isIncomplete;
 
       return {
         enrollmentId: enr.id,
@@ -163,6 +169,9 @@ export const GradesReportPage: React.FC = () => {
         finalScore,
         predicate,
         isPassed,
+        filledCount: result.filledCount,
+        totalIncludedCount: includedItems.length,
+        isIncomplete: result.isIncomplete,
       };
     });
   }, [enrollments, assessmentItems, scores, calcFormula, kkmThreshold]);
@@ -180,19 +189,21 @@ export const GradesReportPage: React.FC = () => {
 
   // Statistical Overview
   const stats = useMemo(() => {
-    if (gradeRows.length === 0) {
-      return { avgScore: 0, highest: 0, lowest: 0, passedCount: 0, remedialCount: 0, passRate: 0 };
+    const validRows = gradeRows.filter(r => r.finalScore !== null && typeof r.finalScore === 'number');
+    if (validRows.length === 0) {
+      return { avgScore: 0, highest: 0, lowest: 0, passedCount: 0, remedialCount: 0, passRate: 0, incompleteCount: 0 };
     }
-    const scoresArr = gradeRows.map(r => r.finalScore);
+    const scoresArr = validRows.map(r => r.finalScore as number);
     const sum = scoresArr.reduce((a, b) => a + b, 0);
     const avgScore = Math.round((sum / scoresArr.length) * 10) / 10;
     const highest = Math.max(...scoresArr);
     const lowest = Math.min(...scoresArr);
-    const passedCount = gradeRows.filter(r => r.isPassed).length;
-    const remedialCount = gradeRows.length - passedCount;
-    const passRate = Math.round((passedCount / gradeRows.length) * 100);
+    const passedCount = validRows.filter(r => r.isPassed).length;
+    const remedialCount = validRows.length - passedCount;
+    const passRate = Math.round((passedCount / validRows.length) * 100);
+    const incompleteCount = validRows.filter(r => r.isIncomplete).length;
 
-    return { avgScore, highest, lowest, passedCount, remedialCount, passRate };
+    return { avgScore, highest, lowest, passedCount, remedialCount, passRate, incompleteCount };
   }, [gradeRows]);
 
   // Handle Export Excel
@@ -244,9 +255,17 @@ export const GradesReportPage: React.FC = () => {
         rowData.push(val !== null && val !== undefined ? val : '');
       });
 
-      rowData.push(r.finalScore);
-      rowData.push(r.predicate);
-      rowData.push(r.isPassed ? 'TUNTAS' : 'REMEDIAL');
+      const finalScoreCell = r.finalScore !== null ? r.finalScore : '';
+      const predicateCell = r.finalScore !== null ? r.predicate : '-';
+      const statusCell = r.finalScore === null
+        ? 'BELUM ADA NILAI'
+        : r.isIncomplete
+        ? (r.finalScore >= kkmThreshold ? 'SEMENTARA TUNTAS' : 'SEMENTARA REMEDIAL')
+        : (r.isPassed ? 'TUNTAS' : 'REMEDIAL');
+
+      rowData.push(finalScoreCell);
+      rowData.push(predicateCell);
+      rowData.push(statusCell);
 
       sheetData.push(rowData);
     });
@@ -264,6 +283,7 @@ export const GradesReportPage: React.FC = () => {
     { label: 'Kelas / Rombel', value: selectedAssignment?.className || '-' },
     { label: 'Mata Pelajaran', value: selectedAssignment?.subjectName || '-' },
     { label: 'Batas KKTP / KKM', value: `${kkmThreshold}` },
+    { label: 'Status Dokumen', value: 'DRAF REFERENSI DADU — Nilai resmi mengikuti RDM' },
   ];
 
   return (
@@ -432,7 +452,7 @@ export const GradesReportPage: React.FC = () => {
 
               <tbody className="divide-y divide-slate-300">
                 {filteredRows.map((r, idx) => {
-                  const isUnderKkm = r.finalScore < kkmThreshold;
+                  const isUnderKkm = r.finalScore !== null && r.finalScore < kkmThreshold;
                   return (
                     <tr 
                       key={r.enrollmentId} 
@@ -468,20 +488,26 @@ export const GradesReportPage: React.FC = () => {
 
                       {/* Final Score */}
                       <td className={`border border-slate-900 px-2 py-1.5 text-center font-mono font-black ${
-                        isUnderKkm ? 'text-rose-800 bg-rose-100/60' : 'text-indigo-950 bg-indigo-50/50'
+                        r.finalScore === null ? 'text-slate-400 bg-slate-50/50' : isUnderKkm ? 'text-rose-800 bg-rose-100/60' : 'text-indigo-950 bg-indigo-50/50'
                       }`}>
-                        {r.finalScore}
+                        {r.finalScore !== null ? r.finalScore : '-'}
                       </td>
 
                       {/* Predicate */}
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono font-bold">
-                        {r.predicate}
+                        {r.finalScore !== null ? r.predicate : '-'}
                       </td>
 
                       {/* Passing Status */}
                       <td className="border border-slate-900 px-3 py-1.5 text-[11px] font-semibold">
-                        {r.isPassed ? (
-                          <span className="text-emerald-700">TUNTAS</span>
+                        {r.finalScore === null ? (
+                          <span className="text-slate-400 italic">Belum ada nilai</span>
+                        ) : r.isIncomplete ? (
+                          <span className="text-amber-700 font-medium">
+                            Sementara {r.finalScore >= kkmThreshold ? 'Tuntas' : 'Remedial'} ({r.filledCount}/{r.totalIncludedCount})
+                          </span>
+                        ) : r.isPassed ? (
+                          <span className="text-emerald-700 font-bold">TUNTAS</span>
                         ) : (
                           <span className="text-rose-700 font-bold">REMEDIAL</span>
                         )}

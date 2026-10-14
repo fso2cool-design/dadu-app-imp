@@ -19,7 +19,7 @@ import {
   CalculationMethod 
 } from '../../types';
 import { DEFAULT_KKM } from '../../constants/grading';
-import { calculateFinalScore, getGradeScale } from '../../domain/grading/grading.service';
+import { calculateFinalScore, getGradeScale, MissingScoreTreatment } from '../../domain/grading/grading.service';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
@@ -110,23 +110,25 @@ const GradeRow = React.memo(({
       })}
       <td className="border-r border-slate-100 dark:border-[var(--ds-border)]"></td>
       <td className="px-3 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] font-mono font-bold text-sm bg-[var(--ds-accent-soft)]/40">
-        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--ds-accent)] font-bold'}>
-          {calc?.finalScore || 0}
+        <span className={isBelowPassing ? 'text-rose-600 dark:text-rose-400' : calc && calc.finalScore !== null ? 'text-[var(--ds-accent)] font-bold' : 'text-slate-400 dark:text-slate-500'}>
+          {calc && calc.finalScore !== null && calc.filledCount > 0 ? calc.finalScore : '-'}
         </span>
       </td>
       <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/40">
         <span
           className={`inline-block w-6 py-0.5 rounded-md font-bold text-xs font-mono ${
-            calc?.predicate === 'A'
-              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/40'
-              : calc?.predicate === 'B'
-              ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-300/40'
-              : calc?.predicate === 'C'
-              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/40'
-              : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300/40'
+            calc && calc.filledCount > 0 && calc.finalScore !== null
+              ? calc.predicate === 'A'
+                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300/40'
+                : calc.predicate === 'B'
+                ? 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-300/40'
+                : calc.predicate === 'C'
+                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/40'
+                : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300/40'
+              : 'text-slate-400 dark:text-slate-500'
           }`}
         >
-          {calc?.predicate || 'D'}
+          {calc && calc.filledCount > 0 && calc.finalScore !== null ? calc.predicate : '-'}
         </span>
       </td>
       <td className="px-3 py-2 text-center bg-[var(--ds-accent-soft)]/40">
@@ -201,7 +203,7 @@ export const GradesPage: React.FC = () => {
   // Preferences / Formulas
   const [calculationMethod, setCalculationMethod] = useState<CalculationMethod>('WEIGHTED_AVERAGE');
   const [passingGrade, setPassingGrade] = useState<number>(DEFAULT_KKM); // KKM / KKTP
-  const [missingScoreTreatment, setMissingScoreTreatment] = useState<'PRO_RATA' | 'ZERO_PENALTY'>('PRO_RATA');
+  const missingScoreTreatment: MissingScoreTreatment = 'PRO_RATA';
 
   // Archive check
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived || selectedAssignment?.isArchived);
@@ -526,8 +528,8 @@ export const GradesPage: React.FC = () => {
   // Calculate final grade for each student using domain grading service
   const studentCalculations = useMemo(() => {
     const calcs: Record<string, {
-      finalScore: number;
-      predicate: 'A' | 'B' | 'C' | 'D';
+      finalScore: number | null;
+      predicate: 'A' | 'B' | 'C' | 'D' | '-';
       predicateLabel: string;
       isPassed: boolean;
       filledCount: number;
@@ -558,13 +560,13 @@ export const GradesPage: React.FC = () => {
         missingScoreTreatment
       );
 
-      const scale = getGradeScale(result.finalScore, passingGrade);
+      const scale = result.finalScore !== null ? getGradeScale(result.finalScore, passingGrade) : null;
 
       calcs[enr.studentId] = {
         finalScore: result.finalScore,
-        predicate: scale.predicate,
-        predicateLabel: scale.label,
-        isPassed: result.finalScore >= passingGrade && result.filledCount > 0 && !result.isIncomplete,
+        predicate: scale ? scale.predicate : '-',
+        predicateLabel: scale ? scale.label : 'Belum Ada Nilai',
+        isPassed: result.finalScore !== null && result.finalScore >= passingGrade && result.filledCount > 0 && !result.isIncomplete,
         filledCount: result.filledCount,
         conductedFilledCount: result.conductedFilledCount,
         conductedTotalCount: result.conductedTotalCount,
@@ -601,16 +603,16 @@ export const GradesPage: React.FC = () => {
 
     activeEnrollments.forEach(enr => {
       const c = studentCalculations[enr.studentId];
-      if (c && c.filledCount > 0) {
+      if (c && c.finalScore !== null && c.filledCount > 0) {
         sum += c.finalScore;
         activeWithScores++;
         if (c.finalScore > highest) highest = c.finalScore;
         if (c.finalScore < lowest) lowest = c.finalScore;
         if (c.isPassed) passedCount++;
         if (c.isIncomplete) incompleteCount++;
-        distribution[c.predicate]++;
-      } else if (c) {
-        distribution.D++;
+        if (c.predicate in distribution) {
+          distribution[c.predicate as keyof typeof distribution]++;
+        }
       }
     });
 
@@ -622,7 +624,7 @@ export const GradesPage: React.FC = () => {
       highestScore: activeWithScores > 0 ? highest : 0,
       lowestScore: activeWithScores > 0 ? lowest : 0,
       passedCount,
-      remedialCount: totalStudents - passedCount,
+      remedialCount: activeWithScores - passedCount,
       incompleteCount,
       passPercentage,
       distribution,
@@ -660,10 +662,20 @@ export const GradesPage: React.FC = () => {
         return (a.student?.fullName || '').localeCompare(b.student?.fullName || '');
       }
       if (sortBy === 'FINAL_DESC') {
-        return (studentCalculations[b.studentId]?.finalScore || 0) - (studentCalculations[a.studentId]?.finalScore || 0);
+        const scoreB = studentCalculations[b.studentId]?.finalScore;
+        const scoreA = studentCalculations[a.studentId]?.finalScore;
+        if (scoreB == null && scoreA == null) return 0;
+        if (scoreB == null) return 1;
+        if (scoreA == null) return -1;
+        return scoreB - scoreA;
       }
       if (sortBy === 'FINAL_ASC') {
-        return (studentCalculations[a.studentId]?.finalScore || 0) - (studentCalculations[b.studentId]?.finalScore || 0);
+        const scoreA = studentCalculations[a.studentId]?.finalScore;
+        const scoreB = studentCalculations[b.studentId]?.finalScore;
+        if (scoreA == null && scoreB == null) return 0;
+        if (scoreA == null) return 1;
+        if (scoreB == null) return -1;
+        return scoreA - scoreB;
       }
       return 0;
     });
@@ -707,9 +719,11 @@ export const GradesPage: React.FC = () => {
         enr.student?.fullName || '',
         enr.student?.gender || '',
         ...itemScores,
-        calc?.finalScore ?? 0,
-        calc?.predicate ?? 'D',
-        calc?.isPassed ? 'TUNTAS' : 'REMEDIAL'
+        calc?.finalScore !== null && (calc?.filledCount ?? 0) > 0 ? calc.finalScore : '',
+        calc?.finalScore !== null && (calc?.filledCount ?? 0) > 0 ? calc.predicate : '-',
+        calc?.finalScore !== null && (calc?.filledCount ?? 0) > 0
+          ? (calc.isIncomplete ? (calc.isPassed ? 'SEMENTARA TUNTAS' : 'SEMENTARA REMEDIAL') : (calc.isPassed ? 'TUNTAS' : 'REMEDIAL'))
+          : 'BELUM ADA NILAI'
       ];
     });
 
@@ -1025,14 +1039,7 @@ export const GradesPage: React.FC = () => {
             {/* Missing score treatment */}
             <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-[var(--ds-surface)] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] text-xs">
               <span className="text-slate-500 dark:text-slate-400 font-medium">Nilai Kosong:</span>
-              <select
-                value={missingScoreTreatment}
-                onChange={(e) => setMissingScoreTreatment(e.target.value as any)}
-                className="font-semibold text-slate-700 dark:text-slate-300 bg-transparent focus:outline-hidden cursor-pointer"
-              >
-                <option value="PRO_RATA">Abaikan (Pro-rata)</option>
-                <option value="ZERO_PENALTY">Hitung 0</option>
-              </select>
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Abaikan (Pro-rata)</span>
             </div>
 
             {/* KKTP Passing Threshold */}
