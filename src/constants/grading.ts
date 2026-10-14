@@ -3,9 +3,11 @@
  * Single source of truth for evaluation criteria, predicates, and calculation helpers.
  */
 
+import { getGradeScale as getDomainGradeScale, type GradePredicate } from '../domain/grading/grading.service';
+
 export const DEFAULT_KKM = 75;
 
-export type GradePredicate = 'A' | 'B' | 'C' | 'D';
+export type { GradePredicate };
 
 export interface GradeScale {
   predicate: GradePredicate;
@@ -52,20 +54,16 @@ export const GRADE_SCALES: GradeScale[] = [
 ];
 
 /**
- * Get grade scale info based on numeric score and optional custom KKM
- * Dynamic interval according to Kurikulum Merdeka: Interval = (100 - KKM) / 3
+ * Adapter delegating grade classification to pure domain policy while attaching presentation metadata.
  */
 export function getGradeScale(score: number, customKkm: number = DEFAULT_KKM): GradeScale {
-  const rounded = Math.round(score);
-  const kkm = Math.min(Math.max(customKkm, 0), 100);
-  const interval = Math.max(1, (100 - kkm) / 3);
-  const thresholdB = Math.round(kkm + interval);
-  const thresholdA = Math.round(kkm + (2 * interval));
-
-  if (rounded >= thresholdA) return GRADE_SCALES[0];
-  if (rounded >= thresholdB) return GRADE_SCALES[1];
-  if (rounded >= kkm) return GRADE_SCALES[2];
-  return GRADE_SCALES[3];
+  const domainScale = getDomainGradeScale(score, customKkm);
+  const metadata = GRADE_SCALES.find(s => s.predicate === domainScale.predicate) ?? GRADE_SCALES[3];
+  return {
+    ...metadata,
+    predicate: domainScale.predicate,
+    label: domainScale.label,
+  };
 }
 
 /**

@@ -5,6 +5,12 @@ export type AssessmentItemDomain = { id: string; weight?: number; };
 export type ScoreValue = number | undefined | null;
 export type GradePredicate = 'A' | 'B' | 'C' | 'D';
 
+export type GradeScaleDomain = {
+  predicate: GradePredicate;
+  label: string;
+  isPassed: boolean;
+};
+
 export type GradingResult = {
   finalScore: number;
   filledCount: number;
@@ -46,7 +52,7 @@ export function calculateFinalScore(
   return { finalScore, filledCount, conductedFilledCount, conductedTotalCount, isIncomplete };
 }
 
-export function getGradeScale(score: number, passingGrade: number): { predicate: GradePredicate; label: string; isPassed: boolean } {
+export function getGradeScale(score: number, passingGrade: number): GradeScaleDomain {
   const isPassed = score >= passingGrade;
   const safeKkm = Math.min(Math.max(passingGrade, 0), 100);
   const interval = Math.max(1, (100 - safeKkm) / 3);
@@ -56,5 +62,5 @@ export function getGradeScale(score: number, passingGrade: number): { predicate:
   if (score >= thresholdA) return { predicate: 'A', label: 'Sangat Baik', isPassed };
   if (score >= thresholdB) return { predicate: 'B', label: 'Baik', isPassed };
   if (score >= safeKkm) return { predicate: 'C', label: 'Cukup', isPassed };
-  return { predicate: 'D', label: 'Kurang', isPassed };
+  return { predicate: 'D', label: 'Perlu Bimbingan', isPassed };
 }
