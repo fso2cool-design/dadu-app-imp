@@ -13,6 +13,7 @@ import { SkeletonTable } from '../../components/common/Skeleton';
 import { Tooltip } from '../../components/common/Tooltip';
 import { 
   AssessmentItem, 
+  AssessmentCategory,
   Score, 
   Enrollment, 
   TeachingAssignment, 
@@ -171,6 +172,119 @@ const GradeRow = React.memo(({
   }
   return true;
 });
+
+export const ASSESSMENT_CATEGORY_LABELS: Record<AssessmentCategory, string> = {
+  QUIZ: 'Sumatif',
+  MIDTERM: 'STS / PTS',
+  FINAL: 'SAS / PAS',
+  PROJECT: 'Proyek',
+  ASSIGNMENT: 'Tugas / LKPD',
+  PRACTICE: 'Praktik',
+  OTHER: 'Lainnya',
+};
+
+export interface AssessmentColumnHeaderProps {
+  item: AssessmentItem;
+  completion?: {
+    filled: number;
+    total: number;
+    percentage: number;
+    isComplete: boolean;
+  };
+  isArchivedYear?: boolean;
+  isDirty?: boolean;
+  onEdit?: (item: AssessmentItem) => void;
+  onDelete?: (itemId: string, itemName: string) => void;
+}
+
+export const AssessmentColumnHeader: React.FC<AssessmentColumnHeaderProps> = ({
+  item,
+  completion = { filled: 0, total: 0, percentage: 0, isComplete: false },
+  isArchivedYear = false,
+  isDirty = false,
+  onEdit,
+  onDelete,
+}) => {
+  const categoryLabel = ASSESSMENT_CATEGORY_LABELS[item.category] || item.category;
+
+  return (
+    <th
+      data-testid={`assessment-header-${item.id}`}
+      className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[var(--ds-border)] group/col relative"
+    >
+      <div className="flex flex-col items-center justify-center">
+        {/* Primary: Assessment Name */}
+        <span
+          data-testid="assessment-header-name"
+          className="font-bold text-slate-800 dark:text-slate-100 line-clamp-2 text-xs leading-snug break-words text-center"
+          title={item.name}
+        >
+          {item.name}
+        </span>
+
+        {/* Secondary: Category Badge (Indonesian label, muted pill) */}
+        <span
+          data-testid="assessment-header-category"
+          className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--ds-surface-muted)] text-[var(--ds-text-muted)] border border-[var(--ds-border)] mt-1 tracking-tight"
+        >
+          {categoryLabel}
+        </span>
+
+        <div className="flex items-center gap-1 mt-0.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+          <span>Bobot: <strong>{item.weight}%</strong></span>
+          <span>•</span>
+          <span>Max: {item.maxScore}</span>
+        </div>
+
+        {/* Column Completion Micro-Bar (Linear style) */}
+        <div className="w-full mt-1.5 space-y-0.5">
+          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 dark:text-slate-500 px-0.5">
+            <span>{completion.filled}/{completion.total}</span>
+            <span className={completion.isComplete ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
+              {completion.isComplete ? '✓ Lengkap' : `${completion.percentage}%`}
+            </span>
+          </div>
+          <div className="w-full h-1 bg-slate-200/70 dark:bg-[#1c2030] rounded-full overflow-hidden">
+            <div
+              style={{ width: `${completion.percentage}%` }}
+              className={`h-full transition-all duration-300 ${
+                completion.isComplete
+                  ? "bg-emerald-500"
+                  : "bg-emerald-600/70 dark:bg-emerald-500/70"
+              }`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Header quick actions on hover */}
+      {!isArchivedYear && onEdit && onDelete && (
+        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[var(--ds-surface-elevated)]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[var(--ds-border)]">
+          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Edit Kolom"} position="top">
+            <button
+              type="button"
+              onClick={() => onEdit(item)}
+              disabled={isDirty}
+              className={`p-1 rounded ${isDirty ? "text-slate-300 dark:text-slate-600 cursor-not-allowed" : "text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer"}`}
+            >
+              <PencilSimple className="w-3 h-3" />
+            </button>
+          </Tooltip>
+          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Hapus Kolom"} position="top">
+            <button
+              type="button"
+              onClick={() => onDelete(item.id, item.name)}
+              disabled={isDirty}
+              className={`p-1 rounded ${isDirty ? "text-slate-300 dark:text-slate-600 cursor-not-allowed" : "text-slate-400 hover:text-rose-600 cursor-pointer"}`}
+            >
+              <Trash className="w-3 h-3" />
+            </button>
+          </Tooltip>
+        </div>
+      )}
+    </th>
+  );
+};
 
 export const GradesPage: React.FC = () => {
   const { user } = useAuth();
@@ -1264,79 +1378,20 @@ export const GradesPage: React.FC = () => {
                   </th>
 
                   {/* Dynamic Assessment Columns */}
-                  {assessmentItems.map((item) => {
-                    const comp = itemCompletionMap.get(item.id) || { filled: 0, total: 0, percentage: 0, isComplete: false };
-
-                    return (
-                      <th
-                        key={item.id}
-                        className="px-3 py-2 min-w-[130px] max-w-[160px] text-center border-r border-slate-200 dark:border-[var(--ds-border)] group/col relative"
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] uppercase tracking-tight mb-0.5">
-                            {item.category}
-                          </span>
-                          <span className="font-bold text-slate-800 dark:text-slate-100 line-clamp-1 text-xs" title={item.name}>
-                            {item.name}
-                          </span>
-                          <div className="flex items-center gap-1 mt-0.5 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                            <span>Bobot: <strong>{item.weight}%</strong></span>
-                            <span>•</span>
-                            <span>Max: {item.maxScore}</span>
-                          </div>
-
-                          {/* Column Completion Micro-Bar (Linear style) */}
-                          <div className="w-full mt-1.5 space-y-0.5">
-                            <div className="flex items-center justify-between text-[9px] font-mono text-slate-400 dark:text-slate-500 px-0.5">
-                              <span>{comp.filled}/{comp.total}</span>
-                              <span className={comp.isComplete ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
-                                {comp.isComplete ? '✓ Lengkap' : `${comp.percentage}%`}
-                              </span>
-                            </div>
-                            <div className="w-full h-1 bg-slate-200/70 dark:bg-[#1c2030] rounded-full overflow-hidden">
-                              <div
-                                style={{ width: `${comp.percentage}%` }}
-                                className={`h-full transition-all duration-300 ${
-                                  comp.isComplete
-                                    ? 'bg-emerald-500'
-                                    : 'bg-emerald-600/70 dark:bg-emerald-500/70'
-                                }`}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                      {/* Header quick actions on hover */}
-                      {!isArchivedYear && (
-                        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/col:opacity-100 transition-opacity bg-white/90 dark:bg-[var(--ds-surface-elevated)]/90 p-0.5 rounded-md shadow-xs border border-slate-200 dark:border-[var(--ds-border)]">
-                          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Edit Kolom"} position="top">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingItem(item);
-                                setIsItemModalOpen(true);
-                              }}
-                              disabled={isDirty}
-                              className={`p-1 rounded ${isDirty ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer'}`}
-                            >
-                              <PencilSimple className="w-3 h-3" />
-                            </button>
-                          </Tooltip>
-                          <Tooltip content={isDirty ? "Simpan nilai terlebih dahulu" : "Hapus Kolom"} position="top">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteItem(item.id, item.name)}
-                              disabled={isDirty}
-                              className={`p-1 rounded ${isDirty ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed' : 'text-slate-400 hover:text-rose-600 cursor-pointer'}`}
-                            >
-                              <Trash className="w-3 h-3" />
-                            </button>
-                          </Tooltip>
-                        </div>
-                      )}
-                    </th>
-                    );
-                  })}
+                  {assessmentItems.map((item) => (
+                    <AssessmentColumnHeader
+                      key={item.id}
+                      item={item}
+                      completion={itemCompletionMap.get(item.id)}
+                      isArchivedYear={isArchivedYear}
+                      isDirty={isDirty}
+                      onEdit={(it) => {
+                        setEditingItem(it);
+                        setIsItemModalOpen(true);
+                      }}
+                      onDelete={(id, name) => handleDeleteItem(id, name)}
+                    />
+                  ))}
 
                   {/* Empty Add Column Button Header */}
                   <th className="px-3 py-3 w-16 text-center border-r border-slate-200 dark:border-[var(--ds-border)]">
