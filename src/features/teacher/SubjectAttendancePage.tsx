@@ -569,8 +569,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
         // Sync selectedMeetingId from canonical persistent record if available
         const persistentMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
-        const effectiveBaselineMeeting = existingRecords.length > 0 ? persistentMeeting : normalizeMeetingId(selectedMeetingId);
-        initialMeetingIdRef.current = effectiveBaselineMeeting;
+        initialMeetingIdRef.current = persistentMeeting;
 
         if (!selectedMeetingId && persistentMeeting) {
           setSelectedMeetingId(persistentMeeting);
@@ -625,7 +624,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         }
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
-        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: effectiveBaselineMeeting, isNewRecord: existingRecords.length === 0 });
+        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: persistentMeeting, isNewRecord: existingRecords.length === 0 });
 
         // Preserve in-flight user edits if user started editing before background fetch completed
         if (!isRowsDirtyRef.current) {
@@ -634,8 +633,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           isRowsDirtyRef.current = false;
         }
 
-        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || effectiveBaselineMeeting);
-        const isMeetingLinkDirty = targetMeetingNorm !== effectiveBaselineMeeting;
+        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || persistentMeeting);
+        const isMeetingLinkDirty = targetMeetingNorm !== persistentMeeting;
         setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
         setSessionLoaded(true);
       } catch (err) {
@@ -972,7 +971,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       }
       return;
     }
-    if (hasUnsavedChanges) {
+    if (hasUnsavedChanges && isRowsDirtyRef.current) {
       setPendingAction({ type: 'meeting', targetValue: targetMeetingId });
       setIsDirtyModalOpen(true);
       return;

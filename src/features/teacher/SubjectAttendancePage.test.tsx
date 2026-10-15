@@ -1702,4 +1702,134 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
   });
 
+  describe('Regression: Optimistic Concurrency Baseline Isolation', () => {
+    it('Skenario A: saves unlinked attendance with expectedPreviousMeetingId null when new session with initial meeting context is switched to physical book', async () => {
+      const syntheticDate = '2026-10-15';
+      const syntheticMeetingId = 'meet-synthetic-1';
+
+      // 1. Data awal: tidak ada rekaman presensi tersimpan (sesi baru)
+      mockGetByDate.mockResolvedValue([]);
+      mockApp.meetings.getAll.mockResolvedValue([
+        {
+          id: syntheticMeetingId,
+          meetingNumber: 1,
+          topic: 'Topik Sesi Baru',
+          date: syntheticDate,
+          status: 'SCHEDULED',
+        },
+      ]);
+
+      // 2. Buka halaman dengan konteks navigasi yang menyediakan meetingId
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+          meetingId: syntheticMeetingId,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // 3. Pilihan meeting pada UI tampil dari konteks navigasi
+      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+      expect(meetingSelect).toHaveValue(syntheticMeetingId);
+
+      // 4. Pilih opsi Buku Presensi Fisik / Tidak Ditautkan
+      fireEvent.change(meetingSelect, { target: { value: '' } });
+      expect(meetingSelect).toHaveValue('');
+      expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
+
+      // 5. Tetapkan status kehadiran yang diwajibkan oleh form (Semua Hadir)
+      const setAllPresentBtn = screen.getByRole('button', { name: /Semua Hadir/i });
+      fireEvent.click(setAllPresentBtn);
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      expect(saveButton).not.toBeDisabled();
+
+      // 6. Simpan melalui handler UI
+      fireEvent.click(saveButton);
+
+      // 7. Pastikan service penyimpanan menerima meetingId: null dan expectedPreviousMeetingId: null
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+        'teacher-uid',
+        expect.objectContaining({
+          meetingId: null,
+          expectedPreviousMeetingId: null,
+          date: syntheticDate,
+        })
+      );
+
+      // 8. Pastikan penyimpanan berhasil sesuai respons mock
+      await waitFor(() => {
+        expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+      });
+
+      // 9. Pastikan UI tidak menampilkan OPTIMISTIC_CONCURRENCY_ERROR akibat baseline fiktif
+      expect(screen.queryByText(/OPTIMISTIC_CONCURRENCY_ERROR/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Relasi sesi telah berubah oleh pengguna lain/i)).not.toBeInTheDocument();
+    });
+
+    it('Skenario B: UI surfaces real optimistic concurrency conflict when backend rejects relation drift', async () => {
+      const syntheticDate = '2026-10-15';
+      const initialMeetingId = 'meet-persisted-1';
+
+      // Sesi sudah tersimpan dengan relasi meeting sebelumnya di DB
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: initialMeetingId, date: syntheticDate },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: initialMeetingId, date: syntheticDate },
+      ]);
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: initialMeetingId, meetingNumber: 1, topic: 'Pertemuan Pertama', date: syntheticDate, status: 'SCHEDULED' },
+        { id: 'meet-concurrent-2', meetingNumber: 2, topic: 'Pertemuan Kedua', date: syntheticDate, status: 'SCHEDULED' },
+      ]);
+
+      // Service menolak dengan OPTIMISTIC_CONCURRENCY_ERROR karena data diubah oleh perangkat lain
+      mockSaveSubjectAttendance.mockRejectedValueOnce(
+        new Error('OPTIMISTIC_CONCURRENCY_ERROR: Relasi sesi telah berubah oleh pengguna lain (sebelumnya meet-persisted-1, sekarang meet-concurrent-2). Harap muat ulang.')
+      );
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Dropdown awalnya terisi relasi persisten yang tersimpan
+      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+      expect(meetingSelect).toHaveValue(initialMeetingId);
+
+      // Guru mencoba mengubah relasi ke Buku Fisik
+      fireEvent.change(meetingSelect, { target: { value: '' } });
+      expect(meetingSelect).toHaveValue('');
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      fireEvent.click(saveButton);
+
+      // Service menerima baseline persisten yang dicatat UI
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
+      });
+      expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+        'teacher-uid',
+        expect.objectContaining({
+          meetingId: null,
+          expectedPreviousMeetingId: initialMeetingId,
+          date: syntheticDate,
+        })
+      );
+
+      // UI menampilkan banner error konflik konkurensi nyata
+      await waitFor(() => {
+        expect(screen.getByText(/OPTIMISTIC_CONCURRENCY_ERROR/i)).toBeInTheDocument();
+      });
+    });
+  });
+
 });
