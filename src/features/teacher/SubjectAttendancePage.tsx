@@ -333,6 +333,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const initialRowsRef = useRef<string>('[]');
   const isRowsDirtyRef = useRef(false);
   const initialMeetingIdRef = useRef<string | null>(null);
+  const persistentMeetingRef = useRef<string | null>(null);
   const [isDirty, _setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
   const setIsDirty = (val: boolean) => {
@@ -520,6 +521,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         isRowsDirtyRef.current = false;
 
         if (!cachedSession.isNewRecord) {
+          persistentMeetingRef.current = cachedSession.linkedMeetingId;
+          initialMeetingIdRef.current = cachedSession.linkedMeetingId;
           setSelectedMeetingId(cachedSession.linkedMeetingId || '');
           setIsDirty(false);
         } else {
@@ -528,10 +531,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
             (!navContext.date || navContext.date === selectedDate)
           );
-          const effectiveMeeting = isMatchingNavContext ? (navContext.meetingId || '') : '';
-          setSelectedMeetingId(effectiveMeeting);
-          const isMeetingLinkDirty = normalizeMeetingId(effectiveMeeting) !== normalizeMeetingId(cachedSession.linkedMeetingId);
-          setIsDirty(isMeetingLinkDirty);
+          const baselineMeeting = isMatchingNavContext
+            ? normalizeMeetingId(navContext.meetingId)
+            : normalizeMeetingId(cachedSession.linkedMeetingId);
+          persistentMeetingRef.current = null;
+          initialMeetingIdRef.current = baselineMeeting;
+          setSelectedMeetingId(baselineMeeting || '');
+          setIsDirty(false);
         }
 
         setIsNewRecord(cachedSession.isNewRecord);
@@ -594,12 +600,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         const recordMap = new Map<string, AttendanceRecord>();
         existingRecords.forEach(r => recordMap.set(r.studentId, r));
 
-        // Sync selectedMeetingId from canonical persistent record if available
+        // Sync selectedMeetingId and baseline from canonical persistent record if available
         const persistentMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
-        initialMeetingIdRef.current = persistentMeeting;
+        persistentMeetingRef.current = persistentMeeting;
 
+        let baselineMeeting: string | null = null;
         if (existingRecords.length > 0) {
           // Kondisi 2 & 3: Rekaman persisten adalah Single Source of Truth
+          baselineMeeting = persistentMeeting;
           setSelectedMeetingId(persistentMeeting || '');
         } else {
           // Kondisi 1: Sesi belum memiliki rekaman persisten
@@ -609,11 +617,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             (!navContext.date || navContext.date === selectedDate)
           );
           if (isMatchingNavContext) {
+            baselineMeeting = normalizeMeetingId(navContext.meetingId);
             setSelectedMeetingId(navContext.meetingId || '');
           } else {
+            baselineMeeting = null;
             setSelectedMeetingId('');
           }
         }
+        initialMeetingIdRef.current = baselineMeeting;
 
         const activeEnrollments = enrollments.filter(en => en.status === 'ACTIVE' && en.student);
         const activeStudentIds = new Set(activeEnrollments.map(en => en.student!.id));
@@ -664,7 +675,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         }
 
         rows.sort((a, b) => a.rollNumber - b.rollNumber);
-        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: persistentMeeting, isNewRecord: existingRecords.length === 0 });
+        subjectAttendanceCache.set(sessionCacheKey, { rows, linkedMeetingId: baselineMeeting, isNewRecord: existingRecords.length === 0 });
 
         // Preserve in-flight user edits if user started editing before background fetch completed
         if (!isRowsDirtyRef.current) {
@@ -673,16 +684,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           isRowsDirtyRef.current = false;
         }
 
-        const effectiveMeeting = existingRecords.length > 0
-          ? persistentMeeting
-          : (Boolean(
-              navContext?.meetingId &&
-              (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
-              (!navContext.date || navContext.date === selectedDate)
-            ) ? normalizeMeetingId(navContext.meetingId) : null);
-
+        const effectiveMeeting = baselineMeeting;
         const targetMeetingNorm = effectiveMeeting;
-        const isMeetingLinkDirty = targetMeetingNorm !== persistentMeeting;
+        const isMeetingLinkDirty = targetMeetingNorm !== baselineMeeting;
         setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
         setSessionLoaded(true);
       } catch (err) {
@@ -902,7 +906,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       });
 
       const targetMeetingId = normalizeMeetingId(selectedMeetingId);
-      const expectedPrev = normalizeMeetingId(initialMeetingIdRef.current);
+      const expectedPrev = normalizeMeetingId(persistentMeetingRef.current);
 
       if (targetMeetingId) {
         const targetMeeting = meetings.find(m => m.id === targetMeetingId);
@@ -970,6 +974,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       invalidateMeetingsJournalCache();
 
       initialRowsRef.current = JSON.stringify(studentRows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
+      persistentMeetingRef.current = targetMeetingId;
       initialMeetingIdRef.current = targetMeetingId;
       setSelectedMeetingId(targetMeetingId || '');
       isRowsDirtyRef.current = false;

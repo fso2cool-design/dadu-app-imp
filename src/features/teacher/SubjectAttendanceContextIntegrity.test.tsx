@@ -245,13 +245,46 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       expect(meetingSelect).toHaveValue('mtg-asg1-1');
     });
 
-    // Switch to asg-2
+    // 1. Verify clean initial state: new session with matching navContext must NOT be dirty
+    expect(screen.queryByText(/Perubahan belum disimpan/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    // 2. Switch to asg-2 while clean: must proceed immediately without opening unsaved-changes dialog
     fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
 
     await waitFor(() => {
       expect(assignmentSelect).toHaveValue('asg-2');
       expect(meetingSelect).toHaveValue('');
     });
+
+    // 3. Verify dialog remained closed and stale meeting from previous assignment was cleared
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Perubahan belum disimpan/i)).not.toBeInTheDocument();
+  });
+
+  it('Req 8b: Manual meeting-link change after clean navContext initialization is recognized as dirty', async () => {
+    renderPage({ assignmentId: 'asg-1', meetingId: 'mtg-asg1-1' });
+
+    const assignmentSelect = await getAssignmentSelect();
+    const meetingSelect = await getMeetingSelect();
+
+    await waitFor(() => {
+      expect(meetingSelect).toHaveValue('mtg-asg1-1');
+    });
+    expect(screen.queryByText(/Perubahan belum disimpan/i)).not.toBeInTheDocument();
+
+    // Manually uncheck/change meeting link to unlinked ("")
+    fireEvent.change(meetingSelect, { target: { value: '' } });
+
+    // Now it should be recognized as dirty!
+    expect(screen.getByText(/Perubahan belum disimpan/i)).toBeInTheDocument();
+
+    // Attempting to switch assignment now triggers unsaved changes modal
+    fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+    const modal = await screen.findByRole('dialog');
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByText(/Presensi Siswa Belum Disimpan/i)).toBeInTheDocument();
   });
 
   it('Req 9: Workspace context and visible assignment remain synchronized after manual switch', async () => {
