@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+﻿import React, { createRef } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react';
 import { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -113,6 +113,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
         holidays: [],
       },
       updateAttendanceSettings: vi.fn(),
+      setSelectedAssignment: vi.fn(),
     } as any);
   });
 
@@ -1829,6 +1830,238 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       await waitFor(() => {
         expect(screen.getByText(/OPTIMISTIC_CONCURRENCY_ERROR/i)).toBeInTheDocument();
       });
+    });
+
+    it('Test B: persistent unlinked attendance overrides stale router meetingId and remains unlinked and clean on reload', async () => {
+      const syntheticDate = '2026-10-15';
+      const staleNavMeetingId = 'meet-stale-nav-1';
+
+      // 1. Database memiliki rekaman persisten dengan meetingId: null (Buku Fisik)
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: syntheticDate },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: null, date: syntheticDate },
+      ]);
+      mockApp.meetings.getAll.mockResolvedValue([
+        {
+          id: staleNavMeetingId,
+          meetingNumber: 1,
+          topic: 'Topik Jurnal Lama',
+          date: syntheticDate,
+          status: 'SCHEDULED',
+        },
+      ]);
+
+      // 2. Buka halaman seolah di-reload dengan location.state / initialContext membawa meetingId lama
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+          meetingId: staleNavMeetingId,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // 3. Dropdown harus menampilkan Buku Presensi Fisik / Tidak Ditautkan (persisten menang atas router)
+      const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
+      expect(meetingSelect).toHaveValue('');
+
+      // 4. Halaman TIDAK boleh ditandai dirty hanya karena router context membawa ID lama
+      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+
+      // 5. Pastikan service penyimpanan tidak dipanggil secara otomatis
+      expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+    });
+
+    it('Test C: persistent linked attendance to meeting B overrides different router meetingId A', async () => {
+      const syntheticDate = '2026-10-15';
+      const routerMeetingId = 'meet-A';
+      const persistentMeetingId = 'meet-B';
+
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: persistentMeetingId, date: syntheticDate },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: persistentMeetingId, date: syntheticDate },
+      ]);
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: routerMeetingId, meetingNumber: 1, topic: 'Pertemuan A', date: syntheticDate, status: 'SCHEDULED' },
+        { id: persistentMeetingId, meetingNumber: 2, topic: 'Pertemuan B', date: syntheticDate, status: 'SCHEDULED' },
+      ]);
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+          meetingId: routerMeetingId,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Dropdown akhirnya menunjukkan meeting persisten (meet-B), bukan router (meet-A)
+      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-2');
+      expect(meetingSelect).toHaveValue(persistentMeetingId);
+
+      // Halaman tidak boleh dirty hanya karena router context berbeda dari DB
+      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+      expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+    });
+
+    it('Test D: date change resets link state to persistent record of new date or unlinked default', async () => {
+      const initialDate = '2026-10-10';
+      const newDate = '2026-10-20';
+      const initialMeetingId = 'meet-initial-1';
+      const newMeetingId = 'meet-new-2';
+
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: initialMeetingId, meetingNumber: 1, topic: 'Pertemuan 1', date: initialDate, status: 'SCHEDULED' },
+        { id: newMeetingId, meetingNumber: 2, topic: 'Pertemuan 2', date: newDate, status: 'SCHEDULED' },
+      ]);
+
+      // Sesi 10 Oktober tertaut ke meet-initial-1
+      mockGetByDate.mockImplementation(async (_uid, _assignId, date) => {
+        if (date === initialDate) {
+          return [
+            { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: initialMeetingId, date: initialDate },
+          ];
+        }
+        // Sesi 20 Oktober belum memiliki rekaman (kosong)
+        return [];
+      });
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: initialDate,
+          meetingId: initialMeetingId,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toHaveValue(initialMeetingId);
+
+      // Ganti tanggal ke 20 Oktober yang belum memiliki rekaman dan tidak cocok dengan router context tanggal awal
+      const dateInput = screen.getByDisplayValue(initialDate);
+      fireEvent.change(dateInput, { target: { value: newDate } });
+
+      await waitFor(() => {
+        // Dropdown harus kembali ke unlinked / tidak ditautkan, tidak mewarisi meet-initial-1
+        expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toHaveValue('');
+      });
+      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+    });
+
+    it('Test D (assignment): assignment change resets link state to persistent record of new assignment or unlinked default', async () => {
+      const syntheticDate = '2026-10-10';
+      const initialMeetingId = 'meet-asg1';
+      const asg2MeetingId = 'meet-asg2';
+
+      vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+        teachingAssignments: [
+          { id: 'asg-1', classId: 'cls-1', className: '7A', subjectId: 'sub-1', subjectName: 'Matematika' },
+          { id: 'asg-2', classId: 'cls-2', className: '7B', subjectId: 'sub-1', subjectName: 'Matematika' },
+        ],
+        activeAcademicYear: { id: 'ay-2025', name: '2025/2026', isArchived: false },
+        activeSemester: 'GANJIL',
+        triggerSyncFeedback: mockTriggerSyncFeedback,
+        checkIsHoliday: vi.fn().mockReturnValue({ isHoliday: false }),
+        attendanceSettings: { schoolDaysOption: 6, holidays: [] },
+        updateAttendanceSettings: vi.fn(),
+      } as any);
+
+      mockApp.meetings.getAll.mockImplementation(async (_uid, opts) => {
+        if (opts.teachingAssignmentId === 'asg-1' || !opts.teachingAssignmentId) {
+          return [{ id: initialMeetingId, meetingNumber: 1, topic: 'Pertemuan Asg 1', date: syntheticDate, status: 'SCHEDULED' }];
+        }
+        return [{ id: asg2MeetingId, meetingNumber: 1, topic: 'Pertemuan Asg 2', date: syntheticDate, status: 'SCHEDULED' }];
+      });
+
+      mockGetByDate.mockImplementation(async (_uid, assignId, date) => {
+        if (assignId === 'asg-1') {
+          return [
+            { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: initialMeetingId, date },
+          ];
+        }
+        return [];
+      });
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+          meetingId: initialMeetingId,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toHaveValue(initialMeetingId);
+
+      const assignmentSelect = screen.getByDisplayValue('Kelas 7A — Matematika');
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toHaveValue('');
+      });
+      expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
+    });
+
+    it('Test E: stale error banner is cleared on subsequent successful save', async () => {
+      const syntheticDate = '2026-10-15';
+      const initialMeetingId = 'meet-persisted-1';
+
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: initialMeetingId, date: syntheticDate },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: initialMeetingId, date: syntheticDate },
+      ]);
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: initialMeetingId, meetingNumber: 1, topic: 'Pertemuan Pertama', date: syntheticDate, status: 'SCHEDULED' },
+      ]);
+
+      // Panggilan 1: Gagal dengan error concurrency
+      mockSaveSubjectAttendance.mockRejectedValueOnce(
+        new Error('OPTIMISTIC_CONCURRENCY_ERROR: Relasi sesi telah berubah oleh pengguna lain. Harap muat ulang.')
+      );
+      // Panggilan 2: Sukses
+      mockSaveSubjectAttendance.mockResolvedValueOnce({
+        present: 1,
+        total: 1,
+        sick: 0,
+        permitted: 0,
+        absent: 0,
+        dispensation: 0,
+      });
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: syntheticDate,
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Ubah status siswa untuk mengaktifkan dirty state
+      const sickButton = screen.getAllByTitle('Sakit (S)')[0];
+      fireEvent.click(sickButton);
+
+      const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
+      expect(saveButton).toBeEnabled();
+
+      // Simpan pertama -> Gagal
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/OPTIMISTIC_CONCURRENCY_ERROR/i)).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Presensi siswa berhasil disimpan ke database!')).not.toBeInTheDocument();
+
+      // Simpan kedua -> Sukses
+      fireEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Presensi siswa berhasil disimpan ke database!')).toBeInTheDocument();
+      });
+      // Banner error lama harus hilang dan tidak ditampilkan bersamaan dengan feedback sukses
+      expect(screen.queryByText(/OPTIMISTIC_CONCURRENCY_ERROR/i)).not.toBeInTheDocument();
     });
   });
 

@@ -1,4 +1,4 @@
-import { useLocation, useBlocker, UNSAFE_DataRouterContext, type Blocker } from 'react-router-dom';
+﻿import { useLocation, useBlocker, UNSAFE_DataRouterContext, type Blocker } from 'react-router-dom';
 import React, { useState, useEffect, useMemo, useRef, useImperativeHandle } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -15,7 +15,7 @@ import { TabNavigation } from '../../components/common/TabNavigation';
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { getTodayISO, formatDateIndonesian } from '../../utils/date';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { CheckSquare, Users, CalendarBlank, Sparkle, FloppyDisk, MagnifyingGlass, Download, Plus, Table, CheckCircle, WarningCircle, Clock, Stack, BookOpen, Link as LinkIcon, Info, ArrowLeft } from '@phosphor-icons/react';
+import { CheckSquare, Users, CalendarBlank, Sparkle, FloppyDisk, MagnifyingGlass, Download, Plus, Table, CheckCircle, WarningCircle, Clock, Stack, BookOpen, Link as LinkIcon, Info, ArrowLeft, X } from '@phosphor-icons/react';
 
 interface StudentRow {
   studentId: string;
@@ -351,6 +351,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const isSavingRef = useRef(false);
   const hasUnsavedChangesRef = useRef(false);
   const initialIsNewRecordRef = useRef(false);
+  const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const handleBlockerBlocked = React.useCallback((b: Blocker) => {
     blockerRef.current = b;
@@ -508,11 +518,24 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         initialMeetingIdRef.current = cachedSession.linkedMeetingId;
         initialRowsRef.current = JSON.stringify(cachedSession.rows.map(r => ({ id: r.studentId, s: r.status, n: r.note })));
         isRowsDirtyRef.current = false;
-        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || cachedSession.linkedMeetingId);
-        const isMeetingLinkDirty = targetMeetingNorm !== normalizeMeetingId(cachedSession.linkedMeetingId);
+
+        if (!cachedSession.isNewRecord) {
+          setSelectedMeetingId(cachedSession.linkedMeetingId || '');
+          setIsDirty(false);
+        } else {
+          const isMatchingNavContext = Boolean(
+            navContext?.meetingId &&
+            (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
+            (!navContext.date || navContext.date === selectedDate)
+          );
+          const effectiveMeeting = isMatchingNavContext ? (navContext.meetingId || '') : '';
+          setSelectedMeetingId(effectiveMeeting);
+          const isMeetingLinkDirty = normalizeMeetingId(effectiveMeeting) !== normalizeMeetingId(cachedSession.linkedMeetingId);
+          setIsDirty(isMeetingLinkDirty);
+        }
+
         setIsNewRecord(cachedSession.isNewRecord);
         initialIsNewRecordRef.current = cachedSession.isNewRecord;
-        setIsDirty(isMeetingLinkDirty);
       }
       setLoadingRows(false);
       setSessionLoaded(true);
@@ -522,6 +545,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       try {
         if (!cachedSession) setLoadingRows(true);
         setSessionLoaded(false);
+        if (feedbackTimeoutRef.current) {
+          clearTimeout(feedbackTimeoutRef.current);
+          feedbackTimeoutRef.current = null;
+        }
         setFeedbackMsg(null);
 
         // Enrolled students in class (using class enrollments cache if available)
@@ -571,8 +598,21 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         const persistentMeeting = existingRecords.length > 0 ? normalizeMeetingId(existingRecords[0].meetingId) : null;
         initialMeetingIdRef.current = persistentMeeting;
 
-        if (!selectedMeetingId && persistentMeeting) {
-          setSelectedMeetingId(persistentMeeting);
+        if (existingRecords.length > 0) {
+          // Kondisi 2 & 3: Rekaman persisten adalah Single Source of Truth
+          setSelectedMeetingId(persistentMeeting || '');
+        } else {
+          // Kondisi 1: Sesi belum memiliki rekaman persisten
+          const isMatchingNavContext = Boolean(
+            navContext?.meetingId &&
+            (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
+            (!navContext.date || navContext.date === selectedDate)
+          );
+          if (isMatchingNavContext) {
+            setSelectedMeetingId(navContext.meetingId || '');
+          } else {
+            setSelectedMeetingId('');
+          }
         }
 
         const activeEnrollments = enrollments.filter(en => en.status === 'ACTIVE' && en.student);
@@ -633,7 +673,15 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           isRowsDirtyRef.current = false;
         }
 
-        const targetMeetingNorm = normalizeMeetingId(selectedMeetingId || persistentMeeting);
+        const effectiveMeeting = existingRecords.length > 0
+          ? persistentMeeting
+          : (Boolean(
+              navContext?.meetingId &&
+              (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
+              (!navContext.date || navContext.date === selectedDate)
+            ) ? normalizeMeetingId(navContext.meetingId) : null);
+
+        const targetMeetingNorm = effectiveMeeting;
         const isMeetingLinkDirty = targetMeetingNorm !== persistentMeeting;
         setIsDirty(isRowsDirtyRef.current || isMeetingLinkDirty);
         setSessionLoaded(true);
@@ -820,6 +868,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     isSavingRef.current = true;
     try {
       setSavingAttendance(true);
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
       setFeedbackMsg(null);
       triggerSyncFeedback('syncing', 'Menyimpan presensi siswa ke cloud...');
 
@@ -926,12 +978,22 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       initialIsNewRecordRef.current = false;
 
       triggerSyncFeedback('saved', 'Presensi siswa berhasil disimpan!');
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
       setFeedbackMsg({ type: 'success', text: 'Presensi siswa berhasil disimpan ke database!' });
-      setTimeout(() => setFeedbackMsg(null), 3500);
+      feedbackTimeoutRef.current = setTimeout(() => {
+        setFeedbackMsg(null);
+        feedbackTimeoutRef.current = null;
+      }, 3500);
       return true;
     } catch (err: any) {
       console.error('Error saving attendance:', err);
       triggerSyncFeedback('synced');
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
       setFeedbackMsg({ type: 'error', text: err.message || 'Gagal menyimpan presensi.' });
       return false;
     } finally {
@@ -949,7 +1011,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       setSelectedAssignmentId(targetAssignmentId);
       setSelectedMeetingId('');
       const found = teachingAssignments.find(t => t.id === targetAssignmentId);
-      if (found) setSelectedAssignment(found);
+      if (found) setSelectedAssignment?.(found);
     }
   };
 
@@ -1030,7 +1092,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setSelectedAssignmentId(nextAssignId);
           setSelectedMeetingId('');
           const found = teachingAssignments.find(t => t.id === nextAssignId);
-          if (found) setSelectedAssignment(found);
+          if (found) setSelectedAssignment?.(found);
         }
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
         else if (pendingAction.type === 'meeting') {
@@ -1087,7 +1149,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         setSelectedAssignmentId(nextAssignId);
         setSelectedMeetingId('');
         const found = teachingAssignments.find(t => t.id === nextAssignId);
-        if (found) setSelectedAssignment(found);
+        if (found) setSelectedAssignment?.(found);
       }
       else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
       else if (pendingAction.type === 'meeting') {
@@ -1560,17 +1622,30 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
           {/* Feedback message */}
           {feedbackMsg && (
-            <div className={`flex items-center gap-2 p-3 rounded-xl border text-xs ${
+            <div className={`flex items-center justify-between gap-2 p-3 rounded-xl border text-xs ${
               feedbackMsg.type === 'success'
                 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300'
                 : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300'
             }`}>
-              {feedbackMsg.type === 'success' ? (
-                <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <WarningCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+              <div className="flex items-center gap-2">
+                {feedbackMsg.type === 'success' ? (
+                  <CheckCircle className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <WarningCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                )}
+                <span>{feedbackMsg.text}</span>
+              </div>
+              {feedbackMsg.type === 'error' && (
+                <button
+                  type="button"
+                  onClick={() => setFeedbackMsg(null)}
+                  className="p-1 text-xs text-rose-700 dark:text-rose-400 hover:text-rose-900 dark:hover:text-rose-200 rounded cursor-pointer transition-colors"
+                  title="Tutup pesan"
+                  aria-label="Tutup pesan"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               )}
-              <span>{feedbackMsg.text}</span>
             </div>
           )}
 
