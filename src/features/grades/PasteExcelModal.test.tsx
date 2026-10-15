@@ -108,4 +108,58 @@ describe('PasteExcelModal component interactions', () => {
     );
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
+
+  it('preserves state during exit animation lifecycle and resets cleanly upon reopening', () => {
+    const { rerender } = render(
+      <PasteExcelModal
+        isOpen={true}
+        onClose={mockOnClose}
+        targetAssessmentItem={mockItems[0]}
+        assessmentItems={mockItems}
+        enrollments={mockEnrollments}
+        onApplyScores={mockOnApplyScores}
+      />
+    );
+
+    // 1. Open modal and enter invalid data to set text and trigger error state
+    const textarea = screen.getByPlaceholderText(/Contoh isi paste 1 kolom/i);
+    fireEvent.change(textarea, { target: { value: '85abc\n90' } });
+
+    expect(textarea).toHaveValue('85abc\n90');
+    expect(screen.getByText(/Validasi Gagal:/i)).toBeInTheDocument();
+
+    // 2. Trigger close (isOpen = false); AnimatePresence retains content during exit transition
+    rerender(
+      <PasteExcelModal
+        isOpen={false}
+        onClose={mockOnClose}
+        targetAssessmentItem={mockItems[0]}
+        assessmentItems={mockItems}
+        enrollments={mockEnrollments}
+        onApplyScores={mockOnApplyScores}
+      />
+    );
+
+    // 3. Verify state is NOT cleared prematurely while closing DOM is still mounted
+    const closingTextarea = screen.queryByPlaceholderText(/Contoh isi paste 1 kolom/i);
+    expect(closingTextarea).toBeInTheDocument();
+    expect(closingTextarea).toHaveValue('85abc\n90');
+    expect(screen.getByText(/Validasi Gagal:/i)).toBeInTheDocument();
+
+    // 4. Reopen modal and verify that input and error state reset completely
+    rerender(
+      <PasteExcelModal
+        isOpen={true}
+        onClose={mockOnClose}
+        targetAssessmentItem={mockItems[0]}
+        assessmentItems={mockItems}
+        enrollments={mockEnrollments}
+        onApplyScores={mockOnApplyScores}
+      />
+    );
+
+    const reopenedTextarea = screen.getByPlaceholderText(/Contoh isi paste 1 kolom/i);
+    expect(reopenedTextarea).toHaveValue('');
+    expect(screen.queryByText(/Validasi Gagal:/i)).not.toBeInTheDocument();
+  });
 });

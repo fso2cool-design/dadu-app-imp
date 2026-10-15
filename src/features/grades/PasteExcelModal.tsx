@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowRight, CheckCircle, FileCsv, Info, WarningCircle } from '@phosphor-icons/react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { AssessmentItem, Enrollment } from '../../types';
-import { FileCsv, CheckCircle, WarningCircle, ArrowRight, Info } from '@phosphor-icons/react';
 import { parsePastedScores } from './pasteExcelParser';
 
 interface PasteExcelModalProps {
@@ -27,6 +27,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
 
   // Sync selected item and clear state when modal opens
   useEffect(() => {
+    if (!isOpen) return;
     if (targetAssessmentItem) {
       setSelectedItemId(targetAssessmentItem.id);
     } else if (assessmentItems.length > 0) {
@@ -48,7 +49,9 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
     }
 
     if (!parseResult.isValid) {
-      setActionError(parseResult.errorMessage || 'Terdapat kesalahan pada format data yang ditempel.');
+      setActionError(
+        parseResult.errorMessage || 'Terdapat kesalahan pada format data yang ditempel.',
+      );
       return;
     }
 
@@ -94,15 +97,21 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
             Aturan Format Paste Nilai:
           </p>
           <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-emerald-800 dark:text-emerald-300">
-            <li>Salin <strong>hanya 1 kolom angka nilai</strong> (tanpa kolom nama atau nomor absen) sesuai urutan siswa di kelas.</li>
-            <li>Nilai valid berada pada rentang <strong>0 hingga 100</strong>. Format desimal titik (87.5) maupun koma (87,5) didukung.</li>
+            <li>
+              Salin <strong>hanya 1 kolom angka nilai</strong> (tanpa kolom nama atau nomor absen)
+              sesuai urutan siswa di kelas.
+            </li>
+            <li>
+              Nilai valid berada pada rentang <strong>0 hingga 100</strong>. Format desimal titik
+              (87.5) maupun koma (87,5) didukung.
+            </li>
             <li>Baris kosong di tengah data akan dilewati tanpa menggeser urutan siswa lainnya.</li>
           </ol>
         </div>
 
         {/* Target assessment selector */}
         <div>
-          <label className="block font-semibold text-[var(--ds-text)] mb-1">
+          <label className="block font-semibold text-(--ds-text) mb-1">
             Pilih Kolom Penilaian Tujuan <span className="text-rose-500">*</span>
           </label>
           <select
@@ -111,7 +120,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
               setSelectedItemId(e.target.value);
               setActionError(null);
             }}
-            className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)] text-[var(--ds-text)] text-xs font-medium bg-[var(--ds-surface)]"
+            className="w-full px-3 py-2 rounded-xl border border-(--ds-border) focus:outline-hidden focus:ring-2 focus:ring-(--ds-accent) text-(--ds-text) text-xs font-medium bg-(--ds-surface)"
           >
             {assessmentItems.map((item) => (
               <option key={item.id} value={item.id}>
@@ -123,7 +132,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
 
         {/* Paste textarea */}
         <div>
-          <label className="block font-semibold text-[var(--ds-text)] mb-1">
+          <label className="block font-semibold text-(--ds-text) mb-1">
             Area Tempel / Paste Text (Ctrl+V)
           </label>
           <textarea
@@ -134,7 +143,7 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
               setActionError(null);
             }}
             placeholder={`Contoh isi paste 1 kolom:\n85\n90\n\n88.5\n95`}
-            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-[var(--ds-border)] focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-accent)] text-[var(--ds-text)] bg-[var(--ds-surface)]"
+            className="w-full px-3 py-2 font-mono text-xs rounded-xl border border-(--ds-border) focus:outline-hidden focus:ring-2 focus:ring-(--ds-accent) text-(--ds-text) bg-(--ds-surface)"
           />
         </div>
 
@@ -142,12 +151,14 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
         {parseResult.rows.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="font-semibold text-[var(--ds-text)]">
+              <span className="font-semibold text-(--ds-text)">
                 Pratinjau Pemetaan ({parseResult.rows.length} baris diproses):
               </span>
-              <span className="text-[11px] text-[var(--ds-text-muted)]">Total {enrollments.length} siswa di kelas</span>
+              <span className="text-[11px] text-(--ds-text-muted)">
+                Total {enrollments.length} siswa di kelas
+              </span>
             </div>
-            <div className="max-h-52 overflow-y-auto rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] p-2 space-y-1">
+            <div className="max-h-52 overflow-y-auto rounded-xl border border-(--ds-border) bg-(--ds-surface-muted) p-2 space-y-1">
               {parseResult.rows.map((item) => (
                 <div
                   key={item.rowIndex}
@@ -155,19 +166,19 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
                     !item.isValid
                       ? 'bg-rose-50/70 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-200'
                       : item.isEmpty
-                      ? 'bg-[var(--ds-surface)] border-[var(--ds-border)] opacity-70'
-                      : 'bg-[var(--ds-surface)] border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)]'
+                        ? 'bg-(--ds-surface) border-(--ds-border) opacity-70'
+                        : 'bg-(--ds-surface) border-[color-mix(in_srgb,var(--ds-border)_50%,transparent)]'
                   }`}
                 >
-                  <span className="text-[var(--ds-text-muted)] truncate max-w-[220px]">
-                    <strong className="text-[var(--ds-text)] mr-1.5">#{item.rowIndex + 1}</strong>
+                  <span className="text-(--ds-text-muted) truncate max-w-55">
+                    <strong className="text-(--ds-text) mr-1.5">#{item.rowIndex + 1}</strong>
                     {item.studentName}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] text-[var(--ds-text-muted)] font-mono max-w-[120px] truncate">
+                    <span className="text-[10px] text-(--ds-text-muted) font-mono max-w-30 truncate">
                       "{item.rawText}"
                     </span>
-                    <ArrowRight className="w-3 h-3 text-[var(--ds-text-muted)] opacity-60" />
+                    <ArrowRight className="w-3 h-3 text-(--ds-text-muted) opacity-60" />
                     {item.isEmpty ? (
                       <span className="font-mono text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                         Kosong (Tidak Diubah)
@@ -189,11 +200,11 @@ export const PasteExcelModal: React.FC<PasteExcelModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--ds-border)]">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-(--ds-border)">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] text-xs font-semibold cursor-pointer"
+            className="px-4 py-2 rounded-xl border border-(--ds-border) text-(--ds-text) hover:bg-(--ds-surface-muted) text-xs font-semibold cursor-pointer"
           >
             Batal
           </button>
