@@ -243,4 +243,97 @@ test.describe('Subject Attendance Consolidation & Meeting Linking (AC-1 to AC-13
     await expect(page.locator('h1:has-text("Agenda & Jurnal Mengajar")')).toBeVisible({ timeout: 15000 });
     await expect(cardB_after.locator('text=Presensi Belum Diisi')).toBeVisible({ timeout: 10000 });
   });
+
+  test('AC-14: Edit saved attendance status, save, hard reload, and verify persisted updated status', async ({ page }) => {
+    test.setTimeout(180000);
+
+    // 1. Generate unique date for this test run so it does not collide with other test dates
+    const dayNumber = String(((Date.now() + 13) % 25) + 1).padStart(2, '0');
+    const testDate = `2026-10-${dayNumber}`;
+
+    // 2. Navigate to Subject Attendance interface
+    await page.goto('/teacher/attendance');
+    await expect(page.locator('h1:has-text("Presensi Siswa Mata Pelajaran")')).toBeVisible({ timeout: 15000 });
+
+    // Select the first assignment and set the date
+    await page.locator('select').first().selectOption({ index: 0 });
+    await page.fill('input[type="date"]', testDate);
+
+    // 3. Wait for roster table to finish loading
+    const rows = page.locator('table tbody tr');
+    await expect(rows.first()).toBeVisible({ timeout: 15000 });
+    const studentCount = await rows.count();
+    expect(studentCount).toBeGreaterThanOrEqual(2);
+
+    // 4. Capture first and second student names
+    const student0Name = (await rows.nth(0).locator('td').nth(1).innerText()).trim();
+    const student1Name = (await rows.nth(1).locator('td').nth(1).innerText()).trim();
+
+    // 5. Establish initial explicit baseline: Set Semua Hadir (H)
+    await page.click('button:has-text("Set Semua Hadir (H)")');
+    await expect(rows.nth(0).locator('button[title="Hadir (H)"]')).toHaveClass(/bg-emerald-600/);
+    await expect(rows.nth(1).locator('button[title="Hadir (H)"]')).toHaveClass(/bg-emerald-600/);
+
+    // 6. Save initial attendance
+    const saveButton = page.locator('button:has-text("Simpan Presensi")');
+    await expect(saveButton).toBeEnabled({ timeout: 5000 });
+    await saveButton.click();
+    await expect(page.locator('text=Presensi siswa berhasil disimpan ke database!')).toBeVisible({ timeout: 10000 });
+
+    // 7. Verify initial data persists across navigation
+    await page.goto('/dashboard');
+    await expect(page.locator('text=Ruang Guru').first()).toBeVisible({ timeout: 10000 });
+
+    await page.goto('/teacher/attendance');
+    await expect(page.locator('h1:has-text("Presensi Siswa Mata Pelajaran")')).toBeVisible({ timeout: 15000 });
+    await page.locator('select').first().selectOption({ index: 0 });
+    await page.fill('input[type="date"]', testDate);
+    await expect(rows.first()).toBeVisible({ timeout: 15000 });
+
+    // Ensure student 0 is PRESENT initially
+    await expect(rows.nth(0).locator('button[title="Hadir (H)"]')).toHaveClass(/bg-emerald-600/);
+    await expect(rows.nth(0).locator('button[title="Sakit (S)"]')).not.toHaveClass(/bg-amber-500/);
+
+    // 8. Modify student 0 status from PRESENT (H) to SICK (S)
+    await rows.nth(0).locator('button[title="Sakit (S)"]').click();
+
+    // Verify dirty indicator appears
+    await expect(page.locator('text=Perubahan belum disimpan')).toBeVisible();
+    await expect(rows.nth(0).locator('button[title="Sakit (S)"]')).toHaveClass(/bg-amber-500/);
+    await expect(rows.nth(0).locator('button[title="Hadir (H)"]')).not.toHaveClass(/bg-emerald-600/);
+
+    // 9. Save the modified status
+    await expect(saveButton).toBeEnabled({ timeout: 5000 });
+    await saveButton.click();
+    await expect(page.locator('text=Presensi siswa berhasil disimpan ke database!')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Perubahan belum disimpan')).toBeHidden();
+
+    // 10. Perform a full browser hard reload (page.reload())
+    await page.reload();
+    await expect(page.locator('h1:has-text("Presensi Siswa Mata Pelajaran")')).toBeVisible({ timeout: 15000 });
+
+    // Re-select assignment and date if not preserved
+    await page.locator('select').first().selectOption({ index: 0 });
+    const dateInput = page.locator('input[type="date"]');
+    if ((await dateInput.inputValue()) !== testDate) {
+      await dateInput.fill(testDate);
+    }
+    await expect(rows.first()).toBeVisible({ timeout: 15000 });
+
+    // 11. Assert that student 0 has the NEW status (SICK/S), NOT the old status (PRESENT/H)
+    const reloadedRow0 = rows.nth(0);
+    await expect(reloadedRow0.locator('td').nth(1)).toContainText(student0Name);
+    await expect(reloadedRow0.locator('button[title="Sakit (S)"]')).toHaveClass(/bg-amber-500/);
+    await expect(reloadedRow0.locator('button[title="Hadir (H)"]')).not.toHaveClass(/bg-emerald-600/);
+
+    // 12. Assert that student 1 is STILL PRESENT (did not change unintentionally)
+    const reloadedRow1 = rows.nth(1);
+    await expect(reloadedRow1.locator('td').nth(1)).toContainText(student1Name);
+    await expect(reloadedRow1.locator('button[title="Hadir (H)"]')).toHaveClass(/bg-emerald-600/);
+    await expect(reloadedRow1.locator('button[title="Sakit (S)"]')).not.toHaveClass(/bg-amber-500/);
+
+    // 13. Verify live summary counters after hard reload reflect the updated status
+    await expect(page.locator('text=Sakit (S)').locator('..').locator('text=1')).toBeVisible();
+    await expect(page.locator('text=Hadir (H)').locator('..').locator(`text=${studentCount - 1}`)).toBeVisible();
+  });
 });

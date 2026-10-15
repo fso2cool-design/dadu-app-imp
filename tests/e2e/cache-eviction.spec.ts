@@ -1,13 +1,24 @@
 import { test, expect } from '@playwright/test';
+import { installNetworkGuard } from './helpers/networkGuard';
 
 test.describe('LRU Cache Eviction Validation', () => {
+  let guard: Awaited<ReturnType<typeof installNetworkGuard>>;
+
   test.beforeEach(async ({ page }) => {
+    test.setTimeout(180000);
     // Suppress changelog popup in browser localStorage
     await page.addInitScript(() => {
       try {
         localStorage.setItem('dadu_seen_changelog_2.4.0-JRA', 'true');
       } catch {}
     });
+    // Install fail-closed local network guard
+    guard = await installNetworkGuard(page);
+  });
+
+  test.afterEach(async () => {
+    // Assert no forbidden external requests occurred
+    guard.assertNoViolations();
   });
 
   test('HomeroomMonthlyAttendancePage cache limits are respected and do not crash', async ({ page }) => {

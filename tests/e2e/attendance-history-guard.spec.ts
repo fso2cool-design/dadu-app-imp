@@ -1,13 +1,24 @@
 import { test, expect } from "@playwright/test";
+import { installNetworkGuard } from "./helpers/networkGuard";
 
 test.describe("Attendance Browser History Guard (Back/Forward Protection)", () => {
+  let guard: Awaited<ReturnType<typeof installNetworkGuard>>;
+
   test.beforeEach(async ({ page }) => {
+    test.setTimeout(180000);
     // Suppress changelog popup in browser localStorage
     await page.addInitScript(() => {
       try {
         localStorage.setItem("dadu_seen_changelog_2.4.0-JRA", "true");
       } catch {}
     });
+    // Install fail-closed local network guard
+    guard = await installNetworkGuard(page);
+  });
+
+  test.afterEach(async () => {
+    // Assert no forbidden external requests occurred
+    guard.assertNoViolations();
   });
 
   test("0. Persiapan data: Tambahkan siswa contoh jika kelas masih kosong", async ({
@@ -96,7 +107,7 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
 
     // Change first student's status to 'A' (Absent)
     await studentRows.first().locator('button:has-text("A")').click();
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
 
     // 3. Trigger browser Back
     await page.goBack();
@@ -126,7 +137,7 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
     const studentRows = page.locator("table tbody tr");
     await expect(studentRows.first()).toBeVisible({ timeout: 10000 });
     await studentRows.first().locator('button:has-text("A")').click();
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
 
     // Trigger browser Back
     await page.goBack();
@@ -143,7 +154,7 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
     // Verification: Modal closed, user remains on attendance page with dirty input intact
     await expect(modal).not.toBeVisible();
     await expect(page).toHaveURL(/\/teacher\/attendance/);
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
   });
 
   test("4. Buang perubahan: Back dilanjutkan tepat satu kali", async ({
@@ -163,7 +174,7 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
     const studentRows = page.locator("table tbody tr");
     await expect(studentRows.first()).toBeVisible({ timeout: 10000 });
     await studentRows.first().locator('button:has-text("A")').click();
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
 
     // Trigger browser Back
     await page.goBack();
@@ -199,7 +210,7 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
     const studentRows = page.locator("table tbody tr");
     await expect(studentRows.first()).toBeVisible({ timeout: 10000 });
     await studentRows.first().locator('button:has-text("A")').click();
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
 
     // Trigger browser Back
     await page.goBack();
@@ -210,17 +221,15 @@ test.describe("Attendance Browser History Guard (Back/Forward Protection)", () =
       modal.locator('h3:has-text("Presensi Siswa Belum Disimpan")'),
     ).toBeVisible({ timeout: 5000 });
 
-    // Intercept/abort Firestore save requests to simulate network failure
-    await page.route("**/firestore.googleapis.com/**", (route) =>
-      route.abort(),
-    );
+    // Intercept/abort local Firestore emulator save requests to simulate network failure
+    await page.route(/.*:8080\/.*/, (route) => route.abort('failed'));
 
     // Click "Simpan Presensi" inside modal
     await modal.locator('button:has-text("Simpan Presensi")').click();
 
     // Verification: Navigation is blocked, stays on /teacher/attendance, input is preserved
     await expect(page).toHaveURL(/\/teacher\/attendance/);
-    await expect(page.locator("text=Draf — belum disimpan")).toBeVisible();
+    await expect(page.locator("text=Perubahan belum disimpan")).toBeVisible();
   });
 
   test("6. Navigasi halaman non-presensi tetap berfungsi", async ({ page }) => {

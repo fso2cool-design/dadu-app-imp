@@ -115,7 +115,10 @@ test.describe('Homeroom Daily Attendance Persistence E2E Verification', () => {
     expect(student2Name).toBeTruthy();
     expect(student1Roll).not.toEqual(student2Roll);
 
-    // 7. Mark the first student as Sakit (S) and the second as Izin (I)
+    // 7. Set all students to Hadir (H) as baseline so every student in the roster has an explicit status
+    await page.click('button:has-text("Set Semua Hadir (H)")');
+
+    // 8. Explicitly customize the first student as Sakit (S) and the second as Izin (I)
     const sickBtn1 = studentRow1.locator('td').nth(4).locator('button').filter({ hasText: 'Sakit' });
     await sickBtn1.click();
     await expect(sickBtn1).toHaveClass(/scale-105|bg-amber-500/);
@@ -124,27 +127,27 @@ test.describe('Homeroom Daily Attendance Persistence E2E Verification', () => {
     await permittedBtn2.click();
     await expect(permittedBtn2).toHaveClass(/scale-105|bg-sky-600/);
 
-    // 8. Save attendance through the real application action
+    // 9. Save attendance through the real application action
     const saveBtn = page.locator('button:has-text("Simpan Presensi")');
     await expect(saveBtn).toBeEnabled({ timeout: 5000 });
     await saveBtn.click();
 
-    // 9. Verify the actual success indication and ensure the application has completed saving
+    // 10. Verify the actual success indication and ensure the application has completed saving
     await expect(page.locator('text=Presensi harian berhasil disimpan').first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('button:has-text("Simpan Presensi")')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Menyimpan...')).toHaveCount(0);
     await expect(page.locator('text=Perubahan belum disimpan')).toHaveCount(0);
 
-    // 10. Assert the two selected statuses before leaving the page
+    // 11. Assert the two selected statuses before leaving the page
     await expect(sickBtn1).toHaveClass(/scale-105|bg-amber-500/);
     await expect(permittedBtn2).toHaveClass(/scale-105|bg-sky-600/);
     await expect(page.locator('p:text-is("Sakit (S)") + p')).toHaveText('1');
     await expect(page.locator('p:text-is("Izin (I)") + p')).toHaveText('1');
 
-    // 11. Perform a real browser reload
+    // 12. Perform a real browser reload
     await page.reload();
 
-    // 12. Re-establish selected class and date if the application does not preserve those selections
+    // 13. Re-establish selected class and date if the application does not preserve those selections
     await expect(page.locator('text=Presensi Harian').first()).toBeVisible({ timeout: 15000 });
     const reloadedClassSelect = page.locator('select#daily-att-class');
     if (await reloadedClassSelect.isVisible({ timeout: 5000 }).catch(() => false)) {
@@ -166,12 +169,12 @@ test.describe('Homeroom Daily Attendance Persistence E2E Verification', () => {
       await reloadedDateInput.fill(attendanceDate);
     }
 
-    // 13. Wait for attendance data to finish loading
+    // 14. Wait for attendance data to finish loading
     await expect(page.locator('text=Memuat presensi siswa...')).toBeHidden({ timeout: 15000 });
     const reloadedRows = page.locator('table tbody tr').filter({ hasNotText: 'Memuat presensi' }).filter({ hasNotText: 'Tidak ada siswa' });
     await expect(reloadedRows.nth(1)).toBeVisible({ timeout: 15000 });
 
-    // 14. Assert that the first student still has Sakit and the second still has Izin
+    // 15. Assert that the first student still has Sakit and the second still has Izin
     const reloadedRow1 = reloadedRows.nth(0);
     await expect(reloadedRow1.locator('td').nth(0)).toHaveText(student1Roll);
     await expect(reloadedRow1.locator('td').nth(1)).toContainText(student1Name);
@@ -184,7 +187,7 @@ test.describe('Homeroom Daily Attendance Persistence E2E Verification', () => {
     const reloadedPermittedBtn = reloadedRow2.locator('td').nth(4).locator('button').filter({ hasText: 'Izin' });
     await expect(reloadedPermittedBtn).toHaveClass(/scale-105|bg-sky-600/);
 
-    // 15. Verify summary KPI stats after reload
+    // 16. Verify summary KPI stats after reload
     await expect(page.locator('p:text-is("Sakit (S)") + p')).toHaveText('1');
     await expect(page.locator('p:text-is("Izin (I)") + p')).toHaveText('1');
   });

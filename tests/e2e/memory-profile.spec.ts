@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { installNetworkGuard } from './helpers/networkGuard';
 
 async function getCDPMemory(page: Page) {
   const client = await page.context().newCDPSession(page);
@@ -15,6 +16,8 @@ function toMB(bytes: number) {
 }
 
 test.describe('Memory Profiling for LRUCache (CDP)', () => {
+  let guard: Awaited<ReturnType<typeof installNetworkGuard>>;
+
   test.beforeEach(async ({ page }) => {
     // Suppress changelog popup in browser localStorage
     await page.addInitScript(() => {
@@ -22,6 +25,13 @@ test.describe('Memory Profiling for LRUCache (CDP)', () => {
         localStorage.setItem('dadu_seen_changelog_2.4.0-JRA', 'true');
       } catch {}
     });
+    // Install fail-closed local network guard
+    guard = await installNetworkGuard(page);
+  });
+
+  test.afterEach(async () => {
+    // Assert no forbidden external requests occurred
+    guard.assertNoViolations();
   });
 
   test('SubjectAttendancePage - LRU Eviction by 55 unique dates', async ({ page }) => {
