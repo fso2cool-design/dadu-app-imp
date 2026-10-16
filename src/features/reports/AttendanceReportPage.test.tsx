@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { AttendanceReportPage } from './AttendanceReportPage';
+import { AttendanceReportPage, getPerformanceLevel, getAttendancePerformanceLabel } from './AttendanceReportPage';
+import { PublicReportViewerPage } from '../public/PublicReportViewerPage';
 import { ApplicationProvider } from '../../application/ApplicationContext';
 import { ToastProvider } from '../../context/ToastContext';
 import * as authModule from '../auth/AuthContext';
@@ -32,6 +33,11 @@ describe('AttendanceReportPage Denominator Semantics & Correctness', () => {
   const mockGetSchoolSettings = vi.fn();
   const mockGetDocumentSettings = vi.fn();
   const mockSetSelectedAssignment = vi.fn();
+  const mockCreateSharedReport = vi.fn().mockImplementation(async (data: any) => ({
+    id: 'tok-share-123',
+    ...data,
+  }));
+  const mockGetSharedReportByToken = vi.fn();
 
   const mockApp = {
     meetings: {
@@ -50,9 +56,12 @@ describe('AttendanceReportPage Denominator Semantics & Correctness', () => {
       getDocumentSettings: mockGetDocumentSettings,
     },
     reports: {
-      createSharedReport: vi.fn(),
+      createSharedReport: mockCreateSharedReport,
       getUserSharedReports: vi.fn().mockResolvedValue([]),
       revokeSharedReport: vi.fn(),
+      getSharedReportByToken: mockGetSharedReportByToken,
+      incrementView: vi.fn(),
+      decrypt: vi.fn(),
     },
   } as any;
 
@@ -152,6 +161,7 @@ describe('AttendanceReportPage Denominator Semantics & Correctness', () => {
     mockGetSchoolSettings.mockResolvedValue({
       schoolName: 'MTs DADU Test',
       city: 'Jakarta',
+      defaultKkm: 75,
     });
 
     mockGetDocumentSettings.mockResolvedValue({
@@ -590,5 +600,334 @@ describe('AttendanceReportPage Denominator Semantics & Correctness', () => {
     // Ensure "Total Hari Efektif:" is not present
     const misleadingRow = sheetData.find((row: any[]) => row && typeof row[0] === 'string' && row[0].startsWith('Total Hari Efektif:'));
     expect(misleadingRow).toBeUndefined();
+  });
+
+  it('15. Canonical classification helper getPerformanceLevel strictly classifies boundaries and invalid inputs', () => {
+    // KKM 75
+    expect(getPerformanceLevel(0, 75)).toBe('Perlu Bimbingan');
+    expect(getPerformanceLevel(75.00, 75)).toBe('Perlu Bimbingan');
+    expect(getPerformanceLevel(75.01, 75)).toBe('Cukup');
+    expect(getPerformanceLevel(85.00, 75)).toBe('Cukup');
+    expect(getPerformanceLevel(85.01, 75)).toBe('Baik');
+    expect(getPerformanceLevel(95.00, 75)).toBe('Baik');
+    expect(getPerformanceLevel(95.01, 75)).toBe('Sangat Baik');
+    expect(getPerformanceLevel(100, 75)).toBe('Sangat Baik');
+
+    // KKM 60
+    expect(getPerformanceLevel(60.00, 60)).toBe('Perlu Bimbingan');
+    expect(getPerformanceLevel(60.01, 60)).toBe('Cukup');
+    expect(getPerformanceLevel(70.00, 60)).toBe('Cukup');
+    expect(getPerformanceLevel(70.01, 60)).toBe('Baik');
+    expect(getPerformanceLevel(80.00, 60)).toBe('Baik');
+    expect(getPerformanceLevel(80.01, 60)).toBe('Sangat Baik');
+
+    // KKM 65
+    expect(getPerformanceLevel(65.00, 65)).toBe('Perlu Bimbingan');
+    expect(getPerformanceLevel(65.01, 65)).toBe('Cukup');
+    expect(getPerformanceLevel(75.00, 65)).toBe('Cukup');
+    expect(getPerformanceLevel(75.01, 65)).toBe('Baik');
+    expect(getPerformanceLevel(85.00, 65)).toBe('Baik');
+    expect(getPerformanceLevel(85.01, 65)).toBe('Sangat Baik');
+
+    // Invalid / non-finite inputs return null (never Perlu Bimbingan)
+    expect(getPerformanceLevel(NaN, 75)).toBeNull();
+    expect(getPerformanceLevel(Infinity, 75)).toBeNull();
+    expect(getPerformanceLevel(-Infinity, 75)).toBeNull();
+    expect(getPerformanceLevel(null, 75)).toBeNull();
+    expect(getPerformanceLevel(undefined, 75)).toBeNull();
+    expect(getPerformanceLevel(-10, 75)).toBeNull();
+    expect(getPerformanceLevel(110, 75)).toBeNull();
+    expect(getPerformanceLevel(90, undefined)).toBeNull();
+    expect(getPerformanceLevel(90, null)).toBeNull();
+    expect(getPerformanceLevel(90, 0)).toBeNull();
+  });
+
+  it('16. Strict UI and Excel parity across every KKM-based classification range (KKM = 75)', async () => {
+    mockGetSchoolSettings.mockResolvedValue({
+      schoolName: 'MTs DADU Test',
+      city: 'Jakarta',
+      defaultKkm: 75,
+    });
+
+    // 4 students representing key brackets under KKM 75:
+    // std-1: 10/10 = 100% (> 95) -> 'Sangat Baik'
+    // std-2: 9/10 = 90% (> 85 and <= 95) -> 'Baik'
+    // std-3: 8/10 = 80% (> 75 and <= 85) -> 'Cukup'
+    // std-4: 5/10 = 50% (<= 75) -> 'Perlu Bimbingan'
+    const testStudents = [
+      { id: 'enr-1', studentId: 'std-1', rollNumber: 1, status: 'ACTIVE', student: { id: 'std-1', fullName: 'Siswa Teladan', nis: '1001', nisn: '001', gender: 'L' as const } },
+      { id: 'enr-2', studentId: 'std-2', rollNumber: 2, status: 'ACTIVE', student: { id: 'std-2', fullName: 'Siswa Baik', nis: '1002', nisn: '002', gender: 'P' as const } },
+      { id: 'enr-3', studentId: 'std-3', rollNumber: 3, status: 'ACTIVE', student: { id: 'std-3', fullName: 'Siswa Cukup', nis: '1003', nisn: '003', gender: 'L' as const } },
+      { id: 'enr-4', studentId: 'std-4', rollNumber: 4, status: 'ACTIVE', student: { id: 'std-4', fullName: 'Siswa Kritis', nis: '1004', nisn: '004', gender: 'P' as const } },
+    ];
+    mockGetByClass.mockResolvedValue(testStudents);
+
+    const meetings = Array.from({ length: 10 }, (_, i) => ({
+      id: `m-oct-${i + 1}`,
+      date: `2026-10-${String(i + 1).padStart(2, '0')}`,
+      meetingNumber: i + 1,
+      teachingAssignmentId: 'asg-1',
+      status: 'COMPLETED',
+    }));
+    mockGetAllMeetings.mockResolvedValue(meetings);
+
+    const attendanceRecords: any[] = [];
+    meetings.forEach((m, idx) => {
+      attendanceRecords.push({ id: `att-1-${m.id}`, studentId: 'std-1', date: m.date, meetingId: m.id, status: 'PRESENT' });
+      attendanceRecords.push({ id: `att-2-${m.id}`, studentId: 'std-2', date: m.date, meetingId: m.id, status: idx < 1 ? 'ABSENT' : 'PRESENT' });
+      attendanceRecords.push({ id: `att-3-${m.id}`, studentId: 'std-3', date: m.date, meetingId: m.id, status: idx < 2 ? 'ABSENT' : 'PRESENT' });
+      attendanceRecords.push({ id: `att-4-${m.id}`, studentId: 'std-4', date: m.date, meetingId: m.id, status: idx < 5 ? 'ABSENT' : 'PRESENT' });
+    });
+    mockGetByAssignment.mockResolvedValue(attendanceRecords);
+
+    renderComponent();
+
+    expect(await screen.findByText('Siswa Teladan')).toBeInTheDocument();
+
+    // 1. Verify UI Rendered Labels:
+    const row1 = screen.getByText('Siswa Teladan').closest('tr')!;
+    const row2 = screen.getByText('Siswa Baik').closest('tr')!;
+    const row3 = screen.getByText('Siswa Cukup').closest('tr')!;
+    const row4 = screen.getByText('Siswa Kritis').closest('tr')!;
+
+    expect(row1).toHaveTextContent('100%');
+    expect(row1).toHaveTextContent('Sangat Baik');
+
+    expect(row2).toHaveTextContent('90%');
+    expect(row2).toHaveTextContent('Baik');
+    expect(row2).not.toHaveTextContent('Cukup Baik');
+
+    expect(row3).toHaveTextContent('80%');
+    expect(row3).toHaveTextContent('Cukup');
+    expect(row3).not.toHaveTextContent('Cukup Baik');
+
+    expect(row4).toHaveTextContent('50%');
+    expect(row4).toHaveTextContent('Perlu Bimbingan');
+    expect(row4).not.toHaveTextContent('Perlu Pembinaan');
+
+    // 2. Trigger Excel Export:
+    const exportBtn = screen.getByRole('button', { name: /Ekspor Excel/i });
+    fireEvent.click(exportBtn);
+
+    await waitFor(() => {
+      expect(mockAoaToSheet).toHaveBeenCalled();
+    });
+
+    const sheetData = mockAoaToSheet.mock.calls[0][0];
+
+    // Find student rows in generated Excel sheetData
+    const excelRow1 = sheetData.find((r: any[]) => r && r[4] === 'Siswa Teladan');
+    const excelRow2 = sheetData.find((r: any[]) => r && r[4] === 'Siswa Baik');
+    const excelRow3 = sheetData.find((r: any[]) => r && r[4] === 'Siswa Cukup');
+    const excelRow4 = sheetData.find((r: any[]) => r && r[4] === 'Siswa Kritis');
+
+    expect(excelRow1).toBeDefined();
+    expect(excelRow2).toBeDefined();
+    expect(excelRow3).toBeDefined();
+    expect(excelRow4).toBeDefined();
+
+    // Column 12 is '% Kehadiran', Column 13 is 'Keterangan'
+    expect(excelRow1[12]).toBe('100%');
+    expect(excelRow1[13]).toBe('Sangat Baik');
+
+    expect(excelRow2[12]).toBe('90%');
+    expect(excelRow2[13]).toBe('Baik');
+
+    expect(excelRow3[12]).toBe('80%');
+    expect(excelRow3[13]).toBe('Cukup');
+
+    expect(excelRow4[12]).toBe('50%');
+    expect(excelRow4[13]).toBe('Perlu Bimbingan');
+
+    // 3. Assert Strict Parity: labelInUI === labelInExcel
+    expect(row1).toHaveTextContent(excelRow1[13]);
+    expect(row2).toHaveTextContent(excelRow2[13]);
+    expect(row3).toHaveTextContent(excelRow3[13]);
+    expect(row4).toHaveTextContent(excelRow4[13]);
+
+    // Ensure legacy non-canonical strings never appear anywhere in Excel output
+    const allExcelKeterangan = sheetData.slice(7).map((r: any[]) => r[13]);
+    expect(allExcelKeterangan).not.toContain('Cukup Baik');
+    expect(allExcelKeterangan).not.toContain('Perlu Pembinaan');
+    expect(allExcelKeterangan).not.toContain('Perlu Pembinaan / Kritis');
+  });
+
+  it('17. Safely displays neutral representation when KKM is not configured', async () => {
+    mockGetSchoolSettings.mockResolvedValue({
+      schoolName: 'MTs DADU Test',
+      city: 'Jakarta',
+      // defaultKkm is undefined
+    });
+
+    const testStudents = [
+      { id: 'enr-1', studentId: 'std-1', rollNumber: 1, status: 'ACTIVE', student: { id: 'std-1', fullName: 'Siswa Teladan', nis: '1001', nisn: '001', gender: 'L' as const } },
+    ];
+    mockGetByClass.mockResolvedValue(testStudents);
+
+    const meetings = [{ id: 'm-1', date: '2026-10-01', meetingNumber: 1, teachingAssignmentId: 'asg-1', status: 'COMPLETED' }];
+    mockGetAllMeetings.mockResolvedValue(meetings);
+    mockGetByAssignment.mockResolvedValue([{ id: 'att-1', studentId: 'std-1', date: '2026-10-01', meetingId: 'm-1', status: 'PRESENT' }]);
+
+    renderComponent();
+
+    expect(await screen.findByText('Siswa Teladan')).toBeInTheDocument();
+
+    const row1 = screen.getByText('Siswa Teladan').closest('tr')!;
+    expect(row1).toHaveTextContent('-');
+    expect(row1).not.toHaveTextContent('Perlu Bimbingan');
+
+    // Stats overview card displays '—' instead of claiming '0 Siswa'
+    const criticalCard = screen.getByText('Perlu Bimbingan').closest('div')!;
+    expect(criticalCard).toHaveTextContent('—');
+    expect(criticalCard).not.toHaveTextContent('0 Siswa');
+
+    // Footer note indicates KKM belum ditentukan
+    expect(screen.getByText('KKM belum ditentukan')).toBeInTheDocument();
+    expect(screen.getByText(/Batas minimal kehadiran \(KKM\):/)).toHaveTextContent('Belum diatur');
+
+    // Excel export also has '-'
+    const exportBtn = screen.getByRole('button', { name: /Ekspor Excel/i });
+    fireEvent.click(exportBtn);
+
+    await waitFor(() => {
+      expect(mockAoaToSheet).toHaveBeenCalled();
+    });
+
+    const sheetData = mockAoaToSheet.mock.calls[0][0];
+    const excelRow1 = sheetData.find((r: any[]) => r && r[4] === 'Siswa Teladan');
+    expect(excelRow1[13]).toBe('-');
+  });
+
+  it('17b. Rejects out-of-range or non-finite KKM (0, 101, NaN, Infinity) and safely displays neutral representation', async () => {
+    for (const invalidKkm of [0, 101, NaN, Infinity]) {
+      mockGetSchoolSettings.mockResolvedValue({
+        schoolName: 'MTs DADU Test',
+        defaultKkm: invalidKkm,
+      });
+
+      const testStudents = [
+        { id: 'enr-1', studentId: 'std-1', rollNumber: 1, status: 'ACTIVE', student: { id: 'std-1', fullName: 'Siswa Satu', nis: '1001', nisn: '001', gender: 'L' as const } },
+      ];
+      mockGetByClass.mockResolvedValue(testStudents);
+
+      const meetings = [{ id: 'm-1', date: '2026-10-01', meetingNumber: 1, teachingAssignmentId: 'asg-1', status: 'COMPLETED' }];
+      mockGetAllMeetings.mockResolvedValue(meetings);
+      mockGetByAssignment.mockResolvedValue([{ id: 'att-1', studentId: 'std-1', date: '2026-10-01', meetingId: 'm-1', status: 'PRESENT' }]);
+
+      const { unmount } = renderComponent();
+
+      expect(await screen.findByText('Siswa Satu')).toBeInTheDocument();
+
+      const row1 = screen.getByText('Siswa Satu').closest('tr')!;
+      expect(row1).toHaveTextContent('-');
+      expect(row1).not.toHaveTextContent('Perlu Bimbingan');
+
+      // Card must show '—' and NOT claim '0 Siswa'
+      const criticalCard = screen.getByText('Perlu Bimbingan').closest('div')!;
+      expect(criticalCard).toHaveTextContent('—');
+      expect(criticalCard).not.toHaveTextContent('0 Siswa');
+
+      // Footer note and legend
+      expect(screen.getByText('KKM belum ditentukan')).toBeInTheDocument();
+      expect(screen.getByText(/Batas minimal kehadiran \(KKM\):/)).toHaveTextContent('Belum diatur');
+
+      unmount();
+    }
+  });
+
+
+  it('18. End-to-end payload pipeline: passes schoolSettings defaultKkm into ShareReportModal payload and produces consistent classification in PublicReportViewer', async () => {
+    // 1. Settings configured with defaultKkm = 65
+    mockGetSchoolSettings.mockResolvedValue({
+      schoolName: 'MTs Al-Huda DADU',
+      defaultKkm: 65,
+    });
+
+    // 4 students with percentages: 60% (<=65), 70% (65<P<=75), 80% (75<P<=85), 90% (>85)
+    const testStudents = [
+      { id: 'enr-1', studentId: 'std-1', rollNumber: 1, status: 'ACTIVE', student: { id: 'std-1', fullName: 'Siswa 60%', nis: '1001', nisn: '001', gender: 'L' as const } },
+      { id: 'enr-2', studentId: 'std-2', rollNumber: 2, status: 'ACTIVE', student: { id: 'std-2', fullName: 'Siswa 70%', nis: '1002', nisn: '002', gender: 'P' as const } },
+      { id: 'enr-3', studentId: 'std-3', rollNumber: 3, status: 'ACTIVE', student: { id: 'std-3', fullName: 'Siswa 80%', nis: '1003', nisn: '003', gender: 'L' as const } },
+      { id: 'enr-4', studentId: 'std-4', rollNumber: 4, status: 'ACTIVE', student: { id: 'std-4', fullName: 'Siswa 90%', nis: '1004', nisn: '004', gender: 'P' as const } },
+    ];
+    mockGetByClass.mockResolvedValue(testStudents);
+
+    const meetings = Array.from({ length: 10 }, (_, i) => ({
+      id: `m-${i + 1}`,
+      date: `2026-10-${String(i + 1).padStart(2, '0')}`,
+      meetingNumber: i + 1,
+      teachingAssignmentId: 'asg-1',
+      status: 'COMPLETED',
+    }));
+    mockGetAllMeetings.mockResolvedValue(meetings);
+
+    const attendanceRecords: any[] = [];
+    meetings.forEach((m, idx) => {
+      attendanceRecords.push({ id: `att-1-${idx}`, studentId: 'std-1', date: m.date, meetingId: m.id, status: idx < 6 ? 'PRESENT' : 'ABSENT' });
+      attendanceRecords.push({ id: `att-2-${idx}`, studentId: 'std-2', date: m.date, meetingId: m.id, status: idx < 7 ? 'PRESENT' : 'ABSENT' });
+      attendanceRecords.push({ id: `att-3-${idx}`, studentId: 'std-3', date: m.date, meetingId: m.id, status: idx < 8 ? 'PRESENT' : 'ABSENT' });
+      attendanceRecords.push({ id: `att-4-${idx}`, studentId: 'std-4', date: m.date, meetingId: m.id, status: idx < 9 ? 'PRESENT' : 'ABSENT' });
+    });
+    mockGetByAssignment.mockResolvedValue(attendanceRecords);
+
+    // 2. Render AttendanceReportPage
+    const { unmount } = renderComponent();
+
+    expect(await screen.findByText('Siswa 60%')).toBeInTheDocument();
+
+    // Verify main UI performance labels based on KKM 65
+    expect(screen.getByText('Siswa 60%').closest('tr')).toHaveTextContent('Perlu Bimbingan');
+    expect(screen.getByText('Siswa 70%').closest('tr')).toHaveTextContent('Cukup');
+    expect(screen.getByText('Siswa 80%').closest('tr')).toHaveTextContent('Baik');
+    expect(screen.getByText('Siswa 90%').closest('tr')).toHaveTextContent('Sangat Baik');
+
+    // 3. Open Share Modal
+    const shareBtn = screen.getByRole('button', { name: /Bagikan Tautan Publik/i });
+    fireEvent.click(shareBtn);
+
+    // 4. In Share Modal, click "Buat Tautan Publik"
+    const generateBtn = await screen.findByRole('button', { name: /Buat Tautan Publik/i });
+    fireEvent.click(generateBtn);
+
+    await waitFor(() => {
+      expect(mockCreateSharedReport).toHaveBeenCalled();
+    });
+
+    // 5. Inspect the generated payload passed to createSharedReport
+    const createCallArg = mockCreateSharedReport.mock.calls[0][0];
+    const sharedPayload = createCallArg.payload;
+
+    expect(sharedPayload.attendanceData.kkm).toBe(65);
+    expect(sharedPayload.attendanceData.statistics.criticalCount).toBe(1); // Only Siswa 60% <= 65%
+
+    unmount();
+
+    // 6. Test reception of this exact payload in PublicReportViewerPage
+    mockGetSharedReportByToken.mockResolvedValue({
+      id: 'rep-token-65',
+      token: 'rep-token-65',
+      reportType: 'ATTENDANCE',
+      hasPasscode: false,
+      passcode: '',
+      payload: sharedPayload,
+    });
+
+    render(
+      <ApplicationProvider app={mockApp as any}>
+        <PublicReportViewerPage token="rep-token-65" />
+      </ApplicationProvider>
+    );
+
+    expect(await screen.findByText('Siswa 60%')).toBeInTheDocument();
+
+    // Public Viewer must classify identically using KKM = 65 received in payload
+    expect(screen.getByText('Siswa 60%').closest('tr')).toHaveTextContent('Perlu Bimbingan');
+    expect(screen.getByText('Siswa 70%').closest('tr')).toHaveTextContent('Cukup');
+    expect(screen.getByText('Siswa 80%').closest('tr')).toHaveTextContent('Baik');
+    expect(screen.getByText('Siswa 90%').closest('tr')).toHaveTextContent('Sangat Baik');
+
+    // Public Viewer statistics strip shows KKM 65 and criticalCount = 1
+    const publicCriticalCard = screen.getByText('Perlu Bimbingan (≤65%)').closest('div')!;
+    expect(publicCriticalCard).toHaveTextContent('1 Siswa');
   });
 });

@@ -5,6 +5,7 @@ import { SharedReport } from '../../types';
 import { ShareNetwork, Lock, Printer, FileCsv, Clock, Eye, CalendarBlank, CheckCircle, WarningCircle, Buildings, Medal, CaretRight, ArrowSquareOut, ShieldCheck, UserCheck, BookOpen, ChartBar, Table } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { DEFAULT_KEMENAG_LOGO } from '../../components/common/OfficialDocumentHeader';
+import { getPerformanceLevel, getAttendancePerformanceLabel, isValidKkm } from '../../domain/attendance/attendancePolicy';
 
 interface PublicReportViewerPageProps {
   token: string;
@@ -138,7 +139,7 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
           s.dispensationCount,
           s.totalMeetings,
           `${s.presentPercentage}%`,
-          s.presentPercentage >= 75 ? 'Tuntas' : 'Perlu Perhatian'
+          getPerformanceLevel(s.presentPercentage, payload.attendanceData?.kkm) ?? '-'
         ]);
       });
     } else if (reportType === 'JOURNAL' && payload.journalData) {
@@ -423,8 +424,18 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
                   <span className="text-sm font-bold text-emerald-800">{payload.attendanceData.statistics.perfectCount} Siswa</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
-                  <span className="text-[10px] text-amber-700 uppercase font-semibold block">Perhatian Khusus (&lt;75%)</span>
-                  <span className="text-sm font-bold text-amber-800">{payload.attendanceData.statistics.criticalCount} Siswa</span>
+                  <span className="text-[10px] text-amber-700 uppercase font-semibold block">
+                    {isValidKkm(payload.attendanceData.kkm)
+                      ? `Perlu Bimbingan (≤${payload.attendanceData.kkm}%)`
+                      : 'Perlu Bimbingan'}
+                  </span>
+                  <span className="text-sm font-bold text-amber-800">
+                    {isValidKkm(payload.attendanceData.kkm) &&
+                    payload.attendanceData.statistics?.criticalCount !== null &&
+                    payload.attendanceData.statistics?.criticalCount !== undefined
+                      ? `${payload.attendanceData.statistics.criticalCount} Siswa`
+                      : '—'}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-center">
                   <span className="text-[10px] text-blue-700 uppercase font-semibold block">Total Sesi KBM</span>
@@ -452,32 +463,48 @@ export const PublicReportViewerPage: React.FC<PublicReportViewerPageProps> = ({ 
                     </tr>
                   </thead>
                   <tbody>
-                    {payload.attendanceData.summaries.map((s, idx) => (
-                      <tr key={idx} className={idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'}>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{idx + 1}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{s.rollNumber || '-'}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
-                          {s.nis || '-'}<br />
-                          <span className="text-slate-500">{s.nisn || '-'}</span>
-                        </td>
-                        <td className="border border-slate-900 px-3 py-1.5 font-medium">{s.name}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center">{s.gender}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-bold text-emerald-700 bg-emerald-50/30">{s.presentCount}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center text-amber-700">{s.sickCount}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center text-blue-700">{s.permittedCount}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-bold text-rose-700">{s.absentCount}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center text-purple-700">{s.dispensationCount}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{s.totalMeetings}</td>
-                        <td className="border border-slate-900 px-2 py-1.5 text-center font-bold">
-                          <span className={s.presentPercentage < 75 ? 'text-rose-700' : 'text-slate-900'}>
-                            {s.presentPercentage}%
-                          </span>
-                        </td>
-                        <td className="border border-slate-900 px-3 py-1.5 text-xs">
-                          {s.presentPercentage >= 90 ? 'Sangat Baik' : s.presentPercentage >= 75 ? 'Baik' : 'Perlu Pembinaan'}
-                        </td>
-                      </tr>
-                    ))}
+                    {payload.attendanceData.summaries.map((s, idx) => {
+                      const performanceLabel = getPerformanceLevel(s.presentPercentage, payload.attendanceData?.kkm);
+                      const isPerluBimbingan = performanceLabel === 'Perlu Bimbingan';
+                      return (
+                        <tr key={idx} className={idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'}>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{idx + 1}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{s.rollNumber || '-'}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-[10px]">
+                            {s.nis || '-'}<br />
+                            <span className="text-slate-500">{s.nisn || '-'}</span>
+                          </td>
+                          <td className="border border-slate-900 px-3 py-1.5 font-medium">{s.name}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center">{s.gender}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-bold text-emerald-700 bg-emerald-50/30">{s.presentCount}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center text-amber-700">{s.sickCount}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center text-blue-700">{s.permittedCount}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-bold text-rose-700">{s.absentCount}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center text-purple-700">{s.dispensationCount}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{s.totalMeetings}</td>
+                          <td className="border border-slate-900 px-2 py-1.5 text-center font-bold">
+                            <span className={isPerluBimbingan ? 'text-rose-700' : 'text-slate-900'}>
+                              {s.presentPercentage}%
+                            </span>
+                          </td>
+                          <td className="border border-slate-900 px-3 py-1.5 text-xs">
+                            <span className={
+                              performanceLabel === 'Sangat Baik'
+                                ? 'text-emerald-700 font-semibold'
+                                : isPerluBimbingan
+                                ? 'text-rose-700 font-bold'
+                                : performanceLabel === 'Baik'
+                                ? 'text-cyan-700 font-medium'
+                                : performanceLabel === 'Cukup'
+                                ? 'text-amber-700'
+                                : 'text-slate-500'
+                            }>
+                              {performanceLabel ?? '-'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -46,6 +46,9 @@ function getYearMonthFromDate(dateStr?: string): { year: string; month: string }
   };
 }
 
+import { getPerformanceLevel, getAttendancePerformanceLabel, isValidKkm } from '../../domain/attendance/attendancePolicy';
+export { getPerformanceLevel, getAttendancePerformanceLabel, isValidKkm };
+
 
 export const AttendanceReportPage: React.FC = () => {
   const { user, profile } = useAuth();
@@ -96,6 +99,7 @@ export const AttendanceReportPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [schoolSettings, setSchoolSettings] = useState<SchoolSettings | null>(null);
+  const kkm = schoolSettings?.defaultKkm;
 
   useEffect(() => {
     if (!user) return;
@@ -417,19 +421,29 @@ export const AttendanceReportPage: React.FC = () => {
   // Statistical Overview
   const stats = useMemo(() => {
     if (activeSummaries.length === 0) {
-      return { avgPercentage: 0, perfectCount: 0, criticalCount: 0, totalP: 0, totalS: 0, totalI: 0, totalA: 0 };
+      return {
+        avgPercentage: 0,
+        perfectCount: 0,
+        criticalCount: isValidKkm(kkm) ? 0 : null,
+        totalP: 0,
+        totalS: 0,
+        totalI: 0,
+        totalA: 0,
+      };
     }
     const sumPercentage = activeSummaries.reduce((acc, s) => acc + s.presentPercentage, 0);
     const avgPercentage = Math.round(sumPercentage / activeSummaries.length);
     const perfectCount = activeSummaries.filter(s => s.presentPercentage === 100).length;
-    const criticalCount = activeSummaries.filter(s => s.presentPercentage < 75).length;
+    const criticalCount = isValidKkm(kkm)
+      ? activeSummaries.filter(s => s.presentPercentage <= kkm).length
+      : null;
     const totalP = activeSummaries.reduce((acc, s) => acc + s.presentCount, 0);
     const totalS = activeSummaries.reduce((acc, s) => acc + s.sickCount, 0);
     const totalI = activeSummaries.reduce((acc, s) => acc + s.permittedCount, 0);
     const totalA = activeSummaries.reduce((acc, s) => acc + s.absentCount, 0);
 
     return { avgPercentage, perfectCount, criticalCount, totalP, totalS, totalI, totalA };
-  }, [activeSummaries]);
+  }, [activeSummaries, kkm]);
 
   // Selected Class & Subject info
   const selectedClassObj = classes.find(c => 
@@ -476,10 +490,7 @@ export const AttendanceReportPage: React.FC = () => {
 
     // Table Rows
     filteredSummaries.forEach((s, idx) => {
-      let ket = 'Baik';
-      if (s.presentPercentage >= 95) ket = 'Sangat Baik';
-      else if (s.presentPercentage < 75) ket = 'Perlu Pembinaan / Kritis';
-      else if (s.presentPercentage < 85) ket = 'Cukup';
+      const ket = getPerformanceLevel(s.presentPercentage, kkm) ?? '-';
 
       sheetData.push([
         idx + 1,
@@ -676,8 +687,18 @@ export const AttendanceReportPage: React.FC = () => {
 
           <div className="p-2.5 rounded-xl bg-rose-50/60 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-500/40 flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block">Kehadiran &lt; 75%</span>
-              <span className="text-lg font-black text-rose-950 dark:text-rose-200">{stats.criticalCount} <span className="text-xs font-normal text-rose-700 dark:text-rose-400">Siswa</span></span>
+              <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block">
+                {isValidKkm(kkm) ? `Perlu Bimbingan (≤${kkm}%)` : 'Perlu Bimbingan'}
+              </span>
+              <span className="text-lg font-black text-rose-950 dark:text-rose-200">
+                {stats.criticalCount !== null ? (
+                  <>
+                    {stats.criticalCount} <span className="text-xs font-normal text-rose-700 dark:text-rose-400">Siswa</span>
+                  </>
+                ) : (
+                  '—'
+                )}
+              </span>
             </div>
             <Warning className="w-6 h-6 text-rose-400" />
           </div>
@@ -732,12 +753,13 @@ export const AttendanceReportPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-300">
                 {filteredSummaries.map((s, idx) => {
-                  const isCritical = s.presentPercentage < 75;
+                  const performanceLabel = getPerformanceLevel(s.presentPercentage, kkm);
+                  const isPerluBimbingan = performanceLabel === 'Perlu Bimbingan';
                   return (
                     <tr 
                       key={s.enrollmentId} 
                       className={`hover:bg-slate-50/80 transition-colors ${
-                        isCritical ? 'bg-rose-50/40' : idx % 2 === 1 ? 'bg-slate-50/30' : 'bg-white'
+                        isPerluBimbingan ? 'bg-rose-50/40' : idx % 2 === 1 ? 'bg-slate-50/30' : 'bg-white'
                       }`}
                     >
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono">{idx + 1}</td>
@@ -763,18 +785,24 @@ export const AttendanceReportPage: React.FC = () => {
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono text-purple-800">{s.dispensationCount}</td>
                       <td className="border border-slate-900 px-2 py-1.5 text-center font-mono font-bold">{s.totalMeetings}</td>
                       <td className={`border border-slate-900 px-2 py-1.5 text-center font-mono font-bold ${
-                        isCritical ? 'text-rose-700 bg-rose-100/50' : 'text-slate-900'
+                        isPerluBimbingan ? 'text-rose-700 bg-rose-100/50' : 'text-slate-900'
                       }`}>
                         {s.presentPercentage}%
                       </td>
                       <td className="border border-slate-900 px-3 py-1.5 text-[11px]">
-                        {s.presentPercentage >= 95 ? (
-                          <span className="text-emerald-700 font-semibold">Sangat Baik</span>
-                        ) : isCritical ? (
-                          <span className="text-rose-700 font-bold">Perlu Pembinaan</span>
-                        ) : (
-                          <span className="text-slate-600">Cukup Baik</span>
-                        )}
+                        <span className={
+                          performanceLabel === 'Sangat Baik'
+                            ? 'text-emerald-700 font-semibold'
+                            : isPerluBimbingan
+                            ? 'text-rose-700 font-bold'
+                            : performanceLabel === 'Baik'
+                            ? 'text-cyan-700 font-medium'
+                            : performanceLabel === 'Cukup'
+                            ? 'text-amber-700'
+                            : 'text-slate-500'
+                        }>
+                          {performanceLabel ?? '-'}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -797,7 +825,9 @@ export const AttendanceReportPage: React.FC = () => {
                     {stats.avgPercentage}%
                   </td>
                   <td className="border border-slate-900 px-3 py-2 text-left text-[10px] text-slate-500">
-                    {stats.criticalCount > 0 ? `${stats.criticalCount} siswa di bawah KKM` : 'Seluruh siswa tertib'}
+                    {isValidKkm(kkm) && stats.criticalCount !== null
+                      ? (stats.criticalCount > 0 ? `${stats.criticalCount} siswa di bawah KKM (≤${kkm}%)` : 'Seluruh siswa di atas KKM')
+                      : 'KKM belum ditentukan'}
                   </td>
                 </tr>
               </tfoot>
@@ -814,7 +844,7 @@ export const AttendanceReportPage: React.FC = () => {
                 <span><strong>D</strong> = Dispensasi</span>
               </div>
               <div className="text-[10px] text-slate-500">
-                * Batas minimal kehadiran standar: <strong>75%</strong>
+                * Batas minimal kehadiran (KKM): <strong>{isValidKkm(kkm) ? `${kkm}%` : 'Belum diatur'}</strong>
               </div>
             </div>
           </div>
@@ -845,6 +875,7 @@ export const AttendanceReportPage: React.FC = () => {
           attendanceData: {
             reportMode,
             totalMeetingsOrDays: effectiveSessionCount,
+            kkm,
             summaries: activeSummaries.map(s => ({
               rollNumber: s.rollNumber,
               nis: s.nis,

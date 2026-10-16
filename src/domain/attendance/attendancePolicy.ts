@@ -58,3 +58,56 @@ export function calculateAttendanceSummary(
     presentPercentage,
   };
 }
+
+/**
+ * Pure type guard and validator for KKM.
+ * A valid KKM must be a finite number strictly greater than 0 and less than or equal to 100.
+ */
+export function isValidKkm(kkm: unknown): kkm is number {
+  return typeof kkm === 'number' && Number.isFinite(kkm) && kkm > 0 && kkm <= 100;
+}
+
+export type PerformanceLevel = 'Perlu Bimbingan' | 'Cukup' | 'Baik' | 'Sangat Baik';
+
+/**
+ * Canonical performance classification helper based on dynamic KKM (Kriteria Ketuntasan Minimal).
+ *
+ * Mathematical Algorithm:
+ * - P <= K: 'Perlu Bimbingan'
+ * - K < P <= K + 10: 'Cukup'
+ * - K + 10 < P <= K + 20: 'Baik'
+ * - P > K + 20: 'Sangat Baik'
+ *
+ * Input handling contract:
+ * - P (percentage) must be a finite number in [0, 100].
+ * - K (kkm) must be a finite number in (0, 100].
+ * - If P or K is missing, invalid, or non-finite, returns null (neutral representation)
+ *   rather than defaulting to 'Perlu Bimbingan' or an arbitrary threshold.
+ */
+export function getPerformanceLevel(
+  percentage: number | null | undefined,
+  kkm: number | null | undefined
+): PerformanceLevel | null {
+  if (
+    typeof percentage !== 'number' ||
+    !Number.isFinite(percentage) ||
+    percentage < 0 ||
+    percentage > 100 ||
+    !isValidKkm(kkm)
+  ) {
+    return null;
+  }
+
+  if (percentage <= kkm) {
+    return 'Perlu Bimbingan';
+  }
+  if (percentage <= kkm + 10) {
+    return 'Cukup';
+  }
+  if (percentage <= kkm + 20) {
+    return 'Baik';
+  }
+  return 'Sangat Baik';
+}
+
+export const getAttendancePerformanceLabel = getPerformanceLevel;

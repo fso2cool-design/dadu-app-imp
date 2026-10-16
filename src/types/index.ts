@@ -971,6 +971,7 @@ export interface SharedReportPayload {
   attendanceData?: {
     reportMode: 'SUBJECT' | 'HOMEROOM';
     totalMeetingsOrDays: number;
+    kkm?: number;
     summaries: Array<{
       rollNumber: number;
       nis: string;
@@ -988,7 +989,7 @@ export interface SharedReportPayload {
     statistics: {
       avgPercentage: number;
       perfectCount: number;
-      criticalCount: number;
+      criticalCount: number | null;
       totalP: number;
       totalS: number;
       totalI: number;
