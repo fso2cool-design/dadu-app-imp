@@ -23,6 +23,7 @@ import { DEFAULT_KKM } from '../../constants/grading';
 import { calculateFinalScore, getGradeScale, MissingScoreTreatment } from '../../domain/grading/grading.service';
 import { invalidateGradesReportCache } from '../../services/cache/gradesReportCache';
 import { loadXlsx } from '../../utils/lazyXlsx';
+import { parseGradesExcel, buildGradesImportFeedback } from './gradesExcelParser';
 import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
@@ -877,64 +878,31 @@ export const GradesPage: React.FC = () => {
         const ws = wb.Sheets[wsname];
         const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-        if (data.length < 2) {
-          toastError('Format file Excel kosong atau tidak sesuai.');
+        const result = parseGradesExcel(data, enrollments, assessmentItems);
+        const feedback = buildGradesImportFeedback(result);
+
+        if (feedback.toastType === 'error') {
+          toastError(feedback.toastMessage);
           return;
         }
 
-        // Find header row containing NIS / Nama
-        let headerRowIndex = -1;
-        for (let r = 0; r < Math.min(10, data.length); r++) {
-          const rowStr = (data[r] || []).join(' ').toLowerCase();
-          if (rowStr.includes('nama') || rowStr.includes('nis')) {
-            headerRowIndex = r;
-            break;
-          }
-        }
-
-        if (headerRowIndex === -1) {
-          toastError('Baris header tabel nilai tidak ditemukan dalam file Excel.');
+        if (!feedback.shouldApplyScores) {
+          toastWarning(feedback.toastMessage);
           return;
         }
 
-        const headers = data[headerRowIndex];
-        const newScores: Record<string, number> = {};
-
-        // Parse student rows
-        for (let r = headerRowIndex + 1; r < data.length; r++) {
-          const row = data[r];
-          if (!row || row.length === 0) continue;
-
-          // Find student by NIS or Roll or Name
-          const rollCandidate = parseInt(row[0]);
-          const nisCandidate = String(row[1] || '').trim();
-          const nameCandidate = String(row[3] || row[2] || '').trim().toLowerCase();
-
-          const student = enrollments.find(e => 
-            (nisCandidate && e.student?.nis === nisCandidate) ||
-            (rollCandidate && e.rollNumber === rollCandidate) ||
-            (nameCandidate && (e.student?.fullName || '').toLowerCase().includes(nameCandidate))
-          );
-
-          if (student) {
-            // Read columns mapped to assessmentItems
-            assessmentItems.forEach((item, itemIdx) => {
-              const colIndex = 5 + itemIdx; // standard offset
-              if (row[colIndex] !== undefined && row[colIndex] !== '') {
-                const scoreVal = parseFloat(row[colIndex]);
-                if (!isNaN(scoreVal) && scoreVal >= 0 && scoreVal <= 100) {
-                  newScores[`${student.studentId}_${item.id}`] = scoreVal;
-                }
-              }
-            });
-          }
-        }
-
-        setScoresMap(prev => ({ ...prev, ...newScores }));
+        setScoresMap(prev => ({ ...prev, ...feedback.scoresToApply }));
         setIsDirty(true);
-        setSaveSuccessMessage('Import nilai dari Excel berhasil! Klik "Simpan Nilai" untuk menyimpan ke cloud.');
-        toastSuccess('Import Excel berhasil! Klik "Simpan Nilai" untuk menyimpan ke cloud.');
-        setTimeout(() => setSaveSuccessMessage(null), 4000);
+
+        if (feedback.status === 'success') {
+          setSaveSuccessMessage(feedback.saveSuccessMessage);
+          toastSuccess(feedback.toastMessage);
+          setTimeout(() => setSaveSuccessMessage(null), 5000);
+        } else {
+          setSaveSuccessMessage(feedback.saveSuccessMessage);
+          toastWarning(feedback.toastMessage);
+          setTimeout(() => setSaveSuccessMessage(null), 7000);
+        }
       } catch (err: any) {
         console.error('Error importing Excel:', err);
         toastError('Gagal membaca file Excel: ' + (err.message || 'Format Error'));
