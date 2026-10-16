@@ -112,8 +112,40 @@ service cloud.firestore {
               || ('relinkedAt' in request.resource.data));
       }
 
+      function meetingDateSlotDoc(taId, semester, date) {
+        return /databases/$(database)/documents/users/$(userId)/meetingDateSlots/$('dateslot_' + taId + '_' + semester + '_' + date);
+      }
+
+      function hasValidDateReservation(taId, semester, date, mId) {
+        let slotDoc = meetingDateSlotDoc(taId, semester, date);
+        return existsAfter(slotDoc)
+          && getAfter(slotDoc).data.meetingId == mId
+          && getAfter(slotDoc).data.teachingAssignmentId == taId
+          && getAfter(slotDoc).data.semester == semester
+          && getAfter(slotDoc).data.date == date;
+      }
+
+      function isOldDateReservationReleased(taId, semester, date, mId) {
+        let oldDoc = meetingDateSlotDoc(taId, semester, date);
+        return !exists(oldDoc) || get(oldDoc).data.meetingId != mId || !existsAfter(oldDoc);
+      }
+
+      function meetingSlotDoc(taId, semester, meetingNumber) {
+        return /databases/$(database)/documents/users/$(userId)/meetingSlots/$('slot_' + taId + '_' + semester + '_' + string(meetingNumber));
+      }
+
+      function isOldSlotReleased(taId, semester, meetingNumber, mId) {
+        let oldDoc = meetingSlotDoc(taId, semester, meetingNumber);
+        return !exists(oldDoc) || get(oldDoc).data.meetingId != mId || !existsAfter(oldDoc);
+      }
+
       match /meetings/{meetingId} {
-        allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow delete: if request.auth != null && (isSuperAdmin() || (
+          request.auth.uid == userId
+          && (!('date' in resource.data) || !('teachingAssignmentId' in resource.data) || !('semester' in resource.data) || isOldDateReservationReleased(resource.data.teachingAssignmentId, resource.data.semester, resource.data.date, meetingId))
+          && (!('meetingNumber' in resource.data) || !('teachingAssignmentId' in resource.data) || !('semester' in resource.data) || isOldSlotReleased(resource.data.teachingAssignmentId, resource.data.semester, resource.data.meetingNumber, meetingId))
+        ));
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && request.resource.data.teachingAssignmentId is string
           && request.resource.data.classId is string
@@ -123,9 +155,16 @@ service cloud.firestore {
           && request.resource.data.meetingNumber > 0
           && math.floor(request.resource.data.meetingNumber) == request.resource.data.meetingNumber
           && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
           && existsAfter(/databases/$(database)/documents/users/$(userId)/meetingSlots/$(
                'slot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + string(request.resource.data.meetingNumber)
-             ));
+             ))
+          && hasValidDateReservation(
+               request.resource.data.teachingAssignmentId,
+               request.resource.data.semester,
+               request.resource.data.date,
+               meetingId
+             );
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['teachingAssignmentId', 'classId', 'subjectId', 'academicYearId', 'semester'])
               || (resource.data.teachingAssignmentId == request.resource.data.teachingAssignmentId 
@@ -141,6 +180,24 @@ service cloud.firestore {
             || existsAfter(/databases/$(database)/documents/users/$(userId)/meetingSlots/$(
                  'slot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + string(request.resource.data.meetingNumber)
                ))
+          )
+          && (
+            (('date' in resource.data) && resource.data.date == request.resource.data.date)
+            || (
+              request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+              && hasValidDateReservation(
+                   request.resource.data.teachingAssignmentId,
+                   request.resource.data.semester,
+                   request.resource.data.date,
+                   meetingId
+                 )
+              && (!('date' in resource.data) || isOldDateReservationReleased(
+                   resource.data.teachingAssignmentId,
+                   resource.data.semester,
+                   resource.data.date,
+                   meetingId
+                 ))
+            )
           );
       }
 
@@ -181,7 +238,11 @@ service cloud.firestore {
           && request.resource.data.teachingAssignmentId is string
           && request.resource.data.semester in ['GANJIL', 'GENAP']
           && request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
-          && slotId == ('dateslot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + request.resource.data.date);
+          && slotId == ('dateslot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + request.resource.data.date)
+          && existsAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId))
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.date == request.resource.data.date
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.teachingAssignmentId == request.resource.data.teachingAssignmentId
+          && getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(request.resource.data.meetingId)).data.semester == request.resource.data.semester;
         allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
           && resource.data.meetingId == request.resource.data.meetingId
           && request.resource.data.keys().hasOnly(['meetingId', 'teachingAssignmentId', 'semester', 'date', 'createdAt', 'updatedAt'])

@@ -601,6 +601,7 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
       const batch = writeBatch(db);
       const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
       const slotRef = doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1');
+      const dateSlotRef = doc(db, 'users', TEACHER_UID, 'meetingDateSlots', 'dateslot_ta-001_GANJIL_2026-10-10');
 
       batch.set(meetingRef, validMeeting);
       batch.set(slotRef, {
@@ -608,6 +609,12 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
         teachingAssignmentId: 'ta-001',
         semester: 'GANJIL',
         meetingNumber: 1,
+      });
+      batch.set(dateSlotRef, {
+        meetingId: 'meet-01',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        date: '2026-10-10',
       });
 
       await assertSucceeds(batch.commit());
@@ -763,4 +770,604 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
       await assertFails(deleteDoc(otherSlotRef));
     });
   });
+
+  // =========================================================================
+  // SEC-05: meetingDateSlots — Date Uniqueness Reservation Protocol
+  // =========================================================================
+  describe('SEC-05: meetingDateSlots Date Reservation Protocol', () => {
+    const DATE = '2026-10-10';
+    const dateSlotId = 'dateslot_ta-001_GANJIL_2026-10-10';
+    const validMeeting = {
+      academicYearId: 'ay-2026',
+      semester: 'GANJIL',
+      teachingAssignmentId: 'ta-001',
+      classId: 'class-10a',
+      subjectId: 'sub-matematika',
+      meetingNumber: 1,
+      date: DATE,
+      topic: 'Pengenalan Limit',
+      status: 'COMPLETED',
+    };
+    const validDateSlot = {
+      meetingId: 'meet-01',
+      teachingAssignmentId: 'ta-001',
+      semester: 'GANJIL',
+      date: DATE,
+    };
+
+    const seedMeetingAndDateSlot = async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+    };
+
+    it('TC-DS01: allows owner to create date slot with schema-valid payload and deterministic slotId', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        await setDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      });
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId);
+      await assertSucceeds(setDoc(slotRef, validDateSlot));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const snap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(snap.exists()).toBe(true);
+        expect(snap.data()?.meetingId).toBe('meet-01');
+        expect(snap.data()?.date).toBe(DATE);
+        expect(snap.data()?.teachingAssignmentId).toBe('ta-001');
+        expect(snap.data()?.semester).toBe('GANJIL');
+      });
+    });
+
+    it('TC-DS02: rejects unauthenticated date slot creation', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        await setDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      });
+      const db = testEnv.unauthenticatedContext().firestore();
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId);
+      await assertFails(setDoc(slotRef, validDateSlot));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const snap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(snap.exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS03: rejects deleting reservation alone while active meeting keeps the same date', async () => {
+      await seedMeetingAndDateSlot();
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId);
+      await assertFails(deleteDoc(slotRef));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const snap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(snap.exists()).toBe(true);
+      });
+    });
+
+    it('TC-DS03b: allows releasing old reservation only when meeting date moves in the same batch', async () => {
+      await seedMeetingAndDateSlot();
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), { date: '2026-10-11' });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', 'dateslot_ta-001_GANJIL_2026-10-11'), {
+        ...validDateSlot,
+        date: '2026-10-11',
+      });
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+      await assertSucceeds(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        const meetSnap = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+        expect(meetSnap.exists()).toBe(true);
+        expect(meetSnap.data()?.date).toBe('2026-10-11');
+
+        const oldSlotSnap = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(oldSlotSnap.exists()).toBe(false);
+
+        const newSlotSnap = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', 'dateslot_ta-001_GANJIL_2026-10-11'));
+        expect(newSlotSnap.exists()).toBe(true);
+        expect(newSlotSnap.data()?.meetingId).toBe('meet-01');
+        expect(newSlotSnap.data()?.date).toBe('2026-10-11');
+      });
+    });
+
+    it('TC-DS04: allows atomic batch deleting meeting together with its date reservation', async () => {
+      await seedMeetingAndDateSlot();
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+      await assertSucceeds(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS04b: allows atomic batch deleting meeting with both meetingSlot and date reservation', async () => {
+      await seedMeetingAndDateSlot();
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        await setDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+      await assertSucceeds(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS05: rejects cross-owner read, delete, and create on another teacher reservation', async () => {
+      await seedMeetingAndDateSlot();
+
+      const otherDb = testEnv.authenticatedContext(OTHER_TEACHER_UID).firestore();
+      const victimSlotRef = doc(otherDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId);
+      await assertFails(getDoc(victimSlotRef));
+      await assertFails(deleteDoc(victimSlotRef));
+
+      const otherNewSlotRef = doc(
+        otherDb,
+        'users',
+        TEACHER_UID,
+        'meetingDateSlots',
+        'dateslot_ta-001_GANJIL_2026-10-11'
+      );
+      await assertFails(setDoc(otherNewSlotRef, { ...validDateSlot, date: '2026-10-11' }));
+
+      const batch = writeBatch(otherDb);
+      batch.delete(doc(otherDb, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+      batch.delete(victimSlotRef);
+      await assertFails(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(true);
+      });
+    });
+
+    it('TC-DS06: allows creating meeting, meetingSlot, and meetingDateSlot atomically', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+        meetingId: 'meet-01',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 1,
+      });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      await assertSucceeds(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(true);
+      });
+    });
+
+    it('TC-DS07: allows updating non-date fields on legacy meeting without meetingDateSlot', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        await setDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetings', 'meet-legacy'), validMeeting);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetingRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-legacy');
+      await assertSucceeds(updateDoc(meetingRef, {
+        topic: 'Topik Baru Terupdate',
+        notes: 'Catatan tambahan',
+      }));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const snap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetings', 'meet-legacy'));
+        expect(snap.data()?.topic).toBe('Topik Baru Terupdate');
+        const slotSnap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(slotSnap.exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS08: allows updating meeting date with atomic transfer and release of old slot', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+
+      const NEW_DATE = '2026-10-12';
+      const newDateSlotId = 'dateslot_ta-001_GANJIL_2026-10-12';
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), { date: NEW_DATE });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', newDateSlotId), {
+        ...validDateSlot,
+        date: NEW_DATE,
+      });
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+      await assertSucceeds(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        const meet = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+        expect(meet.data()?.date).toBe(NEW_DATE);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', newDateSlotId))).exists()).toBe(true);
+      });
+    });
+
+    it('TC-DS09: rejects creating meeting without matching date reservation slot', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-no-dateslot'), validMeeting);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+        meetingId: 'meet-no-dateslot',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 1,
+      });
+      // Omit meetingDateSlots
+      await assertFails(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-no-dateslot'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS10: rejects creating meeting if date reservation meetingId or date mismatches', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+        meetingId: 'meet-01',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 1,
+      });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), {
+        ...validDateSlot,
+        meetingId: 'different-meeting-id',
+      });
+      await assertFails(batch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS11: rejects creating date reservation without matching existing or batch meeting', async () => {
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const slotRef = doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId);
+      await assertFails(setDoc(slotRef, validDateSlot));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        expect((await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DS12: rejects updating meeting date without creating new matching date reservation', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+      await assertFails(updateDoc(meetRef, { date: '2026-10-15' }));
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const snap = await getDoc(doc(adminContext.firestore(), 'users', TEACHER_UID, 'meetings', 'meet-01'));
+        expect(snap.data()?.date).toBe(DATE);
+      });
+    });
+
+    it('TC-DS13: rejects creating second meeting trying to reuse existing date reservation', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_1'), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-02'), {
+        ...validMeeting,
+        meetingNumber: 2,
+      });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_2'), {
+        meetingId: 'meet-02',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 2,
+      });
+      await assertFails(batch.commit());
+
+      const stealBatch = writeBatch(db);
+      stealBatch.set(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-02'), {
+        ...validMeeting,
+        meetingNumber: 2,
+      });
+      stealBatch.set(doc(db, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_2'), {
+        meetingId: 'meet-02',
+        teachingAssignmentId: 'ta-001',
+        semester: 'GANJIL',
+        meetingNumber: 2,
+      });
+      stealBatch.update(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), {
+        meetingId: 'meet-02',
+      });
+      await assertFails(stealBatch.commit());
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-02'))).exists()).toBe(false);
+        const slot = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+        expect(slot.data()?.meetingId).toBe('meet-01');
+      });
+    });
+  });
+
+  describe('Meeting Deletion Invariants (TC-DEL)', () => {
+    const DATE = '2026-10-10';
+    const slotId = 'slot_ta-001_GANJIL_1';
+    const dateSlotId = 'dateslot_ta-001_GANJIL_2026-10-10';
+    const validMeeting = {
+      academicYearId: 'ay-2026',
+      semester: 'GANJIL',
+      teachingAssignmentId: 'ta-001',
+      classId: 'class-10a',
+      subjectId: 'sub-matematika',
+      meetingNumber: 1,
+      date: DATE,
+      topic: 'Pengenalan Limit',
+      status: 'COMPLETED',
+    };
+    const validDateSlot = {
+      meetingId: 'meet-01',
+      teachingAssignmentId: 'ta-001',
+      semester: 'GANJIL',
+      date: DATE,
+    };
+
+    it('TC-DEL01: rejects standalone meeting delete when reservations exist', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', slotId), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01');
+
+      // Attempting to delete meeting alone must fail
+      await assertFails(deleteDoc(meetRef));
+
+      // Post-state check: meeting and both slots remain intact
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', slotId))).exists()).toBe(true);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(true);
+      });
+    });
+
+    it('TC-DEL02: allows atomic deletion of meeting and its owned reservations', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', slotId), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingSlots', slotId));
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+
+      await assertSucceeds(batch.commit());
+
+      // Post-state check: all three documents are deleted
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', slotId))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DEL03: allows legacy meeting deletion without reservations', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-legacy'), {
+          ...validMeeting,
+          meetingNumber: 99,
+          date: '2026-10-20',
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const meetRef = doc(db, 'users', TEACHER_UID, 'meetings', 'meet-legacy');
+
+      await assertSucceeds(deleteDoc(meetRef));
+
+      // Post-state check: meeting document is deleted
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-legacy'))).exists()).toBe(false);
+      });
+    });
+
+    it('TC-DEL04: allows legacy meeting deletion while preserving another meeting\'s reservation', async () => {
+      const activeSlotId = 'slot_ta-001_GANJIL_1';
+      const activeDateSlotId = 'dateslot_ta-001_GANJIL_2026-10-10';
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        // Active meeting owning the slots
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-active'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', activeSlotId), {
+          meetingId: 'meet-active',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', activeDateSlotId), {
+          ...validDateSlot,
+          meetingId: 'meet-active',
+        });
+
+        // Duplicate legacy meeting (same number and date, but without owning slots)
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-legacy-dup'), {
+          ...validMeeting,
+          topic: 'Legacy Duplicate Meeting',
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      // Deleting the legacy duplicate meeting alone
+      await assertSucceeds(deleteDoc(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-legacy-dup')));
+
+      // Post-state check: legacy dup is deleted, active meeting and its reservations remain intact
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-legacy-dup'))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-active'))).exists()).toBe(true);
+
+        const slotSnap = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', activeSlotId));
+        expect(slotSnap.exists()).toBe(true);
+        expect(slotSnap.data()?.meetingId).toBe('meet-active');
+
+        const dateSlotSnap = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', activeDateSlotId));
+        expect(dateSlotSnap.exists()).toBe(true);
+        expect(dateSlotSnap.data()?.meetingId).toBe('meet-active');
+      });
+    });
+
+    it('TC-DEL05: allows atomic date change while preserving unrelated reservations', async () => {
+      const otherDateSlotId = 'dateslot_ta-001_GANJIL_2026-10-11';
+      const newDate = '2026-10-12';
+      const newDateSlotId = 'dateslot_ta-001_GANJIL_2026-10-12';
+
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        // Target meeting and its date slot
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'), validMeeting);
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', slotId), {
+          meetingId: 'meet-01',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 1,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId), validDateSlot);
+
+        // Unrelated meeting and date slot on 2026-10-11
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-unrelated'), {
+          ...validMeeting,
+          meetingNumber: 2,
+          date: '2026-10-11',
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingSlots', 'slot_ta-001_GANJIL_2'), {
+          meetingId: 'meet-unrelated',
+          teachingAssignmentId: 'ta-001',
+          semester: 'GANJIL',
+          meetingNumber: 2,
+        });
+        await setDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', otherDateSlotId), {
+          ...validDateSlot,
+          meetingId: 'meet-unrelated',
+          date: '2026-10-11',
+        });
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'users', TEACHER_UID, 'meetings', 'meet-01'), { date: newDate });
+      batch.set(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', newDateSlotId), {
+        ...validDateSlot,
+        date: newDate,
+      });
+      batch.delete(doc(db, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId));
+
+      await assertSucceeds(batch.commit());
+
+      // Post-state check:
+      // 1. meet-01 has moved to newDate
+      // 2. old date slot (dateSlotId) is deleted
+      // 3. new date slot (newDateSlotId) exists and points to meet-01
+      // 4. meet-unrelated and otherDateSlotId are completely preserved
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const adminDb = adminContext.firestore();
+        const meet = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-01'));
+        expect(meet.data()?.date).toBe(newDate);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', dateSlotId))).exists()).toBe(false);
+        expect((await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', newDateSlotId))).exists()).toBe(true);
+
+        const unrelatedMeet = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetings', 'meet-unrelated'));
+        expect(unrelatedMeet.exists()).toBe(true);
+        expect(unrelatedMeet.data()?.date).toBe('2026-10-11');
+
+        const otherSlot = await getDoc(doc(adminDb, 'users', TEACHER_UID, 'meetingDateSlots', otherDateSlotId));
+        expect(otherSlot.exists()).toBe(true);
+        expect(otherSlot.data()?.meetingId).toBe('meet-unrelated');
+      });
+    });
+  });
+
 });
