@@ -72,6 +72,11 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       exists: () => true,
       data: () => ({ isArchived: false }),
     });
+    mockGetDocs.mockResolvedValue({
+      docs: [],
+      empty: true,
+      size: 0,
+    });
   });
 
   describe('Pre-transaction validations (AC-9 & residual risk check)', () => {
@@ -567,6 +572,99 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       expect(sanitizeRecordedBy(12345, fallbackUid)).toBe(fallbackUid);
       expect(sanitizeRecordedBy({}, fallbackUid)).toBe(fallbackUid);
       expect(sanitizeRecordedBy(true, fallbackUid)).toBe(fallbackUid);
+    });
+  });
+  describe('Duplicate Legacy Meetings & Attendance Integrity (Priority 4)', () => {
+    it('7. When duplicate legacy meetings exist on a date, saving attendance is rejected and does not overwrite records', async () => {
+      // getAttendanceRecordsByDate returns existing record for stud-1
+      mockGetDocs.mockImplementation(async (q: any) => {
+        if (q?.path?.includes('attendanceRecords') || q?.coll?.path?.includes('attendanceRecords')) {
+          return { docs: [{ data: () => ({ studentId: 'stud-1' }) }], empty: false, size: 1 };
+        }
+        // duplicate meetings check returns 2 meetings on same date
+        return {
+          docs: [
+            { id: 'meet-legacy-1', data: () => ({ id: 'meet-legacy-1', meetingNumber: 1, date: '2026-10-10' }) },
+            { id: 'meet-legacy-2', data: () => ({ id: 'meet-legacy-2', meetingNumber: 2, date: '2026-10-10' }) },
+          ],
+          empty: false,
+          size: 2,
+        };
+      });
+
+      await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+        'Terdapat 2 pertemuan pada tanggal 2026-10-10 untuk penugasan ini. Harap selesaikan pertemuan duplikat terlebih dahulu sebelum menyimpan presensi.'
+      );
+
+      // Verify transaction was never started (no records overwritten)
+      expect(mockRunTransaction).not.toHaveBeenCalled();
+    });
+
+    it('8. Rejection due to duplicate meetings conflict never clears attendanceSummary on previous meeting', async () => {
+      mockGetDocs.mockImplementation(async (q: any) => {
+        if (q?.path?.includes('attendanceRecords') || q?.coll?.path?.includes('attendanceRecords')) {
+          return { docs: [{ data: () => ({ studentId: 'stud-1' }) }], empty: false, size: 1 };
+        }
+        return {
+          docs: [
+            { id: 'meet-old-1', data: () => ({ id: 'meet-old-1', meetingNumber: 1, date: '2026-10-10' }) },
+            { id: 'meet-old-2', data: () => ({ id: 'meet-old-2', meetingNumber: 2, date: '2026-10-10' }) },
+          ],
+          empty: false,
+          size: 2,
+        };
+      });
+
+      const payloadWithLinkSwitch: SaveSubjectAttendancePayload = {
+        ...basePayload,
+        meetingId: 'meet-old-2',
+        expectedPreviousMeetingId: 'meet-old-1',
+      };
+
+      await expect(saveSubjectAttendance(uid, payloadWithLinkSwitch)).rejects.toThrow(
+        'Terdapat 2 pertemuan pada tanggal 2026-10-10 untuk penugasan ini'
+      );
+
+      // Crucial: mockRunTransaction not called -> meet-old-1 attendanceSummary is not set to null
+      expect(mockRunTransaction).not.toHaveBeenCalled();
+    });
+
+    it('9. Non-conflicting date and assignment saves normally when 0 or 1 meeting exists', async () => {
+      mockGetDocs.mockImplementation(async (q: any) => {
+        if (q?.path?.includes('attendanceRecords') || q?.coll?.path?.includes('attendanceRecords')) {
+          return { docs: [{ data: () => ({ studentId: 'stud-1' }) }], empty: false, size: 1 };
+        }
+        // Only 1 meeting on this date -> no duplicate conflict
+        return {
+          docs: [
+            { id: 'meet-1', data: () => ({ id: 'meet-1', meetingNumber: 1, date: '2026-10-10', status: 'SCHEDULED' }) },
+          ],
+          empty: false,
+          size: 1,
+        };
+      });
+
+      mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
+        const tx = {
+          get: vi.fn().mockImplementation(async (ref: any) => {
+            if (ref.path.includes('meetings')) {
+              return {
+                exists: () => true,
+                data: () => ({ id: 'meet-1', teachingAssignmentId: 'assign-1', date: '2026-10-10', status: 'SCHEDULED' }),
+              };
+            }
+            return { exists: () => false, data: () => ({}) };
+          }),
+          set: vi.fn(),
+          update: vi.fn(),
+        };
+        return cb(tx);
+      });
+
+      const summary = await saveSubjectAttendance(uid, basePayload);
+      expect(summary.present).toBe(1);
+      expect(summary.total).toBe(1);
+      expect(mockRunTransaction).toHaveBeenCalledTimes(1);
     });
   });
 });

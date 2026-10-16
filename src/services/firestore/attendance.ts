@@ -163,6 +163,20 @@ export async function saveSubjectAttendance(
     throw new Error(`Rekonsiliasi gagal: Ditemukan ${extraRecords.length} data presensi siswa tersimpan yang tidak tercantum dalam form saat ini. Harap muat ulang halaman.`);
   }
 
+  // 8b. Pemeriksaan Konflik Pertemuan Duplikat pada Tanggal Sesi
+  const meetingsColRef = collection(db, 'users', uid, 'meetings');
+  const duplicateMeetingsQ = query(
+    meetingsColRef,
+    where('teachingAssignmentId', '==', teachingAssignmentId),
+    where('semester', '==', semester),
+    where('date', '==', date)
+  );
+  const duplicateMeetingsSnap = await getDocs(duplicateMeetingsQ);
+  const duplicateMeetings = duplicateMeetingsSnap?.docs || [];
+  if (duplicateMeetings.length > 1) {
+    throw new Error(`Terdapat ${duplicateMeetings.length} pertemuan pada tanggal ${date} untuk penugasan ini. Harap selesaikan pertemuan duplikat terlebih dahulu sebelum menyimpan presensi.`);
+  }
+
   // 9. Transaksi Atomik Tunggal
   return trackSync((async () => {
     await runTransaction(db, async (transaction) => {

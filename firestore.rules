@@ -173,6 +173,29 @@ service cloud.firestore {
         ));
       }
 
+      match /meetingDateSlots/{slotId} {
+        allow read: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && request.resource.data.keys().hasOnly(['meetingId', 'teachingAssignmentId', 'semester', 'date', 'createdAt', 'updatedAt'])
+          && request.resource.data.meetingId is string
+          && request.resource.data.teachingAssignmentId is string
+          && request.resource.data.semester in ['GANJIL', 'GENAP']
+          && request.resource.data.date is string && request.resource.data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
+          && slotId == ('dateslot_' + request.resource.data.teachingAssignmentId + '_' + request.resource.data.semester + '_' + request.resource.data.date);
+        allow update: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())
+          && resource.data.meetingId == request.resource.data.meetingId
+          && request.resource.data.keys().hasOnly(['meetingId', 'teachingAssignmentId', 'semester', 'date', 'createdAt', 'updatedAt'])
+          && request.resource.data.date == resource.data.date
+          && request.resource.data.teachingAssignmentId == resource.data.teachingAssignmentId
+          && request.resource.data.semester == resource.data.semester;
+        allow delete: if request.auth != null && (isSuperAdmin() || (
+          request.auth.uid == userId && (
+            !existsAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(resource.data.meetingId))
+            || getAfter(/databases/$(database)/documents/users/$(userId)/meetings/$(resource.data.meetingId)).data.date != resource.data.date
+          )
+        ));
+      }
+
       match /attendanceRecords/{recordId} {
         allow read, delete: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
         allow create: if request.auth != null && (request.auth.uid == userId || isSuperAdmin())

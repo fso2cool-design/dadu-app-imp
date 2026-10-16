@@ -909,7 +909,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
   it('H. guards meeting switch when target meeting has the same date and form is dirty', async () => {
     mockApp.meetings.getAll.mockResolvedValue([
       { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
-      { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-10', status: 'SCHEDULED' },
     ]);
     mockGetByDate.mockResolvedValue([
       { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
@@ -921,7 +920,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
       expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
-      expect(screen.getByText('Jurnal Ke-2')).toBeInTheDocument();
     });
 
     const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
@@ -932,8 +930,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan meet 1' } });
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
 
-    // 2. Coba ganti ke meet-2 (tanggal sama: 2026-10-10)
-    fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
+    // 2. Coba ganti ke unlinked (tanggal sama: 2026-10-10)
+    fireEvent.change(meetingSelect, { target: { value: '' } });
 
     // Dialog konfirmasi harus muncul dan meeting belum berganti
     const dialog = await screen.findByRole('dialog');
@@ -951,13 +949,13 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(meetingSelect).toHaveValue('meet-1');
     expect(noteInputs[0]).toHaveValue('Catatan meet 1');
 
-    // 4. Coba ganti ke meet-2 lagi, lalu pilih Simpan di dialog
-    fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
+    // 4. Coba ganti ke unlinked lagi, lalu pilih Simpan di dialog
+    fireEvent.change(meetingSelect, { target: { value: '' } });
     const dialog2 = await screen.findByRole('dialog');
     const saveInDialog = within(dialog2).getByRole('button', { name: /Simpan Presensi/i });
     fireEvent.click(saveInDialog);
 
-    // Harus simpan pada meet-1 (bukan meet-2)
+    // Harus simpan pada meet-1
     await waitFor(() => {
       expect(mockSaveSubjectAttendance).toHaveBeenCalledTimes(1);
     });
@@ -965,10 +963,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       meetingId: 'meet-1',
     }));
 
-    // Setelah simpan sukses, dialog tertutup dan meeting berpindah ke meet-2
+    // Setelah simpan sukses, dialog tertutup dan meeting berpindah ke unlinked
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(screen.getByDisplayValue('Jurnal Ke-2')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
     });
   });
 
@@ -976,7 +974,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
   it('I. halts meeting switch on save failure, preserving pending edits and current meeting', async () => {
     mockApp.meetings.getAll.mockResolvedValue([
       { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
-      { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-10', status: 'SCHEDULED' },
     ]);
     mockGetByDate.mockResolvedValue([
       { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'meet-1', date: '2026-10-10' },
@@ -995,7 +992,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan penting' } });
 
     const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
-    fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
+    fireEvent.change(meetingSelect, { target: { value: '' } });
 
     const dialog = await screen.findByRole('dialog');
     const saveButton = within(dialog).getByRole('button', { name: /Simpan Presensi/i });
@@ -1006,7 +1003,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
     expect(await screen.findByText(/Koneksi database terputus/i)).toBeInTheDocument();
 
-    // Navigasi tetap tertahan: dialog tetap terbuka atau feedback error muncul, meeting tidak berganti ke meet-2
+    // Navigasi tetap tertahan: dialog tetap terbuka atau feedback error muncul, meeting tidak berganti
     expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
     expect(noteInputs[0]).toHaveValue('Catatan penting');
   });
@@ -1154,7 +1151,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
   it('N. reflects correct neutral status and context when discarding changes and switching meeting on fresh session', async () => {
     mockApp.meetings.getAll.mockResolvedValue([
       { id: 'meet-1', meetingNumber: 1, topic: 'Pertemuan 1', date: '2026-10-10', status: 'SCHEDULED' },
-      { id: 'meet-2', meetingNumber: 2, topic: 'Pertemuan 2', date: '2026-10-10', status: 'SCHEDULED' },
     ]);
     mockGetByDate.mockResolvedValue([]);
 
@@ -1163,7 +1159,6 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
       expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
-      expect(screen.getByText('Jurnal Ke-2')).toBeInTheDocument();
     });
 
     // Ubah catatan siswa
@@ -1171,22 +1166,22 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan sementara draf' } });
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
 
-    // Pilih meet-2 pada tanggal yang sama
+    // Pilih meet-1 pada tanggal yang sama
     const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
-    fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
+    fireEvent.change(meetingSelect, { target: { value: 'meet-1' } });
 
     const dialog = await screen.findByRole('dialog');
     const discardButton = within(dialog).getByRole('button', { name: /Buang Perubahan/i });
     fireEvent.click(discardButton);
 
-    // Modal tutup, meeting beralih ke meet-2, catatan siswa kembali ke baseline (kosong)
+    // Modal tutup, meeting beralih ke meet-1, catatan siswa kembali ke baseline (kosong)
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(screen.getByDisplayValue('Jurnal Ke-2')).toBeInTheDocument();
+      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
     });
     expect(noteInputs[0]).toHaveValue('');
 
-    // Meeting berpindah ke meet-2 (perubahan meeting membuat form dirty), tetapi baris siswa belum diisi sehingga save tetap disabled
+    // Meeting berpindah ke meet-1 (perubahan meeting membuat form dirty), tetapi baris siswa belum diisi sehingga save tetap disabled
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
     const saveButton = screen.getByRole('button', { name: /Simpan Presensi/i });
     expect(saveButton).toBeDisabled();
@@ -1196,11 +1191,11 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.click(setAllButton);
     expect(saveButton).not.toBeDisabled();
 
-    // Simpan presensi untuk meet-2
+    // Simpan presensi untuk meet-1
     fireEvent.click(saveButton);
     await waitFor(() => {
       expect(mockSaveSubjectAttendance).toHaveBeenCalledWith('teacher-uid', expect.objectContaining({
-        meetingId: 'meet-2',
+        meetingId: 'meet-1',
       }));
     });
   });
@@ -1785,7 +1780,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       ]);
       mockApp.meetings.getAll.mockResolvedValue([
         { id: initialMeetingId, meetingNumber: 1, topic: 'Pertemuan Pertama', date: syntheticDate, status: 'SCHEDULED' },
-        { id: 'meet-concurrent-2', meetingNumber: 2, topic: 'Pertemuan Kedua', date: syntheticDate, status: 'SCHEDULED' },
+        { id: 'meet-concurrent-2', meetingNumber: 2, topic: 'Pertemuan Kedua', date: '2026-10-16', status: 'SCHEDULED' },
       ]);
 
       // Service menolak dengan OPTIMISTIC_CONCURRENCY_ERROR karena data diubah oleh perangkat lain

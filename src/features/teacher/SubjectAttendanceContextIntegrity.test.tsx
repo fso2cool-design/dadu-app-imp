@@ -702,5 +702,68 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
         );
       });
     });
+    it('10. Conflicting navigation context date is not silently redirected and shows explicit integrity error', async () => {
+      // navContext specifies meeting mtg-asg1-1 (date 2026-10-10) but date 2026-10-15
+      renderPage({
+        assignmentId: 'asg-1',
+        meetingId: 'mtg-asg1-1',
+        date: '2026-10-15',
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Explicit context error banner must be rendered
+      expect(await screen.findByText(/Tanggal pertemuan jurnal \(2026-10-10\) tidak cocok dengan tanggal presensi \(2026-10-15\)/i)).toBeInTheDocument();
+
+      // Save button must be disabled
+      const saveBtn = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveBtn).toBeDisabled();
+    });
+
+    it('11. Explicitly detects duplicate legacy meetings on the same date, renders error banner, and blocks saving', async () => {
+      clearSubjectAttendanceCaches();
+      // Provide duplicate meetings for asg-1 on 2026-10-10
+      mockGetAllMeetings.mockImplementation((_uid: string, filter: any) => {
+        if (filter.teachingAssignmentId === 'asg-1') {
+          return Promise.resolve([
+        {
+          id: 'mtg-dup-1',
+          meetingNumber: 1,
+          date: '2026-10-10',
+          topic: 'Sesi Pagi',
+          teachingAssignmentId: 'asg-1',
+          classId: 'cls-1',
+          subjectId: 'sub-1',
+        },
+        {
+          id: 'mtg-dup-2',
+          meetingNumber: 2,
+          date: '2026-10-10',
+          topic: 'Sesi Siang',
+          teachingAssignmentId: 'asg-1',
+          classId: 'cls-1',
+          subjectId: 'sub-1',
+        },
+          ]);
+        }
+        return Promise.resolve([]);
+      });
+
+      renderPage({ assignmentId: 'asg-1', date: '2026-10-10' });
+      await screen.findByText('Ahmad Dahlan');
+
+      // Verify duplicate meeting warning banner
+      expect(await screen.findByText(/Terdapat 2 pertemuan pada tanggal 2026-10-10 untuk penugasan ini/i)).toBeInTheDocument();
+      expect(screen.getByText(/Pertemuan #1, #2/i)).toBeInTheDocument();
+
+      // Mark student Present
+      const presentBtn = screen.getAllByTitle('Hadir (H)')[0];
+      fireEvent.click(presentBtn);
+
+      // Save button must be disabled due to duplicateMeetingError
+      const saveBtn = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveBtn).toBeDisabled();
+      expect(saveBtn).toHaveAttribute('title', expect.stringContaining('Terdapat 2 pertemuan pada tanggal 2026-10-10'));
+    });
   });
 });

@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Meeting, SemesterType, AttendanceSummary } from '../../types';
-import { getMeetingSlotId, isValidMeetingNumber } from '../../domain/academic/meetingPolicy';
+import { getMeetingSlotId, getMeetingDateSlotId, isValidMeetingNumber } from '../../domain/academic/meetingPolicy';
 import { getTodayISO } from '../../utils/date';
 import { trackSync } from '../../utils/syncEvents';
 
@@ -23,7 +23,7 @@ import { trackSync } from '../../utils/syncEvents';
  * Menghasilkan ID dokumen deterministik untuk reservasi nomor pertemuan.
  * Format: slot_{teachingAssignmentId}_{semester}_{meetingNumber}
  */
-export { getMeetingSlotId } from '../../domain/academic/meetingPolicy';
+export { getMeetingSlotId, getMeetingDateSlotId } from '../../domain/academic/meetingPolicy';
 
 /**
  * Filter options for querying meetings.
@@ -179,6 +179,8 @@ export async function createMeeting(
     throw new Error('Nomor pertemuan harus berupa bilangan bulat positif (minimal 1).');
   }
 
+  const targetDate = data.date || getTodayISO();
+
   // 3. Pre-flight check for duplicate legacy meetings
   const duplicateQ = query(
     colRef,
@@ -191,10 +193,23 @@ export async function createMeeting(
     throw new Error(`Pertemuan ke-${meetingNumber} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
   }
 
+  const duplicateDateQ = query(
+    colRef,
+    where('teachingAssignmentId', '==', data.teachingAssignmentId),
+    where('semester', '==', data.semester),
+    where('date', '==', targetDate)
+  );
+  const dupDateSnap = await getDocs(duplicateDateQ);
+  if (!dupDateSnap.empty) {
+    throw new Error(`Pertemuan pada tanggal ${targetDate} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
+  }
+
   // 4. Generate stable document ID independent of meetingNumber
   const meetingDocRef = doc(colRef);
   const slotId = getMeetingSlotId(data.teachingAssignmentId, data.semester, meetingNumber);
   const slotDocRef = doc(db, 'users', uid, 'meetingSlots', slotId);
+  const dateSlotId = getMeetingDateSlotId(data.teachingAssignmentId, data.semester, targetDate);
+  const dateSlotDocRef = doc(db, 'users', uid, 'meetingDateSlots', dateSlotId);
   const legacyDeterministicDocRef = doc(colRef, `${data.teachingAssignmentId}_${data.semester}_${meetingNumber}`);
 
   const now = serverTimestamp();
@@ -205,7 +220,7 @@ export async function createMeeting(
     teachingAssignmentId: data.teachingAssignmentId,
     classId: data.classId,
     subjectId: data.subjectId,
-    date: data.date || getTodayISO(),
+    date: targetDate,
     timeSlot: data.timeSlot?.trim() || '',
     meetingNumber,
     topic: data.topic.trim(),
@@ -230,6 +245,12 @@ export async function createMeeting(
       throw new Error(`Pertemuan ke-${meetingNumber} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
     }
 
+    // Check date slot document reservation
+    const dateSlotSnap = await transaction.get(dateSlotDocRef);
+    if (dateSlotSnap.exists()) {
+      throw new Error(`Pertemuan pada tanggal ${targetDate} untuk kelas dan mata pelajaran ini pada ${data.semester} sudah ada dalam jurnal.`);
+    }
+
     // Check legacy deterministic document ID
     const legacySnap = await transaction.get(legacyDeterministicDocRef);
     if (legacySnap.exists()) {
@@ -245,6 +266,14 @@ export async function createMeeting(
       teachingAssignmentId: data.teachingAssignmentId,
       semester: data.semester,
       meetingNumber,
+      createdAt: now,
+      updatedAt: now,
+    });
+    transaction.set(dateSlotDocRef, {
+      meetingId: meetingDocRef.id,
+      teachingAssignmentId: data.teachingAssignmentId,
+      semester: data.semester,
+      date: targetDate,
       createdAt: now,
       updatedAt: now,
     });
@@ -294,6 +323,18 @@ export async function updateMeeting(
     if (!attSnap.empty) {
       throw new Error('Tanggal jurnal tidak dapat diubah karena masih terhubung dengan presensi siswa. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.');
     }
+
+    const colRef = collection(db, 'users', uid, 'meetings');
+    const duplicateDateQ = query(
+      colRef,
+      where('teachingAssignmentId', '==', existingData.teachingAssignmentId),
+      where('semester', '==', existingData.semester),
+      where('date', '==', data.date)
+    );
+    const dupDateSnap = await getDocs(duplicateDateQ);
+    if (!dupDateSnap.empty && dupDateSnap.docs.some(d => d.id !== id)) {
+      throw new Error(`Pertemuan pada tanggal ${data.date} untuk kelas dan mata pelajaran ini pada ${existingData.semester} sudah ada dalam jurnal.`);
+    }
   }
 
   // 3. Meeting number validation & pre-flight duplicate check
@@ -342,9 +383,39 @@ export async function updateMeeting(
       const freshData = freshSnap.data() as Meeting;
 
       // In-transaction guard: If date is changing, ensure no attendance was attached concurrently
-      if (data.date !== undefined && data.date !== freshData.date) {
+      const isDateChanging = data.date !== undefined && data.date !== freshData.date;
+      if (isDateChanging) {
         if (freshData.attendanceSummary !== null && freshData.attendanceSummary !== undefined) {
           throw new Error('Tanggal jurnal tidak dapat diubah karena masih terhubung dengan presensi siswa. Lepaskan tautan presensi dan simpan terlebih dahulu untuk mengubah tanggal.');
+        }
+      }
+
+      let targetDateSlotRef: any = null;
+      let oldDateSlotRef: any = null;
+      let shouldDeleteOldDateSlot = false;
+
+      if (isDateChanging && data.date) {
+        const targetDate = data.date;
+        const targetDateSlotId = getMeetingDateSlotId(freshData.teachingAssignmentId, freshData.semester, targetDate);
+        targetDateSlotRef = doc(db, 'users', uid, 'meetingDateSlots', targetDateSlotId);
+        const targetDateSlotSnap = await transaction.get(targetDateSlotRef);
+        if (targetDateSlotSnap.exists()) {
+          const slotData = targetDateSlotSnap.data() as any;
+          if (slotData?.meetingId !== id) {
+            throw new Error(`Pertemuan pada tanggal ${targetDate} untuk kelas dan mata pelajaran ini pada ${freshData.semester} sudah ada dalam jurnal.`);
+          }
+        }
+
+        if (freshData.date) {
+          const oldDateSlotId = getMeetingDateSlotId(freshData.teachingAssignmentId, freshData.semester, freshData.date);
+          oldDateSlotRef = doc(db, 'users', uid, 'meetingDateSlots', oldDateSlotId);
+          const oldDateSlotSnap = await transaction.get(oldDateSlotRef);
+          if (oldDateSlotSnap.exists()) {
+            const oldData = oldDateSlotSnap.data() as any;
+            if (oldData?.meetingId === id) {
+              shouldDeleteOldDateSlot = true;
+            }
+          }
         }
       }
 
@@ -407,6 +478,21 @@ export async function updateMeeting(
 
         if (shouldDeleteOldSlot && oldSlotRef) {
           transaction.delete(oldSlotRef);
+        }
+      }
+
+      if (isDateChanging && targetDateSlotRef && data.date) {
+        transaction.set(targetDateSlotRef, {
+          meetingId: id,
+          teachingAssignmentId: freshData.teachingAssignmentId,
+          semester: freshData.semester,
+          date: data.date,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        if (shouldDeleteOldDateSlot && oldDateSlotRef) {
+          transaction.delete(oldDateSlotRef);
         }
       }
 
@@ -533,6 +619,18 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
           const slotData = slotSnap.data() as any;
           if (slotData?.meetingId === id) {
             transaction.delete(slotRef);
+          }
+        }
+      }
+
+      if (freshData.teachingAssignmentId && freshData.semester && freshData.date) {
+        const dateSlotId = getMeetingDateSlotId(freshData.teachingAssignmentId, freshData.semester, freshData.date);
+        const dateSlotRef = doc(db, 'users', uid, 'meetingDateSlots', dateSlotId);
+        const dateSlotSnap = await transaction.get(dateSlotRef);
+        if (dateSlotSnap.exists()) {
+          const slotData = dateSlotSnap.data() as any;
+          if (slotData?.meetingId === id) {
+            transaction.delete(dateSlotRef);
           }
         }
       }

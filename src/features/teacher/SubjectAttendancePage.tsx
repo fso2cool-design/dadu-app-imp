@@ -472,6 +472,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             setContextError(`Pertemuan jurnal dengan ID "${navContext.meetingId}" tidak ditemukan pada penugasan ini.`);
           } else if (navContext.date && match.date !== navContext.date) {
             setContextError(`Tanggal pertemuan jurnal (${match.date}) tidak cocok dengan tanggal presensi (${navContext.date}).`);
+          } else if (match.date && selectedDate && match.date !== selectedDate) {
+            setContextError(`Tanggal pertemuan jurnal (${match.date}) tidak cocok dengan tanggal presensi (${selectedDate}).`);
           } else {
             setContextError(null);
           }
@@ -509,6 +511,22 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     }
     return null;
   }, [selectedMeetingId, meetings, selectedDate]);
+
+  // Validation: Detect duplicate meetings on the selected date for this assignment
+  const duplicateMeetingsForDate = useMemo(() => {
+    if (!selectedDate) return [];
+    return meetings.filter(m => m.date === selectedDate && (!m.teachingAssignmentId || m.teachingAssignmentId === selectedAssignmentId));
+  }, [meetings, selectedDate, selectedAssignmentId]);
+
+  const hasDuplicateMeetings = duplicateMeetingsForDate.length > 1;
+
+  const duplicateMeetingError = useMemo(() => {
+    if (hasDuplicateMeetings) {
+      const nums = duplicateMeetingsForDate.map(m => `#${m.meetingNumber}`).join(', ');
+      return `Terdapat ${duplicateMeetingsForDate.length} pertemuan pada tanggal ${selectedDate} untuk penugasan ini (Pertemuan ${nums}). Selesaikan pertemuan duplikat di Jurnal terlebih dahulu sebelum mencatat presensi.`;
+    }
+    return null;
+  }, [hasDuplicateMeetings, duplicateMeetingsForDate, selectedDate]);
 
   // Check holiday status on the selected date
   const dateHolidayInfo = useMemo(() => {
@@ -624,8 +642,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         let baselineMeeting: string | null = null;
         if (existingRecords.length > 0) {
           // Kondisi 2 & 3: Rekaman persisten adalah Single Source of Truth
-          baselineMeeting = persistentMeeting;
-          setSelectedMeetingId(persistentMeeting || '');
+          const meetingsForThisDate = meetings.filter(m => m.date === selectedDate);
+          if (meetingsForThisDate.length > 1 && (!persistentMeeting || !meetingsForThisDate.some(m => m.id === persistentMeeting))) {
+            baselineMeeting = null;
+            setSelectedMeetingId('');
+          } else {
+            baselineMeeting = persistentMeeting;
+            setSelectedMeetingId(persistentMeeting || '');
+          }
         } else {
           // Kondisi 1: Sesi belum memiliki rekaman persisten
           const isMatchingNavContext = Boolean(
@@ -923,6 +947,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           note: r.note.trim(),
         };
       });
+
+      if (hasDuplicateMeetings) {
+        setFeedbackMsg({
+          type: 'error',
+          text: `Presensi tidak dapat disimpan: Terdapat ${duplicateMeetingsForDate.length} pertemuan pada tanggal ${selectedDate} untuk penugasan ini. Harap selesaikan pertemuan duplikat di Jurnal terlebih dahulu.`,
+        });
+        isSavingRef.current = false;
+        setSavingAttendance(false);
+        return false;
+      }
 
       const targetMeetingId = normalizeMeetingId(selectedMeetingId);
       const expectedPrev = normalizeMeetingId(persistentMeetingRef.current);
@@ -1296,13 +1330,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         </div>
       )}
 
-      {/* Error & Warning Banners (D2 Context & D1 Roster & Meeting Mismatch) */}
-      {(contextError || rosterError || meetingMismatchError) && (
+      {/* Error & Warning Banners (D2 Context & D1 Roster & Meeting Mismatch & Duplicate Date Meeting) */}
+      {(contextError || rosterError || meetingMismatchError || duplicateMeetingError) && (
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 text-rose-800 dark:text-rose-200 text-xs">
           <WarningCircle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
           <div>
             <span className="font-bold">Peringatan Integritas Data & Konteks:</span>
-            <p className="mt-1">{contextError || rosterError || meetingMismatchError}</p>
+            <p className="mt-1">{contextError || rosterError || meetingMismatchError || duplicateMeetingError}</p>
           </div>
         </div>
       )}
@@ -1456,10 +1490,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             <button
                 type="button"
                 onClick={handleSaveAttendance}
-                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || Boolean(meetingMismatchError) || !hasUnsavedChanges || !stats.isComplete || savingAttendance || studentRows.length === 0 || isArchivedYear}
+                disabled={!sessionLoaded || Boolean(contextError) || Boolean(rosterError) || Boolean(meetingMismatchError) || Boolean(duplicateMeetingError) || !hasUnsavedChanges || !stats.isComplete || savingAttendance || studentRows.length === 0 || isArchivedYear}
                 title={
                   isArchivedYear
                     ? 'Tahun Ajaran ini telah diarsipkan (read-only)'
+                    : duplicateMeetingError
+                    ? duplicateMeetingError
                     : meetingMismatchError
                     ? meetingMismatchError
                     : !stats.isComplete

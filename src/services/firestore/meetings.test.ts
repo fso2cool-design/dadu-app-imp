@@ -69,6 +69,7 @@ import {
   updateMeeting,
   deleteMeeting,
   getMeetingSlotId,
+  getMeetingDateSlotId,
 } from './meetings';
 import { saveSubjectAttendance } from './attendance';
 import type { SaveSubjectAttendancePayload } from '../../domain/attendance.types';
@@ -428,6 +429,159 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
       expect(record.meetingId).toBeNull();
       expect(record.meetingNumber).toBeNull();
       expect(record.date).toBe('2026-10-12');
+    });
+  });
+  describe('Meeting Date Uniqueness Protocol (Priority 4)', () => {
+    const meetingPayloadBase = {
+      academicYearId: 'ay-2026',
+      semester: 'GANJIL' as const,
+      teachingAssignmentId: 'ta-1',
+      classId: 'cls-1',
+      subjectId: 'sub-1',
+      topic: 'Bab Limit',
+      status: 'COMPLETED' as const,
+    };
+
+    it('1. Rejects creating second meeting on same assignment, semester, and date', async () => {
+      const m1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+      expect(m1.id).toBeDefined();
+
+      // Second meeting on same date and assignment must be rejected
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          meetingNumber: 2,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Pertemuan pada tanggal 2026-10-15 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal.');
+
+      // Verify second meeting document was not created
+      const allMeetings = Array.from(docsStore.entries()).filter(([k]) => k.startsWith(`users/${uid}/meetings/`));
+      expect(allMeetings.filter(([, v]) => v.date === '2026-10-15')).toHaveLength(1);
+    });
+
+    it('2. Allows creating meetings on different dates for the same assignment', async () => {
+      const m1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+      const m2 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 2,
+        date: '2026-10-16',
+      });
+
+      expect(m1.id).not.toBe(m2.id);
+      expect(docsStore.get(`users/${uid}/meetingDateSlots/${getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-15')}`)).toBeDefined();
+      expect(docsStore.get(`users/${uid}/meetingDateSlots/${getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-16')}`)).toBeDefined();
+    });
+
+    it('3. Allows creating meetings on the same date for different teaching assignments', async () => {
+      const mTa1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        teachingAssignmentId: 'ta-1',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+
+      const mTa2 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        teachingAssignmentId: 'ta-2',
+        classId: 'cls-2',
+        subjectId: 'sub-2',
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+
+      expect(mTa1.id).toBeDefined();
+      expect(mTa2.id).toBeDefined();
+      expect(docsStore.get(`users/${uid}/meetingDateSlots/${getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-15')}`)).toBeDefined();
+      expect(docsStore.get(`users/${uid}/meetingDateSlots/${getMeetingDateSlotId('ta-2', 'GANJIL', '2026-10-15')}`)).toBeDefined();
+    });
+
+    it('4. Rejects updating meeting date to a date already used by another meeting in the same context', async () => {
+      const m1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+      const m2 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 2,
+        date: '2026-10-16',
+      });
+
+      await expect(
+        updateMeeting(uid, m2.id, { date: '2026-10-15' })
+      ).rejects.toThrow('Pertemuan pada tanggal 2026-10-15 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal.');
+
+      // Verify m2 date unchanged in storage
+      const savedM2 = docsStore.get(`users/${uid}/meetings/${m2.id}`);
+      expect(savedM2.date).toBe('2026-10-16');
+    });
+
+    it('5. Allows updating non-date fields while retaining existing date without self-collision', async () => {
+      const m1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+        topic: 'Topik Awal',
+      });
+
+      // Update topic and provide same date
+      await updateMeeting(uid, m1.id, { topic: 'Topik Revisi', date: '2026-10-15' });
+      const updated = docsStore.get(`users/${uid}/meetings/${m1.id}`);
+      expect(updated.topic).toBe('Topik Revisi');
+      expect(updated.date).toBe('2026-10-15');
+    });
+
+    it('6. Concurrent create transactions for the same date reject colliding session atomically', async () => {
+      // Pre-reserve date slot as would happen when first concurrent transaction wins
+      const slotId = getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-15');
+      docsStore.set(`users/${uid}/meetingDateSlots/${slotId}`, {
+        meetingId: 'meet-concurrent-winner',
+        teachingAssignmentId: 'ta-1',
+        semester: 'GANJIL',
+        date: '2026-10-15',
+      });
+
+      // Second transaction must detect existing dateSlot and throw
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          meetingNumber: 2,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Pertemuan pada tanggal 2026-10-15 untuk kelas dan mata pelajaran ini pada GANJIL sudah ada dalam jurnal.');
+    });
+
+    it('6b. Deleting meeting releases date slot reservation so date can be reused', async () => {
+      const m1 = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+      const slotKey = `users/${uid}/meetingDateSlots/${getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-15')}`;
+      expect(docsStore.get(slotKey)).toBeDefined();
+
+      await deleteMeeting(uid, m1.id);
+      expect(docsStore.get(slotKey)).toBeUndefined();
+
+      // Re-create on same date is now permitted
+      const mNew = await createMeeting(uid, {
+        ...meetingPayloadBase,
+        meetingNumber: 1,
+        date: '2026-10-15',
+      });
+      expect(mNew.id).toBeDefined();
+      expect(docsStore.get(slotKey)).toBeDefined();
     });
   });
 });

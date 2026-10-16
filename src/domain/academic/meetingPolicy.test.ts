@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getMeetingSlotId, isValidMeetingNumber } from './meetingPolicy';
+import {
+  getMeetingSlotId,
+  getMeetingDateSlotId,
+  isValidMeetingNumber,
+} from './meetingPolicy';
 
 describe('meetingPolicy — getMeetingSlotId()', () => {
   it('generates exact canonical slot ID for representative alphanumeric assignment IDs', () => {
@@ -29,6 +33,29 @@ describe('meetingPolicy — getMeetingSlotId()', () => {
 
     const domainSlotId = getMeetingSlotId(standardTaId, semester, meetingNumber);
     const expectedRulePath = `slot_${standardTaId}_${semester}_${meetingNumber}`;
+
+    expect(domainSlotId).toBe(expectedRulePath);
+  });
+});
+
+describe('meetingPolicy — getMeetingDateSlotId()', () => {
+  it('generates exact canonical date slot ID for representative assignment and date', () => {
+    expect(getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-10')).toBe('dateslot_ta-1_GANJIL_2026-10-10');
+    expect(getMeetingDateSlotId('ta_2026_xyz', 'GENAP', '2026-03-15')).toBe('dateslot_ta_2026_xyz_GENAP_2026-03-15');
+  });
+
+  it('sanitizes special characters in teachingAssignmentId and date', () => {
+    expect(getMeetingDateSlotId('ta/special', 'GANJIL', '2026/10/10')).toBe('dateslot_ta_special_GANJIL_2026_10_10');
+    expect(getMeetingDateSlotId('ta.abc@class', 'GENAP', '2026-10-10')).toBe('dateslot_ta_abc_class_GENAP_2026-10-10');
+  });
+
+  it('matches Firestore Security Rules concatenated date slot path contract for standard IDs', () => {
+    const standardTaId = 'assignment-2026-xyz';
+    const semester = 'GANJIL';
+    const date = '2026-10-17';
+
+    const domainSlotId = getMeetingDateSlotId(standardTaId, semester, date);
+    const expectedRulePath = `dateslot_${standardTaId}_${semester}_${date}`;
 
     expect(domainSlotId).toBe(expectedRulePath);
   });
