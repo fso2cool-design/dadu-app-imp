@@ -333,6 +333,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const initialRowsRef = useRef<string>('[]');
   const isRowsDirtyRef = useRef(false);
   const initialMeetingIdRef = useRef<string | null>(null);
+  const initialAssignmentIdRef = useRef<string | null>(null);
   const persistentMeetingRef = useRef<string | null>(null);
   const [isDirty, _setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
@@ -421,12 +422,15 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setContextError(`Penugasan mengajar dengan ID "${explicitId}" dari konteks jurnal tidak ditemukan atau tidak dapat diakses.`);
           return;
         }
+        initialAssignmentIdRef.current = explicitId;
         setSelectedAssignmentId(explicitId);
         if (navContext.date) setSelectedDate(navContext.date);
         if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
       } else if (workspaceId && teachingAssignments.some(t => t.id === workspaceId)) {
+        initialAssignmentIdRef.current = workspaceId;
         setSelectedAssignmentId(workspaceId);
       } else {
+        initialAssignmentIdRef.current = teachingAssignments[0].id;
         setSelectedAssignmentId(teachingAssignments[0].id);
       }
     }
@@ -455,13 +459,24 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         if (!isMounted) return;
         subjectMeetingsCache.set(meetingsKey, data);
         setMeetings(data);
-        if (navContext?.meetingId) {
+        const isNavContextForActiveAssignment = Boolean(
+          navContext?.meetingId &&
+          (navContext.assignmentId
+            ? navContext.assignmentId === selectedAssignmentId
+            : selectedAssignmentId === initialAssignmentIdRef.current)
+        );
+
+        if (isNavContextForActiveAssignment) {
           const match = data.find(m => m.id === navContext.meetingId);
           if (!match) {
             setContextError(`Pertemuan jurnal dengan ID "${navContext.meetingId}" tidak ditemukan pada penugasan ini.`);
           } else if (navContext.date && match.date !== navContext.date) {
             setContextError(`Tanggal pertemuan jurnal (${match.date}) tidak cocok dengan tanggal presensi (${navContext.date}).`);
+          } else {
+            setContextError(null);
           }
+        } else {
+          setContextError(null);
         }
       } catch (err) {
         if (!isMounted) return;
@@ -528,7 +543,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         } else {
           const isMatchingNavContext = Boolean(
             navContext?.meetingId &&
-            (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
+            (navContext.assignmentId
+              ? navContext.assignmentId === currentAssignment.id
+              : currentAssignment.id === initialAssignmentIdRef.current) &&
             (!navContext.date || navContext.date === selectedDate)
           );
           const baselineMeeting = isMatchingNavContext
@@ -613,7 +630,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           // Kondisi 1: Sesi belum memiliki rekaman persisten
           const isMatchingNavContext = Boolean(
             navContext?.meetingId &&
-            (!navContext.assignmentId || navContext.assignmentId === currentAssignment.id) &&
+            (navContext.assignmentId
+              ? navContext.assignmentId === currentAssignment.id
+              : currentAssignment.id === initialAssignmentIdRef.current) &&
             (!navContext.date || navContext.date === selectedDate)
           );
           if (isMatchingNavContext) {
@@ -1013,6 +1032,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       setPendingAction({ type: 'assignment', targetValue: targetAssignmentId });
       setIsDirtyModalOpen(true);
     } else {
+      setContextError(null);
       setSelectedAssignmentId(targetAssignmentId);
       setSelectedMeetingId('');
       const found = teachingAssignments.find(t => t.id === targetAssignmentId);
@@ -1094,6 +1114,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       if (pendingAction && pendingAction.type !== 'browser-navigation') {
         if (pendingAction.type === 'assignment') {
           const nextAssignId = pendingAction.targetValue || '';
+          setContextError(null);
           setSelectedAssignmentId(nextAssignId);
           setSelectedMeetingId('');
           const found = teachingAssignments.find(t => t.id === nextAssignId);
@@ -1151,6 +1172,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     if (pendingAction && pendingAction.type !== 'browser-navigation') {
       if (pendingAction.type === 'assignment') {
         const nextAssignId = pendingAction.targetValue || '';
+        setContextError(null);
         setSelectedAssignmentId(nextAssignId);
         setSelectedMeetingId('');
         const found = teachingAssignments.find(t => t.id === nextAssignId);

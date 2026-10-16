@@ -427,4 +427,280 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       expect(meetingSelect).toHaveValue('mtg-asg2-1');
     });
   });
+
+  describe('Priority 2: Stale Navigation Context Isolation (Switching Assignments)', () => {
+    it('1, 2, 3, 5: Context A remains valid on A, but does not error or block save on B after switch', async () => {
+      // 1. Initial navigation from assignment A with valid meeting mtg-asg1-1
+      renderPage({ assignmentId: 'asg-1', meetingId: 'mtg-asg1-1' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-1');
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // 2. User switches to assignment B (asg-2) while initial context for asg-1 was present
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('');
+      });
+      await screen.findByText('Budi Santoso');
+
+      // 3. Stale context from asg-1 must NOT produce contextError on asg-2
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // 4. Mark student as present on asg-2 so attendance is complete
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      // 5. Save button must NOT be disabled by stale contextError and must save asg-2
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeEnabled();
+
+      fireEvent.click(saveButton);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-2',
+            date: '2026-10-10',
+            meetingId: null,
+          })
+        );
+      });
+    });
+
+    it('4a: Valid meeting context provided for assignment B can be loaded and used', async () => {
+      // Direct navigation with valid context for asg-2
+      renderPage({ assignmentId: 'asg-2', meetingId: 'mtg-asg2-1' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('mtg-asg2-1');
+      });
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeEnabled();
+
+      fireEvent.click(saveButton);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-2',
+            meetingId: 'mtg-asg2-1',
+          })
+        );
+      });
+    });
+
+    it('4b: After switching from A to B, user can explicitly select and link valid meeting of B', async () => {
+      renderPage({ assignmentId: 'asg-1', meetingId: 'mtg-asg1-1' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+
+      // Switch to asg-2
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('');
+      });
+
+      // Explicitly link mtg-asg2-1 from B's available meetings
+      fireEvent.change(meetingSelect, { target: { value: 'mtg-asg2-1' } });
+      expect(meetingSelect).toHaveValue('mtg-asg2-1');
+
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeEnabled();
+
+      fireEvent.click(saveButton);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-2',
+            meetingId: 'mtg-asg2-1',
+          })
+        );
+      });
+    });
+
+    it('6a: Context error on active assignment blocks save, but switching cleanly to valid assignment clears error', async () => {
+      // asg-1 opened with nonexistent meeting ID
+      renderPage({ assignmentId: 'asg-1', meetingId: 'non-existent-meeting' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      await screen.findByText('Ahmad Dahlan');
+
+      // Error must appear for active assignment A
+      expect(await screen.findByText(/Pertemuan jurnal dengan ID "non-existent-meeting" tidak ditemukan/i)).toBeInTheDocument();
+
+      // Form is complete once marked, but Save button must remain disabled due to contextError
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeDisabled();
+
+      // Switch to asg-2 via modal discard
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      const discardBtn = within(modal).getByRole('button', { name: /buang/i });
+      fireEvent.click(discardBtn);
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+      });
+      await screen.findByText('Budi Santoso');
+
+      // Error banner from asg-1 must be cleared
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // Mark student on asg-2 and verify save is enabled
+      const presentButtonsAsg2 = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtonsAsg2[0]);
+
+      const saveButtonAsg2 = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButtonAsg2).toBeEnabled();
+
+      fireEvent.click(saveButtonAsg2);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-2',
+          })
+        );
+      });
+    });
+
+    it('6b: Date mismatch context error on active assignment blocks save, but switching away clears it', async () => {
+      // asg-1 opened with date mismatch (meeting date is 2026-10-10, navContext date is 2026-10-12)
+      renderPage({ assignmentId: 'asg-1', meetingId: 'mtg-asg1-1', date: '2026-10-12' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      await screen.findByText('Ahmad Dahlan');
+
+      // Error must appear for date mismatch
+      expect(await screen.findByText(/tidak cocok dengan tanggal presensi/i)).toBeInTheDocument();
+
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeDisabled();
+
+      // Switch to asg-2 via modal discard
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      const modal = await screen.findByRole('dialog');
+      const discardBtn = within(modal).getByRole('button', { name: /buang/i });
+      fireEvent.click(discardBtn);
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+      });
+      await screen.findByText('Budi Santoso');
+
+      // Date mismatch error must be gone
+      expect(screen.queryByText(/tidak cocok dengan tanggal presensi/i)).not.toBeInTheDocument();
+
+      // Mark student on asg-2 and save successfully
+      const presentButtonsAsg2 = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtonsAsg2[0]);
+
+      const saveButtonAsg2 = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButtonAsg2).toBeEnabled();
+
+      fireEvent.click(saveButtonAsg2);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-2',
+          })
+        );
+      });
+    });
+
+    it('7: Sequence A -> B -> A for context without assignmentId maintains safe scoping and persistence precedence', async () => {
+      // 1. Enter Presensi with navContext meeting mtg-asg1-1 but WITHOUT assignmentId
+      renderPage({ meetingId: 'mtg-asg1-1' });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+
+      // Initial assignment fallback chooses first assignment (asg-1)
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-1');
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // 2. User switches A -> B (asg-1 -> asg-2)
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('');
+      });
+      await screen.findByText('Budi Santoso');
+
+      // Ensure assignment B does NOT receive meeting A and has no error
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // 3. User switches B -> A (asg-2 -> asg-1) without remounting
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-1' } });
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-1');
+      });
+      await screen.findByText('Ahmad Dahlan');
+
+      // For fresh unedited session, meeting A remains the initial suggested meeting for assignment A
+      expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
+
+      // Mark Ahmad Dahlan and save
+      const presentButtons = screen.getAllByTitle('Hadir (H)');
+      fireEvent.click(presentButtons[0]);
+
+      const saveButton = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
+      expect(saveButton).toBeEnabled();
+
+      fireEvent.click(saveButton);
+      await waitFor(() => {
+        expect(mockSaveSubjectAttendance).toHaveBeenCalledWith(
+          'teacher-uid',
+          expect.objectContaining({
+            teachingAssignmentId: 'asg-1',
+            meetingId: 'mtg-asg1-1',
+          })
+        );
+      });
+    });
+  });
 });
