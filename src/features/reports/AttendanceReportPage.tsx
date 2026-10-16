@@ -32,6 +32,21 @@ import { LRUCache } from '../../utils/lruCache';
 const subjectReportCache = new LRUCache<string, any>(10);
 const homeroomReportCache = new LRUCache<string, any>(5);
 
+function getYearMonthFromDate(dateStr?: string): { year: string; month: string } | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{4})-(\d{2})/);
+  if (match) {
+    return { year: match[1], month: match[2] };
+  }
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  return {
+    year: String(d.getFullYear()),
+    month: String(d.getMonth() + 1).padStart(2, '0'),
+  };
+}
+
+
 export const AttendanceReportPage: React.FC = () => {
   const { user, profile } = useAuth();
   const app = useApplication();
@@ -224,19 +239,75 @@ export const AttendanceReportPage: React.FC = () => {
       return () => { isMounted = false; };
   }, [user, activeAcademicYear, reportMode, selectedClassId]);
 
+  // Canonical report-level effective session count:
+  // In Subject mode: count distinct calendar dates with actual persisted attendance records within the selected report period.
+  // In Homeroom mode: count distinct calendar dates with recorded daily attendance.
+  // This value is computed directly from period-filtered session dates, ensuring report-level metadata
+  // remains accurate even when class enrollments are 0 or filtered out.
+  const effectiveSessionCount = useMemo(() => {
+    const isMonthFilter = selectedMonth !== 'ALL';
+
+    if (reportMode === 'SUBJECT') {
+      const meetingDateMap = new Map<string, string>();
+      meetings.forEach(m => {
+        if (m.id && m.date) meetingDateMap.set(m.id, m.date);
+      });
+
+      const sessionDates = new Set<string>();
+
+      // Denominator = distinct calendar dates with actual persisted attendance records
+      // within the selected report period. Unrecorded meetings (future, past, draft, or cancelled)
+      // do not increase the denominator.
+      attendanceRecords.forEach(r => {
+        const effectiveDate = r.date || (r.meetingId ? meetingDateMap.get(r.meetingId) : undefined);
+        if (!effectiveDate) return;
+        if (isMonthFilter) {
+          const ym = getYearMonthFromDate(effectiveDate);
+          if (ym && ym.month === selectedMonth && ym.year === selectedYear) {
+            sessionDates.add(effectiveDate);
+          }
+        } else {
+          sessionDates.add(effectiveDate);
+        }
+      });
+
+      return sessionDates.size;
+    } else {
+      const dailyDates = new Set<string>();
+      dailyRecords.forEach(r => {
+        if (!r.date) return;
+        if (isMonthFilter) {
+          const ym = getYearMonthFromDate(r.date);
+          if (ym && ym.month === selectedMonth && ym.year === selectedYear) {
+            dailyDates.add(r.date);
+          }
+        } else {
+          dailyDates.add(r.date);
+        }
+      });
+      return dailyDates.size;
+    }
+  }, [reportMode, meetings, attendanceRecords, dailyRecords, selectedMonth, selectedYear]);
+
   // Compile Student Summaries for Subject Attendance
   const subjectSummaries = useMemo<StudentAttendanceSummary[]>(() => {
     if (reportMode !== 'SUBJECT') return [];
 
-    const distinctDates = new Set(attendanceRecords.map(r => r.date || r.meetingId).filter(Boolean));
-    const totalM = Math.max(meetings.length, distinctDates.size);
+    const meetingDateMap = new Map<string, string>();
+    meetings.forEach(m => {
+      if (m.id && m.date) meetingDateMap.set(m.id, m.date);
+    });
+
+    const isMonthFilter = selectedMonth !== 'ALL';
+
     return enrollments.map(enr => {
       const studentRecs = attendanceRecords.filter(r => {
         if (r.studentId !== enr.studentId) return false;
-        if (selectedMonth !== 'ALL') {
-          const d = new Date(r.date || r.meetingId);
-          if (String(d.getMonth() + 1).padStart(2, '0') !== selectedMonth) return false;
-          if (String(d.getFullYear()) !== selectedYear) return false;
+        const effectiveDate = r.date || (r.meetingId ? meetingDateMap.get(r.meetingId) : undefined);
+        if (!effectiveDate) return false;
+        if (isMonthFilter) {
+          const ym = getYearMonthFromDate(effectiveDate);
+          if (!ym || ym.month !== selectedMonth || ym.year !== selectedYear) return false;
         }
         return true;
       });
@@ -255,7 +326,7 @@ export const AttendanceReportPage: React.FC = () => {
         else if (r.status === 'DISPENSATION') d++;
       });
 
-      const effectiveTotal = totalM > 0 ? totalM : (p + s + i + a + d);
+      const effectiveTotal = effectiveSessionCount > 0 ? effectiveSessionCount : (p + s + i + a + d);
       const percentage = effectiveTotal > 0 ? Math.round(((p + d) / effectiveTotal) * 100) : 0;
 
       return {
@@ -275,23 +346,21 @@ export const AttendanceReportPage: React.FC = () => {
         presentPercentage: percentage,
       };
     });
-  }, [reportMode, enrollments, attendanceRecords, meetings, selectedMonth, selectedYear]);
+  }, [reportMode, enrollments, attendanceRecords, meetings, selectedMonth, selectedYear, effectiveSessionCount]);
 
   // Compile Student Summaries for Homeroom Attendance
   const homeroomSummaries = useMemo<StudentAttendanceSummary[]>(() => {
     if (reportMode !== 'HOMEROOM') return [];
 
-    // Distinct dates
-    const distinctDates = new Set(dailyRecords.map(r => r.date));
-    const totalEffectiveDays = distinctDates.size;
+    const isMonthFilter = selectedMonth !== 'ALL';
 
     return enrollments.map(enr => {
       const studentRecs = dailyRecords.filter(r => {
         if (r.studentId !== enr.studentId) return false;
-        if (selectedMonth !== 'ALL') {
-          const d = new Date(r.date);
-          if (String(d.getMonth() + 1).padStart(2, '0') !== selectedMonth) return false;
-          if (String(d.getFullYear()) !== selectedYear) return false;
+        if (!r.date) return false;
+        if (isMonthFilter) {
+          const ym = getYearMonthFromDate(r.date);
+          if (!ym || ym.month !== selectedMonth || ym.year !== selectedYear) return false;
         }
         return true;
       });
@@ -310,7 +379,7 @@ export const AttendanceReportPage: React.FC = () => {
         else if (r.status === 'DISPENSATION') d++;
       });
 
-      const effectiveTotal = totalEffectiveDays > 0 ? totalEffectiveDays : (p + s + i + a + d);
+      const effectiveTotal = effectiveSessionCount > 0 ? effectiveSessionCount : (p + s + i + a + d);
       const percentage = effectiveTotal > 0 ? Math.round(((p + d) / effectiveTotal) * 100) : 0;
 
       return {
@@ -330,7 +399,7 @@ export const AttendanceReportPage: React.FC = () => {
         presentPercentage: percentage,
       };
     });
-  }, [reportMode, enrollments, dailyRecords, selectedMonth, selectedYear]);
+  }, [reportMode, enrollments, dailyRecords, selectedMonth, selectedYear, effectiveSessionCount]);
 
   const activeSummaries = reportMode === 'SUBJECT' ? subjectSummaries : homeroomSummaries;
 
@@ -380,9 +449,10 @@ export const AttendanceReportPage: React.FC = () => {
     sheetData.push([`Kelas: ${selectedClassObj?.name || '-'}`]);
     if (reportMode === 'SUBJECT') {
       sheetData.push([`Mata Pelajaran: ${selectedAssignment?.subjectName || '-'}`]);
-      sheetData.push([`Total Pertemuan KBM: ${meetings.length}`]);
+      sheetData.push([`Sesi Presensi Tercatat: ${effectiveSessionCount}`]);
     } else {
       sheetData.push([`Jenis Presensi: Presensi Harian Wali Kelas`]);
+      sheetData.push([`Hari Presensi Tercatat: ${effectiveSessionCount}`]);
     }
     sheetData.push([]); // Empty row
 
@@ -446,9 +516,10 @@ export const AttendanceReportPage: React.FC = () => {
     { label: 'Kelas / Rombel', value: selectedClassObj?.name || '-' },
     ...(reportMode === 'SUBJECT' ? [
       { label: 'Mata Pelajaran', value: selectedAssignment?.subjectName || '-' },
-      { label: 'Total Sesi KBM', value: `${meetings.length} Pertemuan` },
+      { label: 'Sesi Presensi Tercatat', value: `${effectiveSessionCount} Sesi` },
     ] : [
       { label: 'Tipe Laporan', value: 'Buku Presensi Harian' },
+      { label: 'Hari Presensi Tercatat', value: `${effectiveSessionCount} Hari` },
       { label: 'Jumlah Siswa', value: `${enrollments.length} Siswa` },
     ]),
   ];
@@ -773,7 +844,7 @@ export const AttendanceReportPage: React.FC = () => {
           generatedDate: getTodayISO(),
           attendanceData: {
             reportMode,
-            totalMeetingsOrDays: reportMode === 'SUBJECT' ? meetings.length : activeSummaries[0]?.totalMeetings || 0,
+            totalMeetingsOrDays: effectiveSessionCount,
             summaries: activeSummaries.map(s => ({
               rollNumber: s.rollNumber,
               nis: s.nis,
