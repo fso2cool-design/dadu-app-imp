@@ -11,14 +11,18 @@ const ConfirmDialog = React.lazy(() => import('../../components/common/ConfirmDi
 const UnsavedChangesModal = React.lazy(() => import('../../components/common/UnsavedChangesModal').then(m => ({ default: m.UnsavedChangesModal })));
 import { SkeletonTable } from '../../components/common/Skeleton';
 import { Tooltip } from '../../components/common/Tooltip';
-import { 
-  AssessmentItem, 
+import {
+  AssessmentItem,
   AssessmentCategory,
-  Score, 
-  Enrollment, 
-  TeachingAssignment, 
-  CalculationMethod 
+  Score,
+  Enrollment,
+  TeachingAssignment,
+  CalculationMethod
 } from '../../types';
+import {
+  filterAssignmentsForSemester,
+  isAssignmentForSemester
+} from '../../domain/academic/assignmentPolicy';
 import { DEFAULT_KKM } from '../../constants/grading';
 import { calculateFinalScore, getGradeScale, MissingScoreTreatment } from '../../domain/grading/grading.service';
 import { invalidateGradesReportCache } from '../../services/cache/gradesReportCache';
@@ -102,8 +106,8 @@ const GradeRow = React.memo(({
                     setIsNoteModalOpen(true);
                   }}
                   className={`p-1 rounded-md transition-all cursor-pointer disabled:cursor-not-allowed ${
-                    note 
-                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60' 
+                    note
+                      ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60'
                       : 'text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-300 opacity-0 group-hover/cell:opacity-100'
                   }`}
                 >
@@ -168,7 +172,7 @@ const GradeRow = React.memo(({
   if (prev.passingGrade !== next.passingGrade) return false;
   if (prev.calc !== next.calc) return false;
   if (prev.isBelowPassing !== next.isBelowPassing) return false;
-  
+
   for (const item of prev.assessmentItems) {
     const key = `${prev.enr.studentId}_${item.id}`;
     if (prev.scoresMap[key] !== next.scoresMap[key]) return false;
@@ -294,24 +298,29 @@ export const GradesPage: React.FC = () => {
   const { user } = useAuth();
   const app = useApplication();
   const { success: toastSuccess, error: toastError, warning: toastWarning } = useToast();
-  const { 
-    teachingAssignments, 
-    activeAcademicYear, 
-    activeSemester, 
-    selectedAssignment, 
+  const {
+    teachingAssignments,
+    activeAcademicYear,
+    activeSemester,
+    selectedAssignment,
     setSelectedAssignment,
     triggerSyncFeedback
   } = useWorkspace();
 
   // Current active assignment for grading
   const [currentAssignmentId, setCurrentAssignmentId] = useState<string>('');
-  
+
   // Data states
   const [assessmentItems, setAssessmentItems] = useState<AssessmentItem[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, _setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+  const setIsDirty = (val: boolean) => {
+    isDirtyRef.current = val;
+    _setIsDirty(val);
+  };
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
 
   // Scores state: Key is `${studentId}_${assessmentItemId}`
@@ -323,9 +332,6 @@ export const GradesPage: React.FC = () => {
   const [calculationMethod, setCalculationMethod] = useState<CalculationMethod>('WEIGHTED_AVERAGE');
   const [passingGrade, setPassingGrade] = useState<number>(DEFAULT_KKM); // KKM / KKTP
   const missingScoreTreatment: MissingScoreTreatment = 'PRO_RATA';
-
-  // Archive check
-  const isArchivedYear = Boolean(activeAcademicYear?.isArchived || selectedAssignment?.isArchived);
 
   // Filters & MagnifyingGlass
   const [searchTerm, setSearchTerm] = useState('');
@@ -351,7 +357,24 @@ export const GradesPage: React.FC = () => {
 
   // Unsaved changes modal state
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
-  const [pendingAssignmentId, setPendingAssignmentId] = useState<string | null>(null);
+  const [pendingTransition, _setPendingTransition] = useState<{
+    targetAssignmentId: string;
+    targetAssignment: TeachingAssignment | null;
+    origin?: 'workspace' | 'manual';
+  } | null>(null);
+  const pendingTransitionRef = useRef<{
+    targetAssignmentId: string;
+    targetAssignment: TeachingAssignment | null;
+    origin?: 'workspace' | 'manual';
+  } | null>(null);
+  const setPendingTransition = (val: {
+    targetAssignmentId: string;
+    targetAssignment: TeachingAssignment | null;
+    origin?: 'workspace' | 'manual';
+  } | null) => {
+    pendingTransitionRef.current = val;
+    _setPendingTransition(val);
+  };
 
   // File input ref for Excel import
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -368,24 +391,117 @@ export const GradesPage: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Find active assignment object
-  const activeAssignment = useMemo(() => {
-    if (!currentAssignmentId) return teachingAssignments[0] || null;
-    return teachingAssignments.find(a => a.id === currentAssignmentId) || teachingAssignments[0] || null;
-  }, [currentAssignmentId, teachingAssignments]);
+  // Filter assignments strictly matching active semester and academic year
+  const semesterAssignments = useMemo(() => {
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear?.id, activeSemester]);
 
-  // Set initial assignment from workspace or list
-  useEffect(() => {
-    if (selectedAssignment) {
-      setCurrentAssignmentId(selectedAssignment.id);
-    } else if (teachingAssignments.length > 0 && !currentAssignmentId) {
-      setCurrentAssignmentId(teachingAssignments[0].id);
+  // Target assignment according to current workspace context
+  const targetWorkspaceAssignment = useMemo(() => {
+    if (selectedAssignment && isAssignmentForSemester(selectedAssignment, activeAcademicYear?.id, activeSemester)) {
+      return selectedAssignment;
     }
-  }, [selectedAssignment, teachingAssignments]);
+    return semesterAssignments[0] || null;
+  }, [selectedAssignment, semesterAssignments, activeAcademicYear?.id, activeSemester]);
+
+  const targetWorkspaceAssignmentId = targetWorkspaceAssignment ? targetWorkspaceAssignment.id : '';
+
+  // Find active assignment object currently being viewed / edited in GradesPage
+  const activeAssignment = useMemo(() => {
+    if (currentAssignmentId) {
+      const found = teachingAssignments.find(a => a.id === currentAssignmentId);
+      if (found) return found;
+    }
+    return targetWorkspaceAssignment;
+  }, [currentAssignmentId, teachingAssignments, targetWorkspaceAssignment]);
+
+  // Displayed assignments in selector dropdown (preserves activeAssignment if draft is pending)
+  const displayedAssignments = useMemo(() => {
+    if (activeAssignment && !semesterAssignments.some(a => a.id === activeAssignment.id)) {
+      return [activeAssignment, ...semesterAssignments];
+    }
+    return semesterAssignments;
+  }, [activeAssignment, semesterAssignments]);
+
+  // Archive check
+  const isArchivedYear = Boolean(activeAcademicYear?.isArchived || activeAssignment?.isArchived);
+
+  const prevWorkspaceContextRef = useRef<{
+    assignmentId?: string;
+    academicYearId?: string;
+    semester?: string;
+  }>({
+    assignmentId: selectedAssignment?.id,
+    academicYearId: activeAcademicYear?.id,
+    semester: activeSemester,
+  });
+
+  // Set initial assignment from workspace or list, respecting active semester & dirty draft
+  useEffect(() => {
+    const prev = prevWorkspaceContextRef.current;
+    const currentAyId = activeAcademicYear?.id;
+    const currentSem = activeSemester;
+    const currentWsAsgId = selectedAssignment?.id;
+
+    const hasContextChanged =
+      prev.academicYearId !== currentAyId ||
+      prev.semester !== currentSem ||
+      prev.assignmentId !== currentWsAsgId;
+
+    prevWorkspaceContextRef.current = {
+      assignmentId: currentWsAsgId,
+      academicYearId: currentAyId,
+      semester: currentSem,
+    };
+
+    if (!hasContextChanged && currentAssignmentId) {
+      return;
+    }
+
+    const nextAssignmentId = targetWorkspaceAssignmentId;
+    const nextAssignment = targetWorkspaceAssignment;
+
+    if (nextAssignmentId === currentAssignmentId) {
+      if (pendingTransitionRef.current?.origin === 'workspace') {
+        setPendingTransition(null);
+        setIsDirtyModalOpen(false);
+      }
+      return;
+    }
+
+    if (isDirtyRef.current) {
+      // Invariant 1, 2, 3: Never discard or switch while dirty
+      setPendingTransition({
+        targetAssignmentId: nextAssignmentId,
+        targetAssignment: nextAssignment,
+        origin: 'workspace',
+      });
+      setIsDirtyModalOpen(true);
+      return;
+    }
+
+    setCurrentAssignmentId(nextAssignmentId);
+  }, [
+    selectedAssignment?.id,
+    activeAcademicYear?.id,
+    activeSemester,
+    targetWorkspaceAssignmentId,
+    targetWorkspaceAssignment,
+    currentAssignmentId,
+  ]);
 
   // Load data for the active assignment
   const loadGradesData = async () => {
+    if (isDirtyRef.current) {
+      return;
+    }
     if (!user || !activeAssignment) {
+      setAssessmentItems([]);
+      setEnrollments([]);
+      setScoresMap({});
+      setInitialScoresMap({});
+      setNotesMap({});
+      setIsDirty(false);
       setLoading(false);
       return;
     }
@@ -471,17 +587,17 @@ export const GradesPage: React.FC = () => {
   };
 
   // FloppyDisk all changes to Firestore
-  const handleSaveAll = async () => {
-    if (!user || !activeAssignment) return;
+  const handleSaveAll = async (): Promise<boolean> => {
+    if (!user || !activeAssignment) return false;
     if (isArchivedYear) {
       toastWarning('Tidak dapat menyimpan: Tahun Ajaran ini berstatus diarsipkan (read-only).');
-      return;
+      return false;
     }
 
     try {
       setSaving(true);
       triggerSyncFeedback('syncing', `Menyimpan nilai ${activeAssignment.subjectName} - Kelas ${activeAssignment.className}...`);
-      
+
       const scoresToSave: Array<{
         assessmentItemId: string;
         studentId: string;
@@ -527,37 +643,59 @@ export const GradesPage: React.FC = () => {
       setSaveSuccessMessage('Semua perubahan nilai berhasil disimpan.');
       toastSuccess('Semua perubahan nilai berhasil disimpan ke cloud database.');
       setTimeout(() => setSaveSuccessMessage(null), 3500);
+      return true;
     } catch (err: any) {
       console.error('Error saving matrix scores:', err);
       triggerSyncFeedback('synced');
       toastError('Gagal menyimpan nilai: ' + (err.message || 'Error'));
+      return false;
     } finally {
       setSaving(false);
+    }
+  };
+
+  const applyTransition = (transition: {
+    targetAssignmentId: string;
+    targetAssignment: TeachingAssignment | null;
+  }) => {
+    const nextId = transition.targetAssignmentId;
+    const nextAsg = transition.targetAssignment;
+    setPendingTransition(null);
+    setIsDirtyModalOpen(false);
+    setCurrentAssignmentId(nextId);
+    if (nextAsg) {
+      setSelectedAssignment(nextAsg);
     }
   };
 
   const handleAssignmentChange = (newAssignmentId: string) => {
     if (newAssignmentId === currentAssignmentId) return;
     if (isDirty) {
-      setPendingAssignmentId(newAssignmentId);
+      const found = semesterAssignments.find(a => a.id === newAssignmentId) || null;
+      setPendingTransition({
+        targetAssignmentId: newAssignmentId,
+        targetAssignment: found,
+        origin: 'manual',
+      });
       setIsDirtyModalOpen(true);
     } else {
       setCurrentAssignmentId(newAssignmentId);
-      const found = teachingAssignments.find(a => a.id === newAssignmentId);
+      const found = semesterAssignments.find(a => a.id === newAssignmentId);
       if (found) setSelectedAssignment(found);
     }
   };
 
   const handleSaveAndProceedAssignment = async () => {
     try {
-      await handleSaveAll();
-      if (pendingAssignmentId) {
-        setCurrentAssignmentId(pendingAssignmentId);
-        const found = teachingAssignments.find(a => a.id === pendingAssignmentId);
-        if (found) setSelectedAssignment(found);
-        setPendingAssignmentId(null);
+      const saved = await handleSaveAll();
+      if (!saved) {
+        return;
       }
-      setIsDirtyModalOpen(false);
+      if (pendingTransitionRef.current) {
+        applyTransition(pendingTransitionRef.current);
+      } else {
+        setIsDirtyModalOpen(false);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -565,13 +703,18 @@ export const GradesPage: React.FC = () => {
 
   const handleDiscardAndProceedAssignment = () => {
     setIsDirty(false);
-    if (pendingAssignmentId) {
-      setCurrentAssignmentId(pendingAssignmentId);
-      const found = teachingAssignments.find(a => a.id === pendingAssignmentId);
-      if (found) setSelectedAssignment(found);
-      setPendingAssignmentId(null);
+    if (pendingTransitionRef.current) {
+      applyTransition(pendingTransitionRef.current);
+    } else {
+      setIsDirtyModalOpen(false);
     }
-    setIsDirtyModalOpen(false);
+  };
+
+  const handleToolbarSave = async () => {
+    const saved = await handleSaveAll();
+    if (saved && pendingTransitionRef.current?.origin === 'workspace') {
+      applyTransition(pendingTransitionRef.current);
+    }
   };
 
   // Delete assessment column
@@ -1075,13 +1218,13 @@ export const GradesPage: React.FC = () => {
           {/* FloppyDisk Button */}
           <button
             type="button"
-            onClick={handleSaveAll}
+            onClick={handleToolbarSave}
             disabled={saving || !isDirty || isArchivedYear}
             className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer ${
               isArchivedYear
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                : isDirty 
-                ? 'btn-primary shadow-xs' 
+                : isDirty
+                ? 'btn-primary shadow-xs'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-60'
             }`}
           >
@@ -1136,15 +1279,21 @@ export const GradesPage: React.FC = () => {
               </span>
               <div className="flex items-center gap-2 mt-0.5">
                 <select
+                  aria-label="Pilih Rombel & Mata Pelajaran Aktif"
                   value={currentAssignmentId}
                   onChange={(e) => handleAssignmentChange(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] font-bold text-slate-800 dark:text-slate-200 text-xs bg-slate-50 dark:bg-[var(--ds-surface)] hover:bg-slate-100 dark:hover:bg-[var(--ds-surface-elevated)] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer"
+                  disabled={displayedAssignments.length === 0}
+                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[var(--ds-border)] font-bold text-slate-800 dark:text-slate-200 text-xs bg-slate-50 dark:bg-[var(--ds-surface)] hover:bg-slate-100 dark:hover:bg-[var(--ds-surface-elevated)] focus:outline-hidden focus:ring-2 focus:ring-orange-500 dark:focus:ring-cyan-500 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {teachingAssignments.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.subjectName} — Kelas {a.className}
-                    </option>
-                  ))}
+                  {displayedAssignments.length === 0 ? (
+                    <option value="">Tidak ada rombel semester ini</option>
+                  ) : (
+                    displayedAssignments.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.subjectName} — Kelas {a.className}
+                      </option>
+                    ))
+                  )}
                 </select>
                 <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   ({enrollments.length} Siswa Terdaftar)
@@ -1369,6 +1518,14 @@ export const GradesPage: React.FC = () => {
       {/* Main Interactive Spreadsheet Matrix */}
       {loading ? (
         <SkeletonTable rows={10} columns={7} />
+      ) : !activeAssignment ? (
+        <div className="bg-white dark:bg-[var(--ds-surface-elevated)] rounded-2xl border border-slate-200 dark:border-[var(--ds-border)] p-12 text-center transition-colors">
+          <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Tidak Ada Penugasan Mengajar Aktif</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">
+            Tidak ada rombel atau penugasan mengajar aktif pada semester yang dipilih.
+          </p>
+        </div>
       ) : enrollments.length === 0 ? (
         <div className="bg-white dark:bg-[var(--ds-surface-elevated)] rounded-2xl border border-slate-200 dark:border-[var(--ds-border)] p-12 text-center transition-colors">
           <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
@@ -1572,7 +1729,9 @@ export const GradesPage: React.FC = () => {
         isOpen={isDirtyModalOpen}
         onClose={() => {
           setIsDirtyModalOpen(false);
-          setPendingAssignmentId(null);
+          if (pendingTransitionRef.current?.origin === 'manual') {
+            setPendingTransition(null);
+          }
         }}
         onDiscard={handleDiscardAndProceedAssignment}
         onSave={handleSaveAndProceedAssignment}
