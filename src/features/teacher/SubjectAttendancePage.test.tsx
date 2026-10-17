@@ -205,7 +205,11 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.click(sickButtons[0]);
 
     // Now dirty: requestTabChange must return false and hold transition
-    expect(handleRef.current?.requestTabChange('journal')).toBe(false);
+    let allowed: boolean | undefined;
+    act(() => {
+      allowed = handleRef.current?.requestTabChange('journal');
+    });
+    expect(allowed).toBe(false);
 
     // Dialog should be displayed
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -223,7 +227,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     fireEvent.change(noteInputs[0], { target: { value: 'Terlambat 15 menit' } });
 
     // Attempt tab change to journal
-    const allowed = handleRef.current?.requestTabChange('journal');
+    let allowed: boolean | undefined;
+    act(() => {
+      allowed = handleRef.current?.requestTabChange('journal');
+    });
     expect(allowed).toBe(false);
 
     // Modal dialog is shown with title
@@ -243,7 +250,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const sickButtons = screen.getAllByTitle('Sakit (S)');
     fireEvent.click(sickButtons[0]);
 
-    handleRef.current?.requestTabChange('journal');
+    act(() => {
+      handleRef.current?.requestTabChange('journal');
+    });
 
     const modal = await screen.findByRole('dialog');
     const cancelButton = within(modal).getByRole('button', { name: /Batal/i });
@@ -255,7 +264,11 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     expect(mockNavigateParentTab).not.toHaveBeenCalled();
     // Remains dirty
-    expect(handleRef.current?.requestTabChange('classes')).toBe(false);
+    let secondAllowed: boolean | undefined;
+    act(() => {
+      secondAllowed = handleRef.current?.requestTabChange('classes');
+    });
+    expect(secondAllowed).toBe(false);
   });
 
   // 5. Buang perubahan: tab berpindah dan dirty state dibersihkan
@@ -269,7 +282,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const sickButtons = screen.getAllByTitle('Sakit (S)');
     fireEvent.click(sickButtons[0]);
 
-    handleRef.current?.requestTabChange('journal', { from: 'attendance' });
+    act(() => {
+      handleRef.current?.requestTabChange('journal', { from: 'attendance' });
+    });
 
     const modal = await screen.findByRole('dialog');
     const discardButton = within(modal).getByRole('button', { name: /Buang Perubahan/i });
@@ -296,7 +311,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const sickButtons = screen.getAllByTitle('Sakit (S)');
     fireEvent.click(sickButtons[0]);
 
-    handleRef.current?.requestTabChange('journal');
+    act(() => {
+      handleRef.current?.requestTabChange('journal');
+    });
 
     const modal = await screen.findByRole('dialog');
     const saveButton = within(modal).getByRole('button', { name: /Simpan Presensi/i });
@@ -327,7 +344,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
     fireEvent.change(noteInputs[0], { target: { value: 'Izin sakit gigi' } });
 
-    handleRef.current?.requestTabChange('journal');
+    act(() => {
+      handleRef.current?.requestTabChange('journal');
+    });
 
     const modal = await screen.findByRole('dialog');
     const saveButton = within(modal).getByRole('button', { name: /Simpan Presensi/i });
@@ -1028,6 +1047,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     // Tidak ada dialog konfirmasi
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(dateInput).toHaveValue('2026-10-15');
+
+    await waitFor(() => {
+      expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
+    });
   });
 
   // K. Sesi tersimpan yang bersih dapat berpindah jurnal atau tanggal tanpa dialog
@@ -1229,7 +1252,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(saveButton).not.toBeDisabled();
 
     // 2. Coba navigasi ke tab journal -> dialog muncul
-    const allowed = handleRef.current?.requestTabChange('journal');
+    let allowed: boolean | undefined;
+    act(() => {
+      allowed = handleRef.current?.requestTabChange('journal');
+    });
     expect(allowed).toBe(false);
 
     const dialog = await screen.findByRole('dialog');
@@ -1295,7 +1321,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
 
     // Navigasi ke journal -> modal muncul
-    const allowed = handleRef.current?.requestTabChange('journal');
+    let allowed: boolean | undefined;
+    act(() => {
+      allowed = handleRef.current?.requestTabChange('journal');
+    });
     expect(allowed).toBe(false);
 
     const dialog = await screen.findByRole('dialog');
@@ -1361,6 +1390,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       // Dropdown tetap tidak ditautkan, TIDAK memilih meet-1 secara otomatis
       expect(meetingSelect).toHaveValue('');
       expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
+      });
     });
 
     it('2. Changing the attendance date when multiple matching journals exist does not choose the first match', async () => {
@@ -1386,6 +1419,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       // Kedua opsi tersedia di dropdown
       expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
       expect(screen.getByText('Jurnal Ke-2')).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
+      });
     });
 
     it('3. An existing journal selection is not silently replaced when the attendance date changes', async () => {
@@ -1413,6 +1450,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
       // Error mismatch ditampilkan
       expect(screen.getByText(/Tanggal pertemuan jurnal \(2026-10-10\) tidak cocok dengan tanggal presensi \(2026-10-15\)/i)).toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
+      });
     });
 
     it('4. The teacher can explicitly select a journal from the dropdown', async () => {
@@ -1460,6 +1501,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       // Tanggal presensi tersinkronisasi ke tanggal jurnal yang dipilih
       expect(dateInput).toHaveValue('2026-10-20');
       expect(screen.queryByText(/tidak cocok dengan tanggal presensi/i)).not.toBeInTheDocument();
+
+      await waitFor(() => {
+        expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-20');
+      });
     });
 
     it('6. A date-mismatched relationship cannot be saved', async () => {
@@ -1486,6 +1531,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       // Mencoba klik tombol simpan tidak memanggil penyimpanan
       fireEvent.click(saveButton);
       expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
+      });
     });
 
     it('7. Selecting "-- Tidak ditautkan --" continues to support standalone attendance', async () => {

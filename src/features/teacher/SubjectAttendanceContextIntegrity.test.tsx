@@ -843,4 +843,140 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(workspaceState as any);
     });
   });
+
+  describe('Stage 2: Dynamic Workspace Assignment & Navigation Context Synchronization', () => {
+    it('Test 1 — Dynamic workspace assignment switch updates visible assignment without remount', async () => {
+      currentWorkspaceAssignment = mockAssignments[0]; // asg-1
+      const { rerender } = renderPage(undefined);
+
+      const select = await getAssignmentSelect();
+      expect(select).toHaveValue('asg-1');
+      expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+
+      // Mutate workspace assignment to asg-2
+      currentWorkspaceAssignment = mockAssignments[1]; // asg-2
+      rerender(
+        <MemoryRouter>
+          <ToastProvider>
+            <ApplicationProvider app={mockApp}>
+              <SubjectAttendancePage initialContext={undefined} />
+            </ApplicationProvider>
+          </ToastProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(select).toHaveValue('asg-2');
+      });
+      expect(await screen.findByText('Budi Santoso')).toBeInTheDocument();
+    });
+
+    it('Test 2 — Explicit initial navigation takes precedence over workspace assignment on initial mount', async () => {
+      currentWorkspaceAssignment = mockAssignments[1]; // asg-2
+      renderPage({ assignmentId: 'asg-1' });
+
+      const select = await getAssignmentSelect();
+      expect(select).toHaveValue('asg-1');
+      expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+    });
+
+    it('Test 3 — Stale explicit navigation intent does not permanently lock assignment when workspace changes', async () => {
+      currentWorkspaceAssignment = mockAssignments[0]; // asg-1
+      const { rerender } = renderPage({ assignmentId: 'asg-1' });
+
+      const select = await getAssignmentSelect();
+      expect(select).toHaveValue('asg-1');
+      expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+
+      // After initial explicit intent is consumed, workspace assignment changes to asg-2
+      currentWorkspaceAssignment = mockAssignments[1]; // asg-2
+      // Rerender with the same or generic context (simulating subsequent navigation or workspace update)
+      rerender(
+        <MemoryRouter>
+          <ToastProvider>
+            <ApplicationProvider app={mockApp}>
+              <SubjectAttendancePage initialContext={{ assignmentId: 'asg-1' }} />
+            </ApplicationProvider>
+          </ToastProvider>
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(select).toHaveValue('asg-2');
+      });
+      expect(await screen.findByText('Budi Santoso')).toBeInTheDocument();
+    });
+
+    it('Test 4 — Local manual assignment selection is preserved across ordinary unrelated rerenders', async () => {
+      currentWorkspaceAssignment = mockAssignments[0]; // asg-1
+      const { rerender } = renderPage(undefined);
+
+      const select = await getAssignmentSelect();
+      expect(select).toHaveValue('asg-1');
+
+      // User manually changes dropdown to asg-2
+      fireEvent.change(select, { target: { value: 'asg-2' } });
+      await waitFor(() => {
+        expect(select).toHaveValue('asg-2');
+      });
+
+      // An unrelated rerender occurs without changing workspace assignment
+      rerender(
+        <MemoryRouter>
+          <ToastProvider>
+            <ApplicationProvider app={mockApp}>
+              <SubjectAttendancePage initialContext={undefined} />
+            </ApplicationProvider>
+          </ToastProvider>
+        </MemoryRouter>
+      );
+
+      // Verify manual selection remains asg-2
+      expect(select).toHaveValue('asg-2');
+      expect(await screen.findByText('Budi Santoso')).toBeInTheDocument();
+    });
+
+    it('Test 5 — Unsaved draft is protected and confirmation dialog is triggered when workspace assignment switches', async () => {
+      currentWorkspaceAssignment = mockAssignments[0]; // asg-1
+      const { rerender } = renderPage(undefined);
+
+      const select = await getAssignmentSelect();
+      expect(select).toHaveValue('asg-1');
+      await screen.findByText('Ahmad Dahlan');
+
+      // Make page dirty by altering attendance
+      const sickButtons = screen.getAllByTitle('Sakit (S)');
+      fireEvent.click(sickButtons[0]);
+      expect(screen.getByText(/Perubahan belum disimpan/i)).toBeInTheDocument();
+
+      // Workspace changes while page has unsaved changes
+      currentWorkspaceAssignment = mockAssignments[1]; // asg-2
+      rerender(
+        <MemoryRouter>
+          <ToastProvider>
+            <ApplicationProvider app={mockApp}>
+              <SubjectAttendancePage initialContext={undefined} />
+            </ApplicationProvider>
+          </ToastProvider>
+        </MemoryRouter>
+      );
+
+      // Dialog opens, assignment is NOT silently switched, draft remains
+      const modal = await screen.findByRole('dialog');
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByText(/Presensi Siswa Belum Disimpan/i)).toBeInTheDocument();
+      expect(select).toHaveValue('asg-1');
+      expect(screen.getByText('Ahmad Dahlan')).toBeInTheDocument();
+
+      // User cancels dialog
+      const cancelBtn = within(modal).getByRole('button', { name: /batal/i });
+      fireEvent.click(cancelBtn);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+      expect(select).toHaveValue('asg-1');
+      expect(screen.getByText('Ahmad Dahlan')).toBeInTheDocument();
+    });
+  });
 });

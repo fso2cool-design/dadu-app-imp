@@ -343,6 +343,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const initialMeetingIdRef = useRef<string | null>(null);
   const initialAssignmentIdRef = useRef<string | null>(null);
   const persistentMeetingRef = useRef<string | null>(null);
+  const prevWorkspaceAssignmentIdRef = useRef<string | undefined>(selectedAssignment?.id);
+  const consumedExplicitIdRef = useRef<string | null>(null);
   const [isDirty, _setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
   const setIsDirty = (val: boolean) => {
@@ -434,12 +436,17 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setContextError(`Penugasan mengajar "${found.className} — ${found.subjectName}" tidak sesuai dengan Tahun Ajaran (${activeAcademicYear?.label || ''}) atau Semester aktif (${activeSemester}).`);
           return;
         }
+        consumedExplicitIdRef.current = explicitId;
         initialAssignmentIdRef.current = explicitId;
+        prevWorkspaceAssignmentIdRef.current = workspaceId;
         setSelectedAssignmentId(explicitId);
         if (navContext.date) setSelectedDate(navContext.date);
         if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
         return;
       }
+
+      consumedExplicitIdRef.current = null;
+      prevWorkspaceAssignmentIdRef.current = workspaceId;
 
       if (workspaceId && isAssignmentForSemester(selectedAssignment, activeAcademicYear?.id, activeSemester)) {
         initialAssignmentIdRef.current = workspaceId;
@@ -453,7 +460,42 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       return;
     }
 
-    // When selectedAssignmentId is present, verify it still belongs to active semester/year
+    // A. Explicit navigation intent arriving or changing while mounted
+    if (explicitId && explicitId !== consumedExplicitIdRef.current) {
+      consumedExplicitIdRef.current = explicitId;
+      const found = teachingAssignments.find(t => t.id === explicitId);
+      if (found && isAssignmentForSemester(found, activeAcademicYear?.id, activeSemester)) {
+        if (hasUnsavedChangesRef.current) {
+          setPendingAction({ type: 'assignment', targetValue: explicitId });
+          setIsDirtyModalOpen(true);
+        } else {
+          setContextError(null);
+          setSelectedAssignmentId(explicitId);
+          setSelectedMeetingId(navContext?.meetingId || '');
+          if (navContext?.date) setSelectedDate(navContext.date);
+          prevWorkspaceAssignmentIdRef.current = workspaceId;
+        }
+        return;
+      }
+    }
+
+    // B. Workspace assignment switch while mounted
+    if (workspaceId && workspaceId !== prevWorkspaceAssignmentIdRef.current) {
+      prevWorkspaceAssignmentIdRef.current = workspaceId;
+      if (workspaceId !== selectedAssignmentId && isAssignmentForSemester(selectedAssignment, activeAcademicYear?.id, activeSemester)) {
+        if (hasUnsavedChangesRef.current) {
+          setPendingAction({ type: 'assignment', targetValue: workspaceId });
+          setIsDirtyModalOpen(true);
+        } else {
+          setContextError(null);
+          setSelectedAssignmentId(workspaceId);
+          setSelectedMeetingId('');
+        }
+        return;
+      }
+    }
+
+    // C. When selectedAssignmentId is present, verify it still belongs to active semester/year
     const currentMatch = semesterAssignments.find(t => t.id === selectedAssignmentId);
     if (!currentMatch) {
       const prevAssignment = teachingAssignments.find(t => t.id === selectedAssignmentId);
