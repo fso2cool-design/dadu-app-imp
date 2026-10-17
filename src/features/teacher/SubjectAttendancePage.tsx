@@ -1603,9 +1603,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
 
             {/* Optional Meeting Selector (for Take Attendance tab) */}
             {activeTab === 'TAKE' && (
-              <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
                 <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Tautkan ke Jurnal:</label>
-                <div className="flex gap-1.5 flex-1 sm:flex-none">
+                <div className="flex gap-1.5 flex-1 sm:flex-none min-w-0">
                   <select
                     value={selectedMeetingId}
                     onChange={(e) => handleMeetingChange(e.target.value)}

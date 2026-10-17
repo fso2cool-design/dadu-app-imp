@@ -2305,5 +2305,34 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       expect(heading.className).toContain('min-w-0');
       expect(heading.className).toContain('break-words');
     });
+
+    it('Test G: meeting selector control and wrapper enforce flex-wrap and min-w-0 to prevent horizontal overflow', async () => {
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: '2026-10-10',
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      const label = screen.getByText('Tautkan ke Jurnal:');
+      const select = label.parentElement?.querySelector('select');
+      expect(select).not.toBeNull();
+      expect(select?.className).toContain('min-w-[150px]');
+      expect(select?.className).toContain('max-w-full');
+      expect(select?.className).toContain('truncate');
+
+      // Immediate wrapper around select must have min-w-0 to allow flex shrinking
+      const selectWrapper = select?.parentElement;
+      expect(selectWrapper).not.toBeNull();
+      expect(selectWrapper?.className).toContain('min-w-0');
+
+      // Row container for label + select must have flex-wrap and min-w-0
+      const rowContainer = selectWrapper?.parentElement;
+      expect(rowContainer).not.toBeNull();
+      expect(rowContainer?.className).toContain('flex-wrap');
+      expect(rowContainer?.className).toContain('min-w-0');
+    });
   });
 });
