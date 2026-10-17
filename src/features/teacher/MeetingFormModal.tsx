@@ -4,6 +4,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { Modal } from '../../components/common/Modal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
+import { filterAssignmentsForSemester, isAssignmentForSemester } from '../../domain/academic/assignmentPolicy';
 import { isValidMeetingNumber } from '../../domain/academic/meetingPolicy';
 import { CalendarCheck, Clock, BookOpen, FileText, Sparkle, CheckCircle, WarningCircle, Bank } from '@phosphor-icons/react';
 
@@ -94,7 +95,10 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
       setNotes(meetingToEdit.notes || '');
       setStatus(meetingToEdit.status || 'COMPLETED');
     } else {
-      const initialAssignId = defaultAssignmentId || teachingAssignments[0]?.id || '';
+      const validAssignments = filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+      const initialAssignId = (defaultAssignmentId && validAssignments.some(ta => ta.id === defaultAssignmentId))
+        ? defaultAssignmentId
+        : validAssignments[0]?.id || '';
       setMeetingType('CLASS');
       setActivityCategory('Rapat Dinas Dewan Guru');
       setAssignmentId(initialAssignId);
@@ -181,6 +185,11 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
 
     if (!meetingToEdit && selectedAssignment.isArchived) {
       setErrorMsg('Penugasan mengajar ini telah diarsipkan dan tidak dapat digunakan untuk mencatat pertemuan KBM baru.');
+      return;
+    }
+
+    if (!meetingToEdit && !isAssignmentForSemester(selectedAssignment, activeAcademicYear?.id, activeSemester)) {
+      setErrorMsg(`Penugasan mengajar ini tidak sesuai dengan Tahun Ajaran atau Semester aktif (${activeSemester}).`);
       return;
     }
 
@@ -349,7 +358,7 @@ export const MeetingFormModal: React.FC<MeetingFormModalProps> = ({
               {teachingAssignments
                 .filter(ta => {
                   if (meetingToEdit && ta.id === meetingToEdit.teachingAssignmentId) return true;
-                  return !ta.isArchived && ta.isActive !== false && (!activeAcademicYear || ta.academicYearId === activeAcademicYear.id);
+                  return isAssignmentForSemester(ta, activeAcademicYear?.id, activeSemester);
                 })
                 .map(ta => (
                   <option key={ta.id} value={ta.id}>

@@ -105,8 +105,8 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
 
     // Pre-populate active year, assignment, and existing meeting
     docsStore.set(`users/${uid}/academicYears/ay-2026`, { isArchived: false, isActive: true });
-    docsStore.set(`users/${uid}/teachingAssignments/ta-1`, { isArchived: false, academicYearId: 'ay-2026', classId: 'cls-1', subjectId: 'sub-1' });
-    docsStore.set(`users/${uid}/teachingAssignments/ta-2`, { isArchived: false, academicYearId: 'ay-2026', classId: 'cls-2', subjectId: 'sub-2' });
+    docsStore.set(`users/${uid}/teachingAssignments/ta-1`, { isArchived: false, isActive: true, semester: 'GANJIL', academicYearId: 'ay-2026', classId: 'cls-1', subjectId: 'sub-1' });
+    docsStore.set(`users/${uid}/teachingAssignments/ta-2`, { isArchived: false, isActive: true, semester: 'GANJIL', academicYearId: 'ay-2026', classId: 'cls-2', subjectId: 'sub-2' });
     docsStore.set(`users/${uid}/classes/cls-1`, { isArchived: false, academicYearId: 'ay-2026' });
     docsStore.set(`users/${uid}/classes/cls-2`, { isArchived: false, academicYearId: 'ay-2026' });
 
@@ -582,6 +582,367 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
       });
       expect(mNew.id).toBeDefined();
       expect(docsStore.get(slotKey)).toBeDefined();
+    });
+
+    it('7. Rejects createMeeting when teaching assignment semester is missing (legacy) or contradicts meeting semester', async () => {
+      // ta-1 is GANJIL; trying to create meeting with semester GENAP must throw
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          semester: 'GENAP',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Semester tugas mengajar (GANJIL) tidak sesuai dengan semester pertemuan (GENAP).');
+
+      // Legacy assignment with undefined semester must also fail closed
+      docsStore.set(`users/${uid}/teachingAssignments/ta-legacy`, {
+        isArchived: false,
+        isActive: true,
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        semester: undefined,
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-legacy',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Semester tugas mengajar (tidak terdefinisi) tidak sesuai dengan semester pertemuan (GANJIL).');
+    });
+
+    it('8. Rejects createMeeting when teaching assignment is inactive or archived', async () => {
+      docsStore.set(`users/${uid}/teachingAssignments/ta-inactive`, {
+        isArchived: false,
+        isActive: false,
+        semester: 'GANJIL',
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-inactive',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Penugasan mengajar ini tidak aktif dan tidak dapat menerima pertemuan KBM baru.');
+
+      docsStore.set(`users/${uid}/teachingAssignments/ta-archived`, {
+        isArchived: true,
+        isActive: true,
+        semester: 'GANJIL',
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-archived',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima pertemuan KBM baru.');
+    });
+
+    it('9. Rejects createMeeting when teachingAssignmentId is not found', async () => {
+      const initialDocCount = docsStore.size;
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-non-existent',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Penugasan mengajar tidak ditemukan.');
+
+      // Zero mutations guaranteed
+      expect(docsStore.size).toBe(initialDocCount);
+    });
+
+    it('10. Rejects createMeeting when teaching assignment academicYearId, classId, or subjectId is missing or mismatches', async () => {
+      // Missing academicYearId
+      docsStore.set(`users/${uid}/teachingAssignments/ta-missing-ay`, {
+        isArchived: false,
+        isActive: true,
+        academicYearId: undefined,
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        semester: 'GANJIL',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-missing-ay',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran pertemuan.');
+
+      // Mismatched academicYearId
+      docsStore.set(`users/${uid}/teachingAssignments/ta-mismatch-ay`, {
+        isArchived: false,
+        isActive: true,
+        academicYearId: 'ay-different',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        semester: 'GANJIL',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-mismatch-ay',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran pertemuan.');
+
+      // Mismatched classId
+      docsStore.set(`users/${uid}/teachingAssignments/ta-mismatch-cls`, {
+        isArchived: false,
+        isActive: true,
+        academicYearId: 'ay-2026',
+        classId: 'cls-different',
+        subjectId: 'sub-1',
+        semester: 'GANJIL',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-mismatch-cls',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan kelas pertemuan.');
+
+      // Mismatched subjectId
+      docsStore.set(`users/${uid}/teachingAssignments/ta-mismatch-sub`, {
+        isArchived: false,
+        isActive: true,
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-different',
+        semester: 'GANJIL',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-mismatch-sub',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan mata pelajaran pertemuan.');
+    });
+
+    it('11. updateMeeting strict identity governance: permits omitted or unchanged identity fields, rejects changes and empty values', async () => {
+      // 11a. Non-identity update (identity fields omitted) -> succeeds
+      await updateMeeting(uid, meetingId, {
+        topic: 'Topik Baru Saja',
+      });
+      expect(docsStore.get('users/' + uid + '/meetings/' + meetingId).topic).toBe('Topik Baru Saja');
+
+      // 11b. Identity fields sent with identical values -> succeeds
+      await updateMeeting(uid, meetingId, {
+        semester: 'GANJIL',
+        teachingAssignmentId: 'ta-1',
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        topic: 'Topik Tetap Sah',
+      });
+      expect(docsStore.get('users/' + uid + '/meetings/' + meetingId).topic).toBe('Topik Tetap Sah');
+
+      // 11c. Identity fields sent with changed values -> rejected
+      await expect(
+        updateMeeting(uid, meetingId, {
+          semester: 'GENAP',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Semester pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          teachingAssignmentId: 'ta-2',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tugas mengajar pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          academicYearId: 'ay-other',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tahun ajaran pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          classId: 'cls-2',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Kelas pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          subjectId: 'sub-2',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Mata pelajaran pertemuan tidak dapat diubah.');
+
+      // 11d. Identity fields sent with empty string, whitespace, or non-string -> rejected
+      await expect(
+        updateMeeting(uid, meetingId, {
+          semester: '' as any,
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Semester pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          teachingAssignmentId: '   ',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tugas mengajar pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          classId: '',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Kelas pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          subjectId: '   ',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Mata pelajaran pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, meetingId, {
+          academicYearId: '' as any,
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tahun ajaran pertemuan tidak dapat diubah.');
+
+      // 11e. TC-ID01 — Reject empty/malformed identity against malformed existing document
+      const malformedMeetingId = 'meet-malformed';
+      docsStore.set('users/' + uid + '/meetings/' + malformedMeetingId, {
+        ...mockExistingMeeting,
+        id: malformedMeetingId,
+        semester: '',
+        teachingAssignmentId: '',
+        academicYearId: '',
+        classId: '',
+        subjectId: '',
+        topic: 'Topik Malformed Asli',
+      });
+
+      // Caller sends empty string matching existing empty field -> must still be rejected
+      await expect(
+        updateMeeting(uid, malformedMeetingId, {
+          semester: '' as any,
+          topic: 'Coba Mutasi Malformed',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Semester pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, malformedMeetingId, {
+          teachingAssignmentId: '   ',
+          topic: 'Coba Mutasi Malformed',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tugas mengajar pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, malformedMeetingId, {
+          academicYearId: '',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Tahun ajaran pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, malformedMeetingId, {
+          classId: '',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Kelas pertemuan tidak dapat diubah.');
+
+      await expect(
+        updateMeeting(uid, malformedMeetingId, {
+          subjectId: '',
+        })
+      ).rejects.toThrow('Relasi tidak konsisten: Mata pelajaran pertemuan tidak dapat diubah.');
+
+      // Verify no mutation occurred on the malformed meeting document
+      expect(docsStore.get('users/' + uid + '/meetings/' + malformedMeetingId).topic).toBe('Topik Malformed Asli');
+
+      // But legitimate non-identity update (omitting identity fields) on the legacy meeting is permitted
+      await updateMeeting(uid, malformedMeetingId, {
+        topic: 'Topik Malformed Berhasil Diperbarui',
+      });
+      expect(docsStore.get('users/' + uid + '/meetings/' + malformedMeetingId).topic).toBe('Topik Malformed Berhasil Diperbarui');
+    });
+
+    it('12. Race Condition Defense in createMeeting: Aborts transaction if assignment becomes invalid concurrently before transaction writes', async () => {
+      const initialDocCount = docsStore.size;
+
+      // Simulate concurrent modification where assignment is archived between pre-check and transaction commit
+      let callCount = 0;
+      mockGetDoc.mockImplementation(async (ref: any) => {
+        if (ref.path === `users/${uid}/teachingAssignments/ta-race`) {
+          callCount++;
+          // First call (pre-check) succeeds
+          if (callCount === 1) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: 'ay-2026',
+                classId: 'cls-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          // Inside transaction, assignment was archived concurrently!
+          return {
+            exists: () => true,
+            data: () => ({
+              isArchived: true,
+              isActive: true,
+              academicYearId: 'ay-2026',
+              classId: 'cls-1',
+              subjectId: 'sub-1',
+              semester: 'GANJIL',
+            }),
+          };
+        }
+        const data = docsStore.get(ref.path);
+        return { exists: () => data !== undefined, data: () => data };
+      });
+
+      docsStore.set(`users/${uid}/teachingAssignments/ta-race`, {
+        isArchived: true,
+        isActive: true,
+        academicYearId: 'ay-2026',
+        classId: 'cls-1',
+        subjectId: 'sub-1',
+        semester: 'GANJIL',
+      });
+
+      await expect(
+        createMeeting(uid, {
+          ...meetingPayloadBase,
+          teachingAssignmentId: 'ta-race',
+          meetingNumber: 1,
+          date: '2026-10-15',
+        })
+      ).rejects.toThrow('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima pertemuan KBM baru.');
+
+      // Verify no meeting or slot was written
+      expect(docsStore.size).toBe(initialDocCount + 1); // Only ta-race doc added to store
+      const slotKey = `users/${uid}/meetingSlots/slot_ta-race_GANJIL_1`;
+      expect(docsStore.get(slotKey)).toBeUndefined();
     });
   });
 });

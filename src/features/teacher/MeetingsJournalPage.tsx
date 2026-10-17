@@ -4,6 +4,10 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
 import { Meeting, TeachingAssignment, MeetingStatus } from '../../types';
+import {
+  filterAssignmentsForSemester,
+  resolveAssignmentOnSemesterSwitch,
+} from '../../domain/academic/assignmentPolicy';
 import { SkeletonMeetingList } from '../../components/common/Skeleton';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { CalendarCheck, Plus, MagnifyingGlass, Funnel, Pencil, Trash, CheckSquare, Download, Printer, Clock, BookOpen, CaretRight, Stack, WarningCircle, FileCsv, CheckCircle, CalendarBlank, Sparkle } from '@phosphor-icons/react';
@@ -53,6 +57,27 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  const semesterAssignments = useMemo(() => {
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear, activeSemester]);
+
+  // Re-validate assignment selection on semester or year change
+  useEffect(() => {
+    if (selectedAssignmentId) {
+      const match = semesterAssignments.find(ta => ta.id === selectedAssignmentId);
+      if (!match) {
+        const prev = teachingAssignments.find(ta => ta.id === selectedAssignmentId);
+        const counterpart = resolveAssignmentOnSemesterSwitch(
+          teachingAssignments,
+          prev,
+          activeSemester,
+          activeAcademicYear?.id
+        );
+        setSelectedAssignmentId(counterpart ? counterpart.id : '');
+      }
+    }
+  }, [activeSemester, activeAcademicYear, semesterAssignments, teachingAssignments, selectedAssignmentId]);
+
   // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [meetingToEdit, setMeetingToEdit] = useState<Meeting | null>(null);
@@ -63,8 +88,8 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
 
   // Sync selectedAssignment when assignmentId changes
   const currentAssignment = useMemo(() => {
-    return teachingAssignments.find(ta => ta.id === selectedAssignmentId) || null;
-  }, [teachingAssignments, selectedAssignmentId]);
+    return semesterAssignments.find(ta => ta.id === selectedAssignmentId) || null;
+  }, [semesterAssignments, selectedAssignmentId]);
 
   const loadMeetings = async (silent = false) => {
     if (!user || !activeAcademicYear) return;
@@ -354,13 +379,13 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
               onChange={e => {
                 const val = e.target.value;
                 setSelectedAssignmentId(val);
-                const found = teachingAssignments.find(ta => ta.id === val);
+                const found = semesterAssignments.find(ta => ta.id === val);
                 if (found) setSelectedAssignment(found);
               }}
               className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-slate-800 dark:text-slate-200 bg-[var(--ds-surface-muted)] focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
             >
-              <option value="">Semua Rombel & Mapel ({teachingAssignments.length})</option>
-              {teachingAssignments.map(ta => (
+              <option value="">Semua Rombel & Mapel ({semesterAssignments.length})</option>
+              {semesterAssignments.map(ta => (
                 <option key={ta.id} value={ta.id}>
                   Kelas {ta.className} • {ta.subjectName}
                 </option>

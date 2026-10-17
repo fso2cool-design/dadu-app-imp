@@ -4,6 +4,12 @@ import { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, Att
 import { useApplication } from '../application/ApplicationContext';
 import { DEFAULT_ATTENDANCE_SETTINGS } from '../domain/defaults';
 import { checkIsHoliday as checkIsHolidayDomain } from '../domain/attendance/holiday';
+import {
+  filterAssignmentsForSemester,
+  resolveAssignmentOnSemesterSwitch,
+  isAssignmentForSemester,
+  findMatchingCounterpart,
+} from '../domain/academic/assignmentPolicy';
 
 interface WorkspaceContextType {
   academicYears: AcademicYear[];
@@ -203,31 +209,67 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     }
 
     if (teachingAssignments.length > 0) {
-      // Find assignments for this newly selected class
-      const classAssignments = teachingAssignments.filter(a => a.classId === classId);
+      // Find assignments for this newly selected class strictly within active academic year and semester
+      const classAssignments = filterAssignmentsForSemester(
+        teachingAssignments,
+        activeAcademicYear?.id,
+        activeSemester
+      ).filter(a => a.classId === classId);
+
       if (classAssignments.length > 0) {
-        // If current assignment already belongs to this class, keep it; otherwise switch to first matching assignment
+        // If current assignment already belongs to this class and is valid, keep it; otherwise switch to first matching assignment
         const currentMatch = classAssignments.find(a => a.id === selectedAssignment?.id);
         if (!currentMatch) {
           setSelectedAssignment(classAssignments[0]);
         }
+      } else {
+        setSelectedAssignment(null);
       }
     }
-  }, [user, teachingAssignments, selectedAssignment]);
+  }, [user, app, teachingAssignments, activeAcademicYear, activeSemester, selectedAssignment]);
 
   const setActiveAcademicYear = useCallback(async (year: AcademicYear) => {
     setActiveAcademicYearState(year);
+
+    // Validate assignment selection synchronously for new academic year
+    setSelectedAssignment(prevAssignment => {
+      if (!prevAssignment) return null;
+      if (isAssignmentForSemester(prevAssignment, year.id, activeSemester)) {
+        return prevAssignment;
+      }
+      return findMatchingCounterpart(teachingAssignments, prevAssignment, activeSemester, year.id);
+    });
+
     if (user) {
-      await app.workspace.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
+      try {
+        await app.workspace.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
+      } catch (err) {
+        console.error('Error saving academic year preference:', err);
+      }
     }
-  }, [user, app]);
+  }, [user, app, teachingAssignments, activeSemester]);
 
   const setActiveSemester = useCallback(async (sem: SemesterType) => {
     setActiveSemesterState(sem);
+
+    // Validate assignment selection synchronously in the same transition
+    setSelectedAssignment(prevAssignment => {
+      return resolveAssignmentOnSemesterSwitch(
+        teachingAssignments,
+        prevAssignment,
+        sem,
+        activeAcademicYear?.id
+      );
+    });
+
     if (user) {
-      await app.workspace.saveUserPreferences(user.uid, { defaultSemester: sem });
+      try {
+        await app.workspace.saveUserPreferences(user.uid, { defaultSemester: sem });
+      } catch (err) {
+        console.error('Error saving semester preference:', err);
+      }
     }
-  }, [user, app]);
+  }, [user, app, teachingAssignments, activeAcademicYear]);
 
   const updateAttendanceSettings = useCallback(async (newSettings: AttendanceSettings) => {
     setAttendanceSettings(newSettings);

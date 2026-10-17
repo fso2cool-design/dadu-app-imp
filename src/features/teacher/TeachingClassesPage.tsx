@@ -5,6 +5,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { MeetingFormModal } from './MeetingFormModal';
 import { TeachingAssignment, Meeting } from '../../types';
+import { filterAssignmentsForSemester } from '../../domain/academic/assignmentPolicy';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import { BookOpen, Users, CalendarCheck, CheckSquare, Plus, Stack, Medal, Funnel, GraduationCap, Sparkle, CalendarDots, Clock } from '@phosphor-icons/react';
 
@@ -39,6 +40,10 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
 
   const [statsMap, setStatsMap] = useState<Record<string, AssignmentStats>>(hasValidCache ? cachedTeachingStats! : {});
   const [loading, setLoading] = useState(!hasValidCache);
+
+  const semesterAssignments = useMemo(() => {
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear, activeSemester]);
 
   // Filters state
   const [selectedClassId, setSelectedClassId] = useState<string>('ALL');
@@ -81,7 +86,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
 
       const newStats: Record<string, AssignmentStats> = {};
 
-      for (const assignment of teachingAssignments) {
+      for (const assignment of semesterAssignments) {
         const meetings = meetingsByAssignment.get(assignment.id) || [];
         const completed = meetings.filter(m => m.status === 'COMPLETED');
         
@@ -119,37 +124,37 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
   useEffect(() => {
     // If we already have cache, load quietly in background; otherwise load with loading state
     loadAssignmentsData(hasValidCache);
-  }, [teachingAssignments, activeAcademicYear, activeSemester, user]);
+  }, [semesterAssignments, activeAcademicYear, activeSemester, user]);
 
   // Extract unique classes and subjects for filter dropdowns
   const uniqueClasses = useMemo(() => {
     const map = new Map<string, string>();
-    teachingAssignments.forEach(a => {
+    semesterAssignments.forEach(a => {
       if (a.classId && !map.has(a.classId)) {
         map.set(a.classId, a.className || 'Kelas');
       }
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [teachingAssignments]);
+  }, [semesterAssignments]);
 
   const uniqueSubjects = useMemo(() => {
     const map = new Map<string, { name: string; code?: string }>();
-    teachingAssignments.forEach(a => {
+    semesterAssignments.forEach(a => {
       if (a.subjectId && !map.has(a.subjectId)) {
         map.set(a.subjectId, { name: a.subjectName || 'Mapel', code: a.subjectCode });
       }
     });
     return Array.from(map.entries()).map(([id, data]) => ({ id, name: data.name, code: data.code }));
-  }, [teachingAssignments]);
+  }, [semesterAssignments]);
 
   // Filtered assignments
   const filteredAssignments = useMemo(() => {
-    return teachingAssignments.filter(assignment => {
+    return semesterAssignments.filter(assignment => {
       const matchClass = selectedClassId === 'ALL' || assignment.classId === selectedClassId;
       const matchSubject = selectedSubjectId === 'ALL' || assignment.subjectId === selectedSubjectId;
       return matchClass && matchSubject;
     });
-  }, [teachingAssignments, selectedClassId, selectedSubjectId]);
+  }, [semesterAssignments, selectedClassId, selectedSubjectId]);
 
   return (
     <div className="space-y-6">
@@ -181,10 +186,10 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
           <button
             id="btn-create-meeting-top"
             onClick={() => {
-              setSelectedAssignmentId(teachingAssignments[0]?.id || '');
+              setSelectedAssignmentId(semesterAssignments[0]?.id || '');
               setIsMeetingModalOpen(true);
             }}
-            disabled={teachingAssignments.length === 0}
+            disabled={semesterAssignments.length === 0}
             className="px-4 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50 active:scale-95"
           >
             <Plus className="w-4 h-4" />
@@ -194,7 +199,7 @@ export const TeachingClassesPage: React.FC<TeachingClassesPageProps> = ({ onNavi
       </div>
 
       {/* Funnel Bar (Kelas & Mata Pelajaran) */}
-      {teachingAssignments.length > 0 && (
+      {semesterAssignments.length > 0 && (
         <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 transition-colors">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
             {/* Funnel Kelas */}

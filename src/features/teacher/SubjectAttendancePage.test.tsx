@@ -102,6 +102,9 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
           className: '7A',
           subjectId: 'sub-1',
           subjectName: 'Matematika',
+          academicYearId: 'ay-2025',
+          semester: 'GANJIL',
+          isActive: true,
         },
       ],
       activeAcademicYear: { id: 'ay-2025', name: '2025/2026', isArchived: false },
@@ -1952,8 +1955,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
       vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
         teachingAssignments: [
-          { id: 'asg-1', classId: 'cls-1', className: '7A', subjectId: 'sub-1', subjectName: 'Matematika' },
-          { id: 'asg-2', classId: 'cls-2', className: '7B', subjectId: 'sub-1', subjectName: 'Matematika' },
+          { id: 'asg-1', classId: 'cls-1', className: '7A', subjectId: 'sub-1', subjectName: 'Matematika', academicYearId: 'ay-2025', semester: 'GANJIL', isActive: true },
+          { id: 'asg-2', classId: 'cls-2', className: '7B', subjectId: 'sub-1', subjectName: 'Matematika', academicYearId: 'ay-2025', semester: 'GANJIL', isActive: true },
         ],
         activeAcademicYear: { id: 'ay-2025', name: '2025/2026', isArchived: false },
         activeSemester: 'GANJIL',

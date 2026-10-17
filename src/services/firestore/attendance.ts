@@ -90,7 +90,7 @@ export async function saveSubjectAttendance(
     semester,
     classId,
     teachingAssignmentId,
-    subjectId = '',
+    subjectId,
     date,
     meetingId,
     expectedPreviousMeetingId,
@@ -139,18 +139,33 @@ export async function saveSubjectAttendance(
     throw new Error('Tidak dapat mengubah presensi pada Tahun Ajaran yang telah diarsipkan (read-only).');
   }
 
-  // 7. Validasi cross-relationship teaching assignment
+  // 7. Validasi cross-relationship teaching assignment (fail-closed)
   const taDoc = await getDoc(doc(db, 'users', uid, 'teachingAssignments', teachingAssignmentId));
-  if (taDoc.exists()) {
-    const taData = taDoc.data();
-    if (taData?.isArchived) {
-      throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima presensi baru.');
-    }
-    if (taData?.academicYearId && taData.academicYearId !== academicYearId) {
-      throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.');
-    }
-    if (taData?.classId && taData.classId !== classId) {
-      throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan sesi presensi.');
+  if (!taDoc.exists()) {
+    throw new Error('Penugasan mengajar tidak ditemukan.');
+  }
+  const taData = taDoc.data();
+  if (taData?.isArchived) {
+    throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima presensi baru.');
+  }
+  if (taData?.isActive === false) {
+    throw new Error('Penugasan mengajar ini tidak aktif dan tidak dapat menerima presensi baru.');
+  }
+  if (!taData?.academicYearId || taData.academicYearId !== academicYearId) {
+    throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.');
+  }
+  if (!taData?.semester || taData.semester !== semester) {
+    throw new Error(`Relasi tidak konsisten: Semester tugas mengajar (${taData?.semester || 'tidak terdefinisi'}) tidak sesuai dengan sesi presensi (${semester}).`);
+  }
+  if (!taData?.classId || taData.classId !== classId) {
+    throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan sesi presensi.');
+  }
+  if (!taData?.subjectId) {
+    throw new Error('Relasi tidak konsisten: Penugasan mengajar tidak memiliki data mata pelajaran.');
+  }
+  if (payload.subjectId !== undefined) {
+    if (!payload.subjectId || typeof payload.subjectId !== 'string' || !payload.subjectId.trim() || taData.subjectId !== payload.subjectId) {
+      throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan sesi presensi.');
     }
   }
 
@@ -181,6 +196,40 @@ export async function saveSubjectAttendance(
   return trackSync((async () => {
     await runTransaction(db, async (transaction) => {
       // === FASE PEMBACAAN (READS FIRST) ===
+
+      // A0. Re-verify teaching assignment within transaction to guard against concurrent race conditions
+      const taDocRef = doc(db, 'users', uid, 'teachingAssignments', teachingAssignmentId);
+      const taTxSnap = await transaction.get(taDocRef);
+      if (!taTxSnap.exists()) {
+        throw new Error('Penugasan mengajar tidak ditemukan.');
+      }
+      const taTxData = taTxSnap.data();
+      if (taTxData?.isArchived) {
+        throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima presensi baru.');
+      }
+      if (taTxData?.isActive === false) {
+        throw new Error('Penugasan mengajar ini tidak aktif dan tidak dapat menerima presensi baru.');
+      }
+      if (!taTxData?.academicYearId || taTxData.academicYearId !== academicYearId) {
+        throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.');
+      }
+      if (!taTxData?.semester || taTxData.semester !== semester) {
+        throw new Error(`Relasi tidak konsisten: Semester tugas mengajar (${taTxData?.semester || 'tidak terdefinisi'}) tidak sesuai dengan sesi presensi (${semester}).`);
+      }
+      if (!taTxData?.classId || taTxData.classId !== classId) {
+        throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan sesi presensi.');
+      }
+      if (!taTxData?.subjectId) {
+        throw new Error('Relasi tidak konsisten: Penugasan mengajar tidak memiliki data mata pelajaran.');
+      }
+      if (payload.subjectId !== undefined) {
+        if (!payload.subjectId || typeof payload.subjectId !== 'string' || !payload.subjectId.trim() || taTxData.subjectId !== payload.subjectId) {
+          throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan sesi presensi.');
+        }
+      }
+
+      // Canonical effectiveSubjectId resolved from verified transactional assignment snapshot
+      const effectiveSubjectId = taTxData.subjectId;
 
       // A. Baca dan validasi target meeting jika ada
       let targetMeetingData: any = null;
@@ -289,7 +338,7 @@ export async function saveSubjectAttendance(
             semester,
             classId,
             teachingAssignmentId,
-            subjectId: subjectId || oldData.subjectId || '',
+            subjectId: effectiveSubjectId,
             studentId: item.studentId,
             date,
             rollNumber: item.rollNumber !== undefined ? item.rollNumber : (oldData.rollNumber ?? 0),
@@ -316,7 +365,7 @@ export async function saveSubjectAttendance(
             semester,
             classId,
             teachingAssignmentId,
-            subjectId: subjectId || '',
+            subjectId: effectiveSubjectId,
             studentId: item.studentId,
             date,
             rollNumber: item.rollNumber ?? 0,

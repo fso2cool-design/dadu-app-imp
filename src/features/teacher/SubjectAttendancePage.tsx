@@ -6,6 +6,11 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
 import { invalidateMeetingsJournalCache } from './MeetingsJournalPage';
 import type { SaveAttendanceItem } from '../../domain/attendance.types';
+import {
+  filterAssignmentsForSemester,
+  isAssignmentForSemester,
+  resolveAssignmentOnSemesterSwitch,
+} from '../../domain/academic/assignmentPolicy';
 
 import { MeetingFormModal } from './MeetingFormModal';
 const UnsavedChangesModal = React.lazy(() => import('../../components/common/UnsavedChangesModal').then(m => ({ default: m.UnsavedChangesModal })));
@@ -270,6 +275,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const isArchivedYear = Boolean(activeAcademicYear?.isArchived);
 
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>('');
+
+  const semesterAssignments = useMemo(() => {
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear, activeSemester]);
   const [activeTab, setActiveTab] = useState<'TAKE' | 'MATRIX'>('TAKE');
 
   // Attendance Date & Optional Meeting Link
@@ -410,36 +419,83 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // 1. Initial selection of teaching assignment and navContext validation (D2)
+  // 1. Initial selection and re-validation of teaching assignment and navContext
   useEffect(() => {
-    if (teachingAssignments.length > 0 && !selectedAssignmentId) {
-      const explicitId = navContext?.assignmentId;
-      const workspaceId = selectedAssignment?.id;
+    const explicitId = navContext?.assignmentId;
+    const workspaceId = selectedAssignment?.id;
 
+    if (!selectedAssignmentId) {
       if (explicitId) {
         const found = teachingAssignments.find(t => t.id === explicitId);
         if (!found) {
           setContextError(`Penugasan mengajar dengan ID "${explicitId}" dari konteks jurnal tidak ditemukan atau tidak dapat diakses.`);
           return;
         }
+        if (!isAssignmentForSemester(found, activeAcademicYear?.id, activeSemester)) {
+          setContextError(`Penugasan mengajar "${found.className} — ${found.subjectName}" tidak sesuai dengan Tahun Ajaran (${activeAcademicYear?.label || ''}) atau Semester aktif (${activeSemester}).`);
+          return;
+        }
         initialAssignmentIdRef.current = explicitId;
         setSelectedAssignmentId(explicitId);
         if (navContext.date) setSelectedDate(navContext.date);
         if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
-      } else if (workspaceId && teachingAssignments.some(t => t.id === workspaceId)) {
+        return;
+      }
+
+      if (workspaceId && isAssignmentForSemester(selectedAssignment, activeAcademicYear?.id, activeSemester)) {
         initialAssignmentIdRef.current = workspaceId;
         setSelectedAssignmentId(workspaceId);
+      } else if (semesterAssignments.length > 0) {
+        initialAssignmentIdRef.current = semesterAssignments[0].id;
+        setSelectedAssignmentId(semesterAssignments[0].id);
       } else {
-        initialAssignmentIdRef.current = teachingAssignments[0].id;
-        setSelectedAssignmentId(teachingAssignments[0].id);
+        setSelectedAssignmentId('');
+      }
+      return;
+    }
+
+    // When selectedAssignmentId is present, verify it still belongs to active semester/year
+    const currentMatch = semesterAssignments.find(t => t.id === selectedAssignmentId);
+    if (!currentMatch) {
+      const prevAssignment = teachingAssignments.find(t => t.id === selectedAssignmentId);
+      const counterpart = resolveAssignmentOnSemesterSwitch(
+        teachingAssignments,
+        prevAssignment,
+        activeSemester,
+        activeAcademicYear?.id
+      );
+
+      if (counterpart) {
+        setSelectedAssignmentId(counterpart.id);
+        setSelectedMeetingId('');
+      } else if (semesterAssignments.length > 0) {
+        setSelectedAssignmentId(semesterAssignments[0].id);
+        setSelectedMeetingId('');
+      } else {
+        setSelectedAssignmentId('');
+        setSelectedMeetingId('');
+        setStudentRows([]);
+        setMeetings([]);
       }
     }
-  }, [teachingAssignments, selectedAssignmentId, navContext, selectedAssignment]);
+  }, [
+    navContext,
+    activeSemester,
+    activeAcademicYear,
+    semesterAssignments,
+    teachingAssignments,
+    selectedAssignment,
+    selectedAssignmentId,
+  ]);
 
-    // 2. Fetch meetings whenever assignment changes with SWR
+  // 2. Fetch meetings whenever assignment changes with SWR
   useEffect(() => {
     if (!user || !activeAcademicYear || !selectedAssignmentId) return;
-
+    const assignmentToFetch = teachingAssignments.find(t => t.id === selectedAssignmentId);
+    if (!isAssignmentForSemester(assignmentToFetch, activeAcademicYear.id, activeSemester)) {
+      setMeetings([]);
+      return;
+    }
     let isMounted = true;
     const meetingsKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignmentId}`;
     const cached = subjectMeetingsCache.get(meetingsKey);
@@ -492,10 +548,14 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     return () => { isMounted = false; };
   }, [user, activeAcademicYear, activeSemester, selectedAssignmentId]);
 
-  // Selected Assignment details
+  // Selected Assignment details (strictly scoped to active year and semester)
   const currentAssignment = useMemo(() => {
-    return teachingAssignments.find(t => t.id === selectedAssignmentId);
-  }, [teachingAssignments, selectedAssignmentId]);
+    const found = teachingAssignments.find(t => t.id === selectedAssignmentId);
+    if (isAssignmentForSemester(found, activeAcademicYear?.id, activeSemester)) {
+      return found;
+    }
+    return undefined;
+  }, [teachingAssignments, selectedAssignmentId, activeAcademicYear, activeSemester]);
 
   // Selected Meeting details (if any)
   const currentMeeting = useMemo(() => {
@@ -910,6 +970,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   // FloppyDisk attendance (completely decoupled from meeting journal)
   const handleSaveAttendance = async (): Promise<boolean> => {
     if (!user || !activeAcademicYear || !currentAssignment || studentRows.length === 0) return false;
+    if (!isAssignmentForSemester(currentAssignment, activeAcademicYear.id, activeSemester)) {
+      setFeedbackMsg({
+        type: 'error',
+        text: `Presensi tidak dapat disimpan: Penugasan mengajar tidak sesuai dengan Tahun Ajaran atau Semester aktif (${activeSemester}).`,
+      });
+      return false;
+    }
     if (isSavingRef.current || savingAttendance) return false;
 
     isSavingRef.current = true;
@@ -1387,13 +1454,18 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
               <select
                 value={selectedAssignmentId}
                 onChange={e => handleAssignmentChange(e.target.value)}
-                className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
+                disabled={semesterAssignments.length === 0}
+                className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer disabled:opacity-50"
               >
-                {teachingAssignments.map(ta => (
-                  <option key={ta.id} value={ta.id}>
-                    Kelas {ta.className} — {ta.subjectName}
-                  </option>
-                ))}
+                {semesterAssignments.length === 0 ? (
+                  <option value="">Tidak ada penugasan aktif pada semester ini</option>
+                ) : (
+                  semesterAssignments.map(ta => (
+                    <option key={ta.id} value={ta.id}>
+                      Kelas {ta.className} — {ta.subjectName}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -1729,7 +1801,13 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
             <SkeletonTable rows={8} columns={5} />
           ) : (
             <div className="bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden transition-colors">
-              {studentRows.length === 0 ? (
+              {!currentAssignment || semesterAssignments.length === 0 ? (
+                <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
+                  <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                  <p className="font-semibold text-slate-700 dark:text-slate-200">Tidak ada penugasan mengajar aktif pada semester ini</p>
+                  <p className="text-slate-400 mt-1">Silakan pilih atau buat penugasan mengajar yang sesuai dengan Tahun Ajaran {activeAcademicYear?.label || ''} dan Semester {activeSemester}.</p>
+                </div>
+              ) : studentRows.length === 0 ? (
                 <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
                   <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                   <p className="font-semibold text-slate-700 dark:text-slate-200">Tidak ada siswa aktif yang terdaftar di kelas ini</p>

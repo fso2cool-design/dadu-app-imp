@@ -143,7 +143,8 @@ export async function createMeeting(
     throw new Error('Tidak dapat membuat jurnal pertemuan pada Tahun Ajaran yang tidak aktif atau telah diarsipkan.');
   }
 
-  const taDoc = await getDoc(doc(db, 'users', uid, 'teachingAssignments', data.teachingAssignmentId));
+  const taDocRef = doc(db, 'users', uid, 'teachingAssignments', data.teachingAssignmentId);
+  const taDoc = await getDoc(taDocRef);
   if (!taDoc.exists()) {
     throw new Error('Penugasan mengajar tidak ditemukan.');
   }
@@ -151,13 +152,19 @@ export async function createMeeting(
   if (taData?.isArchived) {
     throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima pertemuan KBM baru.');
   }
-  if (taData?.academicYearId && taData.academicYearId !== data.academicYearId) {
+  if (taData?.isActive === false) {
+    throw new Error('Penugasan mengajar ini tidak aktif dan tidak dapat menerima pertemuan KBM baru.');
+  }
+  if (!taData?.academicYearId || taData.academicYearId !== data.academicYearId) {
     throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran pertemuan.');
   }
-  if (taData?.classId && taData.classId !== data.classId) {
+  if (!taData?.semester || taData.semester !== data.semester) {
+    throw new Error(`Relasi tidak konsisten: Semester tugas mengajar (${taData?.semester || 'tidak terdefinisi'}) tidak sesuai dengan semester pertemuan (${data.semester}).`);
+  }
+  if (!taData?.classId || taData.classId !== data.classId) {
     throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan kelas pertemuan.');
   }
-  if (taData?.subjectId && taData.subjectId !== data.subjectId) {
+  if (!taData?.subjectId || taData.subjectId !== data.subjectId) {
     throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan mata pelajaran pertemuan.');
   }
 
@@ -239,6 +246,31 @@ export async function createMeeting(
 
   // 5. Run atomic transaction for slot reservation and meeting creation
   await runTransaction(db, async (transaction) => {
+    // Re-verify teaching assignment within transaction to guard against concurrent race conditions
+    const taTxSnap = await transaction.get(taDocRef);
+    if (!taTxSnap.exists()) {
+      throw new Error('Penugasan mengajar tidak ditemukan.');
+    }
+    const taDataTx = taTxSnap.data();
+    if (taDataTx?.isArchived) {
+      throw new Error('Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima pertemuan KBM baru.');
+    }
+    if (taDataTx?.isActive === false) {
+      throw new Error('Penugasan mengajar ini tidak aktif dan tidak dapat menerima pertemuan KBM baru.');
+    }
+    if (!taDataTx?.academicYearId || taDataTx.academicYearId !== data.academicYearId) {
+      throw new Error('Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan tahun ajaran pertemuan.');
+    }
+    if (!taDataTx?.semester || taDataTx.semester !== data.semester) {
+      throw new Error(`Relasi tidak konsisten: Semester tugas mengajar (${taDataTx?.semester || 'tidak terdefinisi'}) tidak sesuai dengan semester pertemuan (${data.semester}).`);
+    }
+    if (!taDataTx?.classId || taDataTx.classId !== data.classId) {
+      throw new Error('Relasi tidak konsisten: Kelas tugas mengajar tidak sesuai dengan kelas pertemuan.');
+    }
+    if (!taDataTx?.subjectId || taDataTx.subjectId !== data.subjectId) {
+      throw new Error('Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan mata pelajaran pertemuan.');
+    }
+
     // Check slot document reservation
     const slotSnap = await transaction.get(slotDocRef);
     if (slotSnap.exists()) {
@@ -363,6 +395,23 @@ export async function updateMeeting(
   // 4. Strict Edit Governance:
   // Fields that are strictly IMMUTABLE on update:
   // - academicYearId, semester, teachingAssignmentId, classId, subjectId
+  const identityFields: Array<{ key: keyof Meeting; name: string }> = [
+    { key: 'semester', name: 'Semester' },
+    { key: 'teachingAssignmentId', name: 'Tugas mengajar' },
+    { key: 'academicYearId', name: 'Tahun ajaran' },
+    { key: 'classId', name: 'Kelas' },
+    { key: 'subjectId', name: 'Mata pelajaran' },
+  ];
+
+  for (const { key, name } of identityFields) {
+    const val = data[key];
+    if (val !== undefined) {
+      if (typeof val !== 'string' || !val.trim() || val !== existingData[key]) {
+        throw new Error(`Relasi tidak konsisten: ${name} pertemuan tidak dapat diubah.`);
+      }
+    }
+  }
+
   // meetingNumber is mutable ordinal governed by reservation protocol.
   const {
     academicYearId,

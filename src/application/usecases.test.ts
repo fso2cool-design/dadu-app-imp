@@ -20,7 +20,7 @@ describe('Application Core Use Cases', () => {
         { id: 'sub-1', name: 'Matematika', code: 'MTK' } as any
       ];
       const mockAssignments: TeachingAssignment[] = [
-        { id: 'ta-1', academicYearId: 'ay-1', classId: 'cls-1', className: '7A', subjectId: 'sub-1', subjectName: 'Matematika' } as any
+        { id: 'ta-1', academicYearId: 'ay-1', semester: 'GANJIL', classId: 'cls-1', className: '7A', subjectId: 'sub-1', subjectName: 'Matematika', isActive: true } as any
       ];
 
       const deps = {
@@ -40,6 +40,67 @@ describe('Application Core Use Cases', () => {
       expect(result.selectedAssignment?.id).toBe('ta-1');
       expect(result.classes.length).toBe(2);
       expect(result.subjects.length).toBe(1);
+    });
+
+    it('does not fallback to assignment of different semester when active semester has no matching assignments', async () => {
+      const mockYears: AcademicYear[] = [
+        { id: 'ay-1', label: '2025/2026', isActive: true, currentSemester: 'GENAP' } as any,
+      ];
+      const mockClasses: ClassItem[] = [
+        { id: 'cls-1', name: '7A', academicYearId: 'ay-1' } as any,
+      ];
+      const mockSubjects: Subject[] = [
+        { id: 'sub-1', name: 'Matematika' } as any,
+      ];
+      // Only GANJIL assignment exists, but active semester is GENAP
+      const mockAssignments: TeachingAssignment[] = [
+        { id: 'ta-ganjil-1', academicYearId: 'ay-1', semester: 'GANJIL', classId: 'cls-1', className: '7A', subjectId: 'sub-1', isActive: true } as any
+      ];
+
+      const deps = {
+        academicYearRepo: { getAll: vi.fn().mockResolvedValue(mockYears) },
+        classRepo: { getAll: vi.fn().mockResolvedValue(mockClasses) },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue(mockSubjects) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue(mockAssignments) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultSemester: 'GENAP' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      };
+
+      const result = await loadWorkspaceUseCase({ uid: 'user-1' }, deps as any);
+
+      expect(result.activeSemester).toBe('GENAP');
+      expect(result.selectedAssignment).toBeNull();
+    });
+
+    it('selects matching assignment for active semester when both semesters have assignments', async () => {
+      const mockYears: AcademicYear[] = [
+        { id: 'ay-1', label: '2025/2026', isActive: true, currentSemester: 'GENAP' } as any,
+      ];
+      const mockClasses: ClassItem[] = [
+        { id: 'cls-1', name: '7A', academicYearId: 'ay-1' } as any,
+      ];
+      const mockSubjects: Subject[] = [
+        { id: 'sub-1', name: 'Matematika' } as any,
+      ];
+      const mockAssignments: TeachingAssignment[] = [
+        { id: 'ta-ganjil-1', academicYearId: 'ay-1', semester: 'GANJIL', classId: 'cls-1', className: '7A', subjectId: 'sub-1', isActive: true } as any,
+        { id: 'ta-genap-1', academicYearId: 'ay-1', semester: 'GENAP', classId: 'cls-1', className: '7A', subjectId: 'sub-1', isActive: true } as any,
+      ];
+
+      const deps = {
+        academicYearRepo: { getAll: vi.fn().mockResolvedValue(mockYears) },
+        classRepo: { getAll: vi.fn().mockResolvedValue(mockClasses) },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue(mockSubjects) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue(mockAssignments) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultSemester: 'GENAP', defaultClassId: 'cls-1' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      };
+
+      const result = await loadWorkspaceUseCase({ uid: 'user-1' }, deps as any);
+
+      expect(result.activeSemester).toBe('GENAP');
+      expect(result.selectedAssignment?.id).toBe('ta-genap-1');
+      expect(result.selectedAssignment?.semester).toBe('GENAP');
     });
   });
 

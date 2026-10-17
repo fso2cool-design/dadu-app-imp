@@ -68,9 +68,25 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetDoc.mockResolvedValue({
-      exists: () => true,
-      data: () => ({ isArchived: false }),
+    mockGetDoc.mockImplementation(async (ref: any) => {
+      const p = ref?.path || '';
+      if (p.includes('teachingAssignments')) {
+        return {
+          exists: () => true,
+          data: () => ({
+            isArchived: false,
+            isActive: true,
+            academicYearId: '2026/2027',
+            semester: 'GANJIL',
+            classId: 'class-1',
+            subjectId: 'sub-1',
+          }),
+        };
+      }
+      return {
+        exists: () => true,
+        data: () => ({ isArchived: false, isActive: true }),
+      };
     });
     mockGetDocs.mockResolvedValue({
       docs: [],
@@ -207,12 +223,59 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       });
 
       mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
+        const defaultTxGet = async (ref: any) => {
+          if (ref?.path?.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                academicYearId: '2026/2027',
+                semester: 'GANJIL',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                isActive: true,
+                isArchived: false,
+              }),
+            };
+          }
+          return { exists: () => false, data: () => ({}) };
+        };
+
         const mockTx = {
-          get: vi.fn(),
+          get: vi.fn().mockImplementation(defaultTxGet),
           set: vi.fn(),
           update: vi.fn(),
         };
         setupTx(mockTx);
+
+        const customGet = mockTx.get.getMockImplementation();
+        if (customGet && customGet !== defaultTxGet) {
+          mockTx.get = vi.fn().mockImplementation(async (ref: any) => {
+            if (ref?.path?.includes('teachingAssignments')) {
+              let res: any;
+              try {
+                res = await customGet(ref);
+              } catch (e) {
+                throw e;
+              }
+              if (res?.exists?.() && res?.data?.()?.academicYearId) {
+                return res;
+              }
+              return {
+                exists: () => true,
+                data: () => ({
+                  academicYearId: '2026/2027',
+                  semester: 'GANJIL',
+                  classId: 'class-1',
+                  subjectId: 'sub-1',
+                  isActive: true,
+                  isArchived: false,
+                }),
+              };
+            }
+            return customGet(ref);
+          });
+        }
+
         return cb(mockTx);
       });
     };
@@ -307,6 +370,361 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       );
     });
 
+    describe('Priority 5: Fail-Closed Teaching Assignment Relational Integrity', () => {
+      it('1. Rejects saveSubjectAttendance when teachingAssignment is not found', async () => {
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return { exists: () => false, data: () => null };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Penugasan mengajar tidak ditemukan.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('2. Rejects saveSubjectAttendance when teachingAssignment has undefined/missing semester (legacy)', async () => {
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: undefined,
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Semester tugas mengajar (tidak terdefinisi) tidak sesuai dengan sesi presensi (GANJIL).'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('3. Rejects saveSubjectAttendance when teachingAssignment semester contradicts session semester', async () => {
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        const mismatchPayload = {
+          ...basePayload,
+          semester: 'GENAP' as const,
+        };
+
+        await expect(saveSubjectAttendance(uid, mismatchPayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Semester tugas mengajar (GANJIL) tidak sesuai dengan sesi presensi (GENAP).'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('4. Rejects saveSubjectAttendance when teachingAssignment has undefined/missing academicYearId', async () => {
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: undefined,
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('5. Rejects saveSubjectAttendance when teachingAssignment academicYearId contradicts session academicYearId', async () => {
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: '2025/2026',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Tahun ajaran tugas mengajar tidak sesuai dengan sesi presensi.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('6. Rejects saveSubjectAttendance when subjectId is provided but invalid, empty, or mismatched', async () => {
+        // 6a. Mismatched subjectId
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: 'sub-other',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan sesi presensi.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+
+        // 6b. Empty string subjectId provided in payload
+        const emptySubjectPayload = {
+          ...basePayload,
+          subjectId: '',
+        };
+        await expect(saveSubjectAttendance(uid, emptySubjectPayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan sesi presensi.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+
+        // 6c. Whitespace subjectId provided in payload
+        const wsSubjectPayload = {
+          ...basePayload,
+          subjectId: '   ',
+        };
+        await expect(saveSubjectAttendance(uid, wsSubjectPayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Mata pelajaran tugas mengajar tidak sesuai dengan sesi presensi.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+
+        // 6d. Missing subjectId on assignment doc
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: true,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: undefined,
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Relasi tidak konsisten: Penugasan mengajar tidak memiliki data mata pelajaran.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('6e. TC-SUB01 — Omitted subjectId writes canonical assignment subject on new record', async () => {
+        // Calling with subjectId omitted (undefined)
+        const { subjectId: _ignored, ...payloadWithoutSubject } = basePayload;
+
+        let capturedRecordPayload: any = null;
+
+        runTxWithMock((tx) => {
+          tx.get.mockImplementation(async (ref: any) => {
+            if (ref.path.includes('meetings')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  id: 'meet-1',
+                  teachingAssignmentId: 'assign-1',
+                  date: '2026-10-10',
+                  status: 'SCHEDULED',
+                }),
+              };
+            }
+            // New attendance record does not exist yet
+            return { exists: () => false, data: () => ({}) };
+          });
+
+          tx.set.mockImplementation((_ref: any, data: any) => {
+            capturedRecordPayload = data;
+          });
+        });
+
+        const summary = await saveSubjectAttendance(uid, payloadWithoutSubject as any);
+        expect(summary.present).toBe(1);
+        expect(mockRunTransaction).toHaveBeenCalledTimes(1);
+        // Canonical subject from verified teaching assignment must be written, NOT empty string
+        expect(capturedRecordPayload).toBeDefined();
+        expect(capturedRecordPayload.subjectId).toBe('sub-1');
+        expect(capturedRecordPayload.subjectId).not.toBe('');
+      });
+
+      it('6f. TC-SUB02 — Omitted subjectId preserves canonical assignment subject on existing record update', async () => {
+        // Calling with subjectId omitted (undefined)
+        const { subjectId: _ignored, ...payloadWithoutSubject } = basePayload;
+
+        let capturedRecordPayload: any = null;
+
+        runTxWithMock((tx) => {
+          tx.get.mockImplementation(async (ref: any) => {
+            if (ref.path.includes('meetings')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  id: 'meet-1',
+                  teachingAssignmentId: 'assign-1',
+                  date: '2026-10-10',
+                  status: 'SCHEDULED',
+                }),
+              };
+            }
+            // Existing attendance record with old/legacy subject
+            return {
+              exists: () => true,
+              data: () => ({
+                id: 'att-1',
+                subjectId: 'sub-legacy-different',
+                meetingId: null,
+                createdAt: 'MOCK_HISTORIC_TIMESTAMP',
+              }),
+            };
+          });
+
+          tx.set.mockImplementation((_ref: any, data: any) => {
+            capturedRecordPayload = data;
+          });
+        });
+
+        const summary = await saveSubjectAttendance(uid, payloadWithoutSubject as any);
+        expect(summary.present).toBe(1);
+        expect(mockRunTransaction).toHaveBeenCalledTimes(1);
+        // Canonical verified subject from assignment must be enforced on update
+        expect(capturedRecordPayload).toBeDefined();
+        expect(capturedRecordPayload.subjectId).toBe('sub-1');
+        expect(capturedRecordPayload.subjectId).not.toBe('');
+        expect(capturedRecordPayload.subjectId).not.toBe('sub-legacy-different');
+      });
+
+      it('7. Rejects saveSubjectAttendance when teachingAssignment is inactive or archived', async () => {
+        // Inactive
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: false,
+                isActive: false,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Penugasan mengajar ini tidak aktif dan tidak dapat menerima presensi baru.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+
+        // Archived
+        mockGetDoc.mockImplementation(async (ref: any) => {
+          if (ref.path.includes('teachingAssignments')) {
+            return {
+              exists: () => true,
+              data: () => ({
+                isArchived: true,
+                isActive: true,
+                academicYearId: '2026/2027',
+                classId: 'class-1',
+                subjectId: 'sub-1',
+                semester: 'GANJIL',
+              }),
+            };
+          }
+          return { exists: () => true, data: () => ({ isArchived: false }) };
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Penugasan mengajar ini telah diarsipkan dan tidak dapat menerima presensi baru.'
+        );
+        expect(mockRunTransaction).not.toHaveBeenCalled();
+      });
+
+      it('8. Race Condition Defense: Aborts transaction if assignment becomes invalid or deleted concurrently during transaction evaluation', async () => {
+        // Pre-transaction getDoc succeeded, but in-transaction transaction.get finds assignment was deactivated concurrently
+        const mockTxSet = vi.fn();
+        const mockTxUpdate = vi.fn();
+
+        mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
+          const tx = {
+            get: vi.fn().mockImplementation(async (ref: any) => {
+              if (ref.path.includes('teachingAssignments')) {
+                // Concurrently deactivated while transaction was in flight!
+                return {
+                  exists: () => true,
+                  data: () => ({
+                    isArchived: false,
+                    isActive: false,
+                    academicYearId: '2026/2027',
+                    classId: 'class-1',
+                    subjectId: 'sub-1',
+                    semester: 'GANJIL',
+                  }),
+                };
+              }
+              return { exists: () => false, data: () => ({}) };
+            }),
+            set: mockTxSet,
+            update: mockTxUpdate,
+          };
+          return cb(tx);
+        });
+
+        await expect(saveSubjectAttendance(uid, basePayload)).rejects.toThrow(
+          'Penugasan mengajar ini tidak aktif dan tidak dapat menerima presensi baru.'
+        );
+
+        // Guarantees zero attendance records or meeting link mutations occurred
+        expect(mockTxSet).not.toHaveBeenCalled();
+        expect(mockTxUpdate).not.toHaveBeenCalled();
+      });
+    });
+
     it('AC-10: Rejects mixed or split meeting relations in stored records', async () => {
       const payloadTwo: SaveSubjectAttendancePayload = {
         ...basePayload,
@@ -340,6 +758,19 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
         const mockTx = {
           get: vi.fn().mockImplementation(async (ref: any) => {
+            if (ref.path.includes('teachingAssignments')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  academicYearId: '2026/2027',
+                  semester: 'GANJIL',
+                  classId: 'class-1',
+                  subjectId: 'sub-1',
+                  isActive: true,
+                  isArchived: false,
+                }),
+              };
+            }
             if (ref.path.includes('meetings')) {
               return {
                 exists: () => true,
@@ -428,6 +859,19 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
         const mockTx = {
           get: vi.fn().mockImplementation(async (ref: any) => {
+            if (ref.path.includes('teachingAssignments')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  academicYearId: '2026/2027',
+                  semester: 'GANJIL',
+                  classId: 'class-1',
+                  subjectId: 'sub-1',
+                  isActive: true,
+                  isArchived: false,
+                }),
+              };
+            }
             if (ref.path.includes('meet-target-B')) {
               return {
                 exists: () => true,
@@ -504,6 +948,19 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
         const mockTx = {
           get: vi.fn().mockImplementation(async (ref: any) => {
+            if (ref.path.includes('teachingAssignments')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  academicYearId: '2026/2027',
+                  semester: 'GANJIL',
+                  classId: 'class-1',
+                  subjectId: 'sub-1',
+                  isActive: true,
+                  isArchived: false,
+                }),
+              };
+            }
             if (ref.path.includes('meet-old-A')) {
               return {
                 exists: () => true,
@@ -647,6 +1104,19 @@ describe('Firestore Attendance Service — saveSubjectAttendance()', () => {
       mockRunTransaction.mockImplementationOnce(async (_db: any, cb: any) => {
         const tx = {
           get: vi.fn().mockImplementation(async (ref: any) => {
+            if (ref.path.includes('teachingAssignments')) {
+              return {
+                exists: () => true,
+                data: () => ({
+                  academicYearId: '2026/2027',
+                  semester: 'GANJIL',
+                  classId: 'class-1',
+                  subjectId: 'sub-1',
+                  isActive: true,
+                  isArchived: false,
+                }),
+              };
+            }
             if (ref.path.includes('meetings')) {
               return {
                 exists: () => true,

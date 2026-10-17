@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import {
   SubjectAttendancePage,
@@ -54,6 +54,20 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       subjectCode: 'AA',
       academicYearId: 'ay-2025',
       semester: 'GANJIL',
+      isActive: true,
+    },
+    {
+      id: 'asg-genap-1',
+      teacherId: 'teacher-uid',
+      classId: 'cls-1',
+      className: '7A',
+      subjectId: 'sub-1',
+      subjectName: 'Fikih',
+      subjectCode: 'FKH',
+      academicYearId: 'ay-2025',
+      semester: 'GENAP',
+      isActive: true,
+      isArchived: false,
     },
   ];
 
@@ -764,6 +778,69 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       const saveBtn = screen.getAllByRole('button', { name: /simpan presensi/i })[0];
       expect(saveBtn).toBeDisabled();
       expect(saveBtn).toHaveAttribute('title', expect.stringContaining('Terdapat 2 pertemuan pada tanggal 2026-10-10'));
+    });
+
+    it('12. Rejects navigation context assignment that belongs to different semester than activeSemester', async () => {
+      clearSubjectAttendanceCaches();
+      // Active semester is GENAP, but navigation attempts to open asg-1 (which is GANJIL)
+      workspaceState.activeSemester = 'GENAP';
+
+      renderPage({ assignmentId: 'asg-1', date: '2026-10-10' });
+
+      // Error banner must be shown
+      expect(await screen.findByText(/tidak sesuai dengan Tahun Ajaran.*GENAP/i)).toBeInTheDocument();
+      // Must not fetch meetings for the mismatched assignment
+      expect(mockGetAllMeetings).not.toHaveBeenCalledWith('teacher-uid', expect.objectContaining({ teachingAssignmentId: 'asg-1' }));
+
+      // Reset workspace state back
+      workspaceState.activeSemester = 'GANJIL';
+    });
+
+    it('13. Dropdown only contains assignments valid for activeSemester', async () => {
+      clearSubjectAttendanceCaches();
+      workspaceState.activeSemester = 'GANJIL';
+
+      renderPage();
+      await screen.findByText('Ahmad Dahlan');
+
+      // Dropdown should contain asg-1 and asg-2 (GANJIL), but NOT asg-genap-1 (GENAP)
+      const options = screen.getAllByRole('option');
+      const optionTexts = options.map(o => o.textContent);
+      expect(optionTexts.some(t => t?.includes('Kelas 7A — Fikih'))).toBe(true);
+      expect(optionTexts.some(t => t?.includes('Kelas 8B — Akidah Akhlak'))).toBe(true);
+
+      // Cleanup previous render and switch activeSemester in workspaceState to GENAP
+      cleanup();
+      clearSubjectAttendanceCaches();
+      workspaceState.activeSemester = 'GENAP';
+      renderPage();
+      await screen.findByText('Ahmad Dahlan');
+
+      const genapOptions = screen.getAllByRole('option');
+      const genapOptionTexts = genapOptions.map(o => o.textContent);
+      // Only 7A Fikih exists in Genap; 8B Akidah does not exist in Genap
+      expect(genapOptionTexts.some(t => t?.includes('Kelas 8B — Akidah Akhlak'))).toBe(false);
+
+      // Reset workspace state
+      workspaceState.activeSemester = 'GANJIL';
+    });
+
+    it('14. Renders clear empty state when there are no valid assignments for active semester', async () => {
+      clearSubjectAttendanceCaches();
+      const emptyWorkspace = {
+        ...workspaceState,
+        teachingAssignments: [],
+        selectedAssignment: null,
+      };
+      vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(emptyWorkspace as any);
+
+      renderPage();
+
+      expect(await screen.findByText(/Tidak ada penugasan mengajar aktif pada semester ini/i)).toBeInTheDocument();
+      expect(screen.getByText(/Silakan pilih atau buat penugasan mengajar yang sesuai/i)).toBeInTheDocument();
+
+      // Reset mock
+      vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(workspaceState as any);
     });
   });
 });

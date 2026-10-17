@@ -3,6 +3,7 @@ import type { ClassRepository } from '../ports/classRepository';
 import type { SubjectRepository } from '../ports/subjectRepository';
 import type { TeachingAssignmentRepository } from '../ports/teachingAssignmentRepository';
 import type { AcademicYear, ClassItem, Subject, TeachingAssignment, SemesterType, AttendanceSettings, UserPreferences } from '../../types';
+import { filterAssignmentsForSemester } from '../../domain/academic/assignmentPolicy';
 
 const DEFAULT_ATTENDANCE_SETTINGS: AttendanceSettings = { schoolDaysOption: 6, holidays: [] };
 
@@ -78,9 +79,13 @@ export async function loadWorkspaceUseCase(
 
   let selectedAssignment: TeachingAssignment | null = null;
   if (sortedAssignments.length > 0) {
-    const activeAssignments = sortedAssignments.filter(a => (!currentActiveYear || a.academicYearId === currentActiveYear.id) && !a.isArchived && a.isActive !== false);
+    const activeAssignments = filterAssignmentsForSemester(
+      sortedAssignments,
+      currentActiveYear?.id,
+      sem
+    );
     const matchByClass = activeAssignments.find(a => a.classId === initialClassId);
-    selectedAssignment = matchByClass || activeAssignments[0] || sortedAssignments[0] || null;
+    selectedAssignment = matchByClass || activeAssignments[0] || null;
   }
 
   return {
