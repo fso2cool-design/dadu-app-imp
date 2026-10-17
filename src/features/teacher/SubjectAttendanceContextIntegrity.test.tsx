@@ -368,7 +368,7 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
     // Select the cross-assignment meeting first while form is clean
     const meetingSelect = await getMeetingSelect();
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-99')).toBeInTheDocument();
+      expect(screen.getByText(/Pertemuan #99/)).toBeInTheDocument();
     });
     fireEvent.change(meetingSelect, { target: { value: 'mtg-cross' } });
 

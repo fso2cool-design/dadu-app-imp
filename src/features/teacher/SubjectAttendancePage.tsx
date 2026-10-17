@@ -45,6 +45,28 @@ interface MatrixColumn {
   title: string;
 }
 
+/**
+ * Memformat label opsi dropdown penautan jurnal untuk keterbacaan mobile.
+ * Format: "Pertemuan #N — Cuplikan Topik...(Tgl: YYYY-MM-DD)"
+ */
+export const formatMeetingOptionLabel = (
+  meetingNumber: number,
+  topic?: string,
+  mismatchSuffix = '',
+  maxTopicLength = 35
+): string => {
+  const cleanTopic = topic?.trim();
+  let topicSnippet = '';
+  if (cleanTopic) {
+    if (cleanTopic.length > maxTopicLength) {
+      topicSnippet = ` — ${cleanTopic.slice(0, maxTopicLength).trimEnd()}...`;
+    } else {
+      topicSnippet = ` — ${cleanTopic}`;
+    }
+  }
+  return `Pertemuan #${meetingNumber}${topicSnippet}${mismatchSuffix}`;
+};
+
 // In-memory module cache for instant SWR navigation without skeleton flicker
 import { LRUCache } from '../../utils/lruCache';
 const normalizeMeetingId = (id: string | null | undefined): string | null => {
@@ -1587,7 +1609,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                   <select
                     value={selectedMeetingId}
                     onChange={(e) => handleMeetingChange(e.target.value)}
-                    className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px]"
+                    className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer min-w-[150px] max-w-full truncate"
                   >
                     <option value="">-- Tidak ditautkan --</option>
                     {meetingOptions.map(m => {
@@ -1599,7 +1621,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                           value={m.id}
                           title={m.topic ? `Pertemuan #${m.meetingNumber}: ${m.topic}${m.timeSlot ? ` (${m.timeSlot})` : ''}` : undefined}
                         >
-                          Jurnal Ke-{m.meetingNumber}{mismatchSuffix}
+                          {formatMeetingOptionLabel(m.meetingNumber, m.topic, mismatchSuffix)}
                         </option>
                       );
                     })}
@@ -1670,32 +1692,32 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         <div className="space-y-4">
           {/* Active Session Info Banner & Live Counters */}
           <div className="p-4 bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs space-y-3 transition-colors">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--ds-border)] pb-3">
-              <div>
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--ds-border)] pb-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
                   {currentMeeting ? (
                     <>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs shrink-0">
                         Pertemuan #{currentMeeting.meetingNumber}
                       </span>
-                      <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">
+                      <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 min-w-0 break-words leading-tight line-clamp-2" title={currentMeeting.topic}>
                         {currentMeeting.topic}
                       </h2>
                     </>
                   ) : (
                     <>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-accent-primary-soft text-accent-text border border-accent-primary-border font-mono font-bold text-xs flex items-center gap-1 shrink-0">
                         <BookOpen className="w-3 h-3" />
                         Presensi Mandiri
                       </span>
-                      <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100">
+                      <h2 className="font-bold text-sm text-slate-800 dark:text-slate-100 min-w-0 break-words leading-tight">
                         Buku Presensi Fisik • {formatDateIndonesian(selectedDate)}
                       </h2>
                     </>
                   )}
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span>📅 {formatDateIndonesian(selectedDate)}</span>
                   {currentMeeting?.timeSlot && (
                     <>
@@ -1710,8 +1732,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
                 </p>
               </div>
 
-              <div className="text-right">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+              <div className="self-start sm:self-auto sm:text-right shrink-0">
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full inline-block ${
                   stats.percentage !== null && stats.percentage >= 85 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/40' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/40'
                 }`}>
                   {stats.percentage !== null ? `${stats.percentage}%` : '—'} Tingkat Kehadiran

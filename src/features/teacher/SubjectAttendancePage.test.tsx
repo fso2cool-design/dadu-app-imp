@@ -7,6 +7,7 @@ import {
   clearSubjectAttendanceCaches,
   type SubjectAttendancePageHandle,
   type SubjectAttendancePageProps,
+  formatMeetingOptionLabel,
 } from './SubjectAttendancePage';
 import { ApplicationProvider } from '../../application/ApplicationContext';
 import { ToastProvider } from '../../context/ToastContext';
@@ -718,7 +719,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     // Wait for meeting options to be populated in select
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     const meetingSelect = screen.getByDisplayValue('-- Tidak ditautkan --');
@@ -941,10 +942,10 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
-    const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+    const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
     expect(meetingSelect).toBeInTheDocument();
 
     // 1. Ubah catatan siswa sehingga form menjadi dirty
@@ -1007,13 +1008,13 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan penting' } });
 
-    const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+    const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
     fireEvent.change(meetingSelect, { target: { value: '' } });
 
     const dialog = await screen.findByRole('dialog');
@@ -1026,7 +1027,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     expect(await screen.findByText(/Koneksi database terputus/i)).toBeInTheDocument();
 
     // Navigasi tetap tertahan: dialog tetap terbuka atau feedback error muncul, meeting tidak berganti
-    expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/Pertemuan #1/)).toBeInTheDocument();
     expect(noteInputs[0]).toHaveValue('Catatan penting');
   });
 
@@ -1068,13 +1069,13 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     expect(screen.queryByText('Draf — belum disimpan')).not.toBeInTheDocument();
     expect(screen.queryByText('Perubahan belum disimpan')).not.toBeInTheDocument();
 
-    const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+    const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
     fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
 
     // Tidak ada dialog konfirmasi
@@ -1097,14 +1098,14 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     const noteInputs = screen.getAllByPlaceholderText('Keterangan...');
     fireEvent.change(noteInputs[0], { target: { value: 'Catatan sementara' } });
     expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
 
-    const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+    const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
     fireEvent.change(meetingSelect, { target: { value: 'meet-2' } });
 
     const dialog = await screen.findByRole('dialog');
@@ -1113,7 +1114,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(screen.getByDisplayValue('Jurnal Ke-2')).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Pertemuan #2/)).toBeInTheDocument();
     });
     expect(noteInputs[0]).toHaveValue('');
   });
@@ -1184,7 +1185,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     // Ubah catatan siswa
@@ -1203,7 +1204,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     // Modal tutup, meeting beralih ke meet-1, catatan siswa kembali ke baseline (kosong)
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toBeInTheDocument();
     });
     expect(noteInputs[0]).toHaveValue('');
 
@@ -1355,7 +1356,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
     await screen.findByText('Ahmad Dahlan');
     await waitFor(() => {
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
     });
 
     // Meeting select tetap "-- Tidak ditautkan --", form TIDAK dirty
@@ -1417,8 +1418,8 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       expect(screen.getByDisplayValue('-- Tidak ditautkan --')).toBeInTheDocument();
 
       // Kedua opsi tersedia di dropdown
-      expect(screen.getByText('Jurnal Ke-1')).toBeInTheDocument();
-      expect(screen.getByText('Jurnal Ke-2')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #1/ })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: /Pertemuan #2/ })).toBeInTheDocument();
 
       await waitFor(() => {
         expect(mockGetByDate).toHaveBeenCalledWith('teacher-uid', 'asg-1', '2026-10-15');
@@ -1438,14 +1439,14 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       renderComponent();
 
       await screen.findByText('Ahmad Dahlan');
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toBeInTheDocument();
 
       const dateInput = screen.getByDisplayValue('2026-10-10');
       // Ganti tanggal ke 2026-10-15
       fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
 
       // meet-1 tidak digantikan secara diam-diam oleh meet-2
-      const meetingSelect = screen.getByDisplayValue(/Jurnal Ke-1/);
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
       expect(meetingSelect).toHaveValue('meet-1');
 
       // Error mismatch ditampilkan
@@ -1471,7 +1472,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       fireEvent.change(meetingSelect, { target: { value: 'meet-1' } });
 
       expect(meetingSelect).toHaveValue('meet-1');
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toBeInTheDocument();
       expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
     });
 
@@ -1489,7 +1490,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
 
       await screen.findByText('Ahmad Dahlan');
       const dateInput = screen.getByDisplayValue('2026-10-10');
-      const meetingSelect = screen.getByDisplayValue(/Jurnal Ke-2/);
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #2/);
 
       expect(meetingSelect).toHaveValue('meet-2');
       expect(screen.getByText(/Tanggal pertemuan jurnal \(2026-10-20\) tidak cocok dengan tanggal presensi/i)).toBeInTheDocument();
@@ -1549,7 +1550,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       renderComponent();
 
       await screen.findByText('Ahmad Dahlan');
-      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
 
       // Lepaskan tautan ke jurnal secara eksplisit
       fireEvent.change(meetingSelect, { target: { value: '' } });
@@ -1606,7 +1607,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       // Tanggal tidak berubah, input tetap dipertahankan
       expect(dateInput).toHaveValue('2026-10-10');
       expect(noteInputs[0]).toHaveValue('Perubahan belum disimpan');
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toBeInTheDocument();
     });
   });
 
@@ -1779,7 +1780,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       await screen.findByText('Ahmad Dahlan');
 
       // 3. Pilihan meeting pada UI tampil dari konteks navigasi
-      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
       expect(meetingSelect).toHaveValue(syntheticMeetingId);
 
       // 4. Pilih opsi Buku Presensi Fisik / Tidak Ditautkan
@@ -1850,7 +1851,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       await screen.findByText('Ahmad Dahlan');
 
       // Dropdown awalnya terisi relasi persisten yang tersimpan
-      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-1');
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #1/);
       expect(meetingSelect).toHaveValue(initialMeetingId);
 
       // Guru mencoba mengubah relasi ke Buku Fisik
@@ -1945,7 +1946,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       await screen.findByText('Ahmad Dahlan');
 
       // Dropdown akhirnya menunjukkan meeting persisten (meet-B), bukan router (meet-A)
-      const meetingSelect = screen.getByDisplayValue('Jurnal Ke-2');
+      const meetingSelect = screen.getByDisplayValue(/Pertemuan #2/);
       expect(meetingSelect).toHaveValue(persistentMeetingId);
 
       // Halaman tidak boleh dirty hanya karena router context berbeda dari DB
@@ -1984,7 +1985,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       });
 
       await screen.findByText('Ahmad Dahlan');
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toHaveValue(initialMeetingId);
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toHaveValue(initialMeetingId);
 
       // Ganti tanggal ke 20 Oktober yang belum memiliki rekaman dan tidak cocok dengan router context tanggal awal
       const dateInput = screen.getByDisplayValue(initialDate);
@@ -2040,7 +2041,7 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
       });
 
       await screen.findByText('Ahmad Dahlan');
-      expect(screen.getByDisplayValue('Jurnal Ke-1')).toHaveValue(initialMeetingId);
+      expect(screen.getByDisplayValue(/Pertemuan #1/)).toHaveValue(initialMeetingId);
 
       const assignmentSelect = screen.getByDisplayValue('Kelas 7A — Matematika');
       fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
@@ -2164,4 +2165,145 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
   });
 
+  describe('Stage 3.1: Mobile Meeting Label & Active Banner Responsive Improvements', () => {
+    it('Helper formatMeetingOptionLabel: formats standard, empty, long topic, and mismatch', () => {
+      // Test D: empty topic
+      expect(formatMeetingOptionLabel(1, undefined)).toBe('Pertemuan #1');
+      expect(formatMeetingOptionLabel(1, '')).toBe('Pertemuan #1');
+      expect(formatMeetingOptionLabel(1, '   ')).toBe('Pertemuan #1');
+
+      // Test B: topic available (short)
+      expect(formatMeetingOptionLabel(2, 'Aljabar Dasar')).toBe('Pertemuan #2 — Aljabar Dasar');
+
+      // Test C: long topic truncated with ellipsis
+      const longTopic = 'Pengenalan Konsep Matriks Lanjut Dalam Penerapan Kehidupan Sehari-hari';
+      const truncated = formatMeetingOptionLabel(3, longTopic, '', 35);
+      expect(truncated).toBe('Pertemuan #3 — Pengenalan Konsep Matriks Lanjut Da...');
+      expect(truncated.endsWith('...')).toBe(true);
+
+      // Test E: mismatch suffix preserved
+      expect(formatMeetingOptionLabel(4, 'Geometri', ' (Tgl: 2026-10-12)')).toBe('Pertemuan #4 — Geometri (Tgl: 2026-10-12)');
+      expect(formatMeetingOptionLabel(5, undefined, ' (Tgl: 2026-10-12)')).toBe('Pertemuan #5 (Tgl: 2026-10-12)');
+    });
+
+    it('Test A & B: dropdown option uses Pertemuan #N with topic and avoids Jurnal Ke-N', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'm-1', meetingNumber: 1, topic: 'Tajwid Nun Sukun', date: '2026-10-10' },
+      ]);
+      renderComponent();
+      await screen.findByText('Ahmad Dahlan');
+
+      expect(screen.queryByText(/Jurnal Ke-/)).not.toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Pertemuan #1 — Tajwid Nun Sukun' })).toBeInTheDocument();
+    });
+
+    it('Test C: dropdown option truncates long topic with clean ellipsis', async () => {
+      const longTopic = 'Pengenalan Konsep Matriks Lanjut Dalam Penerapan Kehidupan Sehari-hari';
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'm-2', meetingNumber: 2, topic: longTopic, date: '2026-10-10' },
+      ]);
+      renderComponent();
+      await screen.findByText('Ahmad Dahlan');
+
+      expect(screen.getByRole('option', { name: 'Pertemuan #2 — Pengenalan Konsep Matriks Lanjut Da...' })).toBeInTheDocument();
+    });
+
+    it('Test D: dropdown option with empty topic renders clean label without undefined or ellipsis', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'm-3', meetingNumber: 3, topic: '', date: '2026-10-10' },
+      ]);
+      renderComponent();
+      await screen.findByText('Ahmad Dahlan');
+
+      const option = screen.getByRole('option', { name: 'Pertemuan #3' });
+      expect(option).toBeInTheDocument();
+      expect(option.textContent).toBe('Pertemuan #3');
+      expect(option.textContent).not.toContain('undefined');
+      expect(option.textContent).not.toContain('...');
+    });
+
+    it('Test E: mismatch suffix is preserved when meeting date differs from attendance date', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'm-mismatch', meetingNumber: 4, topic: 'Hukum Mim Mati', date: '2026-10-10', status: 'SCHEDULED' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'm-mismatch', date: '2026-10-10' },
+      ]);
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: '2026-10-10',
+          meetingId: 'm-mismatch',
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Change date to 2026-10-15 to trigger mismatch with meeting date 2026-10-10
+      const dateInput = screen.getByDisplayValue('2026-10-10');
+      fireEvent.change(dateInput, { target: { value: '2026-10-15' } });
+
+      expect(screen.getByRole('option', { name: 'Pertemuan #4 — Hukum Mim Mati (Tgl: 2026-10-10)' })).toBeInTheDocument();
+    });
+
+    it('Test F: active session banner renders responsive layout classes for long topic and preserves meeting badge', async () => {
+      const veryLongTopic = 'Super Long Meeting Topic That Exceeds Mobile Viewport Boundaries And Needs Multi-line Wrapping And Ellipsis Truncation';
+      mockApp.meetings.getAll.mockResolvedValue([
+        { id: 'm-long', meetingNumber: 1, topic: veryLongTopic, date: '2026-10-10' },
+      ]);
+      mockGetByDate.mockResolvedValue([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: 'm-long', date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: 'm-long', date: '2026-10-10' },
+      ]);
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: '2026-10-10',
+          meetingId: 'm-long',
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      // Badge must be shrink-0 so meeting identity is never crushed
+      const badge = screen.getByText(/Pertemuan #1/, { selector: 'span' });
+      expect(badge).toBeInTheDocument();
+      expect(badge.className).toContain('shrink-0');
+
+      // Heading must have min-w-0 break-words and line-clamp-2
+      const heading = screen.getByRole('heading', { level: 2 });
+      expect(heading).toBeInTheDocument();
+      expect(heading.textContent).toBe(veryLongTopic);
+      expect(heading.className).toContain('min-w-0');
+      expect(heading.className).toContain('break-words');
+      expect(heading.className).toContain('line-clamp-2');
+      expect(heading).toHaveAttribute('title', veryLongTopic);
+    });
+
+    it('Test F (standalone attendance): Presensi Mandiri banner renders responsive layout classes', async () => {
+      mockApp.meetings.getAll.mockResolvedValue([]);
+
+      renderComponent({
+        initialContext: {
+          assignmentId: 'asg-1',
+          date: '2026-10-10',
+          meetingId: '',
+        },
+      });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      const standaloneBadge = screen.getByText(/Presensi Mandiri/i);
+      expect(standaloneBadge).toBeInTheDocument();
+      expect(standaloneBadge.className).toContain('shrink-0');
+
+      const heading = screen.getByRole('heading', { level: 2 });
+      expect(heading).toBeInTheDocument();
+      expect(heading.textContent).toContain('Buku Presensi Fisik');
+      expect(heading.className).toContain('min-w-0');
+      expect(heading.className).toContain('break-words');
+    });
+  });
 });
