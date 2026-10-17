@@ -12,6 +12,7 @@ import { TabNavigation } from '../../components/common/TabNavigation';
 
 import { Meeting, Enrollment, TeachingAssignment, AssessmentItem, Score, DailyAttendanceSession } from '../../types';
 import { getTodayISO, formatDateWithDay, INDONESIAN_DAYS } from '../../utils/date';
+import { filterAssignmentsForSemester } from '../../domain/academic/assignmentPolicy';
 
 interface DashboardPageProps {
   onNavigate: (route: string, state?: any) => void;
@@ -100,9 +101,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     };
   }, [user?.uid, activeAcademicYear?.id, activeSemester, homeroomClass, todayISO]);
 
-  const handleOpenAssignment = (assign: TeachingAssignment, targetRoute: string) => {
+  // Helper normalisasi nama hari (kanonikal dengan TeacherPersonalSchedulePage)
+  const normalizeDay = (raw: string | undefined): string => {
+    if (!raw) return '';
+    const clean = raw.trim().toUpperCase();
+    if (clean.includes('SENIN') || clean === 'MON') return 'SENIN';
+    if (clean.includes('SELASA') || clean === 'TUE') return 'SELASA';
+    if (clean.includes('RABU') || clean === 'WED') return 'RABU';
+    if (clean.includes('KAMIS') || clean === 'THU') return 'KAMIS';
+    if (clean.includes('JUMAT') || clean === 'FRI') return 'JUMAT';
+    if (clean.includes('SABTU') || clean === 'SAT') return 'SABTU';
+    if (clean.includes('MINGGU') || clean === 'SUN') return 'MINGGU';
+    return clean;
+  };
+
+  const handleOpenAssignment = (
+    assign: TeachingAssignment,
+    targetRoute: string,
+    options?: { date?: string; meetingId?: string }
+  ) => {
     setSelectedAssignment(assign);
-    onNavigate(targetRoute, { assignmentId: assign.id });
+    onNavigate(targetRoute, {
+      assignmentId: assign.id,
+      ...(options?.date ? { date: options.date } : {}),
+      ...(options?.meetingId ? { meetingId: options.meetingId } : {}),
+    });
   };
 
   // Map of student count per classId
@@ -116,22 +139,62 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     return map;
   }, [enrollments]);
 
+  // Active assignments strictly isolated to current academic year and semester
+  const activeAssignments = useMemo(() => {
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear?.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear?.id, activeSemester]);
+
   // Group and sort teaching assignments naturally
   const sortedAssignments = useMemo(() => {
-    return [...teachingAssignments].sort((a, b) => {
+    return [...activeAssignments].sort((a, b) => {
       const nameA = a.className || '';
       const nameB = b.className || '';
       return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: 'base' });
     });
-  }, [teachingAssignments]);
+  }, [activeAssignments]);
+
+  const todayDayNorm = useMemo(() => normalizeDay(todayDayName), [todayDayName]);
 
   // Today's schedule items with live attendance and journal status
   const todayScheduleItems = useMemo(() => {
-    const scheduled = sortedAssignments.filter(
-      a => a.dayOfWeek?.trim().toLowerCase() === todayDayName.toLowerCase()
-    );
+    const scheduledItems: Array<{
+      assignment: TeachingAssignment;
+      meeting: Meeting | undefined;
+      hasAttendance: boolean;
+      attendanceSummary?: any;
+      hasJournal: boolean;
+      topic: string;
+      totalStudents: number;
+      timeSlot?: string;
+      room?: string;
+    }> = [];
 
-    return scheduled.map(assign => {
+    sortedAssignments.forEach(assign => {
+      let isScheduled = false;
+      let matchedTimeSlot: string | undefined;
+      let matchedRoom: string | undefined;
+
+      // Check multi-slot schedules[] first
+      if (Array.isArray(assign.schedules) && assign.schedules.length > 0) {
+        const matchedSlot = assign.schedules.find(
+          s => normalizeDay(s.day) === todayDayNorm
+        );
+        if (matchedSlot) {
+          isScheduled = true;
+          matchedTimeSlot = matchedSlot.timeSlot;
+          matchedRoom = matchedSlot.room;
+        }
+      } else if (assign.dayOfWeek) {
+        // Fallback to legacy single dayOfWeek
+        if (normalizeDay(assign.dayOfWeek) === todayDayNorm) {
+          isScheduled = true;
+          matchedTimeSlot = assign.timeSlot;
+          matchedRoom = assign.room;
+        }
+      }
+
+      if (!isScheduled) return;
+
       // Find today's meeting for this assignment or class/subject
       const meetingToday = meetings.find(
         m => m.date === todayISO && (
@@ -146,7 +209,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
       const totalInClass = studentCountMap.get(assign.classId) || 0;
 
-      return {
+      scheduledItems.push({
         assignment: assign,
         meeting: meetingToday,
         hasAttendance,
@@ -154,9 +217,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         hasJournal,
         topic: meetingToday?.topic || '',
         totalStudents: totalInClass,
-      };
+        timeSlot: matchedTimeSlot || assign.timeSlot,
+        room: matchedRoom || assign.room,
+      });
     });
-  }, [sortedAssignments, todayDayName, meetings, todayISO, studentCountMap]);
+
+    return scheduledItems;
+  }, [sortedAssignments, todayDayNorm, meetings, todayISO, studentCountMap]);
 
   // Smart Recommendations & Pending Tasks Workflow
   const pendingTasks = useMemo(() => {
@@ -167,6 +234,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       actionLabel: string;
       actionType: 'attendance' | 'meeting' | 'grades' | 'homeroom' | 'general';
       assignment?: TeachingAssignment;
+      meetingId?: string;
       severity: 'warning' | 'info' | 'critical';
     }> = [];
 
@@ -176,10 +244,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         tasks.push({
           id: `att-${item.assignment.id}`,
           title: `Presensi Kelas ${item.assignment.className} belum diisi`,
-          desc: `Jadwal ${item.assignment.subjectName} (${item.assignment.timeSlot || 'Hari ini'})`,
+          desc: `Jadwal ${item.assignment.subjectName} (${item.timeSlot || item.assignment.timeSlot || 'Hari ini'})`,
           actionLabel: 'Isi Presensi',
           actionType: 'attendance',
           assignment: item.assignment,
+          meetingId: item.meeting?.id,
           severity: 'warning',
         });
       }
@@ -361,7 +430,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {greetingTime}, {teacherName}
               </h1>
               <p className="text-xs sm:text-sm font-medium text-[var(--ds-text-muted)] mt-1">
-                Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'} • {teachingAssignments.length} Kelas Diampu
+                Semester {activeSemester} TP {activeAcademicYear?.label || 'Aktif'} • {sortedAssignments.length} Kelas Diampu
               </p>
             </div>
 
@@ -410,7 +479,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     Fokus Mengajar Jam Ini
                   </span>
                   <span className="text-xs font-semibold text-[var(--ds-text-muted)]">
-                    {todayProgress.nextPendingItem.assignment.timeSlot || 'Hari Ini'}
+                    {todayProgress.nextPendingItem.timeSlot || todayProgress.nextPendingItem.assignment.timeSlot || 'Hari Ini'}
                   </span>
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -433,7 +502,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {!todayProgress.nextPendingItem.hasAttendance ? (
                   <button
                     type="button"
-                    onClick={() => handleOpenAssignment(todayProgress.nextPendingItem!.assignment, 'attendance-subject')}
+                    onClick={() => handleOpenAssignment(
+                      todayProgress.nextPendingItem!.assignment,
+                      'attendance-subject',
+                      {
+                        date: todayISO,
+                        meetingId: todayProgress.nextPendingItem!.meeting?.id,
+                      }
+                    )}
                     className="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <CheckSquare className="w-4 h-4" />
@@ -631,7 +707,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         Jam
                       </span>
                       <span className="text-xs font-black text-[var(--ds-text)]">
-                        {assign.timeSlot || 'Sesi'}
+                        {item.timeSlot || assign.timeSlot || 'Sesi'}
                       </span>
                     </div>
 
@@ -645,7 +721,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                         </h4>
                       </div>
                       <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5">
-                        {assign.room ? `Ruang: ${assign.room}` : `${item.totalStudents} Siswa Terdaftar`}
+                        {(item.room || assign.room) ? `Ruang: ${item.room || assign.room}` : `${item.totalStudents} Siswa Terdaftar`}
                       </p>
                     </div>
                   </div>
@@ -686,7 +762,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     {!item.hasAttendance ? (
                       <button
                         type="button"
-                        onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
+                        onClick={() => handleOpenAssignment(assign, 'attendance-subject', {
+                          date: todayISO,
+                          meetingId: item.meeting?.id,
+                        })}
                         className="btn-primary px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
                       >
                         Isi Presensi
@@ -694,7 +773,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => handleOpenAssignment(assign, 'attendance-subject')}
+                        onClick={() => handleOpenAssignment(assign, 'attendance-subject', {
+                          date: todayISO,
+                          meetingId: item.meeting?.id,
+                        })}
                         className="px-3 py-1.5 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] text-[var(--ds-text)] hover:bg-[var(--ds-accent-soft)] text-xs font-semibold transition-all cursor-pointer"
                       >
                         Lihat Presensi
@@ -782,9 +864,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   type="button"
                   onClick={() => {
                     if (task.assignment) {
-                      if (task.actionType === 'attendance') handleOpenAssignment(task.assignment, 'attendance-subject');
-                      else if (task.actionType === 'meeting') handleOpenAssignment(task.assignment, 'meetings');
-                      else if (task.actionType === 'grades') handleOpenAssignment(task.assignment, 'grades');
+                      if (task.actionType === 'attendance') {
+                        handleOpenAssignment(task.assignment, 'attendance-subject', {
+                          date: todayISO,
+                          meetingId: task.meetingId,
+                        });
+                      } else if (task.actionType === 'meeting') {
+                        handleOpenAssignment(task.assignment, 'meetings');
+                      } else if (task.actionType === 'grades') {
+                        handleOpenAssignment(task.assignment, 'grades');
+                      }
                     } else if (task.actionType === 'homeroom') {
                       onNavigate('homeroom-attendance-daily');
                     }
