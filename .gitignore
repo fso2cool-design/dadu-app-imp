@@ -28,5 +28,6 @@ any_types_list.txt
 .gemini/
 .jolli/
 .vscode/
+.code-review-graph/
 skills-lock.json
 cache_remediation_final_report.md
