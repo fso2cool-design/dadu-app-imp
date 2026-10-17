@@ -8,12 +8,21 @@ import { ToastProvider } from '../../context/ToastContext';
 import * as authModule from '../auth/AuthContext';
 import * as workspaceModule from '../../context/WorkspaceContext';
 
-const MOCK_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-const todayIdx = new Date().getDay();
-const todayDayName = MOCK_DAYS[todayIdx];
+const { todayISO, todayDayName, nonMatchingDay, MOCK_DAYS } = vi.hoisted(() => {
+  const MOCK_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const now = new Date();
+  const todayIdx = now.getDay();
+  const todayDayName = MOCK_DAYS[todayIdx];
+  const nonMatchingDay = MOCK_DAYS[(todayIdx + 1) % 7];
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const todayISO = `${y}-${m}-${d}`;
+  return { todayISO, todayDayName, nonMatchingDay, MOCK_DAYS };
+});
 
 vi.mock('../../utils/date', () => ({
-  getTodayISO: vi.fn(() => '2026-10-10'),
+  getTodayISO: vi.fn(() => todayISO),
   formatDateWithDay: vi.fn((d) => d),
   INDONESIAN_DAYS: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
 }));
@@ -33,7 +42,7 @@ describe('DashboardPage Navigation Context', () => {
       subjectCode: 'FKH',
       academicYearId: 'ay-2025',
       semester: 'GANJIL',
-      dayOfWeek: 'Minggu',
+      dayOfWeek: nonMatchingDay,
     },
     {
       id: 'asg-2',
@@ -115,7 +124,7 @@ describe('DashboardPage Navigation Context', () => {
     );
     expect(mockOnNavigate).toHaveBeenCalledWith('attendance-subject', {
       assignmentId: 'asg-2',
-      date: '2026-10-10',
+      date: todayISO,
     });
   });
 
@@ -155,7 +164,6 @@ describe('DashboardPage Navigation Context', () => {
   });
 
   describe('Stage 2.1 Regression Tests: Schedule Navigation & Isolation', () => {
-    const nonMatchingDay = MOCK_DAYS[(todayIdx + 1) % 7];
 
     it('Test A — Semester and academic-year isolation', async () => {
       const isolationAssignments = [
@@ -232,7 +240,7 @@ describe('DashboardPage Navigation Context', () => {
       );
       expect(mockOnNavigate).toHaveBeenCalledWith('attendance-subject', {
         assignmentId: 'asg-genap-active-ay',
-        date: '2026-10-10',
+        date: todayISO,
       });
     });
 
@@ -375,7 +383,7 @@ describe('DashboardPage Navigation Context', () => {
           teachingAssignmentId: 'asg-with-meeting-1',
           classId: 'cls-1',
           subjectId: 'sub-1',
-          date: '2026-10-10',
+          date: todayISO,
           meetingNumber: 1,
           topic: 'Thaharah',
         },
@@ -396,7 +404,7 @@ describe('DashboardPage Navigation Context', () => {
       );
       expect(mockOnNavigate).toHaveBeenCalledWith('attendance-subject', {
         assignmentId: 'asg-with-meeting-1',
-        date: '2026-10-10',
+        date: todayISO,
         meetingId: 'mtg-known-789',
       });
     });
@@ -445,7 +453,7 @@ describe('DashboardPage Navigation Context', () => {
       );
       expect(mockOnNavigate).toHaveBeenCalledWith('attendance-subject', {
         assignmentId: 'asg-no-meeting-1',
-        date: '2026-10-10',
+        date: todayISO,
       });
 
       // Verify meetingId is strictly not sent
