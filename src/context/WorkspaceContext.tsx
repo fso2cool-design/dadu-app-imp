@@ -240,14 +240,7 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       return findMatchingCounterpart(teachingAssignments, prevAssignment, activeSemester, year.id);
     });
 
-    if (user) {
-      try {
-        await app.workspace.saveUserPreferences(user.uid, { defaultAcademicYearId: year.id });
-      } catch (err) {
-        console.error('Error saving academic year preference:', err);
-      }
-    }
-  }, [user, app, teachingAssignments, activeSemester]);
+  }, [teachingAssignments, activeSemester]);
 
   const setActiveSemester = useCallback(async (sem: SemesterType) => {
     setActiveSemesterState(sem);
@@ -261,21 +254,13 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         activeAcademicYear?.id
       );
     });
-
-    if (user) {
-      try {
-        await app.workspace.saveUserPreferences(user.uid, { defaultSemester: sem });
-      } catch (err) {
-        console.error('Error saving semester preference:', err);
-      }
-    }
-  }, [user, app, teachingAssignments, activeAcademicYear]);
+  }, [teachingAssignments, activeAcademicYear]);
 
   const updateAttendanceSettings = useCallback(async (newSettings: AttendanceSettings) => {
-    setAttendanceSettings(newSettings);
     if (user) {
       await app.workspace.saveAttendanceSettings(user.uid, newSettings);
     }
+    setAttendanceSettings(newSettings);
   }, [user, app]);
 
   const checkIsHoliday = useCallback(

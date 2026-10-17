@@ -39,6 +39,7 @@ export const AcademicYearsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [switchingSemester, setSwitchingSemester] = useState(false);
 
   // Filter
   const [filterTab, setFilterTab] = useState<'ACTIVE' | 'ARCHIVED' | 'ALL'>('ACTIVE');
@@ -113,6 +114,25 @@ export const AcademicYearsPage: React.FC = () => {
       toastError('Gagal menyimpan tahun ajaran: ' + (err.message || 'Error'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleSemester = async (year: AcademicYear) => {
+    if (!user) return;
+    const nextSemester: 'GANJIL' | 'GENAP' = year.currentSemester === 'GANJIL' ? 'GENAP' : 'GANJIL';
+    try {
+      setSwitchingSemester(true);
+      triggerSyncFeedback('syncing', `Mengubah semester berjalan ke ${nextSemester}...`);
+      await ayRepo.update(user.uid, year.id, { currentSemester: nextSemester });
+      await reloadWorkspaceData();
+      triggerSyncFeedback('saved', `Semester aktif diubah ke ${nextSemester}!`);
+      toastSuccess(`Semester aktif tahun ajaran ${year.label} diubah ke ${nextSemester}.`);
+    } catch (err: any) {
+      console.error('Error switching semester:', err);
+      triggerSyncFeedback('synced');
+      toastError('Gagal mengubah semester: ' + (err.message || 'Error'));
+    } finally {
+      setSwitchingSemester(false);
     }
   };
 
@@ -327,9 +347,22 @@ export const AcademicYearsPage: React.FC = () => {
                   </div>
 
                   <h3 className="font-bold text-base text-[var(--ds-text)]">{year.label}</h3>
-                  <p className="text-xs text-[var(--ds-text-muted)] mt-1">
-                    Semester Berjalan: <span className="font-semibold text-[var(--ds-text)]">{year.currentSemester}</span>
-                  </p>
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <p className="text-xs text-[var(--ds-text-muted)]">
+                      Semester Berjalan: <span className="font-semibold text-[var(--ds-text)]">{year.currentSemester}</span>
+                    </p>
+                    {isCurrentActive && !isArchived && (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSemester(year)}
+                        disabled={switchingSemester}
+                        className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 hover:underline cursor-pointer shrink-0 disabled:opacity-50"
+                        title={`Beralih ke Semester ${year.currentSemester === 'GANJIL' ? 'Genap (2)' : 'Ganjil (1)'}`}
+                      >
+                        Beralih ke {year.currentSemester === 'GANJIL' ? 'Genap' : 'Ganjil'}
+                      </button>
+                    )}
+                  </div>
                   <p className="text-[11px] text-[var(--ds-text-muted)] mt-0.5">
                     Periode Kalender: {year.startYear} - {year.endYear}
                   </p>
@@ -465,8 +498,9 @@ export const AcademicYearsPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Semester Berjalan</label>
+            <label htmlFor="select-current-semester" className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Semester Berjalan</label>
             <select
+              id="select-current-semester"
               value={currentSemester}
               onChange={e => setCurrentSemester(e.target.value as 'GANJIL' | 'GENAP')}
               className="w-full px-3 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-[var(--ds-text)] text-xs"

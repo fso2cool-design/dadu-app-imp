@@ -43,74 +43,24 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
     <div className="space-y-8">
       <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
         <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200">Preferensi Workspace & Tampilan</h3>
-        <p className="text-[11px] text-slate-400">Sesuaikan semester default dan pilih gaya visual serta mode warna workspace Anda.</p>
+        <p className="text-[11px] text-slate-400">Pilih gaya visual dan mode warna workspace Anda.</p>
       </div>
 
-      {/* Semester Bawaan Form */}
-      <form onSubmit={onSubmit} className="space-y-4 max-w-lg p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block uppercase tracking-wider">
-          Pengaturan Alur Kerja Dasar
+      {/* Status Periode Akademik & Kalender (Single Source of Truth: Data Master) */}
+      <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-3 max-w-2xl">
+        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block uppercase tracking-wider flex items-center gap-2">
+          <CalendarBlank className="w-4 h-4 text-[var(--ds-accent)]" />
+          Pengaturan Operasional Akademik & Kalender
         </span>
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Semester Bawaan Saat Membuka Modul</label>
-          <select
-            value={preferencesData.defaultSemester}
-            onChange={e => setPreferencesData(p => ({ ...p, defaultSemester: e.target.value as any }))}
-            className="w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-medium"
-          >
-            <option value="GANJIL">Semester Ganjil (1)</option>
-            <option value="GENAP">Semester Genap (2)</option>
-          </select>
-          <p className="text-[11px] text-slate-400 mt-1">Semester yang otomatis aktif saat membuka modul presensi dan nilai.</p>
-        </div>
-
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-5 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all"
-          >
-            <FloppyDisk className="w-4 h-4" />
-            {saving ? 'Menyimpan...' : 'Simpan Preferensi Workspace'}
-          </button>
-        </div>
-      </form>
-
-      {/* Kalender & Hari Libur Madrasah Card */}
-      <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-4 max-w-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block uppercase tracking-wider flex items-center gap-2">
-              <CalendarBlank className="w-4 h-4 text-[var(--ds-accent)]" />
-              Sistem Hari Belajar & Kalender Libur Madrasah
-            </span>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Atur kebijakan 5 hari vs 6 hari sekolah (apakah Sabtu aktif KBM atau libur) serta daftar tanggal libur khusus madrasah.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsHolidayModalOpen(true)}
-            className="px-4 py-2 bg-[var(--ds-surface-elevated)] hover:bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] text-[var(--ds-text)] rounded-xl text-xs font-bold shadow-2xs flex items-center gap-2 transition-colors cursor-pointer shrink-0"
-          >
-            <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
-            <span>Kelola Kalender & Libur</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <div className="p-3 bg-[var(--ds-surface-elevated)] rounded-xl border border-[var(--ds-border)]">
-            <span className="text-[10px] text-slate-400 block font-semibold uppercase">Sistem Belajar Mingguan</span>
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-              {attendanceSettings.schoolDaysOption === 6 ? '6 Hari (Senin – Sabtu Aktif KBM)' : '5 Hari (Senin – Jumat Aktif, Sabtu Libur)'}
-            </p>
-          </div>
-          <div className="p-3 bg-[var(--ds-surface-elevated)] rounded-xl border border-[var(--ds-border)]">
-            <span className="text-[10px] text-slate-400 block font-semibold uppercase">Hari Libur Kustom Terdaftar</span>
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-              {attendanceSettings.holidays?.length || 0} Tanggal / Agenda Libur Khusus
-            </p>
-          </div>
+        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          Tahun ajaran, semester aktif, serta kebijakan 5/6 hari belajar dan kalender libur madrasah dikelola secara terpusat melalui menu{' '}
+          <strong className="text-[var(--ds-text)] font-semibold">Data Master &gt; Tahun Ajaran</strong> dan{' '}
+          <strong className="text-[var(--ds-text)] font-semibold">Data Master &gt; Kalender & Libur</strong>.
+        </p>
+        <div className="pt-1">
+          <span className="inline-block px-3 py-1.5 rounded-xl bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] text-[11px] text-[var(--ds-text-muted)] font-medium">
+            Pengaturan operasional akademik tidak lagi diatur ganda dari halaman Preferensi.
+          </span>
         </div>
       </div>
 

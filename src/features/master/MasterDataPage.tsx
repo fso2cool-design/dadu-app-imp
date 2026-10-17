@@ -5,14 +5,15 @@ import { ClassesPage } from './ClassesPage';
 import { SubjectsPage } from './SubjectsPage';
 import { TeachingAssignmentsPage } from './TeachingAssignmentsPage';
 import { AcademicYearsPage } from './AcademicYearsPage';
-import { Database, UserCheck, Stack, BookOpen, Briefcase, CalendarBlank, Sparkle } from '@phosphor-icons/react';
+import { AcademicCalendarPage } from './AcademicCalendarPage';
+import { Database, UserCheck, Stack, BookOpen, Briefcase, CalendarBlank, CalendarDots, Sparkle } from '@phosphor-icons/react';
 
 interface MasterDataPageProps {
   initialTab?: string;
   onNavigate?: (route: string, state?: any) => void;
 }
 
-type MasterTab = 'students' | 'classes' | 'subjects' | 'teaching' | 'academic-years';
+type MasterTab = 'students' | 'classes' | 'subjects' | 'teaching' | 'academic-years' | 'calendar';
 
 export const MasterDataPage: React.FC<MasterDataPageProps> = ({ 
   initialTab,
@@ -23,13 +24,13 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
   const [activeTab, setActiveTab] = useState<MasterTab>(() => {
     if (initialTab) {
       const clean = initialTab.replace('master-', '') as MasterTab;
-      if (['students', 'classes', 'subjects', 'teaching', 'academic-years'].includes(clean)) {
+      if (['students', 'classes', 'subjects', 'teaching', 'academic-years', 'calendar'].includes(clean)) {
         return clean;
       }
     }
     try {
       const saved = localStorage.getItem('dadu_master_active_tab') as MasterTab;
-      if (saved && ['students', 'classes', 'subjects', 'teaching', 'academic-years'].includes(saved)) {
+      if (saved && ['students', 'classes', 'subjects', 'teaching', 'academic-years', 'calendar'].includes(saved)) {
         return saved;
       }
     } catch {}
@@ -39,7 +40,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
   useEffect(() => {
     if (initialTab && initialTab !== 'master') {
       const clean = initialTab.replace('master-', '') as MasterTab;
-      if (['students', 'classes', 'subjects', 'teaching', 'academic-years'].includes(clean)) {
+      if (['students', 'classes', 'subjects', 'teaching', 'academic-years', 'calendar'].includes(clean)) {
         setActiveTab(clean);
       }
     }
@@ -57,6 +58,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
 
   const tabs: Array<{ id: MasterTab; label: string; icon: any; desc: string }> = [
     { id: 'academic-years', label: 'Tahun Ajaran', icon: CalendarBlank, desc: 'Periode aktif & semester' },
+    { id: 'calendar', label: 'Kalender & Libur', icon: CalendarDots, desc: 'Sistem hari belajar & libur' },
     { id: 'classes', label: 'Data Rombel / Kelas', icon: Stack, desc: 'Rombel, tingkat & wali kelas' },
     { id: 'students', label: 'Data Siswa Terpadu', icon: UserCheck, desc: 'Database seluruh siswa & NISN' },
     { id: 'subjects', label: 'Mata Pelajaran', icon: BookOpen, desc: 'Kurikulum & kode mapel' },
@@ -76,7 +78,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
               Data Master Madrasah
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Pusat pengelolaan data pokok madrasah: tahun ajaran, kelas, siswa, mata pelajaran, dan plotting guru.
+              Pusat pengelolaan data pokok madrasah: tahun ajaran, kalender & libur, kelas, siswa, mata pelajaran, dan plotting guru.
             </p>
           </div>
         </div>
@@ -121,6 +123,7 @@ export const MasterDataPage: React.FC<MasterDataPageProps> = ({
         {activeTab === 'subjects' && <SubjectsPage />}
         {activeTab === 'teaching' && <TeachingAssignmentsPage />}
         {activeTab === 'academic-years' && <AcademicYearsPage />}
+        {activeTab === 'calendar' && <AcademicCalendarPage />}
       </div>
     </div>
   );

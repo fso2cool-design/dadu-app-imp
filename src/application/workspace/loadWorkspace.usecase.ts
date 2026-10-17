@@ -61,13 +61,24 @@ export async function loadWorkspaceUseCase(
     (a.className || '').localeCompare(b.className || '', undefined, { numeric: true, sensitivity: 'base' })
   );
 
-  let currentActiveYear: AcademicYear | null = yearsList.find(y => y.isActive) || yearsList[0] || null;
-  if (prefs?.defaultAcademicYearId) {
-    const found = yearsList.find(y => y.id === prefs.defaultAcademicYearId);
-    if (found) currentActiveYear = found;
+  // 1. Master Academic Year with isActive === true is the Single Source of Truth
+  const masterActiveYear = yearsList.find(y => y.isActive);
+  let currentActiveYear: AcademicYear | null = masterActiveYear || null;
+
+  // 2. Legacy fallback ONLY when no valid active master year exists
+  if (!currentActiveYear && yearsList.length > 0) {
+    if (prefs?.defaultAcademicYearId) {
+      const found = yearsList.find(y => y.id === prefs.defaultAcademicYearId);
+      if (found) currentActiveYear = found;
+    }
+    if (!currentActiveYear) {
+      currentActiveYear = yearsList[0];
+    }
   }
 
-  const sem: SemesterType = prefs?.defaultSemester || currentActiveYear?.currentSemester || profileDefaultSemester || 'GANJIL';
+  // 3. Master currentSemester on the active year is the Single Source of Truth
+  // Stale preferences or profile defaults MUST NOT override an active master year's semester
+  const sem: SemesterType = currentActiveYear?.currentSemester || prefs?.defaultSemester || profileDefaultSemester || 'GANJIL';
 
   let initialClassId = '';
   if (classesList.length > 0) {

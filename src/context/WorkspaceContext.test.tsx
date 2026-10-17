@@ -4,17 +4,18 @@ import { renderHook, act } from '@testing-library/react';
 import { WorkspaceProvider, useWorkspace } from './WorkspaceContext';
 import * as authModule from '../features/auth/AuthContext';
 import { ApplicationProvider } from '../application/ApplicationContext';
-import type { TeachingAssignment, AcademicYear } from '../types';
+import type { TeachingAssignment, AcademicYear, AttendanceSettings } from '../types';
 
-describe('WorkspaceContext — Semester & Assignment Integrity', () => {
+describe('WorkspaceContext — Semester, Calendar & Assignment Integrity', () => {
   const mockSaveUserPreferences = vi.fn().mockResolvedValue(undefined);
+  const mockSaveAttendanceSettings = vi.fn().mockResolvedValue(undefined);
   const mockLoadWorkspace = vi.fn();
 
   const mockApp = {
     workspace: {
       loadWorkspace: mockLoadWorkspace,
       saveUserPreferences: mockSaveUserPreferences,
-      saveAttendanceSettings: vi.fn().mockResolvedValue(undefined),
+      saveAttendanceSettings: mockSaveAttendanceSettings,
     },
   } as any;
 
@@ -87,7 +88,7 @@ describe('WorkspaceContext — Semester & Assignment Integrity', () => {
     );
   };
 
-  it('selects unique counterpart on Ganjil -> Genap semester switch', async () => {
+  it('selects unique counterpart on Ganjil -> Genap semester switch and does not write to preferences', async () => {
     mockLoadWorkspace.mockResolvedValue({
       academicYears: [mockYear],
       activeAcademicYear: mockYear,
@@ -119,6 +120,12 @@ describe('WorkspaceContext — Semester & Assignment Integrity', () => {
     // Must immediately switch to the unique matching counterpart in Genap
     expect(result.current.selectedAssignment?.id).toBe('ta-genap-7a');
     expect(result.current.selectedAssignment?.semester).toBe('GENAP');
+
+    // Does not write duplicate defaultSemester to preferences
+    expect(mockSaveUserPreferences).not.toHaveBeenCalledWith(
+      'teacher-1',
+      expect.objectContaining({ defaultSemester: 'GENAP' })
+    );
   });
 
   it('sets selectedAssignment to null on semester switch when no counterpart exists', async () => {
@@ -219,5 +226,106 @@ describe('WorkspaceContext — Semester & Assignment Integrity', () => {
     expect(result.current.selectedClassId).toBe('cls-8b');
     // Must NOT auto-assign asgGanjil8B because it belongs to GANJIL
     expect(result.current.selectedAssignment).toBeNull();
+  });
+
+  it('reloadWorkspaceData updates activeAcademicYear and activeSemester from reloaded workspace', async () => {
+    mockLoadWorkspace.mockResolvedValueOnce({
+      academicYears: [mockYear],
+      activeAcademicYear: mockYear,
+      activeSemester: 'GANJIL',
+      classes: [],
+      subjects: [],
+      teachingAssignments: [],
+      attendanceSettings: { schoolDaysOption: 6, holidays: [] },
+      selectedClassId: '',
+      selectedAssignment: null,
+    });
+
+    const { result } = renderHook(() => useWorkspace(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.activeAcademicYear?.id).toBe('ay-2025');
+    expect(result.current.activeSemester).toBe('GANJIL');
+
+    const updatedYear: AcademicYear = {
+      id: 'ay-2026',
+      label: '2026/2027',
+      isActive: true,
+      currentSemester: 'GENAP',
+    } as any;
+
+    mockLoadWorkspace.mockResolvedValueOnce({
+      academicYears: [mockYear, updatedYear],
+      activeAcademicYear: updatedYear,
+      activeSemester: 'GENAP',
+      classes: [],
+      subjects: [],
+      teachingAssignments: [],
+      attendanceSettings: { schoolDaysOption: 6, holidays: [] },
+      selectedClassId: '',
+      selectedAssignment: null,
+    });
+
+    await act(async () => {
+      await result.current.reloadWorkspaceData();
+    });
+
+    expect(result.current.activeAcademicYear?.id).toBe('ay-2026');
+    expect(result.current.activeSemester).toBe('GENAP');
+  });
+
+  it('updateAttendanceSettings persists settings to repository and updates context state fail-closed', async () => {
+    const initialSettings: AttendanceSettings = { schoolDaysOption: 6, holidays: [] };
+    mockLoadWorkspace.mockResolvedValueOnce({
+      academicYears: [mockYear],
+      activeAcademicYear: mockYear,
+      activeSemester: 'GANJIL',
+      classes: [],
+      subjects: [],
+      teachingAssignments: [],
+      attendanceSettings: initialSettings,
+      selectedClassId: '',
+      selectedAssignment: null,
+    });
+
+    const { result } = renderHook(() => useWorkspace(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.attendanceSettings.schoolDaysOption).toBe(6);
+
+    const newSettings: AttendanceSettings = {
+      schoolDaysOption: 5,
+      holidays: [{ id: 'h1', startDate: '2026-10-22', endDate: '2026-10-22', description: 'Libur', createdAt: '' }],
+    };
+
+    // Successful update
+    await act(async () => {
+      await result.current.updateAttendanceSettings(newSettings);
+    });
+
+    expect(mockSaveAttendanceSettings).toHaveBeenCalledWith('teacher-1', newSettings);
+    expect(result.current.attendanceSettings.schoolDaysOption).toBe(5);
+    expect(result.current.attendanceSettings.holidays.length).toBe(1);
+
+    // Failed update should throw and NOT update state
+    mockSaveAttendanceSettings.mockRejectedValueOnce(new Error('Network error'));
+    let thrownError: any = null;
+    await act(async () => {
+      try {
+        await result.current.updateAttendanceSettings({ schoolDaysOption: 6, holidays: [] });
+      } catch (err) {
+        thrownError = err;
+      }
+    });
+
+    expect(thrownError).toBeDefined();
+    // Context retains last valid settings (remains 5, not reverted to 6)
+    expect(result.current.attendanceSettings.schoolDaysOption).toBe(5);
   });
 });

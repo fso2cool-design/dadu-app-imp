@@ -14,7 +14,7 @@ import {
 
 import { MeetingFormModal } from './MeetingFormModal';
 const UnsavedChangesModal = React.lazy(() => import('../../components/common/UnsavedChangesModal').then(m => ({ default: m.UnsavedChangesModal })));
-const AttendanceHolidaysModal = React.lazy(() => import('../../components/common/AttendanceHolidaysModal').then(m => ({ default: m.AttendanceHolidaysModal })));
+// AttendanceHolidaysModal removed (centralized in Data Master > Kalender & Libur)
 import { Meeting, AttendanceStatus, AttendanceRecord, Enrollment } from '../../types';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { SkeletonTable } from '../../components/common/Skeleton';
@@ -334,9 +334,8 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const [allAssignmentRecords, setAllAssignmentRecords] = useState<AttendanceRecord[]>([]);
   const [loadingMatrix, setLoadingMatrix] = useState(false);
 
-  // Quick Meeting Modal & Holiday Settings Modal
+  // Quick Meeting Modal
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
-  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
 
   // Dirty state tracking for attendance input
   const initialRowsRef = useRef<string>('[]');
@@ -355,7 +354,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const [isDirtyModalOpen, setIsDirtyModalOpen] = useState(false);
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [pendingAction, setPendingAction] = useState<{
-    type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back' | 'parent-tab' | 'browser-navigation';
+    type: 'assignment' | 'date' | 'meeting' | 'tab' | 'back' | 'parent-tab' | 'browser-navigation' | 'master-calendar';
     targetValue?: string;
     targetState?: any;
   } | null>(null);
@@ -1186,6 +1185,16 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     }
   };
 
+  // Navigasi ke editor kalender sentral (Data Master > Kalender & Libur); halaman ini tidak memutasi kalender.
+  const handleOpenMasterCalendar = () => {
+    if (hasUnsavedChanges) {
+      setPendingAction({ type: 'master-calendar' });
+      setIsDirtyModalOpen(true);
+    } else {
+      onNavigate?.('master-calendar');
+    }
+  };
+
   const handleTabChange = (targetTab: 'TAKE' | 'MATRIX') => {
     if (targetTab === activeTab) return;
     if (hasUnsavedChanges) {
@@ -1229,6 +1238,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         }
         else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
         else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
+        else if (pendingAction.type === 'master-calendar') onNavigate?.('master-calendar');
         else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
       }
       setPendingAction(null);
@@ -1288,6 +1298,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       }
       else if (pendingAction.type === 'tab') setActiveTab(pendingAction.targetValue as any);
       else if (pendingAction.type === 'back') onNavigate?.('meetings', { assignmentId: selectedAssignmentId });
+      else if (pendingAction.type === 'master-calendar') onNavigate?.('master-calendar');
       else if (pendingAction.type === 'parent-tab') onNavigateParentTab?.(pendingAction.targetValue || '', pendingAction.targetState);
     }
     setPendingAction(null);
@@ -1431,6 +1442,18 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Pencatatan daftar hadir siswa langsung dari buku presensi fisik, independen dari jurnal mengajar.
           </p>
+          {onNavigate && (
+            <button
+              type="button"
+              id="btn-open-master-calendar"
+              onClick={handleOpenMasterCalendar}
+              className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-border)] transition-colors cursor-pointer"
+              title="Buka Pengaturan Sistem Hari Belajar & Kalender Libur di Data Master"
+            >
+              <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
+              <span>Kalender Madrasah</span>
+            </button>
+          )}
         </div>
 
         {/* Tab switcher */}
@@ -2034,11 +2057,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         }}
       />
 
-      {/* Holiday Configuration Modal */}
-      <AttendanceHolidaysModal
-        isOpen={isHolidayModalOpen}
-        onClose={() => setIsHolidayModalOpen(false)}
-      />
+      {/* Holiday Configuration Modal removed — centralized in Data Master > Kalender & Libur */}
 
       {/* Unsaved Changes Warning Modal */}
       <UnsavedChangesModal

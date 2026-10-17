@@ -2063,4 +2063,56 @@ describe('SubjectAttendancePage UX & Guard Implementation', () => {
     });
   });
 
+
+  // P. Navigasi ke editor kalender sentral (Data Master > Kalender & Libur)
+  describe('P. navigasi ke Kalender Madrasah', () => {
+    it('navigates to master-calendar via onNavigate when there are no unsaved changes', async () => {
+      const onNavigate = vi.fn();
+      renderComponent({ onNavigate });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      fireEvent.click(screen.getByRole('button', { name: /Kalender Madrasah/i }));
+
+      expect(onNavigate).toHaveBeenCalledTimes(1);
+      expect(onNavigate).toHaveBeenCalledWith('master-calendar');
+      expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+    });
+
+    it('does not render the calendar shortcut when no navigation handler is provided', async () => {
+      renderComponent();
+
+      await screen.findByText('Ahmad Dahlan');
+
+      expect(screen.queryByRole('button', { name: /Kalender Madrasah/i })).not.toBeInTheDocument();
+    });
+
+    it('asks for confirmation when attendance is dirty and navigates only after discard', async () => {
+      const onNavigate = vi.fn();
+      mockGetByDate.mockResolvedValueOnce([
+        { id: 'rec-1', studentId: 'std-1', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+        { id: 'rec-2', studentId: 'std-2', status: 'PRESENT', note: '', meetingId: null, date: '2026-10-10' },
+      ]);
+      renderComponent({ onNavigate });
+
+      await screen.findByText('Ahmad Dahlan');
+
+      fireEvent.click(screen.getAllByTitle('Sakit (S)')[0]);
+      expect(screen.getByText('Perubahan belum disimpan')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Kalender Madrasah/i }));
+
+      const dialog = await screen.findByRole('dialog');
+      expect(onNavigate).not.toHaveBeenCalled();
+
+      fireEvent.click(within(dialog).getByRole('button', { name: /Buang Perubahan/i }));
+
+      await waitFor(() => {
+        expect(onNavigate).toHaveBeenCalledTimes(1);
+      });
+      expect(onNavigate).toHaveBeenCalledWith('master-calendar');
+      expect(mockSaveSubjectAttendance).not.toHaveBeenCalled();
+    });
+  });
+
 });

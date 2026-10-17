@@ -106,11 +106,12 @@ export const HomeroomHubPage: React.FC<HomeroomHubPageProps> = ({
         {activeTab === 'daily-attendance' && (
           <HomeroomDailyAttendancePage 
             initialClassId={routeState?.classId} 
-            initialDate={routeState?.date} 
+            initialDate={routeState?.date}
+            onNavigate={onNavigate}
           />
         )}
         {activeTab === 'monthly-attendance' && (
-          <HomeroomMonthlyAttendancePage />
+          <HomeroomMonthlyAttendancePage onNavigate={onNavigate} />
         )}
         {activeTab === 'class-schedule' && (
           <HomeroomClassSchedulePage onNavigate={onNavigate} />

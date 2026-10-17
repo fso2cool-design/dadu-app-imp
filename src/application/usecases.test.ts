@@ -102,6 +102,143 @@ describe('Application Core Use Cases', () => {
       expect(result.selectedAssignment?.id).toBe('ta-genap-1');
       expect(result.selectedAssignment?.semester).toBe('GENAP');
     });
+
+    it('prioritizes master active year when user preferences has stale defaultAcademicYearId', async () => {
+      const mockYears: AcademicYear[] = [
+        { id: 'ay-new', label: '2026/2027', isActive: true, currentSemester: 'GANJIL' } as any,
+        { id: 'ay-old', label: '2025/2026', isActive: false, currentSemester: 'GENAP' } as any,
+      ];
+      const deps = {
+        academicYearRepo: { getAll: vi.fn().mockResolvedValue(mockYears) },
+        classRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultAcademicYearId: 'ay-old', defaultSemester: 'GENAP' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      };
+
+      const result = await loadWorkspaceUseCase({ uid: 'user-1' }, deps as any);
+
+      expect(result.activeAcademicYear?.id).toBe('ay-new');
+      expect(result.activeSemester).toBe('GANJIL');
+    });
+
+    it('prioritizes master currentSemester when user preferences has stale defaultSemester', async () => {
+      const mockYears: AcademicYear[] = [
+        { id: 'ay-1', label: '2025/2026', isActive: true, currentSemester: 'GENAP' } as any,
+      ];
+      const deps = {
+        academicYearRepo: { getAll: vi.fn().mockResolvedValue(mockYears) },
+        classRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultAcademicYearId: 'ay-1', defaultSemester: 'GANJIL' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      };
+
+      const result = await loadWorkspaceUseCase({ uid: 'user-1' }, deps as any);
+
+      expect(result.activeAcademicYear?.id).toBe('ay-1');
+      expect(result.activeSemester).toBe('GENAP');
+    });
+
+    it('falls back to preferences only when no master academic year is marked active', async () => {
+      const mockYears: AcademicYear[] = [
+        { id: 'ay-1', label: '2025/2026' } as any,
+        { id: 'ay-2', label: '2026/2027' } as any,
+      ];
+      const deps = {
+        academicYearRepo: { getAll: vi.fn().mockResolvedValue(mockYears) },
+        classRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue([]) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultAcademicYearId: 'ay-2', defaultSemester: 'GENAP' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      };
+
+      const result = await loadWorkspaceUseCase({ uid: 'user-1' }, deps as any);
+
+      expect(result.activeAcademicYear?.id).toBe('ay-2');
+      expect(result.activeSemester).toBe('GENAP');
+    });
+
+    describe('assignment selection on reload (Priority 5)', () => {
+      const buildDeps = (currentSemester: 'GANJIL' | 'GENAP', assignments: TeachingAssignment[]) => ({
+        academicYearRepo: {
+          getAll: vi.fn().mockResolvedValue([
+            { id: 'ay-1', label: '2025/2026', isActive: true, currentSemester } as any,
+            { id: 'ay-0', label: '2024/2025', isActive: false, currentSemester: 'GENAP' } as any,
+          ]),
+        },
+        classRepo: {
+          getAll: vi.fn().mockResolvedValue([
+            { id: 'cls-1', name: '7A', academicYearId: 'ay-1' } as any,
+            { id: 'cls-2', name: '7B', academicYearId: 'ay-1' } as any,
+          ]),
+        },
+        subjectRepo: { getAll: vi.fn().mockResolvedValue([{ id: 'sub-1', name: 'Matematika' } as any]) },
+        teachingAssignmentRepo: { getAll: vi.fn().mockResolvedValue(assignments) },
+        getUserPreferences: vi.fn().mockResolvedValue({ defaultClassId: 'cls-1' }),
+        getAttendanceSettings: vi.fn().mockResolvedValue({ schoolDaysOption: 6, holidays: [] }),
+      });
+
+      const base = { subjectId: 'sub-1', isActive: true } as const;
+      const crossSemesterAssignments = [
+        { ...base, id: 'ta-g-1', academicYearId: 'ay-1', semester: 'GANJIL', classId: 'cls-1', className: '7A' },
+        { ...base, id: 'ta-g-2', academicYearId: 'ay-1', semester: 'GANJIL', classId: 'cls-2', className: '7B' },
+        { ...base, id: 'ta-e-2', academicYearId: 'ay-1', semester: 'GENAP', classId: 'cls-2', className: '7B' },
+        // Same semester but different academic year
+        { ...base, id: 'ta-old-e-1', academicYearId: 'ay-0', semester: 'GENAP', classId: 'cls-1', className: '7A' },
+        // Matching year + semester but archived
+        { ...base, id: 'ta-arch-e-1', academicYearId: 'ay-1', semester: 'GENAP', classId: 'cls-1', className: '7A', isArchived: true },
+        // Matching year but semester missing (fail-closed)
+        { ...base, id: 'ta-nosem-1', academicYearId: 'ay-1', classId: 'cls-1', className: '7A' },
+      ] as any as TeachingAssignment[];
+
+      it('selects the assignment matching the active year and semester, and follows a semester change on reload', async () => {
+        const ganjil = await loadWorkspaceUseCase(
+          { uid: 'user-1' },
+          buildDeps('GANJIL', crossSemesterAssignments) as any,
+        );
+        expect(ganjil.activeSemester).toBe('GANJIL');
+        expect(ganjil.selectedAssignment?.id).toBe('ta-g-1');
+
+        // Same persisted data, only currentSemester switched on the active master year
+        const genap = await loadWorkspaceUseCase(
+          { uid: 'user-1' },
+          buildDeps('GENAP', crossSemesterAssignments) as any,
+        );
+        expect(genap.activeSemester).toBe('GENAP');
+        expect(genap.selectedAssignment?.id).toBe('ta-e-2');
+        expect(genap.selectedAssignment?.semester).toBe('GENAP');
+        expect(genap.selectedAssignment?.academicYearId).toBe('ay-1');
+      });
+
+      it('never selects other-semester, other-year, archived or semester-less assignments', async () => {
+        const result = await loadWorkspaceUseCase(
+          { uid: 'user-1' },
+          buildDeps('GENAP', crossSemesterAssignments) as any,
+        );
+
+        expect(['ta-g-1', 'ta-g-2', 'ta-old-e-1', 'ta-arch-e-1', 'ta-nosem-1']).not.toContain(
+          result.selectedAssignment?.id,
+        );
+        // The full list stays available to consumers; only the selection is filtered
+        expect(result.teachingAssignments).toHaveLength(crossSemesterAssignments.length);
+      });
+
+      it('returns no selected assignment when the active semester has no valid assignment', async () => {
+        const withoutGenap = (crossSemesterAssignments as any[]).filter((a) => a.id !== 'ta-e-2');
+
+        const result = await loadWorkspaceUseCase(
+          { uid: 'user-1' },
+          buildDeps('GENAP', withoutGenap as TeachingAssignment[]) as any,
+        );
+
+        expect(result.activeSemester).toBe('GENAP');
+        expect(result.selectedAssignment).toBeNull();
+      });
+    });
   });
 
   describe('checkHolidayUseCase', () => {

@@ -7,14 +7,18 @@ import { Enrollment, DailyAttendanceRecord } from '../../types';
 import { CalendarDots, CalendarBlank, Download, FileCsv, Funnel, MagnifyingGlass, Users, TrendUp, CaretLeft, CaretRight, Info, UserMinus } from '@phosphor-icons/react';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { GenderBadge } from '../../components/common/GenderIcon';
-import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
+// Navigation handled via onNavigate prop or location fallback
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
 import { LRUCache } from '../../utils/lruCache';
 const homeroomMonthlyRosterCache = new LRUCache<string, any[]>(5);
 const homeroomMonthlyRecordsCache = new LRUCache<string, any[]>(12);
 
-export const HomeroomMonthlyAttendancePage: React.FC = () => {
+interface HomeroomMonthlyAttendancePageProps {
+  onNavigate?: (route: string, state?: any) => void;
+}
+
+export const HomeroomMonthlyAttendancePage: React.FC<HomeroomMonthlyAttendancePageProps> = ({ onNavigate }) => {
   const { user, profile } = useAuth();
   const app = useApplication();
   const { 
@@ -26,10 +30,16 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
     checkIsHoliday
   } = useWorkspace();
 
+  const handleOpenMasterCalendar = () => {
+    if (onNavigate) {
+      onNavigate('master-calendar');
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/master/calendar';
+    }
+  };
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1); // 1-12
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
-  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState<boolean>(false);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [records, setRecords] = useState<DailyAttendanceRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -393,12 +403,12 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
           {/* Holiday Settings Button */}
           <button
             type="button"
-            onClick={() => setIsHolidayModalOpen(true)}
+            onClick={handleOpenMasterCalendar}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-border)] transition-colors cursor-pointer"
-            title="Atur Sistem 5/6 Hari Belajar & Tanggal Libur Madrasah"
+            title="Buka Pengaturan Sistem 5/6 Hari Belajar & Tanggal Libur di Data Master"
           >
             <CalendarBlank className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-            <span>Kalender & Libur</span>
+            <span>Kalender Madrasah</span>
           </button>
         </div>
 
@@ -641,11 +651,7 @@ export const HomeroomMonthlyAttendancePage: React.FC = () => {
         </>
       )}
 
-      {/* Holiday Configuration Modal */}
-      <AttendanceHolidaysModal
-        isOpen={isHolidayModalOpen}
-        onClose={() => setIsHolidayModalOpen(false)}
-      />
+      {/* Holiday Configuration Modal relocated to Data Master > Kalender & Libur */}
     </div>
   );
 };

@@ -48,9 +48,9 @@ export interface DocumentTabProps extends SettingsTabProps {
 export interface PreferencesTabProps extends SettingsTabProps {
   preferencesData: UserPreferences;
   setPreferencesData: React.Dispatch<React.SetStateAction<UserPreferences>>;
-  attendanceSettings: AttendanceSettings;
-  isHolidayModalOpen: boolean;
-  setIsHolidayModalOpen: (open: boolean) => void;
+  attendanceSettings?: AttendanceSettings;
+  isHolidayModalOpen?: boolean;
+  setIsHolidayModalOpen?: (open: boolean) => void;
   isChangeLogModalOpen: boolean;
   setIsChangeLogModalOpen: (open: boolean) => void;
 }

@@ -8,7 +8,7 @@ import { useToast } from '../../context/ToastContext';
 import type { SchoolSettings, DocumentSettings, UserPreferences, SemesterType } from '../../types';
 import { SignaturePadModal } from '../../components/common/SignaturePadModal';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
-import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
+// AttendanceHolidaysModal relocated to Data Master > Kalender & Libur
 import { ChangeLogModal } from '../../components/common/ChangeLogModal';
 import {
   User,
@@ -56,7 +56,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
   const { success: toastSuccess, error: toastError } = useToast();
 
   const [activeTab, setActiveTab] = useState<TabType>('profile');
-  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  // isHolidayModalOpen removed (managed centrally in Data Master > Kalender & Libur)
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -792,11 +792,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
           <PreferencesTab
             preferencesData={preferencesData}
             setPreferencesData={setPreferencesData}
-            attendanceSettings={attendanceSettings}
             saving={saving}
             onSubmit={handleSave}
-            isHolidayModalOpen={isHolidayModalOpen}
-            setIsHolidayModalOpen={setIsHolidayModalOpen}
             isChangeLogModalOpen={isChangeLogModalOpen}
             setIsChangeLogModalOpen={setIsChangeLogModalOpen}
             onSuccess={toastSuccess}
@@ -893,11 +890,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ initialTab = 'profil
         discardButtonText="Buang Perubahan"
       />
 
-      {/* Attendance Holidays & CalendarBlank Modal */}
-      <AttendanceHolidaysModal
-        isOpen={isHolidayModalOpen}
-        onClose={() => setIsHolidayModalOpen(false)}
-      />
+      {/* Attendance Holidays Modal relocated to Data Master > Kalender & Libur */}
 
       {/* Change Log Modal */}
       <ChangeLogModal

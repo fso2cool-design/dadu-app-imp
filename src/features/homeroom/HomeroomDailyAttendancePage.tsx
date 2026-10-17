@@ -11,7 +11,7 @@ import { loadXlsx } from '../../utils/lazyXlsx';
 import { useToast } from '../../context/ToastContext';
 import { GenderBadge } from '../../components/common/GenderIcon';
 import { UnsavedChangesModal } from '../../components/common/UnsavedChangesModal';
-import { AttendanceHolidaysModal } from '../../components/common/AttendanceHolidaysModal';
+// Navigation handled via onNavigate prop or location fallback
 
 // In-memory module cache for instant SWR navigation without skeleton flicker
 const dailyEnrollmentsCache = new Map();
@@ -25,14 +25,24 @@ export const clearDailyAttendanceCaches = () => {
 interface HomeroomDailyAttendancePageProps {
   initialClassId?: string;
   initialDate?: string;
+  onNavigate?: (route: string, state?: any) => void;
 }
 
 export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePageProps> = ({
   initialClassId,
   initialDate,
+  onNavigate,
 }) => {
   const { user } = useAuth();
   const app = useApplication();
+
+  const handleOpenMasterCalendar = () => {
+    if (onNavigate) {
+      onNavigate('master-calendar');
+    } else if (typeof window !== 'undefined') {
+      window.location.href = '/master/calendar';
+    }
+  };
   const { success: toastSuccess, error: toastError } = useToast();
   const { 
     activeAcademicYear, 
@@ -50,7 +60,6 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
   const [date, setDate] = useState<string>(
     initialDate || getTodayISO()
   );
-  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState<boolean>(false);
   const holidayInfo = useMemo(() => checkIsHoliday(date), [checkIsHoliday, date]);
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -613,12 +622,12 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
 
             <button
               type="button"
-              onClick={() => setIsHolidayModalOpen(true)}
+              onClick={handleOpenMasterCalendar}
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-[var(--ds-surface-muted)] hover:bg-[var(--ds-accent-soft)] rounded-lg border border-[var(--ds-border)] transition-colors cursor-pointer"
-              title="Atur Sistem Hari Belajar 5/6 Hari & Hari Libur Kustom"
+              title="Buka Pengaturan Sistem Hari Belajar & Kalender Libur di Data Master"
             >
               <CalendarBlank className="w-3.5 h-3.5 text-[var(--ds-accent)]" />
-              <span>Kalender & Libur</span>
+              <span>Kalender Madrasah</span>
             </button>
           </div>
         </div>
@@ -655,10 +664,10 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsHolidayModalOpen(true)}
+                  onClick={handleOpenMasterCalendar}
                   className="text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:underline cursor-pointer"
                 >
-                  Ubah Jadwal
+                  Kelola di Master
                 </button>
               </div>
             </div>
@@ -904,11 +913,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         </>
       )}
 
-      {/* Holiday Configuration Modal */}
-      <AttendanceHolidaysModal
-        isOpen={isHolidayModalOpen}
-        onClose={() => setIsHolidayModalOpen(false)}
-      />
+      {/* Holiday Configuration Modal relocated to Data Master > Kalender & Libur */}
 
       {/* Unsaved Changes Warning Modal */}
       <UnsavedChangesModal

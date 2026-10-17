@@ -47,6 +47,7 @@ export const ROUTE_PATH_MAP: Record<string, string> = {
   'master-subjects': '/master/subjects',
   'master-teaching': '/master/teaching',
   'master-academic-years': '/master/years',
+  'master-calendar': '/master/calendar',
 
   // Settings
   settings: '/settings/profile',
@@ -104,6 +105,7 @@ export function resolvePathToRouteKey(pathname: string): string {
   if (cleanPath === '/master/subjects') return 'master-subjects';
   if (cleanPath === '/master/teaching') return 'master-teaching';
   if (cleanPath === '/master/years') return 'master-academic-years';
+  if (cleanPath === '/master/calendar') return 'master-calendar';
 
   // Settings
   if (cleanPath === '/settings' || cleanPath === '/settings/profile') return 'settings-profile';

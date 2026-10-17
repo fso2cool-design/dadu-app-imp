@@ -12,6 +12,7 @@ describe('Route Paths & Mapping Utilities', () => {
       expect(ROUTE_PATH_MAP.settings).toBe('/settings/profile');
       expect(ROUTE_PATH_MAP.admin).toBe('/admin');
       expect(ROUTE_PATH_MAP.login).toBe('/login');
+      expect(ROUTE_PATH_MAP['master-calendar']).toBe('/master/calendar');
     });
   });
 
@@ -57,6 +58,7 @@ describe('Route Paths & Mapping Utilities', () => {
       expect(resolvePathToRouteKey('/master/subjects')).toBe('master-subjects');
       expect(resolvePathToRouteKey('/master/teaching')).toBe('master-teaching');
       expect(resolvePathToRouteKey('/master/years')).toBe('master-academic-years');
+      expect(resolvePathToRouteKey('/master/calendar')).toBe('master-calendar');
     });
 
     it('resolves settings paths', () => {

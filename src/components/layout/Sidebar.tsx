@@ -129,6 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Database,
           subItems: [
             { id: 'master-academic-years', label: 'Tahun Ajaran', icon: CalendarBlank },
+            { id: 'master-calendar', label: 'Kalender & Libur', icon: CalendarDots },
             { id: 'master-classes', label: 'Data Rombel / Kelas', icon: Stack },
             { id: 'master-students', label: 'Data Siswa Terpadu', icon: Users },
             { id: 'master-subjects', label: 'Mata Pelajaran', icon: BookOpen },
