@@ -29,6 +29,9 @@ import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
 import { useToast } from '../../context/ToastContext';
 
+export const MAX_EXCEL_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_EXCEL_EXTENSIONS = ['.xlsx', '.xls'];
+
 
 const GradeRow = React.memo(({
   enr, index, calc, isBelowPassing, assessmentItems, scoresMap, notesMap, passingGrade, isArchivedYear,
@@ -863,19 +866,61 @@ export const GradesPage: React.FC = () => {
     XLSX.writeFile(wb, fileName);
   };
 
-  // Import from Excel (.xlsx)
+  // Import from Excel (.xlsx, .xls)
   const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const resetFileInput = () => {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      e.target.value = '';
+    };
+
+    // A. Archived-year runtime guard
+    if (isArchivedYear) {
+      resetFileInput();
+      toastWarning('Tahun Ajaran ini telah diarsipkan (read-only). Nilai tidak dapat diimpor.');
+      return;
+    }
+
+    // B. Assessment preflight guard
+    if (assessmentItems.length === 0) {
+      resetFileInput();
+      toastWarning('Belum ada kolom penilaian. Tambahkan kolom penilaian terlebih dahulu sebelum mengimpor nilai.');
+      return;
+    }
+
+    // C. File extension guard (case-insensitive)
+    const lowerName = file.name.toLowerCase();
+    const hasValidExtension = ALLOWED_EXCEL_EXTENSIONS.some(ext => lowerName.endsWith(ext));
+    if (!hasValidExtension) {
+      resetFileInput();
+      toastError('Format file tidak didukung. Harap pilih file Excel (.xlsx atau .xls).');
+      return;
+    }
+
+    // D. File-size guard (5 MiB limit)
+    if (file.size > MAX_EXCEL_FILE_SIZE_BYTES) {
+      resetFileInput();
+      toastError('Ukuran file terlalu besar. Maksimum ukuran file Excel adalah 5 MB.');
+      return;
+    }
+
+    // E. Modernized FileReader with ArrayBuffer
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
         const XLSX = await loadXlsx();
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
+        const arrayBuffer = evt.target?.result as ArrayBuffer;
+        if (!arrayBuffer) {
+          throw new Error('File tidak dapat dibaca');
+        }
+        const wb = XLSX.read(arrayBuffer, { type: 'array' });
+        const wsname = wb.SheetNames?.[0];
+        const ws = wsname ? wb.Sheets[wsname] : undefined;
+        if (!ws) {
+          throw new Error('Lembar kerja (worksheet) tidak ditemukan');
+        }
         const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
         const result = parseGradesExcel(data, enrollments, assessmentItems);
@@ -908,8 +953,11 @@ export const GradesPage: React.FC = () => {
         toastError('Gagal membaca file Excel: ' + (err.message || 'Format Error'));
       }
     };
-    reader.readAsBinaryString(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    reader.onerror = () => {
+      toastError('Gagal membaca file Excel dari perangkat.');
+    };
+    reader.readAsArrayBuffer(file);
+    resetFileInput();
   };
 
   const totalActiveWeight = useMemo(() => {
