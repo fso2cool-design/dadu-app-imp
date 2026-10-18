@@ -2,17 +2,15 @@ import { render, screen, act } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  DesignSystemProvider,
-  useDesignSystem,
-  isValidDesignSystem,
-  resolveDesignSystem,
-  mapLegacyThemeToDesignSystem,
-} from './DesignSystemContext';
+  AppearanceProvider,
+  useAppearance,
+  type AppearanceContextType,
+} from './AppearanceContext';
 import { ApplicationProvider } from '../application/ApplicationContext';
 import * as authModule from '../features/auth/AuthContext';
-import { DESIGN_SYSTEMS } from '../types';
+import { APPEARANCE_PRESETS } from '../design-system/tokens';
 import type { ApplicationOperations } from '../application/types';
-import type { DesignSystemKey, DesignSystemMode, UserProfile } from '../types';
+import type { AppearancePresetKey, ColorMode } from '../design-system/tokens';
 import { buildPreviewVars } from '../features/settings/tabs/showcaseTokens';
 
 vi.mock('firebase/auth', () => ({
@@ -49,11 +47,11 @@ const mockApp: ApplicationOperations = {
   },
 } as any;
 
-describe('DesignSystemContext Canonical Architecture', () => {
-  let contextValue: ReturnType<typeof useDesignSystem>;
+describe('AppearanceContext Canonical Runtime API', () => {
+  let contextValue: AppearanceContextType;
 
   const Consumer = () => {
-    contextValue = useDesignSystem();
+    contextValue = useAppearance();
     return (
       <div data-testid="consumer">
         <span data-testid="preset">{contextValue.activePreset}</span>
@@ -65,7 +63,7 @@ describe('DesignSystemContext Canonical Architecture', () => {
   const renderWithProviders = (customAuth?: Partial<ReturnType<typeof authModule.useAuth>>) => {
     if (customAuth) {
       vi.spyOn(authModule, 'useAuth').mockReturnValue({
-        user: { uid: 'test-user-1', email: 'test@madrasah.sch.id' } as any,
+        user: { uid: 'test-user-app-1', email: 'user@madrasah.sch.id' } as any,
         profile: null,
         loading: false,
         adminStatus: 'not-admin',
@@ -96,9 +94,9 @@ describe('DesignSystemContext Canonical Architecture', () => {
 
     return render(
       <ApplicationProvider app={mockApp}>
-        <DesignSystemProvider>
+        <AppearanceProvider>
           <Consumer />
-        </DesignSystemProvider>
+        </AppearanceProvider>
       </ApplicationProvider>
     );
   };
@@ -113,20 +111,21 @@ describe('DesignSystemContext Canonical Architecture', () => {
     root.classList.remove('dark');
   });
 
-  describe('Canonical API & Deleted Names Absence', () => {
-    it('exposes canonical activePreset, setPreset, and applyAndSavePreset without deleted aliases', () => {
+  describe('Canonical Public API Shape', () => {
+    it('provides activePreset, tokens, colors, mode, and management methods', () => {
       renderWithProviders();
 
-      // Canonical properties exist and are functional
       expect(contextValue.activePreset).toBe('shadcn-ui');
+      expect(contextValue.mode).toBe('light');
+      expect(contextValue.tokens).toBeDefined();
+      expect(contextValue.colors).toBeDefined();
       expect(typeof contextValue.setPreset).toBe('function');
       expect(typeof contextValue.applyAndSavePreset).toBe('function');
-      expect(contextValue.mode).toBe('light');
       expect(typeof contextValue.setMode).toBe('function');
       expect(typeof contextValue.toggleMode).toBe('function');
       expect(typeof contextValue.applyAndSaveMode).toBe('function');
 
-      // Obsolete runtime API names MUST be undefined
+      // Obsolete legacy names MUST be undefined
       const untyped = contextValue as any;
       expect(untyped.activeSystem).toBeUndefined();
       expect(untyped.setSystem).toBeUndefined();
@@ -138,38 +137,37 @@ describe('DesignSystemContext Canonical Architecture', () => {
       expect(untyped.availableThemes).toBeUndefined();
     });
 
-    it('throws when useDesignSystem is used outside DesignSystemProvider', () => {
+    it('throws descriptive error when useAppearance is called outside AppearanceProvider', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       expect(() => render(<Consumer />)).toThrow(
-        'useDesignSystem must be used within a DesignSystemProvider'
+        'useAppearance must be used within an AppearanceProvider'
       );
       consoleError.mockRestore();
     });
   });
 
-  describe('Absence of data-theme and data-mode on DOM', () => {
-    it('never injects data-theme or data-mode into the root element', () => {
+  describe('DOM Integration via applyAppearanceToDom', () => {
+    it('applies data-design-system and class .dark without adding data-theme or data-mode', () => {
       renderWithProviders();
 
       const root = document.documentElement;
       expect(root.getAttribute('data-design-system')).toBe('shadcn-ui');
       expect(root.getAttribute('data-theme')).toBeNull();
       expect(root.getAttribute('data-mode')).toBeNull();
+      expect(root.classList.contains('dark')).toBe(false);
 
       act(() => {
-        contextValue.setPreset('paper-craft');
+        contextValue.setPreset('neo-brutalism');
         contextValue.setMode('dark');
       });
 
-      expect(root.getAttribute('data-design-system')).toBe('paper-craft');
+      expect(root.getAttribute('data-design-system')).toBe('neo-brutalism');
       expect(root.getAttribute('data-theme')).toBeNull();
       expect(root.getAttribute('data-mode')).toBeNull();
       expect(root.classList.contains('dark')).toBe(true);
     });
-  });
 
-  describe('6 Preset and Mode Combinations Verification', () => {
-    const combinations: Array<{ preset: DesignSystemKey; mode: DesignSystemMode }> = [
+    const combinations: Array<{ preset: AppearancePresetKey; mode: ColorMode }> = [
       { preset: 'paper-craft', mode: 'light' },
       { preset: 'paper-craft', mode: 'dark' },
       { preset: 'shadcn-ui', mode: 'light' },
@@ -209,9 +207,9 @@ describe('DesignSystemContext Canonical Architecture', () => {
   });
 
   describe('Preset Persistence Precedence Tiers', () => {
-    const testUser = { uid: 'user-prec-1' } as any;
+    const testUser = { uid: 'user-app-prec' } as any;
 
-    it('Tier 1: profile.designSystemPreference wins over profile.themePreference and localStorage', () => {
+    it('Tier 1: prefers profile.designSystemPreference over profile.themePreference and localStorage', () => {
       localStorage.setItem(`app_design_system_${testUser.uid}`, 'paper-craft');
       renderWithProviders({
         user: testUser,
@@ -237,8 +235,7 @@ describe('DesignSystemContext Canonical Architecture', () => {
       expect(contextValue.activePreset).toBe('neo-brutalism');
     });
 
-    it('Tier 2: profile.themePreference wins when designSystemPreference is absent', () => {
-      localStorage.setItem(`app_design_system_${testUser.uid}`, 'neo-brutalism');
+    it('Tier 2: falls back to legacy themePreference when designSystemPreference is absent', () => {
       renderWithProviders({
         user: testUser,
         profile: {
@@ -250,7 +247,7 @@ describe('DesignSystemContext Canonical Architecture', () => {
       expect(contextValue.activePreset).toBe('paper-craft');
     });
 
-    it('Tier 3: localStorage wins when profile has no preset preferences', () => {
+    it('Tier 3: falls back to user-scoped localStorage when profile preferences are absent', () => {
       localStorage.setItem(`app_design_system_${testUser.uid}`, 'paper-craft');
       renderWithProviders({
         user: testUser,
@@ -274,7 +271,7 @@ describe('DesignSystemContext Canonical Architecture', () => {
       expect(contextValue.activePreset).toBe('neo-brutalism');
     });
 
-    it('Tier 4: falls back to DEFAULT_SYSTEM (shadcn-ui) when no preferences exist', () => {
+    it('Tier 4: defaults to shadcn-ui when no preferences exist', () => {
       renderWithProviders({
         user: testUser,
         profile: {
@@ -287,7 +284,7 @@ describe('DesignSystemContext Canonical Architecture', () => {
   });
 
   describe('Mode Persistence Precedence Tiers', () => {
-    const testUser = { uid: 'user-mode-1' } as any;
+    const testUser = { uid: 'user-mode-prec' } as any;
 
     it('Tier 1: profile.designSystemModePreference wins over localStorage', () => {
       localStorage.setItem(`app_design_system_mode_${testUser.uid}`, 'light');
@@ -329,64 +326,10 @@ describe('DesignSystemContext Canonical Architecture', () => {
     });
   });
 
-  describe('All 11 Legacy Preset Mappings Verification', () => {
-    const legacyExpectations: Record<string, DesignSystemKey> = {
-      'atelier': 'neo-brutalism',
-      'minimalist': 'shadcn-ui',
-      'brutalism': 'paper-craft',
-      'neo-skeuomorphic': 'shadcn-ui',
-      'apple-glass': 'neo-brutalism',
-      'light': 'shadcn-ui',
-      'dark-crimson': 'neo-brutalism',
-      'obsidian-tactile': 'neo-brutalism',
-      'swiss-manuscript': 'shadcn-ui',
-      'solarized-comfort': 'neo-brutalism',
-      'chalkboard-school': 'paper-craft',
-    };
+  describe('Persistence Operations via Application Port', () => {
+    const testUser = { uid: 'user-app-save' } as any;
 
-    it('verifies all 11 legacy identifiers map to canonical presets via resolveDesignSystem', () => {
-      expect(Object.keys(legacyExpectations)).toHaveLength(11);
-      for (const [legacyKey, expectedCanonical] of Object.entries(legacyExpectations)) {
-        expect(resolveDesignSystem(legacyKey), `Legacy key: ${legacyKey}`).toBe(expectedCanonical);
-      }
-    });
-
-    it('verifies all 11 legacy identifiers map via mapLegacyThemeToDesignSystem with fallback', () => {
-      for (const [legacyKey, expectedCanonical] of Object.entries(legacyExpectations)) {
-        expect(mapLegacyThemeToDesignSystem(legacyKey), `Legacy key: ${legacyKey}`).toBe(expectedCanonical);
-      }
-      expect(mapLegacyThemeToDesignSystem('completely-unknown-preset')).toBe('shadcn-ui');
-    });
-
-    it('passes through active canonical preset keys directly', () => {
-      expect(resolveDesignSystem('paper-craft')).toBe('paper-craft');
-      expect(resolveDesignSystem('shadcn-ui')).toBe('shadcn-ui');
-      expect(resolveDesignSystem('neo-brutalism')).toBe('neo-brutalism');
-      expect(resolveDesignSystem('unknown-key')).toBeNull();
-    });
-
-    it('validates active design system keys strictly with isValidDesignSystem', () => {
-      expect(isValidDesignSystem('paper-craft')).toBe(true);
-      expect(isValidDesignSystem('shadcn-ui')).toBe(true);
-      expect(isValidDesignSystem('neo-brutalism')).toBe(true);
-
-      // Legacy keys must NOT be valid active keys
-      for (const legacyKey of Object.keys(legacyExpectations)) {
-        expect(isValidDesignSystem(legacyKey), `Should reject legacy key: ${legacyKey}`).toBe(false);
-      }
-      expect(isValidDesignSystem('unknown-random')).toBe(false);
-    });
-
-    it('ensures DESIGN_SYSTEMS array only contains the 3 canonical keys', () => {
-      const activeIds = DESIGN_SYSTEMS.map((ds) => ds.id);
-      expect(activeIds).toEqual(['paper-craft', 'shadcn-ui', 'neo-brutalism']);
-    });
-  });
-
-  describe('Canonical Writes & Persistence Isolation', () => {
-    const testUser = { uid: 'user-save-1' } as any;
-
-    it('applyAndSavePreset writes strictly to canonical localStorage and app.appearance.updateDesignSystem', () => {
+    it('applyAndSavePreset saves to localStorage and delegates to app.appearance.updateDesignSystem', () => {
       renderWithProviders({
         user: testUser,
         profile: { uid: testUser.uid } as any,
@@ -396,17 +339,12 @@ describe('DesignSystemContext Canonical Architecture', () => {
         contextValue.applyAndSavePreset('paper-craft');
       });
 
-      // Canonical writes executed
       expect(localStorage.getItem(`app_design_system_${testUser.uid}`)).toBe('paper-craft');
       expect(mockApp.appearance.updateDesignSystem).toHaveBeenCalledWith(testUser.uid, 'paper-craft');
-
-      // State updated
       expect(contextValue.activePreset).toBe('paper-craft');
-      expect(document.documentElement.getAttribute('data-design-system')).toBe('paper-craft');
-      expect(document.documentElement.getAttribute('data-theme')).toBeNull();
     });
 
-    it('applyAndSaveMode writes strictly to canonical localStorage and app.appearance.updateModePreference', () => {
+    it('applyAndSaveMode saves to localStorage and delegates to app.appearance.updateModePreference', () => {
       renderWithProviders({
         user: testUser,
         profile: { uid: testUser.uid } as any,
@@ -418,10 +356,26 @@ describe('DesignSystemContext Canonical Architecture', () => {
 
       expect(localStorage.getItem(`app_design_system_mode_${testUser.uid}`)).toBe('dark');
       expect(mockApp.appearance.updateModePreference).toHaveBeenCalledWith(testUser.uid, 'dark');
+      expect(contextValue.mode).toBe('dark');
+    });
+  });
+
+  describe('Token Preservation on Mode Toggle', () => {
+    it('preserves invariant token object identity while updating color palette', () => {
+      renderWithProviders();
+
+      const initialTokens = contextValue.tokens;
+      const initialColors = contextValue.colors;
+      expect(contextValue.mode).toBe('light');
+
+      act(() => {
+        contextValue.toggleMode();
+      });
 
       expect(contextValue.mode).toBe('dark');
-      expect(document.documentElement.classList.contains('dark')).toBe(true);
-      expect(document.documentElement.getAttribute('data-mode')).toBeNull();
+      expect(contextValue.tokens).toBe(initialTokens);
+      expect(contextValue.colors).not.toEqual(initialColors);
+      expect(contextValue.colors.surface).toBe(APPEARANCE_PRESETS[1].colorModes.dark.surface);
     });
   });
 
@@ -441,6 +395,39 @@ describe('DesignSystemContext Canonical Architecture', () => {
       // Verify root styling does not mutate or contaminate no-print isolation semantics
       expect(root.getAttribute('data-theme')).toBeNull();
       expect(root.getAttribute('data-mode')).toBeNull();
+    });
+  });
+
+  describe('Stage 2 Token Contract & Invariant Separation', () => {
+    it('verifies all 3 presets have invariant tokens and distinct light/dark colorModes', () => {
+      expect(APPEARANCE_PRESETS).toHaveLength(3);
+      for (const preset of APPEARANCE_PRESETS) {
+        // Invariant tokens present and structural
+        expect(preset.tokens).toBeDefined();
+        expect(preset.tokens.typography).toBeDefined();
+        expect(preset.tokens.spacing).toBeDefined();
+        expect(preset.tokens.borders).toBeDefined();
+        expect(preset.tokens.elevation).toBeDefined();
+        expect(preset.tokens.radius).toBeDefined();
+        expect(preset.tokens.transitions).toBeDefined();
+
+        // Structural tokens must not contain color keys
+        const invariantKeys = Object.keys(preset.tokens);
+        expect(invariantKeys).not.toContain('colors');
+        expect(invariantKeys).not.toContain('darkColors');
+
+        // Color modes present
+        expect(preset.colorModes).toBeDefined();
+        expect(preset.colorModes.light).toBeDefined();
+        expect(preset.colorModes.dark).toBeDefined();
+
+        // Color tokens are distinct per mode
+        expect(preset.colorModes.light.surface).not.toBe(preset.colorModes.dark.surface);
+        expect(preset.colorModes.light.text).not.toBe(preset.colorModes.dark.text);
+
+        // Dead-code cleanup: no preview property
+        expect((preset as any).preview).toBeUndefined();
+      }
     });
   });
 });

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DESIGN_SYSTEMS, type DesignSystemKey, type DesignSystemMode } from '../../../types';
+import { APPEARANCE_PRESETS, type AppearancePresetKey, type ColorMode } from '../../../types';
 import { ShowcaseTab } from './ShowcaseTab';
 import {
   buildPreviewVars,
@@ -10,9 +10,10 @@ import {
 } from './showcaseTokens';
 
 const ds = {
-  activePreset: 'shadcn-ui' as DesignSystemKey,
-  mode: 'light' as DesignSystemMode,
-  tokens: DESIGN_SYSTEMS[1].tokens,
+  activePreset: 'shadcn-ui' as AppearancePresetKey,
+  mode: 'light' as ColorMode,
+  tokens: APPEARANCE_PRESETS[1].tokens,
+  colors: APPEARANCE_PRESETS[1].colorModes.light,
   setPreset: vi.fn(),
   applyAndSavePreset: vi.fn(),
   setMode: vi.fn(),
@@ -20,13 +21,13 @@ const ds = {
   applyAndSaveMode: vi.fn(),
 };
 
-vi.mock('../../../context/DesignSystemContext', () => ({
-  useDesignSystem: () => ds,
+vi.mock('../../../context/AppearanceContext', () => ({
+  useAppearance: () => ds,
 }));
 
-const COMBOS: Array<[DesignSystemKey, DesignSystemMode]> = DESIGN_SYSTEMS.flatMap((d) => [
-  [d.id, 'light'] as [DesignSystemKey, DesignSystemMode],
-  [d.id, 'dark'] as [DesignSystemKey, DesignSystemMode],
+const COMBOS: Array<[AppearancePresetKey, ColorMode]> = APPEARANCE_PRESETS.flatMap((d) => [
+  [d.id, 'light'] as [AppearancePresetKey, ColorMode],
+  [d.id, 'dark'] as [AppearancePresetKey, ColorMode],
 ]);
 
 describe('showcaseTokens', () => {
@@ -91,7 +92,7 @@ describe('ShowcaseTab', () => {
 
   it.each(COMBOS)('scopes %s/%s tokens onto the preview container', (system, mode) => {
     render(<ShowcaseTab />);
-    const name = DESIGN_SYSTEMS.find((d) => d.id === system)?.name ?? '';
+    const name = APPEARANCE_PRESETS.find((d) => d.id === system)?.name ?? '';
     fireEvent.click(within(systemGroup()).getByRole('button', { name }));
     fireEvent.click(within(modeGroup()).getByRole('button', { name: mode === 'dark' ? 'Gelap' : 'Terang' }));
     const expected = buildPreviewVars(system, mode);

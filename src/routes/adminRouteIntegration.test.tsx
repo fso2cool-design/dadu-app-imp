@@ -5,7 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import { AuthenticatedApp } from '../App';
 import * as authModule from '../features/auth/AuthContext';
 import * as workspaceModule from '../context/WorkspaceContext';
-import * as dsModule from '../context/DesignSystemContext';
+import * as appearanceModule from '../context/AppearanceContext';
 
 vi.mock('../utils/date', () => ({
   INDONESIAN_DAYS: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
@@ -60,10 +60,11 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       triggerSyncFeedback: vi.fn(),
     } as any);
 
-    vi.spyOn(dsModule, 'useDesignSystem').mockReturnValue({
+    vi.spyOn(appearanceModule, 'useAppearance').mockReturnValue({
       activePreset: 'shadcn-ui',
       mode: 'light',
       tokens: {} as any,
+      colors: {} as any,
       setPreset: vi.fn(),
       applyAndSavePreset: vi.fn(),
       setMode: vi.fn(),

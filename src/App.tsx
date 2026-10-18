@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, useSearchParams, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { WorkspaceProvider, useWorkspace } from './context/WorkspaceContext';
-import { DesignSystemProvider } from './context/DesignSystemContext';
+import { AppearanceProvider } from './context/AppearanceContext';
 import { ToastProvider } from './context/ToastContext';
 import { LoginPage } from './features/auth/LoginPage';
 import { AppLayout } from './components/layout/AppLayout';
@@ -252,11 +252,11 @@ export function AppShell() {
   return (
     <ApplicationProvider app={container.app}>
       <AuthProvider>
-        <DesignSystemProvider>
+        <AppearanceProvider>
           <ToastProvider>
             <MainApp />
           </ToastProvider>
-        </DesignSystemProvider>
+        </AppearanceProvider>
       </AuthProvider>
     </ApplicationProvider>
   );

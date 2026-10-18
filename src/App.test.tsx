@@ -6,7 +6,7 @@ import { useApplication, ApplicationProvider } from './application/ApplicationCo
 import { container } from './application/ports/container';
 import { AuthProvider } from './features/auth/AuthContext';
 import * as authModule from './features/auth/AuthContext';
-import { DesignSystemProvider } from './context/DesignSystemContext';
+import { AppearanceProvider } from './context/AppearanceContext';
 
 let authStateCallback: ((user: any) => void) | null = null;
 const mockUnsubscribe = vi.fn();
@@ -37,7 +37,7 @@ describe('Production Composition Root & ApplicationProvider Wiring', () => {
   });
 
   it('renders App root without throwing "useApplication must be used within an ApplicationProvider"', () => {
-    // When App mounts, AuthProvider and DesignSystemProvider immediately call useApplication().
+    // When App mounts, AuthProvider and AppearanceProvider immediately call useApplication().
     // If ApplicationProvider was omitted from App root, this would throw synchronously or trigger ErrorBoundary.
     expect(() => {
       render(<App />);
@@ -47,7 +47,7 @@ describe('Production Composition Root & ApplicationProvider Wiring', () => {
     expect(screen.queryByText('Terjadi Kendala Aplikasi')).not.toBeInTheDocument();
   });
 
-  it('guarantees AuthProvider and DesignSystemProvider throw if ApplicationProvider is missing', () => {
+  it('guarantees AuthProvider and AppearanceProvider throw if ApplicationProvider is missing', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Regression check 1: AuthProvider mounted outside ApplicationProvider must fail fast
@@ -59,7 +59,7 @@ describe('Production Composition Root & ApplicationProvider Wiring', () => {
       );
     }).toThrow('useApplication must be used within an ApplicationProvider');
 
-    // Regression check 2: DesignSystemProvider mounted outside ApplicationProvider must fail fast
+    // Regression check 2: AppearanceProvider mounted outside ApplicationProvider must fail fast
     const useAuthSpy = vi.spyOn(authModule, 'useAuth').mockReturnValue({
       user: null,
       profile: null,
@@ -68,9 +68,9 @@ describe('Production Composition Root & ApplicationProvider Wiring', () => {
 
     expect(() => {
       render(
-        <DesignSystemProvider>
+        <AppearanceProvider>
           <div>Child</div>
-        </DesignSystemProvider>
+        </AppearanceProvider>
       );
     }).toThrow('useApplication must be used within an ApplicationProvider');
 

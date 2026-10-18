@@ -11,8 +11,8 @@ import {
   CalendarBlank,
   FloppyDisk,
 } from '@phosphor-icons/react';
-import { useDesignSystem } from '../../../context/DesignSystemContext';
-import { DESIGN_SYSTEMS, type DesignSystemKey } from '../../../types';
+import { useAppearance } from '../../../context/AppearanceContext';
+import { APPEARANCE_PRESETS, type AppearancePresetKey } from '../../../types';
 import { APP_CONFIG } from '../../../constants/app';
 import { APP_CHANGELOGS } from '../../../constants/changelog';
 import type { PreferencesTabProps } from './types';
@@ -29,15 +29,15 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
   setIsChangeLogModalOpen,
   onSuccess,
 }) => {
-  const { activePreset, applyAndSavePreset, mode, applyAndSaveMode } = useDesignSystem();
+  const { activePreset, applyAndSavePreset, mode, applyAndSaveMode } = useAppearance();
 
-  const [selectedPreset, setSelectedPreset] = React.useState<DesignSystemKey>(activePreset);
+  const [selectedPreset, setSelectedPreset] = React.useState<AppearancePresetKey>(activePreset);
   const [previewMode, setPreviewMode] = React.useState<'light' | 'dark'>(mode);
 
-  const activeDS = DESIGN_SYSTEMS.find((ds) => ds.id === selectedPreset) || DESIGN_SYSTEMS[1];
+  const activeDS = APPEARANCE_PRESETS.find((ds) => ds.id === selectedPreset) || APPEARANCE_PRESETS[1];
   const isSelectedDark = previewMode === 'dark';
 
-  const previewColors = isSelectedDark ? activeDS.tokens.darkColors : activeDS.tokens.colors;
+  const previewColors = isSelectedDark ? activeDS.colorModes.dark : activeDS.colorModes.light;
 
   return (
     <div className="space-y-8">
@@ -111,10 +111,10 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                 <div className="relative">
                   <select
                     value={selectedPreset}
-                    onChange={(e) => setSelectedPreset(e.target.value as DesignSystemKey)}
+                    onChange={(e) => setSelectedPreset(e.target.value as AppearancePresetKey)}
                     className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
                   >
-                    {DESIGN_SYSTEMS.map((ds) => (
+                    {APPEARANCE_PRESETS.map((ds) => (
                       <option key={ds.id} value={ds.id}>
                         {ds.name}
                       </option>

@@ -58,7 +58,7 @@
 
 /* ==========================================================================
    NEW SYSTEMS: paper-craft | shadcn-ui | neo-brutalism
-   Tokens come from DesignSystemContext --ds-* injection; blocks below only
+   Tokens come from AppearanceContext / appearanceDom --ds-* injection; blocks below only
    coerce app vars + shape/elevation, NO duplicate hex.
    ========================================================================== */
 [data-design-system="paper-craft"],
@@ -261,7 +261,7 @@
   border: 1px solid var(--accent-primary-border);
 }
 
-/* Status semantic utilities (opt-in; fed by --ds-*-bg/fg from DesignSystemContext) */
+/* Status semantic utilities (opt-in; fed by --ds-*-bg/fg from AppearanceContext / appearanceDom) */
 .bg-status-success { background-color: var(--ds-success-bg); }
 .text-status-success { color: var(--ds-success-fg); }
 .bg-status-warning { background-color: var(--ds-warning-bg); }

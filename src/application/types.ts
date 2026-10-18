@@ -30,8 +30,8 @@ import type {
   SharedReportType,
   SharedReportPayload,
   ClassSchedule,
-  DesignSystemKey,
-  DesignSystemMode,
+  AppearancePresetKey,
+  ColorMode,
   AccountStatus,
   UserRole,
 } from '../types';
@@ -130,8 +130,8 @@ export interface ApplicationOperations {
     checkHoliday: (dateStr: string, settings: AttendanceSettings) => { isHoliday: boolean; reason?: string };
   };
   appearance: {
-    updateDesignSystem: (uid: string, system: DesignSystemKey) => Promise<void>;
-    updateModePreference: (uid: string, mode: DesignSystemMode) => Promise<void>;
+    updateDesignSystem: (uid: string, system: AppearancePresetKey) => Promise<void>;
+    updateModePreference: (uid: string, mode: ColorMode) => Promise<void>;
   };
   students: {
     search: (uid: string, query: string) => Promise<Student[]>;

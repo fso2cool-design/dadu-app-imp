@@ -1,8 +1,8 @@
 import type React from 'react';
 import { useMemo, useState } from 'react';
 import { Eye, Moon, Sun, Student, MagnifyingGlass, FloppyDisk } from '@phosphor-icons/react';
-import { useDesignSystem } from '../../../context/DesignSystemContext';
-import { DESIGN_SYSTEMS, type DesignSystemKey, type DesignSystemMode } from '../../../types';
+import { useAppearance } from '../../../context/AppearanceContext';
+import { APPEARANCE_PRESETS, type AppearancePresetKey, type ColorMode } from '../../../types';
 import {
   Button,
   Card,
@@ -36,9 +36,9 @@ const CLASS_OPTIONS = [
  * Firestore) and the rest of the app are untouched.
  */
 export const ShowcaseTab: React.FC = () => {
-  const { activePreset, mode } = useDesignSystem();
-  const [previewSystem, setPreviewSystem] = useState<DesignSystemKey>(activePreset);
-  const [previewMode, setPreviewMode] = useState<DesignSystemMode>(mode);
+  const { activePreset, mode } = useAppearance();
+  const [previewSystem, setPreviewSystem] = useState<AppearancePresetKey>(activePreset);
+  const [previewMode, setPreviewMode] = useState<ColorMode>(mode);
 
   const previewVars = useMemo(
     () => buildPreviewVars(previewSystem, previewMode),
@@ -63,7 +63,7 @@ export const ShowcaseTab: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div role="group" aria-label="Pilih design system" className="flex flex-wrap gap-2">
-            {DESIGN_SYSTEMS.map((ds) => (
+            {APPEARANCE_PRESETS.map((ds) => (
               <Button
                 key={ds.id}
                 size="sm"

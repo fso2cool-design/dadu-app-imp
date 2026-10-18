@@ -4,8 +4,8 @@ import { render, screen } from '@testing-library/react';
 import { PreferencesTab } from './PreferencesTab';
 import type { UserPreferences } from '../../../types';
 
-vi.mock('../../../context/DesignSystemContext', () => ({
-  useDesignSystem: () => ({
+vi.mock('../../../context/AppearanceContext', () => ({
+  useAppearance: () => ({
     activePreset: 'emerald-serenity',
     applyAndSavePreset: vi.fn(),
     mode: 'light',

@@ -3,7 +3,7 @@ import { render, RenderOptions, RenderResult } from '@testing-library/react';
 import { MemoryRouter, MemoryRouterProps } from 'react-router-dom';
 import { ApplicationProvider } from '../application/ApplicationContext';
 import { ToastProvider } from '../context/ToastContext';
-import { DesignSystemProvider } from '../context/DesignSystemContext';
+import { AppearanceProvider } from '../context/AppearanceContext';
 import type { ApplicationOperations } from '../application/types';
 import { createMockApplicationOperations, DeepPartial } from './mocks/mockApplication';
 
@@ -11,7 +11,7 @@ export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper
   withRouter?: boolean;
   routerInitialEntries?: MemoryRouterProps['initialEntries'];
   withToast?: boolean;
-  withDesignSystem?: boolean;
+  withAppearance?: boolean;
   app?: ApplicationOperations;
   mockAppOverrides?: DeepPartial<ApplicationOperations>;
 }
@@ -24,7 +24,7 @@ export function renderWithProviders(
     withRouter = false,
     routerInitialEntries = ['/'],
     withToast = false,
-    withDesignSystem = false,
+    withAppearance = false,
     app: suppliedApp,
     mockAppOverrides,
     ...renderOptions
@@ -39,8 +39,8 @@ export function renderWithProviders(
       content = <ToastProvider>{content}</ToastProvider>;
     }
 
-    if (withDesignSystem) {
-      content = <DesignSystemProvider>{content}</DesignSystemProvider>;
+    if (withAppearance) {
+      content = <AppearanceProvider>{content}</AppearanceProvider>;
     }
 
     if (withRouter) {

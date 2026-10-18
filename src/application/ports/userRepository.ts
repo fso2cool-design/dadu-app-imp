@@ -1,4 +1,4 @@
-import type { UserProfile, UserRole, AccountStatus, DesignSystemKey } from '../../types';
+import type { UserProfile, UserRole, AccountStatus, AppearancePresetKey } from '../../types';
 import type { UserStorageStats, OrphanResidualItem } from '../../domain/user.types';
 
 export interface UserRepository {
@@ -6,7 +6,7 @@ export interface UserRepository {
   createProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile>;
   updateProfile(uid: string, data: Partial<UserProfile>): Promise<void>;
   recordLastLogin(uid: string): Promise<void>;
-  updateDesignSystem(uid: string, designSystem: DesignSystemKey): Promise<void>;
+  updateDesignSystem(uid: string, designSystem: AppearancePresetKey): Promise<void>;
   getAllUsers(): Promise<UserProfile[]>;
   setAccountStatus(uid: string, status: AccountStatus): Promise<void>;
   setAccountRole(uid: string, role: UserRole): Promise<void>;

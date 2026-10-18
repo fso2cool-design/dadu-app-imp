@@ -1,16 +1,16 @@
 import {
-  DESIGN_SYSTEMS,
-  type DesignSystemColorTokens,
-  type DesignSystemKey,
-  type DesignSystemMode,
+  APPEARANCE_PRESETS,
+  type DesignColorTokens,
+  type AppearancePresetKey,
+  type ColorMode,
 } from '../../../types';
 
 /**
  * Colour token -> CSS variable name. Typed as a full Record so adding a colour
  * token without a variable name fails `tsc`. A parity test asserts these names
- * and values match what DesignSystemContext writes to :root.
+ * and values match what AppearanceContext writes to :root.
  */
-const COLOR_VARS: Record<keyof DesignSystemColorTokens, string> = {
+const COLOR_VARS: Record<keyof DesignColorTokens, string> = {
   accent: '--ds-accent',
   accentFg: '--ds-accent-fg',
   surface: '--ds-surface',
@@ -33,10 +33,10 @@ const COLOR_VARS: Record<keyof DesignSystemColorTokens, string> = {
   infoFg: '--ds-info-fg',
 };
 
-export function getPreviewPalette(system: DesignSystemKey, mode: DesignSystemMode) {
-  // Same fallback as DesignSystemContext (index 1 = shadcn-ui).
-  const option = DESIGN_SYSTEMS.find((ds) => ds.id === system) ?? DESIGN_SYSTEMS[1];
-  const colors = mode === 'dark' ? option.tokens.darkColors : option.tokens.colors;
+export function getPreviewPalette(system: AppearancePresetKey, mode: ColorMode) {
+  // Same fallback as AppearanceContext (index 1 = shadcn-ui).
+  const option = APPEARANCE_PRESETS.find((ds) => ds.id === system) ?? APPEARANCE_PRESETS[1];
+  const colors = mode === 'dark' ? option.colorModes.dark : option.colorModes.light;
   return { option, tokens: option.tokens, colors };
 }
 
@@ -45,12 +45,12 @@ export function getPreviewPalette(system: DesignSystemKey, mode: DesignSystemMod
  * preview container. Read-only: never touches the DOM, localStorage or Firestore.
  */
 export function buildPreviewVars(
-  system: DesignSystemKey,
-  mode: DesignSystemMode,
+  system: AppearancePresetKey,
+  mode: ColorMode,
 ): Record<string, string> {
   const { tokens, colors } = getPreviewPalette(system, mode);
   const vars: Record<string, string> = {};
-  for (const key of Object.keys(COLOR_VARS) as Array<keyof DesignSystemColorTokens>) {
+  for (const key of Object.keys(COLOR_VARS) as Array<keyof DesignColorTokens>) {
     vars[COLOR_VARS[key]] = colors[key];
   }
   for (const k of ['xs', 'sm', 'md', 'lg', 'xl'] as const) {
@@ -105,7 +105,7 @@ export interface ContrastCheck {
 }
 
 /** Every fg/bg pair the four ui primitives actually render, for one system/mode. */
-export function primitiveContrastChecks(c: DesignSystemColorTokens): ContrastCheck[] {
+export function primitiveContrastChecks(c: DesignColorTokens): ContrastCheck[] {
   const pairs: Array<[string, string, string, 4.5 | 3]> = [
     ['Teks tombol primary', c.accentFg, c.accent, 4.5],
     ['Teks tombol primary (hover)', c.accentFg, c.accentHover, 4.5],
