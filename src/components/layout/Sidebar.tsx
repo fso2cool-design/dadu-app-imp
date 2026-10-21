@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { SquaresFour, BookOpen, Users, Printer, Database, Sliders, ShieldCheck, Heart, X, SidebarSimple, CalendarCheck, CheckSquare, Stack, CalendarDots, CalendarBlank, ChartBar, Clock, UserCheck, Notepad, CaretDown, CaretRight, ClipboardText } from '@phosphor-icons/react';
 import { AppLogo } from '../common/AppLogo';
@@ -53,27 +53,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
 
+  const getGroupForRoute = (route: string): string | null => {
+    if (
+      route === 'teacher' ||
+      route === 'teaching' ||
+      route === 'meetings' ||
+      route === 'schedule' ||
+      route === 'attendance-subject' ||
+      route === 'grades' ||
+      route.startsWith('teacher-') ||
+      route.startsWith('teaching-')
+    ) {
+      return 'teacher';
+    }
+    if (route === 'homeroom' || route.startsWith('homeroom-')) {
+      return 'homeroom';
+    }
+    if (route === 'master' || route.startsWith('master-')) {
+      return 'master';
+    }
+    if (route === 'settings' || route.startsWith('settings-')) {
+      return 'settings';
+    }
+    return null;
+  };
+
   // Expanded accordion groups state (Single open accordion model)
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    teacher: true,
-    homeroom: false,
-    master: false,
-    settings: false,
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const targetGroup = getGroupForRoute(currentRoute);
+    return {
+      teacher: targetGroup === 'teacher',
+      homeroom: targetGroup === 'homeroom',
+      master: targetGroup === 'master',
+      settings: targetGroup === 'settings',
+    };
   });
 
-  // Automatically expand group if currentRoute belongs to it, and auto-collapse others
+  const prevRouteRef = useRef(currentRoute);
+
+  // Automatically expand group if currentRoute changes and belongs to it, and auto-collapse others
   useEffect(() => {
-    if (currentRoute === 'teacher' || currentRoute === 'meetings' || currentRoute === 'attendance-subject' || currentRoute === 'grades' || currentRoute === 'teaching-classes' || currentRoute.startsWith('teacher-')) {
-      setExpandedGroups({ teacher: true, homeroom: false, master: false, settings: false });
-    } else if (currentRoute === 'homeroom' || currentRoute.startsWith('homeroom-')) {
-      setExpandedGroups({ teacher: false, homeroom: true, master: false, settings: false });
-    } else if (currentRoute === 'master' || currentRoute.startsWith('master-')) {
-      setExpandedGroups({ teacher: false, homeroom: false, master: true, settings: false });
-    } else if (currentRoute === 'settings' || currentRoute.startsWith('settings-')) {
-      setExpandedGroups({ teacher: false, homeroom: false, master: false, settings: true });
-    } else if (currentRoute === 'dashboard' || currentRoute.startsWith('reports-')) {
-      // Keep menus neatly closed on independent standalone pages
-      setExpandedGroups({ teacher: false, homeroom: false, master: false, settings: false });
+    if (prevRouteRef.current !== currentRoute) {
+      prevRouteRef.current = currentRoute;
+      const targetGroup = getGroupForRoute(currentRoute);
+      setExpandedGroups({
+        teacher: targetGroup === 'teacher',
+        homeroom: targetGroup === 'homeroom',
+        master: targetGroup === 'master',
+        settings: targetGroup === 'settings',
+      });
     }
   }, [currentRoute]);
 
@@ -155,31 +183,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }] : []),
   ];
 
-  const handleItemClick = (id: string, hasSubItems?: boolean) => {
+  const handleItemClick = (id: string) => {
     if (id === 'feedback-modal') {
       if (onOpenFeedbackModal) onOpenFeedbackModal();
       onCloseMobile();
       return;
     }
 
-    if (hasSubItems && !isCompact) {
-      // Toggle expansion (single-open accordion behavior)
-      setExpandedGroups(prev => {
-        const isCurrentlyOpen = Boolean(prev[id]);
-        return {
-          teacher: false,
-          homeroom: false,
-          master: false,
-          settings: false,
-          [id]: !isCurrentlyOpen,
-        };
-      });
-    }
-
     onNavigate(id);
-    if (!hasSubItems || isCompact) {
-      onCloseMobile();
-    }
+    onCloseMobile();
   };
 
   const handleSubItemClick = (subId: string, e: React.MouseEvent) => {
@@ -188,8 +200,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onCloseMobile();
   };
 
-  const toggleGroupCollapse = (groupId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const toggleGroupCollapse = (groupId: string, e?: React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     setExpandedGroups(prev => {
       const isCurrentlyOpen = Boolean(prev[groupId]);
       return {
@@ -208,9 +222,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (subId === 'attendance-subject' && (currentRoute === 'attendance-subject' || currentRoute === 'teacher-attendance')) return true;
     if (subId === 'grades' && (currentRoute === 'grades' || currentRoute === 'teacher-grades')) return true;
     if (subId === 'teaching-classes' && (currentRoute === 'teaching-classes' || currentRoute === 'teacher-classes')) return true;
+    if (subId === 'teaching-schedule' && (currentRoute === 'teaching-schedule' || currentRoute === 'teacher-schedule' || currentRoute === 'schedule')) return true;
     if (subId === 'homeroom-class-schedule' && (currentRoute === 'homeroom-class-schedule' || currentRoute === 'homeroom-schedule')) return true;
     if (subId === 'homeroom-daily-attendance' && (currentRoute === 'homeroom-daily-attendance' || currentRoute === 'homeroom-attendance-daily')) return true;
-    if (subId === 'homeroom-monthly-attendance' && (currentRoute === 'homeroom-monthly-attendance' || currentRoute === 'homeroom-attendance-monthly')) return true;
+    if (subId === 'homeroom-monthly-attendance' && (currentRoute === 'homeroom-monthly-attendance' || currentRoute === 'homeroom-attendance-monthly' || currentRoute === 'homeroom-attendance')) return true;
     if (subId === 'homeroom-teacher-attendance' && (currentRoute === 'homeroom-teacher-attendance' || currentRoute === 'homeroom-attendance-teacher')) return true;
     if (subId === 'homeroom-students' && currentRoute === 'homeroom-students') return true;
     if (subId === 'homeroom-notes' && currentRoute === 'homeroom-notes') return true;
@@ -221,11 +236,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const isItemActive = (itemId: string) => {
     if (currentRoute === itemId) return true;
-    if (itemId === 'teacher' && (currentRoute === 'teacher' || currentRoute === 'meetings' || currentRoute === 'attendance-subject' || currentRoute === 'grades' || currentRoute === 'teaching-classes' || currentRoute.startsWith('teacher-'))) return true;
-    if (itemId === 'homeroom' && (currentRoute === 'homeroom' || currentRoute.startsWith('homeroom-'))) return true;
-    if (itemId === 'reports-center' && (currentRoute === 'reports-center' || currentRoute.startsWith('reports-'))) return true;
-    if (itemId === 'master' && (currentRoute === 'master' || currentRoute.startsWith('master-'))) return true;
-    if (itemId === 'settings' && (currentRoute === 'settings' || currentRoute.startsWith('settings-'))) return true;
+    const group = getGroupForRoute(currentRoute);
+    if (group === itemId) return true;
+    if (itemId === 'reports-center' && (currentRoute === 'reports-center' || currentRoute === 'reports' || currentRoute.startsWith('reports-'))) return true;
     return false;
   };
 
@@ -237,19 +250,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}>
         {compact ? (
           /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
-          <div 
-            className="w-full flex items-center justify-center cursor-pointer"
-            onMouseEnter={() => setHoveredTopToggle(true)}
-            onMouseLeave={() => setHoveredTopToggle(false)}
-            onClick={() => {
-              setHoveredTopToggle(false);
-              onToggleCompact?.();
-            }}
-          >
+          <div className="w-full flex items-center justify-center">
             <Tooltip content={hoveredTopToggle ? 'Buka sidebar' : 'DADU Workspace'} position="right">
               <button
                 type="button"
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs border" style={{ background: "var(--ds-surface-elevated)", color: "var(--ds-text)", borderColor: "var(--ds-border)" }}
+                onMouseEnter={() => setHoveredTopToggle(true)}
+                onMouseLeave={() => setHoveredTopToggle(false)}
+                onClick={() => {
+                  setHoveredTopToggle(false);
+                  onToggleCompact?.();
+                }}
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-accent)]"
+                style={{ background: "var(--ds-surface-elevated)", color: "var(--ds-text)", borderColor: "var(--ds-border)" }}
                 aria-label="Buka sidebar"
               >
                 {hoveredTopToggle ? (
@@ -313,95 +325,104 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
             {group.items.map((item) => {
               const Icon = item.icon;
-              const hasSub = item.subItems && item.subItems.length > 0;
+              const hasSub = Boolean(item.subItems && item.subItems.length > 0);
               const isExpanded = !compact && hasSub && Boolean(expandedGroups[item.id]);
               const isGroupActive = isItemActive(item.id);
               const isDirectParentActive = currentRoute === item.id;
+              const submenuId = `submenu-${item.id}`;
+              const disclosureLabel = isExpanded
+                ? `Ciutkan menu ${item.label}`
+                : `Buka menu ${item.label}`;
 
               return (
                 <div key={item.id} className="space-y-0.5">
-                  <div className="relative">
+                  <div className="relative flex items-center">
                     <Tooltip content={item.label} position="right" disabled={!compact}>
                       <button
                         type="button"
-                        onClick={() => {
-                          handleItemClick(item.id, hasSub);
-                        }}
+                        onClick={() => handleItemClick(item.id)}
                         aria-current={isDirectParentActive ? 'page' : undefined}
                         data-nav-item="true"
                         data-active={isDirectParentActive || isGroupActive ? 'true' : 'false'}
                         className={`nav-item group relative w-full flex items-center text-xs font-medium cursor-pointer ${
-                          compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
+                          compact
+                            ? 'justify-center p-2.5 min-h-[42px]'
+                            : hasSub
+                              ? 'gap-3 pl-3.5 pr-11 py-2.5 min-h-[44px]'
+                              : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
                           isDirectParentActive || isGroupActive
                             ? 'font-bold'
                             : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                         }`}
                       >
-                      {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
-                      {(isDirectParentActive || isGroupActive) && (
-                        <motion.div
-                          layoutId="sidebar-active-parent-capsule"
-                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          className="nav-active-capsule pointer-events-none absolute inset-0"
-                        >
-                          <span
-                            className="nav-active-marker absolute left-0 top-2.5 bottom-2.5"
-                          />
-                        </motion.div>
-                      )}
+                        {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
+                        {(isDirectParentActive || isGroupActive) && (
+                          <motion.div
+                            layoutId="sidebar-active-parent-capsule"
+                            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                            className="nav-active-capsule pointer-events-none absolute inset-0"
+                          >
+                            <span
+                              className="nav-active-marker absolute left-0 top-2.5 bottom-2.5"
+                            />
+                          </motion.div>
+                        )}
 
-                      <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
-                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                          isDirectParentActive || isGroupActive
-                            ? 'nav-icon-active'
-                            : 'text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)]'
-                        }`} />
-                        {!compact && (
-                          <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
-                            <span className="truncate">{item.label}</span>
-                            <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
+                          <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                            isDirectParentActive || isGroupActive
+                              ? 'nav-icon-active'
+                              : 'text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)]'
+                          }`} />
+                          {!compact && (
+                            <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
+                              <span className="truncate">{item.label}</span>
                               {item.badgeCount && item.badgeCount > 0 ? (
-                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
+                                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white shrink-0 ml-1.5">
                                   {item.badgeCount}
                                 </span>
                               ) : null}
-                              {hasSub && (
-                                <span
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={(e) => toggleGroupCollapse(item.id, e)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      toggleGroupCollapse(item.id, e as any);
-                                    }
-                                  }}
-                                  className="p-1 rounded-md transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
-                                  aria-label={isExpanded ? 'Ciutkan menu' : 'Buka menu'}
-                                >
-                                  {isExpanded ? (
-                                    <CaretDown className="w-3.5 h-3.5" />
-                                  ) : (
-                                    <CaretRight className="w-3.5 h-3.5" style={{ color: "var(--ds-text-muted)" }} />
-                                  )}
-                                </span>
-                              )}
                             </div>
-                          </div>
-                        )}
-                      </span>
+                          )}
+                        </span>
 
-                      {compact && item.badgeCount && item.badgeCount > 0 ? (
-                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-[var(--ds-surface)] z-20" />
-                      ) : null}
-                    </button>
-                  </Tooltip>
-                </div>
+                        {compact && item.badgeCount && item.badgeCount > 0 ? (
+                          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-600 border-2 border-[var(--ds-surface)] z-20" />
+                        ) : null}
+                      </button>
+                    </Tooltip>
+
+                    {/* Separate Sibling Disclosure Button (never nested inside nav-item button) */}
+                    {!compact && hasSub && (
+                      <button
+                        type="button"
+                        aria-expanded={isExpanded}
+                        aria-controls={submenuId}
+                        aria-label={disclosureLabel}
+                        onClick={(e) => toggleGroupCollapse(item.id, e)}
+                        className="sidebar-disclosure-btn absolute right-1.5 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 rounded-lg transition-colors cursor-pointer text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] hover:bg-[var(--ds-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-accent)]"
+                      >
+                        {isExpanded ? (
+                          <CaretDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <CaretRight className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    )}
+                  </div>
 
                   {/* Render Accordion Sub-items when expanded */}
-                  {isExpanded && item.subItems && (
-                    <div className="sidebar-subitem-guide ml-5 pl-2 space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
+                  {!compact && item.subItems && (
+                    <div
+                      id={submenuId}
+                      role="region"
+                      aria-label={`Submenu ${item.label}`}
+                      hidden={!isExpanded}
+                      className={`sidebar-subitem-guide ml-5 pl-2 space-y-1 pt-1 pb-1.5 ${
+                        isExpanded ? 'animate-in slide-in-from-top-1 duration-150' : 'hidden'
+                      }`}
+                    >
                       {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = isSubItemActive(sub.id);
