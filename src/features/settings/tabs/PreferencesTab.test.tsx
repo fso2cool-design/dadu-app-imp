@@ -6,7 +6,7 @@ import type { UserPreferences } from '../../../types';
 
 vi.mock('../../../context/AppearanceContext', () => ({
   useAppearance: () => ({
-    activePreset: 'emerald-serenity',
+    activePreset: 'shadcn-ui',
     applyAndSavePreset: vi.fn(),
     mode: 'light',
     applyAndSaveMode: vi.fn(),

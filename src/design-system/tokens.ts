@@ -214,6 +214,8 @@ export const APPEARANCE_PRESETS: AppearancePreset[] = [
       },
     },
   },
+  // DADU appearance preset inspired by the neutral zinc aesthetic;
+  // does not indicate use of the external shadcn/ui component library.
   {
     id: 'shadcn-ui',
     name: 'Shadcn UI',

@@ -34,10 +34,13 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
   const [selectedPreset, setSelectedPreset] = React.useState<AppearancePresetKey>(activePreset);
   const [previewMode, setPreviewMode] = React.useState<'light' | 'dark'>(mode);
 
-  const activeDS = APPEARANCE_PRESETS.find((ds) => ds.id === selectedPreset) || APPEARANCE_PRESETS[1];
+  const activePresetDefinition =
+    APPEARANCE_PRESETS.find((preset) => preset.id === selectedPreset) || APPEARANCE_PRESETS[1];
   const isSelectedDark = previewMode === 'dark';
 
-  const previewColors = isSelectedDark ? activeDS.colorModes.dark : activeDS.colorModes.light;
+  const previewColors = isSelectedDark
+    ? activePresetDefinition.colorModes.dark
+    : activePresetDefinition.colorModes.light;
 
   return (
     <div className="space-y-8">
@@ -64,7 +67,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
         </div>
       </div>
 
-      {/* Visual Theme Selector Section */}
+      {/* Appearance Preset & Color Mode Selector Section */}
       <div className="space-y-4 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
@@ -99,7 +102,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
           </div>
         </div>
 
-        {/* 3-Column Design System Cards */}
+        {/* Appearance Preset Controls & Live Preview Card */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
           {/* Left Column: Dropdown Controls, Mode Selector & Philosophy */}
           <div className="lg:col-span-6 flex flex-col justify-between space-y-4">
@@ -114,9 +117,9 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                     onChange={(e) => setSelectedPreset(e.target.value as AppearancePresetKey)}
                     className="w-full px-4 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs font-bold shadow-2xs appearance-none cursor-pointer focus:ring-2 focus:ring-(--focus-ring) focus:outline-none"
                   >
-                    {APPEARANCE_PRESETS.map((ds) => (
-                      <option key={ds.id} value={ds.id}>
-                        {ds.name}
+                    {APPEARANCE_PRESETS.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.name}
                       </option>
                     ))}
                   </select>
@@ -159,7 +162,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                 </div>
               </div>
 
-              {/* Theme Philosophy & Guidance Badge */}
+              {/* Appearance Preset Philosophy & Guidance Badge */}
               <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
@@ -173,10 +176,10 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                  {activeDS.tagline}
+                  {activePresetDefinition.tagline}
                 </p>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {activeDS.description}
+                  {activePresetDefinition.description}
                 </p>
               </div>
             </div>
@@ -284,7 +287,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                     </span>
                   </div>
 
-                  {/* Mini Tactile Button with exact theme button text and bg */}
+                  {/* Mini Tactile Button with exact preset accent text and bg */}
                   <button
                     type="button"
                     style={{
@@ -304,7 +307,7 @@ export const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   Ergonomi Kontras: <strong style={{ color: previewColors.accent }}>WCAG {isSelectedDark ? 'AAA' : 'AA'}</strong>
                 </span>
                 <span style={{ color: previewColors.textMuted }}>
-                  {activeDS.name} ({isSelectedDark ? 'Gelap' : 'Terang'})
+                  {activePresetDefinition.name} ({isSelectedDark ? 'Gelap' : 'Terang'})
                 </span>
               </div>
             </div>

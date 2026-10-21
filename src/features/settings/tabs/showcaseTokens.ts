@@ -33,22 +33,22 @@ const COLOR_VARS: Record<keyof DesignColorTokens, string> = {
   infoFg: '--ds-info-fg',
 };
 
-export function getPreviewPalette(system: AppearancePresetKey, mode: ColorMode) {
+export function getPreviewPalette(preset: AppearancePresetKey, mode: ColorMode) {
   // Same fallback as AppearanceContext (index 1 = shadcn-ui).
-  const option = APPEARANCE_PRESETS.find((ds) => ds.id === system) ?? APPEARANCE_PRESETS[1];
+  const option = APPEARANCE_PRESETS.find((p) => p.id === preset) ?? APPEARANCE_PRESETS[1];
   const colors = mode === 'dark' ? option.colorModes.dark : option.colorModes.light;
   return { option, tokens: option.tokens, colors };
 }
 
 /**
- * The --ds-* variables a given system/mode would put on :root, for scoping onto a
+ * The --ds-* variables a given appearance preset and color mode would put on :root, for scoping onto a
  * preview container. Read-only: never touches the DOM, localStorage or Firestore.
  */
 export function buildPreviewVars(
-  system: AppearancePresetKey,
+  preset: AppearancePresetKey,
   mode: ColorMode,
 ): Record<string, string> {
-  const { tokens, colors } = getPreviewPalette(system, mode);
+  const { tokens, colors } = getPreviewPalette(preset, mode);
   const vars: Record<string, string> = {};
   for (const key of Object.keys(COLOR_VARS) as Array<keyof DesignColorTokens>) {
     vars[COLOR_VARS[key]] = colors[key];
@@ -104,7 +104,7 @@ export interface ContrastCheck {
   pass: boolean;
 }
 
-/** Every fg/bg pair the four ui primitives actually render, for one system/mode. */
+/** Every fg/bg pair the four ui primitives actually render, for one preset/mode. */
 export function primitiveContrastChecks(c: DesignColorTokens): ContrastCheck[] {
   const pairs: Array<[string, string, string, 4.5 | 3]> = [
     ['Teks tombol primary', c.accentFg, c.accent, 4.5],

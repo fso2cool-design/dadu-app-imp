@@ -38,8 +38,8 @@ describe('showcaseTokens', () => {
     expect(contrastRatio('#FFE500', '#FFFFFF')).toBeCloseTo(1.28, 2);
   });
 
-  it.each(COMBOS)('%s/%s: every status fg reaches 4.5:1 on its own bg', (system, mode) => {
-    const { colors } = getPreviewPalette(system, mode);
+  it.each(COMBOS)('%s/%s: every status fg reaches 4.5:1 on its own bg', (preset, mode) => {
+    const { colors } = getPreviewPalette(preset, mode);
     for (const s of ['success', 'warning', 'danger', 'info'] as const) {
       const ratio = contrastRatio(colors[`${s}Fg`], colors[`${s}Bg`]);
       expect(ratio, `${s}`).toBeGreaterThanOrEqual(4.5);
@@ -48,8 +48,8 @@ describe('showcaseTokens', () => {
 
   it.each(COMBOS)(
     '%s/%s: primitive text pairs pass 4.5:1 and error indicator passes 3:1',
-    (system, mode) => {
-      const checks = primitiveContrastChecks(getPreviewPalette(system, mode).colors);
+    (preset, mode) => {
+      const checks = primitiveContrastChecks(getPreviewPalette(preset, mode).colors);
       for (const c of checks.filter((x) => x.threshold === 4.5)) {
         expect(c.ratio, c.label).toBeGreaterThanOrEqual(4.5);
       }
@@ -80,22 +80,22 @@ describe('ShowcaseTab', () => {
   });
 
   const preview = () => screen.getByTestId('ds-preview');
-  const systemGroup = () => screen.getByRole('group', { name: 'Pilih design system' });
+  const presetGroup = () => screen.getByRole('group', { name: 'Pilih preset tampilan' });
   const modeGroup = () => screen.getByRole('group', { name: 'Pilih mode' });
 
-  it('starts from the active system and mode', () => {
+  it('starts from the active appearance preset and color mode', () => {
     render(<ShowcaseTab />);
     expect(preview()).toHaveAttribute('data-preview-system', 'shadcn-ui');
     expect(preview()).toHaveAttribute('data-preview-mode', 'light');
     expect(preview().style.getPropertyValue('--ds-accent')).toBe('#18181B');
   });
 
-  it.each(COMBOS)('scopes %s/%s tokens onto the preview container', (system, mode) => {
+  it.each(COMBOS)('scopes %s/%s tokens onto the preview container', (preset, mode) => {
     render(<ShowcaseTab />);
-    const name = APPEARANCE_PRESETS.find((d) => d.id === system)?.name ?? '';
-    fireEvent.click(within(systemGroup()).getByRole('button', { name }));
+    const name = APPEARANCE_PRESETS.find((d) => d.id === preset)?.name ?? '';
+    fireEvent.click(within(presetGroup()).getByRole('button', { name }));
     fireEvent.click(within(modeGroup()).getByRole('button', { name: mode === 'dark' ? 'Gelap' : 'Terang' }));
-    const expected = buildPreviewVars(system, mode);
+    const expected = buildPreviewVars(preset, mode);
     for (const [k, v] of Object.entries(expected)) {
       expect(preview().style.getPropertyValue(k), k).toBe(v);
     }
@@ -105,9 +105,9 @@ describe('ShowcaseTab', () => {
     const setItem = vi.spyOn(Storage.prototype, 'setItem');
     render(<ShowcaseTab />);
     act(() => {
-      fireEvent.click(within(systemGroup()).getByRole('button', { name: 'Neo-Brutalism' }));
+      fireEvent.click(within(presetGroup()).getByRole('button', { name: 'Neo-Brutalism' }));
       fireEvent.click(within(modeGroup()).getByRole('button', { name: 'Gelap' }));
-      fireEvent.click(within(systemGroup()).getByRole('button', { name: 'Paper Craft' }));
+      fireEvent.click(within(presetGroup()).getByRole('button', { name: 'Paper Craft' }));
     });
     expect(ds.setPreset).not.toHaveBeenCalled();
     expect(ds.applyAndSavePreset).not.toHaveBeenCalled();
@@ -131,16 +131,16 @@ describe('ShowcaseTab', () => {
     expect(nisn.style.backgroundColor).toBe('');
   });
 
-  it('applies theme assets only to their own system', () => {
+  it('applies preset decorative assets only to their own preset', () => {
     render(<ShowcaseTab />);
     expect(preview().querySelector('.ds-texture-paper')).toBeNull();
     expect(screen.queryByTestId('hazard-bar')).toBeNull();
 
-    fireEvent.click(within(systemGroup()).getByRole('button', { name: 'Paper Craft' }));
+    fireEvent.click(within(presetGroup()).getByRole('button', { name: 'Paper Craft' }));
     expect(preview().querySelector('.ds-texture-paper')).not.toBeNull();
     expect(screen.queryByTestId('hazard-bar')).toBeNull();
 
-    fireEvent.click(within(systemGroup()).getByRole('button', { name: 'Neo-Brutalism' }));
+    fireEvent.click(within(presetGroup()).getByRole('button', { name: 'Neo-Brutalism' }));
     expect(preview().querySelector('.ds-texture-paper')).toBeNull();
     expect(screen.getByTestId('hazard-bar')).toHaveAttribute('aria-hidden', 'true');
   });

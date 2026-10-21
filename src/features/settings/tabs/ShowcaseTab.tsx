@@ -30,21 +30,21 @@ const CLASS_OPTIONS = [
 ];
 
 /**
- * Read-only design system preview. Selection lives in local state and is applied
+ * Read-only design system and appearance preset preview. Selection lives in local state and is applied
  * as scoped --ds-* variables on the preview container only. It never calls
  * setPreset/setMode/applyAndSave*, so the teacher's saved appearance (localStorage and
  * Firestore) and the rest of the app are untouched.
  */
 export const ShowcaseTab: React.FC = () => {
   const { activePreset, mode } = useAppearance();
-  const [previewSystem, setPreviewSystem] = useState<AppearancePresetKey>(activePreset);
+  const [previewPreset, setPreviewPreset] = useState<AppearancePresetKey>(activePreset);
   const [previewMode, setPreviewMode] = useState<ColorMode>(mode);
 
   const previewVars = useMemo(
-    () => buildPreviewVars(previewSystem, previewMode),
-    [previewSystem, previewMode],
+    () => buildPreviewVars(previewPreset, previewMode),
+    [previewPreset, previewMode],
   );
-  const { option, colors } = getPreviewPalette(previewSystem, previewMode);
+  const { option, colors } = getPreviewPalette(previewPreset, previewMode);
   const checks = useMemo(() => primitiveContrastChecks(colors), [colors]);
   const failCount = checks.filter((c) => !c.pass).length;
 
@@ -53,25 +53,25 @@ export const ShowcaseTab: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Eye aria-hidden="true" className="h-5 w-5" /> Pratinjau Design System
+            <Eye aria-hidden="true" className="h-5 w-5" /> Pratinjau Design System & Preset Tampilan
           </CardTitle>
           <CardDescription>
-            Coba ketiga design system dan kedua mode pada komponen dasar. Pratinjau ini tidak
-            menyimpan apa pun: tema akun Anda tetap sama. Untuk mengganti tema, gunakan tab
-            Preferensi.
+            Coba ketiga preset tampilan dan kedua mode warna pada komponen dasar Design System.
+            Pratinjau ini tidak menyimpan apa pun: preferensi tampilan akun Anda tetap sama. Untuk
+            mengganti preferensi tampilan secara permanen, gunakan tab Preferensi.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div role="group" aria-label="Pilih design system" className="flex flex-wrap gap-2">
-            {APPEARANCE_PRESETS.map((ds) => (
+          <div role="group" aria-label="Pilih preset tampilan" className="flex flex-wrap gap-2">
+            {APPEARANCE_PRESETS.map((preset) => (
               <Button
-                key={ds.id}
+                key={preset.id}
                 size="sm"
-                variant={ds.id === previewSystem ? 'primary' : 'outline'}
-                aria-pressed={ds.id === previewSystem}
-                onClick={() => setPreviewSystem(ds.id)}
+                variant={preset.id === previewPreset ? 'primary' : 'outline'}
+                aria-pressed={preset.id === previewPreset}
+                onClick={() => setPreviewPreset(preset.id)}
               >
-                {ds.name}
+                {preset.name}
               </Button>
             ))}
           </div>
@@ -98,11 +98,11 @@ export const ShowcaseTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Scoped theme: components below read --ds-* from this container, exactly
-          as they would from :root in the real app. No colour props are passed. */}
+      {/* Scoped appearance preview: components below read --ds-* from this container,
+          exactly as they would from :root in the real app. No colour props are passed. */}
       <section
         data-testid="ds-preview"
-        data-preview-system={previewSystem}
+        data-preview-system={previewPreset}
         data-preview-mode={previewMode}
         aria-label={`Pratinjau ${option.name}, mode ${previewMode === 'dark' ? 'gelap' : 'terang'}`}
         className="flex flex-col gap-5 p-5 bg-[var(--ds-surface)] text-[var(--ds-text)]"
@@ -137,9 +137,9 @@ export const ShowcaseTab: React.FC = () => {
 
         <Card
           padding="none"
-          className={previewSystem === 'paper-craft' ? 'ds-texture-paper overflow-hidden' : 'overflow-hidden'}
+          className={previewPreset === 'paper-craft' ? 'ds-texture-paper overflow-hidden' : 'overflow-hidden'}
         >
-          {previewSystem === 'neo-brutalism' && (
+          {previewPreset === 'neo-brutalism' && (
             <div data-testid="hazard-bar" aria-hidden="true" className="ds-hazard-bar" />
           )}
           <div className="flex flex-col gap-4 p-5">
