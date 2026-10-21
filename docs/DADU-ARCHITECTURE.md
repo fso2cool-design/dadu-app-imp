@@ -67,9 +67,13 @@ dadu-app-imp/
 │   ├── infrastructure/          # Infrastructure Layer (Firestore repository adapters)
 │   │   └── firestore/
 │   │       └── repositories/    # Concrete repository implementations conforming to ports
+│   ├── design-system/
+│   │   └── tokens.ts            # Design token contracts (DesignColorTokens, InvariantTokens) & APPEARANCE_PRESETS
 │   ├── context/
 │   │   ├── WorkspaceContext.tsx # Academic data loader (classes, subjects, etc.)
-│   │   ├── DesignSystemContext.tsx # Single Source of Truth for design system & tokens
+│   │   ├── AppearanceContext.tsx # Runtime appearance state (AppearanceProvider, useAppearance)
+│   │   ├── appearanceDom.ts     # DOM & CSS variable synchronization (applyAppearanceToDom)
+│   │   ├── legacyMappings.ts    # Default preset & legacy theme/preset fallback resolution
 │   │   └── ToastContext.tsx     # Toast notification system
 │   ├── features/
 │   │   ├── admin/               # Admin user management, storage stats, feedback tab
@@ -86,7 +90,8 @@ dadu-app-imp/
 │   │   └── teacher/             # Teacher hub (meetings, attendance, schedule)
 │   ├── components/
 │   │   ├── common/              # Shared components (ErrorBoundary, Skeleton, Modal, etc.)
-│   │   └── layout/              # AppLayout, Sidebar, Header, BottomNav
+│   │   ├── layout/              # AppLayout, Sidebar, Header, BottomNav
+│   │   └── ui/                  # Design system UI primitives (Button, Card, Input, Select)
 │   ├── routes/
 │   │   ├── paths.ts             # Route definitions & bidirectional legacy adapter
 │   │   └── paths.test.ts        # Unit tests for routing adapter
@@ -139,7 +144,7 @@ The monolithic `app.settings` namespace has been decomposed into distinct, domai
 | **`app.maintenance`** | Workspace backup/restore lifecycle & semester reset | `exportBackup`, `importBackup`, `getDatabaseStats`, `previewResetSemester`, `resetSemesterData` |
 | **`app.diagnostics`** | System referential integrity audit & relation recovery | `runIntegrityAudit`, `findStudentCandidatesByNisn`, `relinkEnrollmentClass`, `relinkStudentRelationship` |
 | **`app.classSchedule`** | Class timetable management (deterministic key: `{classId}_{ayId}_{sem}`) | `getClassSchedule`, `saveClassSchedule`, `deleteClassSchedule` |
-| **`app.appearance`** | Visual design system & mode preference persistence | `updateDesignSystem`, `updateModePreference` |
+| **`app.appearance`** | Appearance preset & color mode preference persistence | `updateDesignSystem`, `updateModePreference` |
 | **`app.workspace`** | Academic workspace loader & settings | `loadWorkspace`, `getUserPreferences`, `saveUserPreferences`, `saveAttendanceSettings`, `checkHoliday` |
 | **`app.auth`** | User authentication, profile lifecycle, session recording, admin claim verification | `getProfile`, `createProfile`, `recordLastLogin`, `updateProfile`, `login`, `signup`, `logout`, `resetPassword`, `onAuthStateChanged`, `getAdminClaimStatus` |
 | **`app.students`** | Student master records, import, search, custom fields, notes, deduplication | `getAll`, `getPaginated`, `getById`, `create`, `update`, `delete`, `import`, `search`, `searchByExactIdentifier`, `searchByNameToken`, `checkUsage`, `canDelete`, `archive`, `unarchive`, `checkNisnAvailability`, `batchCreate`, `scanDuplicates`, `executeDeduplication`, `getCustomFields`, `saveCustomFields`, `createCustomField`, `updateCustomField`, `deleteCustomField`, `getStudentNotes`, `getStudentNotesByClass`, `createStudentNote`, `updateStudentNote`, `deleteStudentNote` |
@@ -192,19 +197,58 @@ Repository ports in `src/application/ports/` are strictly typed and explicitly i
 
 ---
 
-### 3.5 Design System Single Source of Truth
+### 3.5 Design System & Appearance Architecture
 
-`DesignSystemContext` (`src/context/DesignSystemContext.tsx`) is the canonical single source of truth for all visual tokens, presets, and color modes:
+DADU separates its singular **Design System** (token contracts, `--ds-*` CSS custom property namespace, and reusable UI primitives in `src/components/ui/`) from **Appearance** (runtime user-preference orchestration combining an **Appearance Preset** with a **Color Mode**):
 
-- **Canonical Active Presets (`DesignSystemKey`)**:
+```text
+DADU Design System
+    │
+    ├── token contracts (DesignColorTokens, InvariantTokens)
+    ├── semantic CSS variables (--ds-*)
+    └── reusable UI primitives (src/components/ui/)
+             │
+             ▼
+      Appearance Presets (APPEARANCE_PRESETS: AppearancePreset[])
+      ├── paper-craft
+      ├── shadcn-ui
+      └── neo-brutalism
+             │
+             +
+         Color Mode (ColorMode)
+       light | dark
+             │
+             ▼
+      AppearanceProvider (src/context/AppearanceContext.tsx)
+             │
+             ▼
+    applyAppearanceToDom() (src/context/appearanceDom.ts)
+             │
+             ▼
+        DOM / CSS
+```
+
+- **Core Modules**:
+  - `src/design-system/tokens.ts`: Defines `AppearancePresetKey`, `ColorMode`, `DesignColorTokens`, `InvariantTokens`, `AppearancePreset`, and the `APPEARANCE_PRESETS: AppearancePreset[]` registry.
+  - `src/context/legacyMappings.ts`: Defines `DEFAULT_APPEARANCE_PRESET`, `LEGACY_PRESET_MAPPINGS`, `isValidAppearancePreset`, `resolveAppearancePreset`, and `mapLegacyThemeToAppearancePreset`.
+  - `src/context/AppearanceContext.tsx`: Implements `AppearanceProvider`, `AppearanceContext`, and `useAppearance()`.
+  - `src/context/appearanceDom.ts`: Implements `applyAppearanceToDom(root, { preset, mode, tokens, colors })`.
+
+- **Canonical Appearance Presets & Color Modes**:
   ```typescript
-  export type DesignSystemKey = 'paper-craft' | 'neo-brutalism' | 'shadcn-ui';
-  export const DEFAULT_SYSTEM: DesignSystemKey = 'shadcn-ui';
+  // src/design-system/tokens.ts
+  export type AppearancePresetKey = 'paper-craft' | 'neo-brutalism' | 'shadcn-ui';
+  export type ColorMode = 'light' | 'dark';
+  export const APPEARANCE_PRESETS: AppearancePreset[] = [/* paper-craft, shadcn-ui, neo-brutalism */];
+
+  // src/context/legacyMappings.ts
+  export const DEFAULT_APPEARANCE_PRESET: AppearancePresetKey = 'shadcn-ui';
   ```
-  These are the only active selectable presets in the application.
+  - **Runtime Resolution**: `DEFAULT_APPEARANCE_PRESET = 'shadcn-ui'` is the semantic preset default, and `'light'` is the current default `ColorMode`. The active preset definition is resolved from `APPEARANCE_PRESETS` by ID. Current implementation defensively falls back to `APPEARANCE_PRESETS[1]`, which currently resolves to `shadcn-ui`; this is an ordering-dependent implementation detail rather than an architectural contract.
+  - **`shadcn-ui` Clarification**: `shadcn-ui` is the identifier of a DADU appearance preset; it does not indicate that DADU's UI primitives are implemented using the external shadcn/ui component library.
 
 - **Legacy Preset Mappings (`LEGACY_PRESET_MAPPINGS`)**:
-  To ensure seamless backward compatibility with previously persisted user configurations, legacy theme/preset names are mapped on read to active presets via `resolveDesignSystem`:
+  To preserve backward compatibility with previously persisted user configurations, 11 historical theme/preset keys are mapped on read to active presets via `resolveAppearancePreset` and `mapLegacyThemeToAppearancePreset`:
   - `'atelier'` ➔ `'neo-brutalism'`
   - `'minimalist'` ➔ `'shadcn-ui'`
   - `'brutalism'` ➔ `'paper-craft'`
@@ -216,28 +260,38 @@ Repository ports in `src/application/ports/` are strictly typed and explicitly i
   - `'swiss-manuscript'` ➔ `'shadcn-ui'`
   - `'solarized-comfort'` ➔ `'neo-brutalism'`
   - `'chalkboard-school'` ➔ `'paper-craft'`
-  *Important*: These keys are legacy compatibility aliases only and are not active selectable presets.
-
-- **Modes**: `'light'`, `'dark'`.
+  *Important*: These 11 keys are read-only compatibility aliases and are not selectable presets.
 
 - **Persistence Precedence & Read Fallback**:
   - **Preset Read Precedence**:
-    1. `profile.designSystemPreference` (from Firestore `users/{uid}`)
-    2. `profile.themePreference` (deprecated legacy read-fallback, mapped via `mapLegacyThemeToDesignSystem`)
-    3. `localStorage.getItem('app_design_system_${uid}')`
-    4. Default: `DEFAULT_SYSTEM` (`'shadcn-ui'`)
+    1. `profile.designSystemPreference` (from Firestore `users/{uid}`, resolved via `resolveAppearancePreset`)
+    2. `profile.themePreference` (deprecated legacy read-fallback, mapped via `mapLegacyThemeToAppearancePreset`)
+    3. `localStorage.getItem('app_design_system_${uid}')` (resolved via `resolveAppearancePreset`)
+    4. Default: `DEFAULT_APPEARANCE_PRESET` (`'shadcn-ui'`)
   - **Mode Read Precedence**:
     1. `profile.designSystemModePreference` (`'light' | 'dark'`)
-    2. `localStorage.getItem('app_design_system_mode_${uid}')`
+    2. `localStorage.getItem('app_design_system_mode_${uid}')` (`'dark'` if `'dark'`, else `'light'`)
     3. Default: `'light'`
   - **Canonical Writes**:
-    `applyAndSavePreset(preset)` writes exclusively to `localStorage app_design_system_${uid}` and `app.appearance.updateDesignSystem(uid, preset)` (persisting to Firestore `users/{uid}.designSystemPreference`). Writes never modify legacy `themePreference`.
-    `applyAndSaveMode(mode)` writes to `localStorage app_design_system_mode_${uid}` and `app.appearance.updateModePreference(uid, mode)`.
+    - `applyAndSavePreset` persists the selected appearance preset to the user-scoped `localStorage` key (`app_design_system_${uid}`) and to `users/{uid}.designSystemPreference` through `app.appearance`. Current writes never update the legacy `themePreference` field.
+    - `applyAndSaveMode` (`setMode` / `toggleMode`) persists the selected color mode to the user-scoped `localStorage` key (`app_design_system_mode_${uid}`) and to `users/{uid}.designSystemModePreference` through `app.appearance`.
 
-- **DOM & CSS Variable Architecture**:
-  - Injects 35 custom properties (`--ds-*`) into `:root` (surfaces, elevated surfaces, borders, text, text-muted, accent colors, semantic status colors, spacing, typography scales, elevation shadows, radii, and transitions).
-  - Manages `data-design-system="<preset>"` attribute and toggles `.dark` class on document root `<html>`.
-  - Mirrors core tokens to legacy CSS variables (`--accent-primary`, `--app-bg`, `--card-bg`, `--text-main`, etc.) for seamless compatibility across existing components.
+- **Compatibility Contracts & Naming Classification**:
+  Persisted/external compatibility contracts are distinguished from internal source-level APIs by their actual role:
+  1. **Canonical but historically named persistence contracts**:
+     - Persisted Firestore fields: `UserProfile.designSystemPreference` (stores active `AppearancePresetKey`) and `UserProfile.designSystemModePreference` (stores active `ColorMode`)
+     - Browser storage keys: `app_design_system_${uid}` and `app_design_system_mode_${uid}` (per-user `localStorage` keys)
+  2. **Explicit legacy compatibility fields & bridges**:
+     - `UserProfile.themePreference` (read-only fallback field for pre-v2.3.0 user profiles; never written)
+     - `LEGACY_PRESET_MAPPINGS` and `mapLegacyThemeToAppearancePreset` (one-way legacy preset/theme resolver)
+     - Legacy CSS custom properties (`--accent-primary`, `--accent-primary-text`, `--app-bg`, `--card-bg`, `--card-border`, `--text-main`, `--text-muted`) mirrored by `applyAppearanceToDom` for legacy component and print compatibility
+  3. **Stable DOM & CSS contracts**:
+     - `--ds-*` (35 CSS custom properties injected on `:root` representing the foundational DADU Design System token namespace)
+     - `data-design-system="<preset>"` (attribute on `<html>` targeted by preset-specific selector rules in `src/index.css`)
+     - `.dark` (class toggled on `<html>` when `mode === 'dark'`, driving Tailwind v4 `@custom-variant dark`)
+     - Canonical preset identifiers (`'paper-craft'`, `'shadcn-ui'`, `'neo-brutalism'`)
+  4. **Internal historically named source APIs**:
+     - `app.appearance.updateDesignSystem(...)` and `userRepository.updateDesignSystem(...)` are internal TypeScript APIs whose names retain historical terminology. They were intentionally left unchanged during Stage A (documentation-only) and may be candidates for future source-level alignment without requiring Firestore data migration, provided the underlying persisted field remains `designSystemPreference`.
 
 - **Print / Document Visual Isolation**:
   - Containers marked with `.printable-document`, `.print-sheet`, `#printable-progress-report` (and their descendants) isolate printed official reports from active visual presets:
@@ -247,8 +301,9 @@ Repository ports in `src/application/ports/` are strictly typed and explicitly i
     - Strips all design system shadow and border radius artifacts: `box-shadow: none !important`, `text-shadow: none !important`, `border-radius: 0 !important`
   - Guarantees formal madrasah reports (rapor, legger, student ID cards) render cleanly regardless of the user's active preset or dark mode.
 
-- **Legacy Theme Architecture Purged**:
-  The obsolete theme architecture (`ThemeContext`, `ThemeProvider`, `ThemeKey`, `ThemeOption`, `THEME_OPTIONS`, `useAppTheme`, `useOptionalAppTheme`, `AppearanceContext`, `activeSystem`, `setSystem`) has been completely removed. Features consume `useDesignSystem()` and `app.appearance`.
+- **Active Runtime Context vs. Legacy Theme Scope**:
+  - Features consume `useAppearance()` from `src/context/AppearanceContext.tsx` and persistence operations on `app.appearance`. Earlier theme/system context symbols (`ThemeContext`, `ThemeProvider`, `useAppTheme`, `DesignSystemContext`, `DesignSystemProvider`, `useDesignSystem`, `activeSystem`, `setSystem`) are not part of the runtime architecture.
+  - The term `theme` is deprecated only as active DADU appearance architecture vocabulary. Valid remaining uses include explicit legacy compatibility boundaries (`UserProfile.themePreference`, `mapLegacyThemeToAppearancePreset(...)`, legacy compatibility tests) and unrelated standards/platform terminology such as `<meta name="theme-color">`.
 
 ---
 
@@ -266,7 +321,7 @@ ErrorBoundary (Root, isRoot)
     └── AppShell
         └── ApplicationProvider (app={container.app})
             └── AuthProvider
-                └── DesignSystemProvider
+                └── AppearanceProvider
                     └── ToastProvider
                         └── MainApp
                             ├── publicShareToken? (URL /share/:token or ?share=:token) → PublicReportViewerPage (isolated, lightweight)
@@ -371,7 +426,7 @@ All operational data lives under `/users/{userId}/` (workspace isolation):
 > - `AcademicYear`: `label` is canonical (`AcademicYear.name` is obsolete and purged).
 > - `AttendanceSummary`: `permitted` is canonical (`permit` is an optional legacy alias retained for read compatibility).
 > - `SchoolSettings`: `schoolLogoUrl` is canonical (`logoUrl` is an optional legacy alias retained for read compatibility).
-> - `UserProfile`: `designSystemPreference` is canonical (`themePreference` is a deprecated read-only fallback).
+> - `UserProfile`: `designSystemPreference` (persisted `AppearancePresetKey`) and `designSystemModePreference` (persisted `ColorMode`) are canonical persisted fields; `themePreference` is a deprecated read-only fallback.
 
 Top-level collections (NOT under `/users/{userId}/`):
 

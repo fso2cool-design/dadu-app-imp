@@ -85,8 +85,9 @@ dadu-app-imp/
 │   ├── application/             # Application Layer (ApplicationOperations, use-cases, repository ports)
 │   ├── domain/                  # Pure Domain policies & types (periodPolicy, attendancePolicy, dll.)
 │   ├── infrastructure/          # Infrastructure Layer (Firestore repository adapters)
-│   ├── components/              # Komponen UI bersama (AppLayout, ErrorBoundary, Modal, dll.)
-│   ├── context/                 # React Contexts (WorkspaceContext, DesignSystemContext, ToastContext)
+│   ├── components/              # Komponen UI bersama (AppLayout, ErrorBoundary, Modal, ui/, dll.)
+│   ├── context/                 # React Contexts (WorkspaceContext, AppearanceContext, ToastContext)
+│   ├── design-system/           # Kontrak design token & konfigurasi preset tampilan (tokens.ts)
 │   ├── features/                # Modul fitur berbasis domain (auth, teacher, homeroom, reports, dll.)
 │   ├── routes/                  # Definisi rute, mapping path, dan bidirectional adapter
 │   ├── services/
