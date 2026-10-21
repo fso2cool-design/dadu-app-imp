@@ -660,30 +660,40 @@ export async function deleteMeeting(uid: string, id: string): Promise<void> {
       if (!freshSnap.exists()) return;
       const freshData = freshSnap.data() as Meeting;
 
+      let slotRef: any = null;
+      let shouldDeleteSlot = false;
       if (freshData.teachingAssignmentId && freshData.semester && freshData.meetingNumber) {
         const slotId = getMeetingSlotId(freshData.teachingAssignmentId, freshData.semester, freshData.meetingNumber);
-        const slotRef = doc(db, 'users', uid, 'meetingSlots', slotId);
+        slotRef = doc(db, 'users', uid, 'meetingSlots', slotId);
         const slotSnap = await transaction.get(slotRef);
         if (slotSnap.exists()) {
           const slotData = slotSnap.data() as any;
           if (slotData?.meetingId === id) {
-            transaction.delete(slotRef);
+            shouldDeleteSlot = true;
           }
         }
       }
 
+      let dateSlotRef: any = null;
+      let shouldDeleteDateSlot = false;
       if (freshData.teachingAssignmentId && freshData.semester && freshData.date) {
         const dateSlotId = getMeetingDateSlotId(freshData.teachingAssignmentId, freshData.semester, freshData.date);
-        const dateSlotRef = doc(db, 'users', uid, 'meetingDateSlots', dateSlotId);
+        dateSlotRef = doc(db, 'users', uid, 'meetingDateSlots', dateSlotId);
         const dateSlotSnap = await transaction.get(dateSlotRef);
         if (dateSlotSnap.exists()) {
           const slotData = dateSlotSnap.data() as any;
           if (slotData?.meetingId === id) {
-            transaction.delete(dateSlotRef);
+            shouldDeleteDateSlot = true;
           }
         }
       }
 
+      if (shouldDeleteSlot && slotRef) {
+        transaction.delete(slotRef);
+      }
+      if (shouldDeleteDateSlot && dateSlotRef) {
+        transaction.delete(dateSlotRef);
+      }
       transaction.delete(docRef);
     });
   })(), {

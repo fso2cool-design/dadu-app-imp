@@ -153,8 +153,12 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
     });
 
     mockRunTransaction.mockImplementation(async (_db: any, cb: any) => {
+      let hasMutated = false;
       const tx = {
         get: vi.fn().mockImplementation(async (ref: any) => {
+          if (hasMutated) {
+            throw new Error('FirebaseError: Firestore transactions require all reads to be executed before all writes.');
+          }
           const data = docsStore.get(ref.path);
           return {
             exists: () => data !== undefined,
@@ -162,15 +166,18 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
           };
         }),
         set: vi.fn().mockImplementation((ref: any, data: any) => {
+          hasMutated = true;
           docsStore.set(ref.path, data);
         }),
         update: vi.fn().mockImplementation((ref: any, data: any) => {
+          hasMutated = true;
           const existing = docsStore.get(ref.path) || {};
           const merged = { ...existing, ...data };
           docsStore.set(ref.path, merged);
           mockUpdateDoc(ref, data);
         }),
         delete: vi.fn().mockImplementation((ref: any) => {
+          hasMutated = true;
           docsStore.delete(ref.path);
         }),
       };
@@ -329,6 +336,26 @@ describe('Meeting Identity, Number Reservation & Correction Service Tests', () =
       // Meeting deleted and slot 5 released
       expect(docsStore.has(`users/${uid}/meetings/${meetingId}`)).toBe(false);
       expect(docsStore.has(`users/${uid}/meetingSlots/slot_ta-1_GANJIL_5`)).toBe(false);
+    });
+
+    it('9b. Deletion atomically releases both meeting slot and date slot with strictly ordered reads before writes', async () => {
+      const dateSlotId = getMeetingDateSlotId('ta-1', 'GANJIL', '2026-10-10');
+      docsStore.set(`users/${uid}/meetingDateSlots/${dateSlotId}`, {
+        meetingId,
+        teachingAssignmentId: 'ta-1',
+        semester: 'GANJIL',
+        date: '2026-10-10',
+      });
+
+      expect(docsStore.has(`users/${uid}/meetingSlots/slot_ta-1_GANJIL_5`)).toBe(true);
+      expect(docsStore.has(`users/${uid}/meetingDateSlots/${dateSlotId}`)).toBe(true);
+
+      await deleteMeeting(uid, meetingId);
+
+      // Meeting deleted and both slots released without triggering read-after-write transaction error
+      expect(docsStore.has(`users/${uid}/meetings/${meetingId}`)).toBe(false);
+      expect(docsStore.has(`users/${uid}/meetingSlots/slot_ta-1_GANJIL_5`)).toBe(false);
+      expect(docsStore.has(`users/${uid}/meetingDateSlots/${dateSlotId}`)).toBe(false);
     });
 
     it('10. Safe Meeting field updates continue to work without touching slots', async () => {
