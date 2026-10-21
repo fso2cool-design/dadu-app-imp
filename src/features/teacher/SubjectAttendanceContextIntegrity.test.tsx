@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { getTodayISO } from '../../utils/date';
 import {
   SubjectAttendancePage,
   clearSubjectAttendanceCaches,
@@ -157,6 +158,7 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getTodayISO).mockReturnValue('2026-10-10');
     clearSubjectAttendanceCaches();
     currentWorkspaceAssignment = null;
 
@@ -207,6 +209,40 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
   const getMeetingSelect = async () => {
     const label = await screen.findByText(/Tautkan ke Jurnal:/i);
     return label.parentElement?.querySelector('select') as HTMLSelectElement;
+  };
+
+  const getDateInput = async () => {
+    const label = await screen.findByText(/Tanggal:/i);
+    return (label.parentElement?.querySelector('input[type="date"]') || label.nextElementSibling) as HTMLInputElement;
+  };
+
+  const renderPageWithRouter = (initialContext?: any, initialLocationState?: any) => {
+    let capturedRouter: any = null;
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/teacher/attendance',
+          element: (
+            <ToastProvider>
+              <ApplicationProvider app={mockApp}>
+                <SubjectAttendancePage initialContext={initialContext} />
+              </ApplicationProvider>
+            </ToastProvider>
+          ),
+        },
+      ],
+      {
+        initialEntries: [
+          {
+            pathname: '/teacher/attendance',
+            state: initialLocationState,
+          },
+        ],
+      }
+    );
+    capturedRouter = router;
+    const utils = render(<RouterProvider router={router} />);
+    return { ...utils, router: capturedRouter };
   };
 
   it('Req 4: Valid explicit route assignment takes precedence over first assignment', async () => {
@@ -694,8 +730,8 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       });
       await screen.findByText('Ahmad Dahlan');
 
-      // For fresh unedited session, meeting A remains the initial suggested meeting for assignment A
-      expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      // Per TC-PRES-CTX-03: Switching assignments clears stale meeting selection; meeting does not resurrect
+      expect(meetingSelect).toHaveValue('');
       expect(screen.queryByText(/tidak ditemukan pada penugasan ini/i)).not.toBeInTheDocument();
 
       // Mark Ahmad Dahlan and save
@@ -711,7 +747,7 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
           'teacher-uid',
           expect.objectContaining({
             teachingAssignmentId: 'asg-1',
-            meetingId: 'mtg-asg1-1',
+            meetingId: null,
           })
         );
       });
@@ -977,6 +1013,140 @@ describe('SubjectAttendance Context Integrity & Safety (Reqs 4-13)', () => {
       });
       expect(select).toHaveValue('asg-1');
       expect(screen.getByText('Ahmad Dahlan')).toBeInTheDocument();
+    });
+  });
+
+  describe('Priority 2: Stale Navigation Context Resolution (TC-PRES-CTX-01 to 05)', () => {
+    it('TC-PRES-CTX-01 — Reset date after assignment switch', async () => {
+      vi.mocked(getTodayISO).mockReturnValue('2099-01-15');
+      // 1. Presensi dibuka dengan explicit navigation context untuk asg-1 dengan tanggal lama
+      renderPage({
+        assignmentId: 'asg-1',
+        meetingId: 'mtg-asg1-1',
+        date: '2026-03-15',
+      });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+      const dateInput = await getDateInput();
+
+      expect(assignmentSelect).toHaveValue('asg-1');
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+        expect(dateInput).toHaveValue('2026-03-15');
+      });
+
+      // 2. User mengganti assignment ke asg-2
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+
+      // 3. Ekspektasi:
+      // - selectedAssignmentId menjadi asg-2
+      // - selectedMeetingId tidak lagi menunjuk meeting asg-1
+      // - tanggal aktif di-reset ke getTodayISO() ('2099-01-15')
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('');
+        expect(dateInput).toHaveValue('2099-01-15');
+      });
+    });
+
+    it('TC-PRES-CTX-02 — Explicit navigation state is consumed once', async () => {
+      const { router } = renderPageWithRouter(
+        undefined,
+        {
+          assignmentId: 'asg-1',
+          meetingId: 'mtg-asg1-1',
+          date: '2026-03-15',
+        }
+      );
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+      const dateInput = await getDateInput();
+
+      expect(assignmentSelect).toHaveValue('asg-1');
+      expect(dateInput).toHaveValue('2026-03-15');
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+
+      // After initial consumption, router state must be cleared via replace navigation
+      await waitFor(() => {
+        expect(router.state.location.state).toBeFalsy();
+        expect(router.state.historyAction).toBe('REPLACE');
+      });
+    });
+
+    it('TC-PRES-CTX-03 — Stale meeting does not resurrect', async () => {
+      // 1. Masuk dengan explicit meeting milik asg-1
+      renderPage({
+        assignmentId: 'asg-1',
+        meetingId: 'mtg-asg1-1',
+        date: '2026-10-10',
+      });
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-1');
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+
+      // 2. Switch ke asg-2
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-2' } });
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-2');
+        expect(meetingSelect).toHaveValue('');
+      });
+
+      // 3. Switch kembali ke asg-1
+      fireEvent.change(assignmentSelect, { target: { value: 'asg-1' } });
+      await waitFor(() => {
+        expect(assignmentSelect).toHaveValue('asg-1');
+      });
+
+      // mtg-asg1-1 tidak boleh otomatis terpilih kembali
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('');
+      });
+    });
+
+    it('TC-PRES-CTX-04 — Initial explicit navigation remains valid', async () => {
+      const { router } = renderPageWithRouter(
+        undefined,
+        {
+          assignmentId: 'asg-1',
+          meetingId: 'mtg-asg1-1',
+          date: '2026-10-10',
+        }
+      );
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+      const dateInput = await getDateInput();
+
+      expect(assignmentSelect).toHaveValue('asg-1');
+      expect(dateInput).toHaveValue('2026-10-10');
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('mtg-asg1-1');
+      });
+      expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+    });
+
+    it('TC-PRES-CTX-05 — Navigation without explicit state remains unchanged', async () => {
+      const { router } = renderPageWithRouter(undefined, undefined);
+
+      const assignmentSelect = await getAssignmentSelect();
+      const meetingSelect = await getMeetingSelect();
+      const dateInput = await getDateInput();
+
+      expect(assignmentSelect).toHaveValue('asg-1');
+      expect(dateInput).toHaveValue('2026-10-10');
+      await waitFor(() => {
+        expect(meetingSelect).toHaveValue('');
+      });
+      expect(router.state.historyAction).toBe('POP');
     });
   });
 });

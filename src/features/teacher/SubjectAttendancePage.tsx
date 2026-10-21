@@ -1,4 +1,4 @@
-﻿import { useLocation, useBlocker, UNSAFE_DataRouterContext, type Blocker } from 'react-router-dom';
+﻿import { useLocation, useNavigate, useBlocker, UNSAFE_DataRouterContext, type Blocker } from 'react-router-dom';
 import React, { useState, useEffect, useMemo, useRef, useImperativeHandle } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -288,6 +288,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   ref
 ) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const navContext = initialContext || (location.state as any);
   const [contextError, setContextError] = useState<string | null>(null);
   const [rosterError, setRosterError] = useState<string | null>(null);
@@ -367,6 +368,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
   const persistentMeetingRef = useRef<string | null>(null);
   const prevWorkspaceAssignmentIdRef = useRef<string | undefined>(selectedAssignment?.id);
   const consumedExplicitIdRef = useRef<string | null>(null);
+  const isNavContextConsumedRef = useRef(false);
   const [isDirty, _setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
   const setIsDirty = (val: boolean) => {
@@ -464,6 +466,10 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         setSelectedAssignmentId(explicitId);
         if (navContext.date) setSelectedDate(navContext.date);
         if (navContext.meetingId) setSelectedMeetingId(navContext.meetingId);
+        if (location.state && Object.keys(location.state).length > 0) {
+          const targetPath = `${location.pathname}${location.search}${location.hash}`;
+          navigate(targetPath, { replace: true, state: undefined });
+        }
         return;
       }
 
@@ -483,7 +489,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     }
 
     // A. Explicit navigation intent arriving or changing while mounted
-    if (explicitId && explicitId !== consumedExplicitIdRef.current) {
+    if (!isNavContextConsumedRef.current && explicitId && explicitId !== consumedExplicitIdRef.current) {
       consumedExplicitIdRef.current = explicitId;
       const found = teachingAssignments.find(t => t.id === explicitId);
       if (found && isAssignmentForSemester(found, activeAcademicYear?.id, activeSemester)) {
@@ -496,6 +502,12 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setSelectedMeetingId(navContext?.meetingId || '');
           if (navContext?.date) setSelectedDate(navContext.date);
           prevWorkspaceAssignmentIdRef.current = workspaceId;
+          initialAssignmentIdRef.current = explicitId;
+          isNavContextConsumedRef.current = false;
+          if (location.state && Object.keys(location.state).length > 0) {
+            const targetPath = `${location.pathname}${location.search}${location.hash}`;
+            navigate(targetPath, { replace: true, state: undefined });
+          }
         }
         return;
       }
@@ -512,6 +524,9 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setContextError(null);
           setSelectedAssignmentId(workspaceId);
           setSelectedMeetingId('');
+          setSelectedDate(getTodayISO());
+          isNavContextConsumedRef.current = true;
+          initialAssignmentIdRef.current = workspaceId;
         }
         return;
       }
@@ -579,6 +594,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         subjectMeetingsCache.set(meetingsKey, data);
         setMeetings(data);
         const isNavContextForActiveAssignment = Boolean(
+          !isNavContextConsumedRef.current &&
           navContext?.meetingId &&
           (navContext.assignmentId
             ? navContext.assignmentId === selectedAssignmentId
@@ -683,6 +699,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
           setIsDirty(false);
         } else {
           const isMatchingNavContext = Boolean(
+            !isNavContextConsumedRef.current &&
             navContext?.meetingId &&
             (navContext.assignmentId
               ? navContext.assignmentId === currentAssignment.id
@@ -776,6 +793,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
         } else {
           // Kondisi 1: Sesi belum memiliki rekaman persisten
           const isMatchingNavContext = Boolean(
+            !isNavContextConsumedRef.current &&
             navContext?.meetingId &&
             (navContext.assignmentId
               ? navContext.assignmentId === currentAssignment.id
@@ -1190,17 +1208,24 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     }
   };
 
+  const applyAssignmentSwitch = (targetAssignmentId: string) => {
+    setContextError(null);
+    setSelectedAssignmentId(targetAssignmentId);
+    setSelectedMeetingId('');
+    setSelectedDate(getTodayISO());
+    isNavContextConsumedRef.current = true;
+    initialAssignmentIdRef.current = targetAssignmentId;
+    const found = teachingAssignments.find(t => t.id === targetAssignmentId);
+    if (found) setSelectedAssignment?.(found);
+  };
+
   const handleAssignmentChange = (targetAssignmentId: string) => {
     if (targetAssignmentId === selectedAssignmentId) return;
     if (hasUnsavedChanges) {
       setPendingAction({ type: 'assignment', targetValue: targetAssignmentId });
       setIsDirtyModalOpen(true);
     } else {
-      setContextError(null);
-      setSelectedAssignmentId(targetAssignmentId);
-      setSelectedMeetingId('');
-      const found = teachingAssignments.find(t => t.id === targetAssignmentId);
-      if (found) setSelectedAssignment?.(found);
+      applyAssignmentSwitch(targetAssignmentId);
     }
   };
 
@@ -1288,11 +1313,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
       if (pendingAction && pendingAction.type !== 'browser-navigation') {
         if (pendingAction.type === 'assignment') {
           const nextAssignId = pendingAction.targetValue || '';
-          setContextError(null);
-          setSelectedAssignmentId(nextAssignId);
-          setSelectedMeetingId('');
-          const found = teachingAssignments.find(t => t.id === nextAssignId);
-          if (found) setSelectedAssignment?.(found);
+          applyAssignmentSwitch(nextAssignId);
         }
         else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
         else if (pendingAction.type === 'meeting') {
@@ -1347,11 +1368,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
     if (pendingAction && pendingAction.type !== 'browser-navigation') {
       if (pendingAction.type === 'assignment') {
         const nextAssignId = pendingAction.targetValue || '';
-        setContextError(null);
-        setSelectedAssignmentId(nextAssignId);
-        setSelectedMeetingId('');
-        const found = teachingAssignments.find(t => t.id === nextAssignId);
-        if (found) setSelectedAssignment?.(found);
+        applyAssignmentSwitch(nextAssignId);
       }
       else if (pendingAction.type === 'date') setSelectedDate(pendingAction.targetValue || '');
       else if (pendingAction.type === 'meeting') {
