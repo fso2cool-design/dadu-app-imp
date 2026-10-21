@@ -1370,4 +1370,128 @@ describe('Firestore Security Rules — SEC-01 & SEC-02 Compliance Suite', () => 
     });
   });
 
+  // =========================================================================
+  // RULES-ENROLLMENT-01: ENROLLMENT STATUS & IMMUTABILITY INVARIANTS
+  // =========================================================================
+  describe('RULES-ENROLLMENT-01: Enrollment Status & Immutability Invariants', () => {
+    const validEnrollment = {
+      academicYearId: 'ay-2026',
+      classId: 'class-10a',
+      studentId: 'student-001',
+      rollNumber: 1,
+      status: 'ACTIVE',
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+
+    it('TC-ENR-01: allows authorized teacher to update enrollment status to INACTIVE', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-inactive-01'), validEnrollment);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-inactive-01');
+      await assertSucceeds(updateDoc(ref, {
+        status: 'INACTIVE',
+        updatedAt: Timestamp.now(),
+      }));
+    });
+
+    it('TC-ENR-02: rejects updating enrollment status to an invalid status', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-invalid-01'), validEnrollment);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-invalid-01');
+      await assertFails(updateDoc(ref, {
+        status: 'SUSPENDED',
+        updatedAt: Timestamp.now(),
+      }));
+      await assertFails(updateDoc(ref, {
+        status: 'WITHDRAWN',
+        updatedAt: Timestamp.now(),
+      }));
+    });
+
+    it('TC-ENR-03: rejects updating to INACTIVE if protected immutable fields are modified', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-tamper-01'), validEnrollment);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-tamper-01');
+
+      // Tampering academicYearId
+      await assertFails(updateDoc(ref, {
+        status: 'INACTIVE',
+        academicYearId: 'ay-tampered',
+      }));
+
+      // Tampering classId
+      await assertFails(updateDoc(ref, {
+        status: 'INACTIVE',
+        classId: 'class-tampered',
+      }));
+
+      // Tampering studentId without governed relink exception
+      await assertFails(updateDoc(ref, {
+        status: 'INACTIVE',
+        studentId: 'student-tampered',
+      }));
+    });
+
+    it('TC-ENR-04: rejects status update to INACTIVE by unauthenticated client or other teacher', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-tenant-01'), validEnrollment);
+      });
+
+      // Unauthenticated
+      const unauthDb = testEnv.unauthenticatedContext().firestore();
+      const unauthRef = doc(unauthDb, 'users', TEACHER_UID, 'enrollments', 'enr-tenant-01');
+      await assertFails(updateDoc(unauthRef, { status: 'INACTIVE' }));
+
+      // Other teacher (cross-tenant boundary)
+      const otherDb = testEnv.authenticatedContext(OTHER_TEACHER_UID).firestore();
+      const otherRef = doc(otherDb, 'users', TEACHER_UID, 'enrollments', 'enr-tenant-01');
+      await assertFails(updateDoc(otherRef, { status: 'INACTIVE' }));
+    });
+
+    it('TC-ENR-05: allows updating enrollment to other canonical and supported statuses', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-status-01'), validEnrollment);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-status-01');
+
+      await assertSucceeds(updateDoc(ref, { status: 'TRANSFERRED' }));
+      await assertSucceeds(updateDoc(ref, { status: 'GRADUATED' }));
+      await assertSucceeds(updateDoc(ref, { status: 'DROPOUT' }));
+      await assertSucceeds(updateDoc(ref, { status: 'ARCHIVED' }));
+    });
+
+    it('TC-ENR-06: allows governed re-link exception with relinkedAt while setting status to INACTIVE', async () => {
+      await testEnv.withSecurityRulesDisabled(async (adminContext) => {
+        const db = adminContext.firestore();
+        await setDoc(doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-relink-01'), validEnrollment);
+      });
+
+      const db = testEnv.authenticatedContext(TEACHER_UID).firestore();
+      const ref = doc(db, 'users', TEACHER_UID, 'enrollments', 'enr-relink-01');
+
+      await assertSucceeds(updateDoc(ref, {
+        studentId: 'student-002',
+        relinkedAt: Timestamp.now(),
+        relinkReason: 'Perbaikan identitas siswa mutasi',
+        status: 'INACTIVE',
+      }));
+    });
+  });
+
 });

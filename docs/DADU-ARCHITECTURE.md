@@ -313,7 +313,7 @@ The application uses **React Router v7** (`react-router-dom`) with URL-driven na
 
 ### 4.1 Route Hierarchy & Page Resolution
 
-Inside [`src/App.tsx`](src/App.tsx):
+Inside [`src/App.tsx`](../src/App.tsx):
 
 ```text
 ErrorBoundary (Root, isRoot)
@@ -353,7 +353,7 @@ ErrorBoundary (Root, isRoot)
 
 ### 4.2 Backward Compatibility with `paths.ts`
 
-To maintain seamless interoperability with legacy internal navigation callbacks (`onNavigate(routeKey, state)`), [`src/routes/paths.ts`](src/routes/paths.ts) provides a bidirectional adapter:
+To maintain seamless interoperability with legacy internal navigation callbacks (`onNavigate(routeKey, state)`), [`src/routes/paths.ts`](../src/routes/paths.ts) provides a bidirectional adapter:
 - **`ROUTE_PATH_MAP`**: Dictionary mapping legacy route keys (e.g., `'dashboard'`, `'teacher'`, `'homeroom'`, `'reports'`, `'master'`, `'settings'`, `'admin'`, `'login'`) to canonical URL paths.
 - **`resolveRoutePath(routeKey)`**: Maps route keys or legacy identifiers to canonical browser paths (e.g., `'dashboard'` ➔ `'/dashboard'`, `'teacher/meetings'` ➔ `'/teacher'`).
 - **`resolvePathToRouteKey(pathname)`**: Maps browser URL path back to active tab identifier for Sidebar and Header active states.

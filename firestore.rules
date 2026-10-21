@@ -94,7 +94,7 @@ service cloud.firestore {
               || (resource.data.academicYearId == request.resource.data.academicYearId
                   && resource.data.classId == request.resource.data.classId
                   && (resource.data.studentId == request.resource.data.studentId || ('relinkedAt' in request.resource.data))))
-          && (!('status' in request.resource.data) || request.resource.data.status in ['ACTIVE', 'TRANSFERRED', 'GRADUATED', 'DROPOUT', 'ARCHIVED']);
+          && (!('status' in request.resource.data) || request.resource.data.status in ['ACTIVE', 'INACTIVE', 'TRANSFERRED', 'GRADUATED', 'DROPOUT', 'ARCHIVED']);
       }
 
       match /scores/{scoreId} {

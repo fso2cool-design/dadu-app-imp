@@ -143,7 +143,7 @@ Sesuaikan nilai variabel dengan kredensial Firebase proyek Anda (lihat bagian [K
 ```bash
 npm run dev
 ```
-Aplikasi akan berjalan di `http://localhost:5173`.
+Aplikasi akan berjalan di `http://localhost:3000`.
 
 ---
 
@@ -168,28 +168,56 @@ Daftar environment variable yang didukung:
 
 ## 📜 Daftar Perintah (NPM Scripts)
 
+### Gerbang Kualitas CI (Wajib Lulus)
+
+Dijalankan secara berurutan pada GitHub Actions Workflow (`.github/workflows/ci.yml`) dan script agregasi `npm run ci`:
+
 | Perintah | Deskripsi |
 |---|---|
-| `npm run dev` | Menjalankan server lokal Vite dengan HMR aktif. |
-| `npm run build` | Melakukan kompilasi TypeScript dan bundling Vite ke direktori `dist/`. |
-| `npm run preview` | Menjalankan preview lokal dari bundle produksi `dist/`. |
-| `npm test` | Menjalankan seluruh unit test menggunakan Vitest dalam mode sekali jalan (*CI mode*). |
+| `npm run lint` | **Gerbang 1**: Menjalankan Biome linter pada seluruh kode sumber `src/` (`--diagnostic-level=error`). |
+| `npm run type-check` | **Gerbang 2**: Validasi tipe TypeScript murni tanpa menghasilkan file output (`tsc --noEmit`). |
+| `npm run check:boundaries` | **Gerbang 3**: Memvalidasi batasan arsitektur modul dan layer menggunakan `dependency-cruiser`. |
+| `npm test` | **Gerbang 4**: Menjalankan seluruh unit & component test di bawah `src/` menggunakan Vitest (`vitest run`). |
+| `npm run build` | **Gerbang 5**: Membangun bundle produksi menggunakan Vite ke direktori `dist/` (pemeriksaan tipe TypeScript dilakukan terpisah melalui `npm run type-check`). |
+| `npm run ci` | Menjalankan seluruh 5 gerbang kualitas CI secara berurutan. |
+
+### Pengujian Tambahan & Lingkungan Khusus
+
+| Perintah | Deskripsi | Lingkungan / Prasyarat |
+|---|---|---|
+| `npm run check` | Validasi komposit cepat: `type-check` + `lint` + `check:boundaries`. | Mandiri (tanpa emulator) |
+| `npm run test:rules` | Pengujian unit Firestore Security Rules (`vitest.rules.config.ts`). | Memerlukan Firebase Emulator Suite |
+| `npm run test:e2e` | Pengujian End-to-End browser menggunakan Playwright. | Memerlukan Firebase Emulator Suite |
+
+### Perintah Pengembangan & Utilitas
+
+| Perintah | Deskripsi |
+|---|---|
+| `npm run dev` | Menjalankan server lokal Vite (`http://localhost:3000`) dengan HMR aktif. |
 | `npm run test:watch` | Menjalankan Vitest dalam mode interaktif *watch* otomatis saat file diubah. |
 | `npm run test:coverage` | Menjalankan tes dan menghasilkan laporan cakupan kode (*code coverage report*). |
-| `npm run lint` | Menjalankan pemeriksaan Biome linter pada seluruh kode sumber `src/`. |
-| `npm run type-check` | Menjalankan validasi tipe TypeScript murni tanpa menghasilkan file output (`tsc --noEmit`). |
-| `npm run ci` | Menjalankan seluruh gerbang kualitas secara berurutan: `lint` ➔ `type-check` ➔ `test` ➔ `build`. |
+| `npm run preview` | Menjalankan preview lokal dari bundle produksi `dist/`. |
+| `npm run lint:fix` | Menjalankan Biome linter dengan perbaikan otomatis (*auto-fix*) pada file `src/`. |
+| `npm run format` | Menjalankan pemformatan kode sumber `src/` menggunakan Biome formatter. |
+| `npm run clean` | Menghapus direktori artefak build (`dist/`, `server.js`). |
 
 ---
 
 ## 🧪 Alur Pengujian & CI/CD
 
-Proyek ini menerapkan standar mutu tinggi melalui 4 gerbang kualitas otomatis (*Quality Gates*):
+Proyek ini menerapkan standar mutu tinggi melalui 5 gerbang kualitas otomatis (*Quality Gates*) yang dijalankan pada alur integrasi berkelanjutan (`.github/workflows/ci.yml`) maupun script agregasi lokal (`npm run ci`):
 
-1. **Linting Cepat**: Biome memeriksa kepatuhan sintaksis dan best practice dalam waktu < 400ms.
-2. **Type Safety**: TypeScript compiler memastikan tidak ada *type mismatches* atau *implicit any*.
-3. **Unit & Component Testing**: Vitest menjalankan 21 test suites (111+ skenario pengujian) mencakup utilitas, cryptography, routing adapter, auth context, dan error boundary.
-4. **Bundle Verification**: Vite memastikan kompilasi bundle bersih tanpa warning batas ukuran chunk.
+1. **Linting Cepat (`npm run lint`)**: Biome memeriksa kepatuhan sintaksis, pemformatan, dan *clean code* pada seluruh file di bawah `src/` (`--diagnostic-level=error`).
+2. **Type Safety (`npm run type-check`)**: TypeScript compiler (`tsc --noEmit`) memastikan validasi tipe data murni tanpa *type mismatch* atau *implicit any*.
+3. **Boundary Constraints (`npm run check:boundaries`)**: `dependency-cruiser` memverifikasi kepatuhan batasan modular (`.dependency-cruiser.cjs`) agar dependensi antar layer tetap sesuai prinsip Clean Architecture.
+4. **Unit & Component Testing (`npm test`)**: Vitest mengeksekusi seluruh file pengujian unit dan komponen di bawah `src/` (`src/**/*.{test,spec}.{ts,tsx}`) dalam mode sekali jalan (*run-to-completion*).
+5. **Bundle Verification (`npm run build`)**: Membangun bundle produksi menggunakan Vite ke direktori `dist/` (pemeriksaan tipe TypeScript dilakukan secara terpisah melalui `npm run type-check`); status keberhasilan serta ada tidaknya warning atau batasan ukuran chunk dievaluasi langsung dari output build aktual.
+
+### Klasifikasi Tingkat Pengujian
+
+- **Pengujian Lokal Cepat (`npm test`)**: Dijalankan secara mandiri dalam lingkungan simulasi JSDOM tanpa memerlukan emulator Firebase. Digunakan pada siklus harian dan gerbang CI.
+- **Pengujian Keamanan Aturan (`npm run test:rules`)**: Pengujian unit untuk memvalidasi aturan keamanan Cloud Firestore (`firestore.rules`). Membutuhkan Firebase Emulator Suite aktif (`demo-test`).
+- **Pengujian End-to-End (`npm run test:e2e`)**: Pengujian alur fungsional antarmuka penuh berbasis Playwright. Membutuhkan Firebase Emulator Suite aktif (`demo-test`).
 
 Sebelum melakukan commit atau push ke GitHub, pastikan Anda menjalankan perintah:
 ```bash
