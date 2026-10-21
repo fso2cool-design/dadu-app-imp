@@ -664,7 +664,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => onNavigate('master-teaching')}
-            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
+            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
           >
             Atur Jadwal <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -681,9 +681,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <CheckCircle className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-[var(--ds-text)]">
+              <h3 className="text-xs font-bold text-[var(--ds-text)]">
                 Tidak Ada Jadwal Mengajar Hari Ini
-              </h4>
+              </h3>
               <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5">
                 Bebas jam tatap muka hari ini. Anda dapat fokus menyelesaikan administrasi, rekap nilai, dan kelengkapan jurnal mengajar.
               </p>
@@ -829,9 +829,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-800/40 flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <div>
-              <h4 className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+              <h3 className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
                 Kerja Bagus! Semua Administrasi Lengkap
-              </h4>
+              </h3>
               <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5">
                 Tidak ada presensi tertunda atau kolom penilaian yang belum lengkap untuk saat ini.
               </p>
@@ -851,9 +851,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     ) : (
                       <WarningCircle className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
                     )}
-                    <h4 className="text-xs font-bold text-[var(--ds-text)] truncate">
+                    <h3 className="text-xs font-bold text-[var(--ds-text)] truncate">
                       {task.title}
-                    </h4>
+                    </h3>
                   </div>
                   <p className="text-[11px] font-medium text-[var(--ds-text-muted)] mt-0.5 truncate">
                     {task.desc}
@@ -1055,7 +1055,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('teaching')}
-              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer pl-1"
+              className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 cursor-pointer pl-1"
             >
               Kelola <ArrowRight className="w-3.5 h-3.5" />
             </button>
