@@ -23,7 +23,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
   outline:
     'bg-transparent text-[var(--ds-text)] border-[var(--ds-border)] hover:bg-[var(--ds-accent-soft)]',
   ghost: 'bg-transparent text-[var(--ds-text)] border-transparent hover:bg-[var(--ds-accent-soft)]',
-  danger: 'bg-[var(--ds-danger-bg)] text-[var(--ds-danger-fg)] border-[var(--ds-danger-fg)]',
+  danger: 'bg-[var(--ds-danger-bg)] text-[var(--ds-danger-fg)] border-[var(--ds-border)]',
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {
@@ -67,7 +67,7 @@ export function Button({
         boxShadow: variant === 'ghost' ? 'none' : 'var(--ds-elevation-sm)',
         fontFamily: 'var(--ds-font-sans)',
         transition:
-          'background-color var(--ds-transition-fast), box-shadow var(--ds-transition-fast)',
+          'background-color var(--ds-transition-fast), box-shadow var(--ds-transition-fast), transform var(--ds-transition-fast), border-color var(--ds-transition-fast)',
         ...style,
       }}
       {...rest}

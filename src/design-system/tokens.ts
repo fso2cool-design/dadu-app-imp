@@ -97,6 +97,7 @@ export interface AppearancePreset {
 // paper-craft light: text #1C1917/bg #FAF7EE 16.33, muted #6B6259/bg 5.57,
 //   ink #1C1917/accent #FF5A36 5.64 (white on #FF5A36 is 3.10 -> FAIL, never use).
 //   NOTE: spec muted #78716C on #FAF7EE is 4.48 -> FAIL, darkened to #6B6259.
+//   focus #E84E2C on #FAF7EE is 3.53 -> PASS (>= 3.0:1 non-text, corrected from #FF5A36 2.90:1).
 // paper-craft dark: text #FAF7EE/bg #1C1917 16.33, muted #A8A29E/bg 6.93,
 //   card text #FAF7EE/#292524 14.16.
 // shadcn-ui light: text #09090B/#FFFFFF 19.35, muted #52525B/bg 6.94,
@@ -176,7 +177,7 @@ export const APPEARANCE_PRESETS: AppearancePreset[] = [
         border: '#292524',
         text: '#1C1917',
         textMuted: '#6B6259',
-        focus: '#FF5A36',
+        focus: '#E84E2C',
         input: '#FFFDF9',
         accentHover: '#E84E2C',
         accentSoft: 'rgba(255,90,54,0.10)',

@@ -761,3 +761,456 @@ body,
    Legacy nav classes removed in favor of Framer Motion fluid sliding capsules
    ========================================================================== */
 
+
+/* ==========================================================================
+   STAGE D, D.1 & D.2: PRESET SHELL & INTERACTIVE SURFACE CONTRACT
+   Fidelity alignment for Sidebar shell, BottomNav shell, and Controls.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Shared Interactive Surface Foundations
+   Both button.ds-ui-control and navigation controls share typography,
+   transition timing, and design-system scoped interaction contracts.
+   -------------------------------------------------------------------------- */
+button.ds-ui-control,
+.nav-item,
+.nav-subitem,
+.bottom-nav-item {
+  font-family: var(--ds-font-sans);
+  transition: background-color var(--ds-transition-fast),
+              box-shadow var(--ds-transition-fast),
+              transform var(--ds-transition-fast),
+              border-color var(--ds-transition-fast),
+              color var(--ds-transition-fast),
+              opacity var(--ds-transition-fast) !important;
+}
+
+.nav-active-capsule,
+.bottom-nav-active-capsule {
+  transition: background-color var(--ds-transition-fast),
+              box-shadow var(--ds-transition-fast),
+              border-color var(--ds-transition-fast) !important;
+}
+
+.nav-icon-active {
+  transition: color var(--ds-transition-fast);
+}
+
+/* --------------------------------------------------------------------------
+   Shared Shell Foundations (Sidebar & BottomNav Containers)
+   -------------------------------------------------------------------------- */
+.sidebar-shell {
+  border-right-width: var(--ds-shell-border-width, 1px) !important;
+  border-right-style: solid !important;
+  border-right-color: var(--ds-shell-border, var(--ds-border)) !important;
+  box-shadow: var(--ds-shell-shadow-sidebar, none) !important;
+  background-color: var(--ds-shell-bg, var(--ds-surface)) !important;
+  transition: width 200ms ease, box-shadow var(--ds-transition-fast), border-color var(--ds-transition-fast), background-color var(--ds-transition-fast);
+}
+
+.sidebar-shell-mobile {
+  border-right-width: var(--ds-shell-border-width, 1px) !important;
+  border-right-style: solid !important;
+  border-right-color: var(--ds-shell-border, var(--ds-border)) !important;
+  box-shadow: var(--ds-shell-shadow-drawer, 0 25px 50px -12px rgba(0, 0, 0, 0.25)) !important;
+  border-radius: var(--ds-shell-drawer-radius, 0) !important;
+  overflow: hidden;
+  background-color: var(--ds-shell-bg, var(--ds-surface)) !important;
+}
+
+.sidebar-header {
+  border-bottom-width: var(--ds-shell-border-width, 1px) !important;
+  border-bottom-style: solid !important;
+  border-bottom-color: var(--ds-shell-border, var(--ds-border)) !important;
+}
+
+.sidebar-divider {
+  border-top-width: var(--ds-shell-border-width, 1px) !important;
+  border-top-style: solid !important;
+  border-top-color: var(--ds-shell-border, var(--ds-border)) !important;
+}
+
+.sidebar-subitem-guide {
+  border-left-width: var(--ds-shell-border-width, 1px) !important;
+  border-left-style: solid !important;
+  border-left-color: var(--ds-shell-border, var(--ds-border)) !important;
+}
+
+.sidebar-footer {
+  border-top-width: var(--ds-shell-border-width, 1px) !important;
+  border-top-style: solid !important;
+  border-top-color: var(--ds-shell-border, var(--ds-border)) !important;
+}
+
+.bottom-nav-shell {
+  border-top-width: var(--ds-shell-border-width, 1px) !important;
+  border-top-style: solid !important;
+  border-top-color: var(--ds-shell-border, var(--ds-border)) !important;
+  box-shadow: var(--ds-shell-shadow-bottomnav, none) !important;
+  background-color: var(--ds-shell-bg, var(--ds-surface)) !important;
+  backdrop-filter: var(--ds-shell-backdrop-filter, none) !important;
+  -webkit-backdrop-filter: var(--ds-shell-backdrop-filter, none) !important;
+}
+
+/* --------------------------------------------------------------------------
+   1. Paper Craft Preset: Scrapbook, ink borders, paper labels, tactile depth
+   -------------------------------------------------------------------------- */
+[data-design-system="paper-craft"] {
+  /* Shell Contract */
+  --ds-shell-border-width: var(--ds-border-width, 1.5px);
+  --ds-shell-border: var(--ds-border);
+  --ds-shell-bg: var(--ds-surface);
+  --ds-shell-shadow-sidebar: 2px 0px 0px 0px var(--ds-border);
+  --ds-shell-shadow-bottomnav: 0px -3px 0px 0px var(--ds-border);
+  --ds-shell-shadow-drawer: 4px 0px 0px 0px var(--ds-border);
+  --ds-shell-drawer-radius: 0 var(--ds-radius-md) var(--ds-radius-md) 0;
+  --ds-shell-backdrop-filter: none;
+
+  /* Interactive Surface Contract */
+  --ds-interactive-radius: var(--ds-radius-md);       /* 6px */
+  --ds-interactive-radius-sub: var(--ds-radius-sm);   /* 4px */
+  --ds-interactive-border-width: var(--ds-border-width, 1.5px);
+  --ds-interactive-border: var(--ds-border);
+  --ds-interactive-shadow: var(--ds-elevation-sm);    /* 3px 3px 0px 0px */
+  --ds-interactive-shadow-hover: var(--ds-elevation-md); /* 5px 5px 0px 0px */
+  --ds-interactive-hover-transform: translateY(-1px);
+  --ds-interactive-press-transform: translateY(1px);
+  --ds-interactive-press-opacity: 1;
+  --ds-interactive-font-weight: 600;
+}
+
+/* Paper Craft Reusable Buttons */
+[data-design-system="paper-craft"] button.ds-ui-control {
+  border-radius: var(--ds-interactive-radius) !important;
+  border-width: var(--ds-interactive-border-width) !important;
+  border-color: var(--ds-interactive-border) !important;
+  font-weight: var(--ds-interactive-font-weight) !important;
+}
+[data-design-system="paper-craft"] button.ds-ui-control:not([data-variant="ghost"]):not(:disabled) {
+  box-shadow: var(--ds-interactive-shadow) !important;
+}
+[data-design-system="paper-craft"] button.ds-ui-control:hover:not(:disabled) {
+  transform: var(--ds-interactive-hover-transform) !important;
+  box-shadow: var(--ds-interactive-shadow-hover) !important;
+}
+[data-design-system="paper-craft"] button.ds-ui-control:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+  box-shadow: none !important;
+}
+
+/* Paper Craft Navigation Radii */
+[data-design-system="paper-craft"] .nav-item,
+[data-design-system="paper-craft"] .bottom-nav-item {
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="paper-craft"] .nav-subitem {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+}
+
+/* Paper Craft Inactive Nav */
+[data-design-system="paper-craft"] .nav-item[data-active="false"],
+[data-design-system="paper-craft"] .nav-subitem[data-active="false"],
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="false"] {
+  color: var(--ds-text-muted) !important;
+}
+[data-design-system="paper-craft"] .nav-item[data-active="false"]:hover,
+[data-design-system="paper-craft"] .nav-subitem[data-active="false"]:hover,
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="false"]:hover {
+  color: var(--ds-text) !important;
+  background-color: var(--ds-surface-muted) !important;
+  transform: var(--ds-interactive-hover-transform);
+}
+[data-design-system="paper-craft"] .nav-item[data-active="false"]:active:not(:disabled),
+[data-design-system="paper-craft"] .nav-subitem[data-active="false"]:active:not(:disabled),
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="false"]:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+}
+
+/* Paper Craft Active Nav: Elevated Paper Tab with Matching Ink Border & Elevation Shadow */
+[data-design-system="paper-craft"] .nav-item[data-active="true"],
+[data-design-system="paper-craft"] .nav-subitem[data-active="true"],
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"] {
+  color: var(--ds-text) !important;
+  font-weight: 700 !important;
+}
+[data-design-system="paper-craft"] .nav-item[data-active="true"] .nav-icon-active,
+[data-design-system="paper-craft"] .nav-subitem[data-active="true"] .nav-icon-active,
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"] .nav-icon-active {
+  color: var(--ds-text) !important;
+}
+[data-design-system="paper-craft"] .nav-active-capsule,
+[data-design-system="paper-craft"] .bottom-nav-active-capsule {
+  background-color: var(--ds-surface-elevated) !important;
+  border: var(--ds-interactive-border-width) solid var(--ds-interactive-border) !important;
+  box-shadow: var(--ds-interactive-shadow) !important;
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="paper-craft"] .nav-subitem .nav-active-capsule {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+  box-shadow: 2px 2px 0px 0px var(--ds-interactive-border) !important;
+}
+[data-design-system="paper-craft"] .nav-active-marker {
+  background-color: var(--ds-accent) !important;
+  width: 3.5px !important;
+  border-radius: 2px !important;
+}
+
+/* Paper Craft Active Nav Hover & Press Physics (Aligned with Reusable Button) */
+[data-design-system="paper-craft"] .nav-item[data-active="true"]:hover,
+[data-design-system="paper-craft"] .nav-subitem[data-active="true"]:hover,
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"]:hover {
+  transform: var(--ds-interactive-hover-transform) !important;
+}
+[data-design-system="paper-craft"] .nav-item[data-active="true"]:hover .nav-active-capsule,
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"]:hover .bottom-nav-active-capsule {
+  box-shadow: var(--ds-interactive-shadow-hover) !important;
+}
+[data-design-system="paper-craft"] .nav-item[data-active="true"]:active:not(:disabled),
+[data-design-system="paper-craft"] .nav-subitem[data-active="true"]:active:not(:disabled),
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"]:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+}
+[data-design-system="paper-craft"] .nav-item[data-active="true"]:active:not(:disabled) .nav-active-capsule,
+[data-design-system="paper-craft"] .nav-subitem[data-active="true"]:active:not(:disabled) .nav-active-capsule,
+[data-design-system="paper-craft"] .bottom-nav-item[data-active="true"]:active:not(:disabled) .bottom-nav-active-capsule {
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. Shadcn UI Preset: Clean, neutral zinc, orderly controls, subtle elevation
+   -------------------------------------------------------------------------- */
+[data-design-system="shadcn-ui"] {
+  /* Shell Contract */
+  --ds-shell-border-width: 1px;
+  --ds-shell-border: var(--ds-border);
+  --ds-shell-bg: var(--ds-surface);
+  --ds-shell-shadow-sidebar: none;
+  --ds-shell-shadow-bottomnav: 0 -1px 3px 0 rgba(0, 0, 0, 0.05);
+  --ds-shell-shadow-drawer: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --ds-shell-drawer-radius: 0;
+  --ds-shell-backdrop-filter: blur(12px);
+
+  /* Interactive Surface Contract */
+  --ds-interactive-radius: var(--ds-radius-md);       /* 8px */
+  --ds-interactive-radius-sub: var(--ds-radius-sm);   /* 4px */
+  --ds-interactive-border-width: 1px;
+  --ds-interactive-border: var(--ds-border);
+  --ds-interactive-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ds-interactive-shadow-hover: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ds-interactive-hover-transform: none;
+  --ds-interactive-press-transform: none;
+  --ds-interactive-press-opacity: 0.9;
+  --ds-interactive-font-weight: 500;
+}
+
+[data-design-system="shadcn-ui"] .bottom-nav-shell {
+  background-color: color-mix(in srgb, var(--ds-surface) 92%, transparent) !important;
+}
+
+/* Shadcn UI Reusable Buttons */
+[data-design-system="shadcn-ui"] button.ds-ui-control {
+  border-radius: var(--ds-interactive-radius) !important;
+  border-width: var(--ds-interactive-border-width) !important;
+  border-color: var(--ds-interactive-border) !important;
+  font-weight: var(--ds-interactive-font-weight) !important;
+  transform: none !important;
+}
+[data-design-system="shadcn-ui"] button.ds-ui-control[data-variant="outline"],
+[data-design-system="shadcn-ui"] button.ds-ui-control[data-variant="secondary"] {
+  box-shadow: var(--ds-interactive-shadow) !important;
+}
+[data-design-system="shadcn-ui"] button.ds-ui-control[data-variant="ghost"] {
+  box-shadow: none !important;
+}
+[data-design-system="shadcn-ui"] button.ds-ui-control:active:not(:disabled) {
+  opacity: var(--ds-interactive-press-opacity) !important;
+  transform: none !important;
+}
+
+/* Shadcn UI Navigation Radii */
+[data-design-system="shadcn-ui"] .nav-item,
+[data-design-system="shadcn-ui"] .bottom-nav-item {
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="shadcn-ui"] .nav-subitem {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+}
+
+/* Shadcn UI Inactive Nav */
+[data-design-system="shadcn-ui"] .nav-item[data-active="false"],
+[data-design-system="shadcn-ui"] .nav-subitem[data-active="false"],
+[data-design-system="shadcn-ui"] .bottom-nav-item[data-active="false"] {
+  color: var(--ds-text-muted) !important;
+  transform: none !important;
+}
+[data-design-system="shadcn-ui"] .nav-item[data-active="false"]:hover,
+[data-design-system="shadcn-ui"] .nav-subitem[data-active="false"]:hover,
+[data-design-system="shadcn-ui"] .bottom-nav-item[data-active="false"]:hover {
+  color: var(--ds-text) !important;
+  background-color: var(--ds-surface-muted) !important;
+  transform: none !important;
+}
+[data-design-system="shadcn-ui"] .nav-item:active:not(:disabled),
+[data-design-system="shadcn-ui"] .nav-subitem:active:not(:disabled),
+[data-design-system="shadcn-ui"] .bottom-nav-item:active:not(:disabled) {
+  opacity: var(--ds-interactive-press-opacity) !important;
+  transform: none !important;
+}
+
+/* Shadcn UI Active Nav: Subtle Zinc Capsule with Refined Border & Pill Marker */
+[data-design-system="shadcn-ui"] .nav-item[data-active="true"],
+[data-design-system="shadcn-ui"] .nav-subitem[data-active="true"],
+[data-design-system="shadcn-ui"] .bottom-nav-item[data-active="true"] {
+  color: var(--ds-text) !important;
+  font-weight: 600 !important;
+}
+[data-design-system="shadcn-ui"] .nav-item[data-active="true"] .nav-icon-active,
+[data-design-system="shadcn-ui"] .nav-subitem[data-active="true"] .nav-icon-active,
+[data-design-system="shadcn-ui"] .bottom-nav-item[data-active="true"] .nav-icon-active {
+  color: var(--ds-text) !important;
+}
+[data-design-system="shadcn-ui"] .nav-active-capsule,
+[data-design-system="shadcn-ui"] .bottom-nav-active-capsule {
+  background-color: var(--ds-surface-muted) !important;
+  border: var(--ds-interactive-border-width) solid var(--ds-interactive-border) !important;
+  box-shadow: var(--ds-interactive-shadow) !important;
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="shadcn-ui"] .nav-subitem .nav-active-capsule {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+}
+[data-design-system="shadcn-ui"] .nav-active-marker {
+  background-color: var(--ds-accent) !important;
+  width: 2px !important;
+  border-radius: 9999px !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. Neo-Brutalism Preset: Bold geometric boxes, 2px borders, hard shadows
+   -------------------------------------------------------------------------- */
+[data-design-system="neo-brutalism"] {
+  /* Shell Contract */
+  --ds-shell-border-width: var(--ds-border-width, 2px);
+  --ds-shell-border: var(--ds-border);
+  --ds-shell-bg: var(--ds-surface);
+  --ds-shell-shadow-sidebar: 3px 0px 0px 0px var(--ds-border);
+  --ds-shell-shadow-bottomnav: 0px -4px 0px 0px var(--ds-border);
+  --ds-shell-shadow-drawer: 4px 0px 0px 0px var(--ds-border);
+  --ds-shell-drawer-radius: 0;
+  --ds-shell-backdrop-filter: none;
+
+  /* Interactive Surface Contract */
+  --ds-interactive-radius: var(--ds-radius-sm);       /* 3px */
+  --ds-interactive-radius-sub: var(--ds-radius-sm);   /* 3px */
+  --ds-interactive-border-width: var(--ds-border-width, 2px);
+  --ds-interactive-border: var(--ds-border);
+  --ds-interactive-shadow: var(--ds-elevation-sm);    /* 2px 2px 0px 0px */
+  --ds-interactive-shadow-hover: var(--ds-elevation-md); /* 4px 4px 0px 0px */
+  --ds-interactive-hover-transform: translate(-1px, -1px);
+  --ds-interactive-press-transform: translate(2px, 2px);
+  --ds-interactive-press-opacity: 1;
+  --ds-interactive-font-weight: 700;
+}
+
+/* Neo-Brutalism Reusable Buttons */
+[data-design-system="neo-brutalism"] button.ds-ui-control {
+  border-radius: var(--ds-interactive-radius) !important;
+  border-width: var(--ds-interactive-border-width) !important;
+  border-color: var(--ds-interactive-border) !important;
+  font-weight: var(--ds-interactive-font-weight) !important;
+}
+[data-design-system="neo-brutalism"] button.ds-ui-control:not([data-variant="ghost"]):not(:disabled) {
+  box-shadow: var(--ds-interactive-shadow) !important;
+}
+[data-design-system="neo-brutalism"] button.ds-ui-control:hover:not(:disabled) {
+  transform: var(--ds-interactive-hover-transform) !important;
+  box-shadow: var(--ds-interactive-shadow-hover) !important;
+}
+[data-design-system="neo-brutalism"] button.ds-ui-control:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+  box-shadow: none !important;
+}
+[data-design-system="neo-brutalism"] button.ds-ui-control[data-variant="danger"] {
+  border-color: var(--ds-interactive-border) !important;
+}
+
+/* Neo-Brutalism Navigation Radii */
+[data-design-system="neo-brutalism"] .nav-item,
+[data-design-system="neo-brutalism"] .bottom-nav-item {
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="neo-brutalism"] .nav-subitem {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+}
+
+/* Neo-Brutalism Inactive Nav */
+[data-design-system="neo-brutalism"] .nav-item[data-active="false"],
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="false"],
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="false"] {
+  color: var(--ds-text-muted) !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="false"]:hover,
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="false"]:hover,
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="false"]:hover {
+  color: var(--ds-text) !important;
+  background-color: var(--ds-surface-muted) !important;
+  box-shadow: var(--ds-interactive-shadow) !important;
+  transform: var(--ds-interactive-hover-transform) !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="false"]:active:not(:disabled),
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="false"]:active:not(:disabled),
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="false"]:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+  box-shadow: none !important;
+}
+
+/* Neo-Brutalism Active Nav: High-contrast Accent Block with Ink Text */
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"],
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"],
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"] {
+  color: var(--ds-accent-fg) !important;
+  font-weight: 800 !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"] .nav-icon-active,
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"] .nav-icon-active,
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"] .nav-icon-active {
+  color: var(--ds-accent-fg) !important;
+}
+[data-design-system="neo-brutalism"] .nav-active-capsule,
+[data-design-system="neo-brutalism"] .bottom-nav-active-capsule {
+  background-color: var(--ds-accent) !important;
+  border: var(--ds-interactive-border-width) solid var(--ds-interactive-border) !important;
+  box-shadow: var(--ds-interactive-shadow) !important;
+  border-radius: var(--ds-interactive-radius) !important;
+}
+[data-design-system="neo-brutalism"] .nav-subitem .nav-active-capsule {
+  border-radius: var(--ds-interactive-radius-sub) !important;
+  box-shadow: var(--ds-interactive-shadow) !important;
+}
+[data-design-system="neo-brutalism"] .nav-active-marker {
+  background-color: var(--ds-accent-fg) !important;
+  width: 4px !important;
+  border-radius: 0px !important;
+}
+
+/* Neo-Brutalism Active Nav Hover & Press Physics (Aligned with Reusable Button) */
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"]:hover,
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"]:hover,
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"]:hover {
+  transform: var(--ds-interactive-hover-transform) !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"]:hover .nav-active-capsule,
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"]:hover .nav-active-capsule,
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"]:hover .bottom-nav-active-capsule {
+  box-shadow: var(--ds-interactive-shadow-hover) !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"]:active:not(:disabled),
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"]:active:not(:disabled),
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"]:active:not(:disabled) {
+  transform: var(--ds-interactive-press-transform) !important;
+}
+[data-design-system="neo-brutalism"] .nav-item[data-active="true"]:active:not(:disabled) .nav-active-capsule,
+[data-design-system="neo-brutalism"] .nav-subitem[data-active="true"]:active:not(:disabled) .nav-active-capsule,
+[data-design-system="neo-brutalism"] .bottom-nav-item[data-active="true"]:active:not(:disabled) .bottom-nav-active-capsule {
+  box-shadow: none !important;
+}

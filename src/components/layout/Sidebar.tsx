@@ -230,11 +230,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const renderContent = (compact: boolean) => (
-    <div className="flex flex-col h-full select-none" style={{ background: "var(--ds-surface)", color: "var(--ds-text)" }}>
+    <div className="sidebar-container flex flex-col h-full select-none" style={{ background: "var(--ds-shell-bg, var(--ds-surface))", color: "var(--ds-text)" }}>
       {/* Brand Header with Hover Toggle */}
-      <div className={`relative flex items-center border-b transition-all ${
+      <div className={`sidebar-header relative flex items-center transition-all ${
         compact ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3.5'
-      }`} style={{ borderColor: "var(--ds-border)" }}>
+      }`}>
         {compact ? (
           /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
           <div 
@@ -304,7 +304,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div key={gIdx} className="space-y-1">
             {group.groupTitle && (
               compact ? (
-                <div className="my-2 border-t mx-1" style={{ borderColor: "var(--ds-border)" }} />
+                <div className="sidebar-divider my-2 mx-1" />
               ) : (
                 <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--ds-text-muted)" }}>
                   {group.groupTitle}
@@ -327,12 +327,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => {
                           handleItemClick(item.id, hasSub);
                         }}
-                        className={`relative overflow-hidden w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                        aria-current={isDirectParentActive ? 'page' : undefined}
+                        data-nav-item="true"
+                        data-active={isDirectParentActive || isGroupActive ? 'true' : 'false'}
+                        className={`nav-item group relative w-full flex items-center text-xs font-medium cursor-pointer ${
                           compact ? 'justify-center p-2.5 min-h-[42px]' : 'gap-3 px-3.5 py-2.5 min-h-[44px]'
                         } ${
                           isDirectParentActive || isGroupActive
-                            ? 'text-[var(--ds-accent)] font-bold'
-                            : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)] active:scale-[0.98]'
+                            ? 'font-bold'
+                            : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                         }`}
                       >
                       {/* Fluid Sliding Active Capsule — direct or child-active (same language) */}
@@ -340,19 +343,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         <motion.div
                           layoutId="sidebar-active-parent-capsule"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                          className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] shadow-2xs"
+                          className="nav-active-capsule pointer-events-none absolute inset-0"
                         >
                           <span
-                            className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full bg-[var(--ds-accent)]"
+                            className="nav-active-marker absolute left-0 top-2.5 bottom-2.5"
                           />
                         </motion.div>
                       )}
 
                       <span className={`relative z-10 flex items-center min-w-0 ${compact ? 'justify-center' : 'w-full'}`}>
                         <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                          isDirectParentActive 
-                            ? 'text-[var(--ds-accent)]' 
-                            : 'text-[var(--ds-text-muted)]'
+                          isDirectParentActive || isGroupActive
+                            ? 'nav-icon-active'
+                            : 'text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)]'
                         }`} />
                         {!compact && (
                           <div className="flex items-center justify-between flex-1 min-w-0 ml-3">
@@ -398,7 +401,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                   {/* Render Accordion Sub-items when expanded */}
                   {isExpanded && item.subItems && (
-                    <div className="ml-5 pl-2 border-l space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150" style={{ borderColor: "var(--ds-border)" }}>
+                    <div className="sidebar-subitem-guide ml-5 pl-2 space-y-1 pt-1 pb-1.5 animate-in slide-in-from-top-1 duration-150">
                       {item.subItems.map((sub) => {
                         const SubIcon = sub.icon;
                         const isSubActive = isSubItemActive(sub.id);
@@ -408,9 +411,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             key={sub.id}
                             type="button"
                             onClick={(e) => handleSubItemClick(sub.id, e)}
-                            className={`relative overflow-hidden w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all text-left cursor-pointer ${
+                            aria-current={isSubActive ? 'page' : undefined}
+                            data-nav-subitem="true"
+                            data-active={isSubActive ? 'true' : 'false'}
+                            className={`nav-subitem group relative w-full flex items-center gap-2.5 px-2.5 py-2 text-[11px] font-medium text-left cursor-pointer ${
                               isSubActive
-                                ? 'text-[var(--ds-accent)] font-bold'
+                                ? 'font-bold'
                                 : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
                             }`}
                           >
@@ -419,10 +425,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               <motion.div
                                 layoutId="sidebar-active-subitem-capsule"
                                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                                className="pointer-events-none absolute inset-0 rounded-lg bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] shadow-2xs"
+                                className="nav-active-capsule pointer-events-none absolute inset-0"
                               >
                                 <span
-                                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-[var(--ds-accent)]"
+                                  className="nav-active-marker absolute left-0 top-1.5 bottom-1.5"
                                 />
                               </motion.div>
                             )}
@@ -430,8 +436,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             <span className="relative z-10 flex items-center gap-2.5 w-full min-w-0">
                               <SubIcon className={`w-3.5 h-3.5 shrink-0 transition-colors ${
                                 isSubActive 
-                                  ? 'text-[var(--ds-accent)]' 
-                                  : 'text-[var(--ds-text-muted)]'
+                                  ? 'nav-icon-active'
+                                  : 'text-[var(--ds-text-muted)] group-hover:text-[var(--ds-text)]'
                               }`} />
                               <span className="truncate flex-1">{sub.label}</span>
                             </span>
@@ -449,7 +455,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Workspace Footer: Clean Dadu Workspace label */}
       {!compact && (
-        <div className="p-3 border-t" style={{ borderColor: "var(--ds-border)" }}>
+        <div className="sidebar-footer p-3">
           <div className="px-2 pt-0.5 text-[11px] font-semibold select-none" style={{ color: "var(--ds-text-muted)" }}>
             {APP_CONFIG.name}
           </div>
@@ -461,9 +467,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar with z-40 to prevent Header overlap */}
-      <aside className={`hidden lg:block shrink-0 h-screen sticky top-0 z-40 border-r transition-all duration-200 ${
+      <aside className={`sidebar-shell hidden lg:block shrink-0 h-screen sticky top-0 z-40 transition-all duration-200 ${
         isCompact ? 'w-18' : 'w-64'
-      }`} style={{ borderColor: "var(--ds-border)", background: "var(--ds-surface)" } as any}>
+      }`}>
         {renderContent(isCompact)}
       </aside>
 
@@ -474,7 +480,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full shadow-2xl z-50 animate-in slide-in-from-left duration-200">
+          <div className="sidebar-shell-mobile fixed inset-y-0 left-0 max-w-xs w-full z-50 animate-in slide-in-from-left duration-200">
             {renderContent(false)}
           </div>
         </div>

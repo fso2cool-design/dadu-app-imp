@@ -21,8 +21,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <div className="no-print lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-lg border-t px-2 py-1.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] select-none safe-area-pb bg-[color-mix(in_srgb,var(--ds-surface)_95%,transparent)] border-[var(--ds-border)]">
-      <div className="flex items-center justify-around max-w-lg mx-auto">
+    <div className="bottom-nav-container bottom-nav-shell no-print lg:hidden fixed bottom-0 left-0 right-0 z-40 select-none safe-area-pb">
+      <div className="bottom-nav-inner flex items-center justify-around max-w-lg mx-auto px-2 py-1.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentRoute === item.id;
@@ -33,8 +33,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 key={item.id}
                 type="button"
                 onClick={onOpenMobileMenu}
-                className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer active:scale-95 min-w-[52px] text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
+                className="bottom-nav-item flex flex-col items-center justify-center py-1.5 px-3 min-w-[56px] cursor-pointer text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]"
                 aria-label="Buka Semua List"
+                data-active="false"
               >
                 <Icon className="w-5 h-5" />
                 <span className="text-[10px] font-medium mt-0.5">
@@ -49,15 +50,28 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={item.id}
               type="button"
               onClick={() => onNavigate(item.id)}
-              className={`relative overflow-hidden flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 min-w-[52px] ${
+              aria-current={isActive ? 'page' : undefined}
+              data-active={isActive ? 'true' : 'false'}
+              className={`bottom-nav-item group relative flex flex-col items-center justify-center py-1.5 px-3 min-w-[56px] cursor-pointer ${
                 isActive
-                  ? 'text-[var(--ds-accent)] font-bold'
+                  ? 'font-bold'
                   : 'text-[var(--ds-text-muted)] hover:text-[var(--ds-text)]'
               }`}
             >
-              {isActive && (<span className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)]" aria-hidden />)}
-              <span className="relative"><Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-[var(--ds-accent)]' : ''}`} /></span>
-              <span className="text-[10px] font-medium mt-0.5">
+              {isActive && (
+                <span
+                  className="bottom-nav-active-capsule pointer-events-none absolute inset-0"
+                  aria-hidden
+                />
+              )}
+              <span className="relative z-10">
+                <Icon
+                  className={`w-5 h-5 transition-transform ${
+                    isActive ? 'scale-110 nav-icon-active' : ''
+                  }`}
+                />
+              </span>
+              <span className="relative z-10 text-[10px] font-medium mt-0.5">
                 {item.label}
               </span>
             </button>
