@@ -144,7 +144,7 @@ The monolithic `app.settings` namespace has been decomposed into distinct, domai
 | **`app.maintenance`** | Workspace backup/restore lifecycle & semester reset | `exportBackup`, `importBackup`, `getDatabaseStats`, `previewResetSemester`, `resetSemesterData` |
 | **`app.diagnostics`** | System referential integrity audit & relation recovery | `runIntegrityAudit`, `findStudentCandidatesByNisn`, `relinkEnrollmentClass`, `relinkStudentRelationship` |
 | **`app.classSchedule`** | Class timetable management (deterministic key: `{classId}_{ayId}_{sem}`) | `getClassSchedule`, `saveClassSchedule`, `deleteClassSchedule` |
-| **`app.appearance`** | Appearance preset & color mode preference persistence | `updateDesignSystem`, `updateModePreference` |
+| **`app.appearance`** | Appearance preset & color mode preference persistence | `updateAppearancePresetPreference`, `updateModePreference` |
 | **`app.workspace`** | Academic workspace loader & settings | `loadWorkspace`, `getUserPreferences`, `saveUserPreferences`, `saveAttendanceSettings`, `checkHoliday` |
 | **`app.auth`** | User authentication, profile lifecycle, session recording, admin claim verification | `getProfile`, `createProfile`, `recordLastLogin`, `updateProfile`, `login`, `signup`, `logout`, `resetPassword`, `onAuthStateChanged`, `getAdminClaimStatus` |
 | **`app.students`** | Student master records, import, search, custom fields, notes, deduplication | `getAll`, `getPaginated`, `getById`, `create`, `update`, `delete`, `import`, `search`, `searchByExactIdentifier`, `searchByNameToken`, `checkUsage`, `canDelete`, `archive`, `unarchive`, `checkNisnAvailability`, `batchCreate`, `scanDuplicates`, `executeDeduplication`, `getCustomFields`, `saveCustomFields`, `createCustomField`, `updateCustomField`, `deleteCustomField`, `getStudentNotes`, `getStudentNotesByClass`, `createStudentNote`, `updateStudentNote`, `deleteStudentNote` |
@@ -290,8 +290,8 @@ DADU Design System
      - `data-design-system="<preset>"` (attribute on `<html>` targeted by preset-specific selector rules in `src/index.css`)
      - `.dark` (class toggled on `<html>` when `mode === 'dark'`, driving Tailwind v4 `@custom-variant dark`)
      - Canonical preset identifiers (`'paper-craft'`, `'shadcn-ui'`, `'neo-brutalism'`)
-  4. **Internal historically named source APIs**:
-     - `app.appearance.updateDesignSystem(...)` and `userRepository.updateDesignSystem(...)` are internal TypeScript APIs whose names retain historical terminology. They were intentionally left unchanged during Stage A (documentation-only) and may be candidates for future source-level alignment without requiring Firestore data migration, provided the underlying persisted field remains `designSystemPreference`.
+  4. **Internal appearance persistence APIs**:
+     - `app.appearance.updateAppearancePresetPreference(uid, preset)`, `userRepository.updateAppearancePresetPreference(uid, preset)`, and `updateUserAppearancePresetPreference(uid, preset)` use canonical appearance preset naming in TypeScript while writing to the persisted Firestore field `designSystemPreference`. `app.appearance.updateModePreference(uid, mode)` writes to `designSystemModePreference`.
 
 - **Print / Document Visual Isolation**:
   - Containers marked with `.printable-document`, `.print-sheet`, `#printable-progress-report` (and their descendants) isolate printed official reports from active visual presets:

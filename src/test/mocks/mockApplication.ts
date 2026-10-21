@@ -378,7 +378,7 @@ export function createMockApplicationOperations(
       checkHoliday: vi.fn().mockReturnValue({ isHoliday: false }),
     },
     appearance: {
-      updateDesignSystem: vi.fn().mockResolvedValue(undefined),
+      updateAppearancePresetPreference: vi.fn().mockResolvedValue(undefined),
       updateModePreference: vi.fn().mockResolvedValue(undefined),
     },
     students: {

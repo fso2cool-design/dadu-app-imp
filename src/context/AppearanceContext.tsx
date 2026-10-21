@@ -99,7 +99,7 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       try {
         localStorage.setItem(`app_design_system_${user.uid}`, preset);
       } catch {}
-      app.appearance.updateDesignSystem(user.uid, preset);
+      app.appearance.updateAppearancePresetPreference(user.uid, preset);
     }
   }, [user, app]);
 

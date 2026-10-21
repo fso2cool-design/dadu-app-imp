@@ -130,7 +130,7 @@ export interface ApplicationOperations {
     checkHoliday: (dateStr: string, settings: AttendanceSettings) => { isHoliday: boolean; reason?: string };
   };
   appearance: {
-    updateDesignSystem: (uid: string, system: AppearancePresetKey) => Promise<void>;
+    updateAppearancePresetPreference: (uid: string, preset: AppearancePresetKey) => Promise<void>;
     updateModePreference: (uid: string, mode: ColorMode) => Promise<void>;
   };
   students: {

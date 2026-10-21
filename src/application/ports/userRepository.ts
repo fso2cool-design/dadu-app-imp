@@ -6,7 +6,7 @@ export interface UserRepository {
   createProfile(uid: string, data: Partial<UserProfile>): Promise<UserProfile>;
   updateProfile(uid: string, data: Partial<UserProfile>): Promise<void>;
   recordLastLogin(uid: string): Promise<void>;
-  updateDesignSystem(uid: string, designSystem: AppearancePresetKey): Promise<void>;
+  updateAppearancePresetPreference(uid: string, preset: AppearancePresetKey): Promise<void>;
   getAllUsers(): Promise<UserProfile[]>;
   setAccountStatus(uid: string, status: AccountStatus): Promise<void>;
   setAccountRole(uid: string, role: UserRole): Promise<void>;

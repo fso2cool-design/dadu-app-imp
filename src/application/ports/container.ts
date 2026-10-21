@@ -59,7 +59,7 @@ const app: ApplicationOperations = {
     checkHoliday: useCases.checkHoliday,
   },
   appearance: {
-    updateDesignSystem: (uid, system) => userRepository.updateDesignSystem(uid, system),
+    updateAppearancePresetPreference: (uid, preset) => userRepository.updateAppearancePresetPreference(uid, preset),
     updateModePreference: (uid, mode) => userRepository.updateProfile(uid, { designSystemModePreference: mode }),
   },
   students: {

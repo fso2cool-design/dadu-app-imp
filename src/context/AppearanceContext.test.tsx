@@ -42,7 +42,7 @@ const mockApp: ApplicationOperations = {
     }),
   },
   appearance: {
-    updateDesignSystem: vi.fn(),
+    updateAppearancePresetPreference: vi.fn(),
     updateModePreference: vi.fn(),
   },
 } as any;
@@ -329,7 +329,7 @@ describe('AppearanceContext Canonical Runtime API', () => {
   describe('Persistence Operations via Application Port', () => {
     const testUser = { uid: 'user-app-save' } as any;
 
-    it('applyAndSavePreset saves to localStorage and delegates to app.appearance.updateDesignSystem', () => {
+    it('applyAndSavePreset saves to localStorage and delegates to app.appearance.updateAppearancePresetPreference', () => {
       renderWithProviders({
         user: testUser,
         profile: { uid: testUser.uid } as any,
@@ -340,7 +340,7 @@ describe('AppearanceContext Canonical Runtime API', () => {
       });
 
       expect(localStorage.getItem(`app_design_system_${testUser.uid}`)).toBe('paper-craft');
-      expect(mockApp.appearance.updateDesignSystem).toHaveBeenCalledWith(testUser.uid, 'paper-craft');
+      expect(mockApp.appearance.updateAppearancePresetPreference).toHaveBeenCalledWith(testUser.uid, 'paper-craft');
       expect(contextValue.activePreset).toBe('paper-craft');
     });
 

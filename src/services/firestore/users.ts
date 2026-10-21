@@ -78,11 +78,11 @@ export async function recordUserLastLogin(uid: string): Promise<void> {
 }
 
 
-export async function updateUserDesignSystemPreference(uid: string, designSystem: string): Promise<void> {
+export async function updateUserAppearancePresetPreference(uid: string, preset: string): Promise<void> {
   const docRef = doc(db, 'users', uid);
   try {
     await updateDoc(docRef, {
-      designSystemPreference: designSystem,
+      designSystemPreference: preset,
       updatedAt: serverTimestamp(),
     });
   } catch (err) {
