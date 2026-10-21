@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AssessmentItem, Enrollment } from '../../types';
-import { parseGradesExcel, buildGradesImportFeedback } from './gradesExcelParser';
+import { parseGradesExcel, buildGradesImportFeedback, findGradesHeaderRow, resolveGradesWorksheetData, PREFERRED_GRADES_SHEET_NAMES } from './gradesExcelParser';
 
 describe('gradesExcelParser - Unit and Regression Tests', () => {
   const createMockEnrollments = (): Enrollment[] => [
@@ -1476,6 +1476,140 @@ describe('gradesExcelParser - Unit and Regression Tests', () => {
         expect(allScores).not.toContain('A');
         expect(allScores).not.toContain('TUNTAS');
         expect(Object.keys(result.scoresToApply)).toHaveLength(1);
+      });
+    });
+  });
+
+  // =========================================================================
+  // SKENARIO J — DETEKSI HEADER KANONIKAL & RESOLUSI WORKSHEET MULTI-SHEET
+  // =========================================================================
+  describe('Skenario J — Deteksi Header Kanonikal & Resolusi Worksheet Multi-Sheet', () => {
+    describe('findGradesHeaderRow', () => {
+      it('menemukan indeks baris header pada baris pertama', () => {
+        const rows = [
+          ['No', 'NIS', 'Nama Siswa', 'Tugas 1'],
+          [1, '1001', 'Ahmad Dahlan', 90],
+        ];
+        expect(findGradesHeaderRow(rows)).toBe(0);
+      });
+
+      it('menemukan indeks baris header setelah baris metadata / kop', () => {
+        const rows = [
+          ['DAFTAR NILAI AKADEMIK'],
+          ['Tahun Pelajaran 2025/2026'],
+          [],
+          ['No', 'NISN', 'Nama Siswa', 'Ulangan Harian 1'],
+          [1, '0012345678', 'Ahmad Dahlan', 85],
+        ];
+        expect(findGradesHeaderRow(rows)).toBe(3);
+      });
+
+      it('mengembalikan -1 jika tidak ada header identitas siswa dalam 15 baris pertama', () => {
+        const rows = [
+          ['PETUNJUK PENGISIAN'],
+          ['1. Baca panduan'],
+          ['2. Isikan data'],
+        ];
+        expect(findGradesHeaderRow(rows)).toBe(-1);
+      });
+
+      it('mengembalikan -1 untuk input kosong atau bukan array', () => {
+        expect(findGradesHeaderRow([])).toBe(-1);
+        expect(findGradesHeaderRow(null as any)).toBe(-1);
+      });
+    });
+
+    describe('resolveGradesWorksheetData', () => {
+      const mockXLSX = {
+        utils: {
+          sheet_to_json: (ws: any) => ws._rows || [],
+        },
+      };
+
+      it('melempar error jika tidak ada worksheet yang tersedia', () => {
+        const wb = { SheetNames: [], Sheets: {} };
+        expect(() => resolveGradesWorksheetData(wb, mockXLSX)).toThrow(
+          'Lembar kerja (worksheet) tidak ditemukan'
+        );
+      });
+
+      it('memprioritaskan sheet bernama standar jika memiliki header siswa valid', () => {
+        const wsCover = { _rows: [['COVER BUKU']] };
+        const wsNilai = {
+          _rows: [
+            ['No', 'NIS', 'Nama Siswa', 'Tugas 1'],
+            [1, '1001', 'Ahmad Dahlan', 90],
+          ],
+        };
+        const wb = {
+          SheetNames: ['Petunjuk', 'Nilai Akademik'],
+          Sheets: {
+            Petunjuk: wsCover,
+            'Nilai Akademik': wsNilai,
+          },
+        };
+
+        const result = resolveGradesWorksheetData(wb, mockXLSX);
+        expect(result.sheetName).toBe('Nilai Akademik');
+        expect(result.data).toEqual(wsNilai._rows);
+      });
+
+      it('mengabaikan sheet bernama standar yang tidak memiliki header siswa dan memilih sheet yang valid', () => {
+        const wsNilaiKosong = { _rows: [['RINGKASAN UMUM']] };
+        const wsData = {
+          _rows: [
+            ['No', 'Nama Siswa', 'NIS', 'Tugas 1'],
+            [1, 'Ahmad Dahlan', '1001', 95],
+          ],
+        };
+        const wb = {
+          SheetNames: ['Nilai Akademik', 'Sheet Nilai Asli'],
+          Sheets: {
+            'Nilai Akademik': wsNilaiKosong,
+            'Sheet Nilai Asli': wsData,
+          },
+        };
+
+        const result = resolveGradesWorksheetData(wb, mockXLSX);
+        expect(result.sheetName).toBe('Sheet Nilai Asli');
+        expect(result.data).toEqual(wsData._rows);
+      });
+
+      it('memindai secara berurutan untuk sheet dengan nama non-standar yang memiliki header siswa valid', () => {
+        const wsCover = { _rows: [['CATATAN GURU']] };
+        const wsKelas = {
+          _rows: [
+            ['No', 'NISN', 'Nama Siswa', 'Tugas 1'],
+            [1, '0012345678', 'Ahmad Dahlan', 88],
+          ],
+        };
+        const wb = {
+          SheetNames: ['Catatan', 'Kelas 7B'],
+          Sheets: {
+            Catatan: wsCover,
+            'Kelas 7B': wsKelas,
+          },
+        };
+
+        const result = resolveGradesWorksheetData(wb, mockXLSX);
+        expect(result.sheetName).toBe('Kelas 7B');
+        expect(result.data).toEqual(wsKelas._rows);
+      });
+
+      it('fallback ke sheet pertama jika tidak ada sheet yang memiliki header siswa (untuk diagnostik parser)', () => {
+        const ws1 = { _rows: [['PETUNJUK 1']] };
+        const ws2 = { _rows: [['PETUNJUK 2']] };
+        const wb = {
+          SheetNames: ['Sheet1', 'Sheet2'],
+          Sheets: {
+            Sheet1: ws1,
+            Sheet2: ws2,
+          },
+        };
+
+        const result = resolveGradesWorksheetData(wb, mockXLSX);
+        expect(result.sheetName).toBe('Sheet1');
+        expect(result.data).toEqual(ws1._rows);
       });
     });
   });

@@ -81,6 +81,104 @@ const SUMMARY_COL_ALIASES = new Set([
   'status ketuntasan',
 ]);
 
+/**
+ * Known preferred standard sheet names from DADU export / standard academic practice
+ * (case-insensitive, normalized).
+ */
+export const PREFERRED_GRADES_SHEET_NAMES = new Set([
+  'nilai akademik',
+  'nilai',
+  'grades',
+  'daftar nilai',
+]);
+
+export interface ResolvedWorksheetData {
+  sheetName: string;
+  data: any[][];
+}
+
+/**
+ * Scans up to the first 15 rows to find the student identity header row.
+ * Returns the 0-indexed row index if found, or -1 if not found.
+ */
+export function findGradesHeaderRow(rawRows: any[][]): number {
+  if (!rawRows || !Array.isArray(rawRows)) return -1;
+  for (let r = 0; r < Math.min(15, rawRows.length); r++) {
+    const row = rawRows[r];
+    if (!row || !Array.isArray(row)) continue;
+
+    const normalizedCells = row.map(c => normalizeHeader(String(c || '')));
+    const hasStudentIdentity = normalizedCells.some(
+      c => STUDENT_COL_ALIASES.NAME.has(c) || STUDENT_COL_ALIASES.NIS.has(c) || STUDENT_COL_ALIASES.NISN.has(c)
+    );
+
+    const nonEmptyCount = row.filter(c => c !== undefined && c !== null && String(c).trim() !== '').length;
+
+    if (hasStudentIdentity && nonEmptyCount >= 2) {
+      return r;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Deterministically resolves the most relevant worksheet containing grades data from a workbook:
+ * 1. Collects valid worksheets available in SheetNames and Sheets.
+ * 2. Prioritizes preferred standard sheet names ('Nilai Akademik', etc.), BUT ONLY IF they contain a recognized student header row.
+ * 3. Otherwise, scans worksheets in workbook order and selects the first sheet with a recognized student header row.
+ * 4. Fallback: returns the first available sheet so the parser can surface standard diagnostic header errors.
+ * 5. Caches sheet_to_json results to avoid redundant conversions.
+ */
+export function resolveGradesWorksheetData(
+  wb: any,
+  XLSX: any
+): ResolvedWorksheetData {
+  const availableSheets: Array<{ name: string; ws: any }> = [];
+  for (const name of wb?.SheetNames || []) {
+    if (name && wb?.Sheets && wb.Sheets[name]) {
+      availableSheets.push({ name, ws: wb.Sheets[name] });
+    }
+  }
+
+  if (availableSheets.length === 0) {
+    throw new Error('Lembar kerja (worksheet) tidak ditemukan');
+  }
+
+  const parsedDataCache = new Map<string, any[][]>();
+  const getDataForSheet = (sheet: { name: string; ws: any }): any[][] => {
+    let data = parsedDataCache.get(sheet.name);
+    if (!data) {
+      data = XLSX.utils.sheet_to_json(sheet.ws, { header: 1 });
+      parsedDataCache.set(sheet.name, data);
+    }
+    return data;
+  };
+
+  // 1. Check preferred standard sheet names first, but only if they have a recognized student header
+  for (const sheet of availableSheets) {
+    const normalizedName = normalizeHeader(sheet.name);
+    if (PREFERRED_GRADES_SHEET_NAMES.has(normalizedName)) {
+      const data = getDataForSheet(sheet);
+      if (findGradesHeaderRow(data) !== -1) {
+        return { sheetName: sheet.name, data };
+      }
+    }
+  }
+
+  // 2. Scan in workbook order for the first sheet that has a recognized student header
+  for (const sheet of availableSheets) {
+    const data = getDataForSheet(sheet);
+    if (findGradesHeaderRow(data) !== -1) {
+      return { sheetName: sheet.name, data };
+    }
+  }
+
+  // 3. Fallback: use first available sheet so parser generates canonical diagnostic error
+  const firstSheet = availableSheets[0];
+  const data = getDataForSheet(firstSheet);
+  return { sheetName: firstSheet.name, data };
+}
+
 interface ColumnMapping {
   index: number;
   rawHeader: string;
@@ -119,23 +217,7 @@ export function parseGradesExcel(
   }
 
   // 1. Locate the header row (search within first 15 rows)
-  let headerRowIndex = -1;
-  for (let r = 0; r < Math.min(15, rawRows.length); r++) {
-    const row = rawRows[r];
-    if (!row || !Array.isArray(row)) continue;
-
-    const normalizedCells = row.map(c => normalizeHeader(String(c || '')));
-    const hasStudentIdentity = normalizedCells.some(
-      c => STUDENT_COL_ALIASES.NAME.has(c) || STUDENT_COL_ALIASES.NIS.has(c) || STUDENT_COL_ALIASES.NISN.has(c)
-    );
-
-    const nonEmptyCount = row.filter(c => c !== undefined && c !== null && String(c).trim() !== '').length;
-
-    if (hasStudentIdentity && nonEmptyCount >= 2) {
-      headerRowIndex = r;
-      break;
-    }
-  }
+  const headerRowIndex = findGradesHeaderRow(rawRows);
 
   if (headerRowIndex === -1) {
     return {

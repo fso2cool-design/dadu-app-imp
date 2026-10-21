@@ -27,7 +27,7 @@ import { DEFAULT_KKM } from '../../constants/grading';
 import { calculateFinalScore, getGradeScale, MissingScoreTreatment } from '../../domain/grading/grading.service';
 import { invalidateGradesReportCache } from '../../services/cache/gradesReportCache';
 import { loadXlsx } from '../../utils/lazyXlsx';
-import { parseGradesExcel, buildGradesImportFeedback } from './gradesExcelParser';
+import { parseGradesExcel, buildGradesImportFeedback, resolveGradesWorksheetData } from './gradesExcelParser';
 import { Medal, Plus, FloppyDisk, Download, Upload, FileCsv, Trash, PencilSimple, MagnifyingGlass, Funnel, Stack, CaretDown, CheckCircle, WarningCircle, TrendUp, Users, Percent, SlidersHorizontal, Question, Notepad, Sparkle, ArrowsDownUp, ClipboardText } from '@phosphor-icons/react';
 import { Badge } from '../../components/common/Badge';
 import { TabNavigation } from '../../components/common/TabNavigation';
@@ -1059,12 +1059,7 @@ export const GradesPage: React.FC = () => {
           throw new Error('File tidak dapat dibaca');
         }
         const wb = XLSX.read(arrayBuffer, { type: 'array' });
-        const wsname = wb.SheetNames?.[0];
-        const ws = wsname ? wb.Sheets[wsname] : undefined;
-        if (!ws) {
-          throw new Error('Lembar kerja (worksheet) tidak ditemukan');
-        }
-        const data: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const { data } = resolveGradesWorksheetData(wb, XLSX);
 
         const result = parseGradesExcel(data, enrollments, assessmentItems);
         const feedback = buildGradesImportFeedback(result);

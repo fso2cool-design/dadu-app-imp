@@ -412,4 +412,190 @@ describe('GradesPage Excel Import Hardening & Characterization', () => {
       expect(screen.getByText(/Klik "Simpan Perubahan" untuk menyimpan ke cloud/i)).toBeInTheDocument();
     });
   });
+
+  describe('Multi-Sheet Workbook Processing (TC-EXCEL-SHEET-01 to 03)', () => {
+    it('TC-EXCEL-SHEET-01 — Cover first, standard grades sheet second: parses sheet with valid grades', async () => {
+      let capturedOnLoad: ((evt: any) => void) | null = null;
+      vi.spyOn(FileReader.prototype, 'readAsArrayBuffer').mockImplementation(function (this: any) {
+        capturedOnLoad = this.onload;
+      });
+
+      const wsPetunjuk = { id: 'sheet-petunjuk' };
+      const wsNilai = { id: 'sheet-nilai-akademik' };
+
+      const petunjukData = [
+        ['PETUNJUK PENGISIAN NILAI SISWA'],
+        ['1. Jangan mengubah format kolom'],
+        ['2. Nilai harus dalam rentang 0-100'],
+      ];
+
+      const nilaiData = [
+        ['No', 'NIS', 'Nama Siswa', 'Ulangan Harian 1'],
+        [1, '1001', 'Ahmad Dahlan', 92],
+        [2, '1002', 'Budi Santoso', 88],
+      ];
+
+      const sheetDataMap = new Map<any, any[][]>([
+        [wsPetunjuk, petunjukData],
+        [wsNilai, nilaiData],
+      ]);
+
+      const mockXlsx = {
+        read: vi.fn().mockReturnValue({
+          SheetNames: ['Petunjuk', 'Nilai Akademik'],
+          Sheets: {
+            Petunjuk: wsPetunjuk,
+            'Nilai Akademik': wsNilai,
+          },
+        }),
+        utils: {
+          sheet_to_json: vi.fn().mockImplementation((ws) => sheetDataMap.get(ws) || []),
+        },
+      };
+      (loadXlsx as any).mockResolvedValue(mockXlsx);
+
+      const { container } = renderComponent();
+      await screen.findByText('Ulangan Harian 1');
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['multi-sheet-bytes'], 'multi_sheet_grades.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await act(async () => {
+        await capturedOnLoad!({ target: { result: new ArrayBuffer(32) } });
+      });
+
+      // Must succeed by processing 'Nilai Akademik'
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        expect.stringMatching(/Import Excel berhasil/i)
+      );
+      expect(mockToastError).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /Simpan Perubahan*/i })).toBeInTheDocument();
+    });
+
+    it('TC-EXCEL-SHEET-02 — Preferred sheet name alone is insufficient: selects sheet with valid student header', async () => {
+      let capturedOnLoad: ((evt: any) => void) | null = null;
+      vi.spyOn(FileReader.prototype, 'readAsArrayBuffer').mockImplementation(function (this: any) {
+        capturedOnLoad = this.onload;
+      });
+
+      const wsNilaiKosong = { id: 'sheet-nilai-tanpa-header' };
+      const wsDataKelas = { id: 'sheet-data-kelas' };
+
+      const emptyNilaiData = [
+        ['REKAPITULASI NILAI AKADEMIK'],
+        ['Hanya catatan umum guru tanpa identitas siswa'],
+      ];
+
+      const dataKelasData = [
+        ['No', 'NIS', 'Nama Siswa', 'Ulangan Harian 1'],
+        [1, '1001', 'Ahmad Dahlan', 95],
+        [2, '1002', 'Budi Santoso', 80],
+      ];
+
+      const sheetDataMap = new Map<any, any[][]>([
+        [wsNilaiKosong, emptyNilaiData],
+        [wsDataKelas, dataKelasData],
+      ]);
+
+      const mockXlsx = {
+        read: vi.fn().mockReturnValue({
+          SheetNames: ['Nilai Akademik', 'Data Kelas'],
+          Sheets: {
+            'Nilai Akademik': wsNilaiKosong,
+            'Data Kelas': wsDataKelas,
+          },
+        }),
+        utils: {
+          sheet_to_json: vi.fn().mockImplementation((ws) => sheetDataMap.get(ws) || []),
+        },
+      };
+      (loadXlsx as any).mockResolvedValue(mockXlsx);
+
+      const { container } = renderComponent();
+      await screen.findByText('Ulangan Harian 1');
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['multi-sheet-bytes'], 'preferred_name_insufficient.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await act(async () => {
+        await capturedOnLoad!({ target: { result: new ArrayBuffer(32) } });
+      });
+
+      // Must succeed by bypassing empty 'Nilai Akademik' and reading 'Data Kelas'
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        expect.stringMatching(/Import Excel berhasil/i)
+      );
+      expect(mockToastError).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /Simpan Perubahan*/i })).toBeInTheDocument();
+    });
+
+    it('TC-EXCEL-SHEET-03 — Fallback for unnamed/non-standard worksheet: finds grades table on custom sheet', async () => {
+      let capturedOnLoad: ((evt: any) => void) | null = null;
+      vi.spyOn(FileReader.prototype, 'readAsArrayBuffer').mockImplementation(function (this: any) {
+        capturedOnLoad = this.onload;
+      });
+
+      const wsCover = { id: 'sheet-cover' };
+      const wsKelas7A = { id: 'sheet-kelas-7a' };
+
+      const coverData = [
+        ['COVER BUKU NILAI'],
+        ['Tahun Ajaran 2025/2026'],
+      ];
+
+      const kelas7AData = [
+        ['No', 'NIS', 'Nama Siswa', 'Ulangan Harian 1'],
+        [1, '1001', 'Ahmad Dahlan', 87],
+        [2, '1002', 'Budi Santoso', 83],
+      ];
+
+      const sheetDataMap = new Map<any, any[][]>([
+        [wsCover, coverData],
+        [wsKelas7A, kelas7AData],
+      ]);
+
+      const mockXlsx = {
+        read: vi.fn().mockReturnValue({
+          SheetNames: ['Cover Buku', 'Kelas 7A'],
+          Sheets: {
+            'Cover Buku': wsCover,
+            'Kelas 7A': wsKelas7A,
+          },
+        }),
+        utils: {
+          sheet_to_json: vi.fn().mockImplementation((ws) => sheetDataMap.get(ws) || []),
+        },
+      };
+      (loadXlsx as any).mockResolvedValue(mockXlsx);
+
+      const { container } = renderComponent();
+      await screen.findByText('Ulangan Harian 1');
+
+      const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = new File(['multi-sheet-bytes'], 'non_standard_sheet_name.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      fireEvent.change(fileInput, { target: { files: [file] } });
+
+      await act(async () => {
+        await capturedOnLoad!({ target: { result: new ArrayBuffer(32) } });
+      });
+
+      // Must succeed by scanning and detecting 'Kelas 7A'
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        expect.stringMatching(/Import Excel berhasil/i)
+      );
+      expect(mockToastError).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /Simpan Perubahan*/i })).toBeInTheDocument();
+    });
+  });
 });
