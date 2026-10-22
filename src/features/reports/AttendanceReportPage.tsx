@@ -5,6 +5,7 @@ import { useWorkspace } from '../../context/WorkspaceContext';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { TeachingAssignment, Meeting, AttendanceRecord, DailyAttendanceRecord, Enrollment, SchoolSettings } from '../../types';
+import { isAssignmentForSemester, filterAssignmentsForSemester } from '../../domain/academic/assignmentPolicy';
 import { getTodayISO } from '../../utils/date';
 import { loadXlsx } from '../../utils/lazyXlsx';
 import { ChartBar, CalendarCheck, Users, MagnifyingGlass, Funnel, Warning, CheckCircle, Stack, Download, Percent, Clock, ShareNetwork } from '@phosphor-icons/react';
@@ -68,7 +69,7 @@ export const AttendanceReportPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
 
   const activeYears = useMemo(() => {
-    if (!activeAcademicYear) return [new Date().getFullYear().toString()];
+    if (!activeAcademicYear?.id) return [new Date().getFullYear().toString()];
     const parts = activeAcademicYear.id.split('/');
     if (parts.length === 2) {
       return parts;
@@ -114,20 +115,40 @@ export const AttendanceReportPage: React.FC = () => {
   // Homeroom Attendance State
   const [dailyRecords, setDailyRecords] = useState<DailyAttendanceRecord[]>([]);
 
-  // Initialize selected assignment or class
+  // Initialize selected class for homeroom mode
   useEffect(() => {
-    if (teachingAssignments.length > 0 && !selectedAssignment) {
-      setSelectedAssignment(teachingAssignments[0]);
-    }
     if (classes.length > 0 && !selectedClassId) {
       setSelectedClassId(classes[0].id);
     }
-  }, [teachingAssignments, classes, selectedAssignment, selectedClassId]);
+  }, [classes, selectedClassId]);
+
+  const semesterAssignments = useMemo(() => {
+    if (!activeAcademicYear?.id || !activeSemester) return [];
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear?.id, activeSemester]);
+
+  const isCurrentAssignmentValid = Boolean(
+    activeAcademicYear?.id &&
+    activeSemester &&
+    selectedAssignment &&
+    isAssignmentForSemester(selectedAssignment, activeAcademicYear.id, activeSemester)
+  );
+
+  const activeAssignment = isCurrentAssignmentValid ? selectedAssignment : null;
 
   // Fetch Subject Attendance Data with SWR
   useEffect(() => {
-      let isMounted = true;
-    if (!user || !activeAcademicYear || reportMode !== 'SUBJECT' || !selectedAssignment) return;
+    let isMounted = true;
+    if (!user || !activeAcademicYear?.id || !activeSemester || reportMode !== 'SUBJECT' || !isCurrentAssignmentValid || !selectedAssignment) {
+      if (reportMode === 'SUBJECT' && !isCurrentAssignmentValid) {
+        setMeetings([]);
+        setEnrollments([]);
+        setAttendanceRecords([]);
+        setIsShareModalOpen(false);
+        setLoading(false);
+      }
+      return;
+    }
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
     const cached = subjectReportCache.get(cacheKey);
@@ -185,20 +206,22 @@ export const AttendanceReportPage: React.FC = () => {
         setEnrollments(enrs);
         setAttendanceRecords(finalRecords);
       } catch (err) {
-        console.error('Error fetching subject attendance report data:', err);
+        if (isMounted) console.error('Error fetching subject attendance report data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchSubjectData();
-      return () => { isMounted = false; };
-  }, [user, activeAcademicYear, activeSemester, reportMode, selectedAssignment]);
+    return () => { isMounted = false; };
+  }, [user, activeAcademicYear, activeSemester, reportMode, selectedAssignment, isCurrentAssignmentValid]);
 
   // Fetch Homeroom Daily Attendance Data with SWR
   useEffect(() => {
       let isMounted = true;
-    if (!user || !activeAcademicYear || reportMode !== 'HOMEROOM' || !selectedClassId) return;
+    if (!user || !activeAcademicYear?.id || reportMode !== 'HOMEROOM' || !selectedClassId) return;
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${selectedClassId}`;
     const cached = homeroomReportCache.get(cacheKey);
@@ -252,6 +275,7 @@ export const AttendanceReportPage: React.FC = () => {
     const isMonthFilter = selectedMonth !== 'ALL';
 
     if (reportMode === 'SUBJECT') {
+      if (!isCurrentAssignmentValid) return 0;
       const meetingDateMap = new Map<string, string>();
       meetings.forEach(m => {
         if (m.id && m.date) meetingDateMap.set(m.id, m.date);
@@ -291,11 +315,11 @@ export const AttendanceReportPage: React.FC = () => {
       });
       return dailyDates.size;
     }
-  }, [reportMode, meetings, attendanceRecords, dailyRecords, selectedMonth, selectedYear]);
+  }, [reportMode, isCurrentAssignmentValid, meetings, attendanceRecords, dailyRecords, selectedMonth, selectedYear]);
 
   // Compile Student Summaries for Subject Attendance
   const subjectSummaries = useMemo<StudentAttendanceSummary[]>(() => {
-    if (reportMode !== 'SUBJECT') return [];
+    if (reportMode !== 'SUBJECT' || !isCurrentAssignmentValid) return [];
 
     const meetingDateMap = new Map<string, string>();
     meetings.forEach(m => {
@@ -350,7 +374,7 @@ export const AttendanceReportPage: React.FC = () => {
         presentPercentage: percentage,
       };
     });
-  }, [reportMode, enrollments, attendanceRecords, meetings, selectedMonth, selectedYear, effectiveSessionCount]);
+  }, [reportMode, isCurrentAssignmentValid, enrollments, attendanceRecords, meetings, selectedMonth, selectedYear, effectiveSessionCount]);
 
   // Compile Student Summaries for Homeroom Attendance
   const homeroomSummaries = useMemo<StudentAttendanceSummary[]>(() => {
@@ -447,13 +471,14 @@ export const AttendanceReportPage: React.FC = () => {
 
   // Selected Class & Subject info
   const selectedClassObj = classes.find(c => 
-    reportMode === 'SUBJECT' ? c.id === selectedAssignment?.classId : c.id === selectedClassId
+    reportMode === 'SUBJECT' ? c.id === activeAssignment?.classId : c.id === selectedClassId
   );
 
   // Handle Export Excel
   const handleExportExcel = async () => {
-    const XLSX = await loadXlsx();
+    if (reportMode === 'SUBJECT' && !isCurrentAssignmentValid) return;
     if (activeSummaries.length === 0) return;
+    const XLSX = await loadXlsx();
 
     const sheetData: any[] = [];
 
@@ -462,7 +487,7 @@ export const AttendanceReportPage: React.FC = () => {
     sheetData.push([`Tahun Ajaran: ${activeAcademicYear?.label || '-'} (${activeSemester})`]);
     sheetData.push([`Kelas: ${selectedClassObj?.name || '-'}`]);
     if (reportMode === 'SUBJECT') {
-      sheetData.push([`Mata Pelajaran: ${selectedAssignment?.subjectName || '-'}`]);
+      sheetData.push([`Mata Pelajaran: ${activeAssignment?.subjectName || '-'}`]);
       sheetData.push([`Sesi Presensi Tercatat: ${effectiveSessionCount}`]);
     } else {
       sheetData.push([`Jenis Presensi: Presensi Harian Wali Kelas`]);
@@ -514,7 +539,7 @@ export const AttendanceReportPage: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Presensi');
 
-    const fileName = `Rekap_Presensi_${reportMode === 'SUBJECT' ? selectedAssignment?.subjectName : 'Kelas'}_${selectedClassObj?.name || 'Kelas'}.xlsx`;
+    const fileName = `Rekap_Presensi_${reportMode === 'SUBJECT' ? activeAssignment?.subjectName || 'Mapel' : 'Kelas'}_${selectedClassObj?.name || 'Kelas'}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
@@ -526,7 +551,7 @@ export const AttendanceReportPage: React.FC = () => {
     { label: 'Tahun Ajaran', value: `${activeAcademicYear?.label || '-'} (${activeSemester})` },
     { label: 'Kelas / Rombel', value: selectedClassObj?.name || '-' },
     ...(reportMode === 'SUBJECT' ? [
-      { label: 'Mata Pelajaran', value: selectedAssignment?.subjectName || '-' },
+      { label: 'Mata Pelajaran', value: activeAssignment?.subjectName || '-' },
       { label: 'Sesi Presensi Tercatat', value: `${effectiveSessionCount} Sesi` },
     ] : [
       { label: 'Tipe Laporan', value: 'Buku Presensi Harian' },
@@ -580,8 +605,12 @@ export const AttendanceReportPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setIsShareModalOpen(true)}
-            disabled={activeSummaries.length === 0}
+            onClick={() => {
+              if (reportMode === 'SUBJECT' && !isCurrentAssignmentValid) return;
+              if (activeSummaries.length === 0) return;
+              setIsShareModalOpen(true);
+            }}
+            disabled={activeSummaries.length === 0 || (reportMode === 'SUBJECT' && !isCurrentAssignmentValid)}
             className="btn-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <ShareNetwork className="w-3.5 h-3.5" />
@@ -597,14 +626,15 @@ export const AttendanceReportPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <label className="text-xs font-semibold text-slate-600 dark:text-slate-400">Mapel & Kelas:</label>
               <select
-                value={selectedAssignment?.id || ''}
+                value={isCurrentAssignmentValid && selectedAssignment ? selectedAssignment.id : ''}
                 onChange={(e) => {
-                  const asg = teachingAssignments.find(a => a.id === e.target.value);
+                  const asg = semesterAssignments.find(a => a.id === e.target.value);
                   if (asg) setSelectedAssignment(asg);
                 }}
                 className="px-3 py-1.5 text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface)] border border-[var(--ds-border)] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[var(--ds-focus)] cursor-pointer"
               >
-                {teachingAssignments.map(asg => (
+                <option value="">-- Pilih Penugasan Mengajar --</option>
+                {semesterAssignments.map(asg => (
                   <option key={asg.id} value={asg.id}>
                     {asg.className} — {asg.subjectName}
                   </option>
@@ -720,7 +750,7 @@ export const AttendanceReportPage: React.FC = () => {
         title={documentTitle}
         metaItems={metaItems}
         onExportExcel={handleExportExcel}
-        excelExportDisabled={activeSummaries.length === 0}
+        excelExportDisabled={activeSummaries.length === 0 || (reportMode === 'SUBJECT' && !isCurrentAssignmentValid)}
         signatureType={reportMode === 'HOMEROOM' ? 'HOMEROOM_AND_HEADMASTER' : 'TEACHER_AND_HEADMASTER'}
       >
         {loading ? (
@@ -852,48 +882,50 @@ export const AttendanceReportPage: React.FC = () => {
       </PrintDocumentLayout>
 
       {/* Public Share via Link Modal */}
-      <ShareReportModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        reportType="ATTENDANCE"
-        defaultTitle={documentTitle}
-        payload={{
-          reportType: 'ATTENDANCE',
-          title: documentTitle,
-          schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
-          schoolLevel: schoolSettings?.schoolLevel || 'MA',
-          kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
-          academicYearLabel: activeAcademicYear?.label || '2026/2027',
-          semester: activeSemester,
-          className: selectedClassObj?.name || 'Kelas',
-          subjectName: reportMode === 'SUBJECT' ? (selectedAssignment?.subjectName || '-') : undefined,
-          teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Pengampu',
-          teacherNip: schoolSettings?.teacherNip || '-',
-          headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
-          headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
-          generatedDate: getTodayISO(),
-          attendanceData: {
-            reportMode,
-            totalMeetingsOrDays: effectiveSessionCount,
-            kkm,
-            summaries: activeSummaries.map(s => ({
-              rollNumber: s.rollNumber,
-              nis: s.nis,
-              nisn: s.nisn,
-              name: s.name,
-              gender: s.gender,
-              presentCount: s.presentCount,
-              sickCount: s.sickCount,
-              permittedCount: s.permittedCount,
-              absentCount: s.absentCount,
-              dispensationCount: s.dispensationCount,
-              totalMeetings: s.totalMeetings,
-              presentPercentage: s.presentPercentage
-            })),
-            statistics: stats
-          }
-        }}
-      />
+      {((reportMode === 'HOMEROOM' && activeSummaries.length > 0) || (isCurrentAssignmentValid && activeSummaries.length > 0)) && (
+        <ShareReportModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          reportType="ATTENDANCE"
+          defaultTitle={documentTitle}
+          payload={{
+            reportType: 'ATTENDANCE',
+            title: documentTitle,
+            schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
+            schoolLevel: schoolSettings?.schoolLevel || 'MA',
+            kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
+            academicYearLabel: activeAcademicYear?.label || '2026/2027',
+            semester: activeSemester,
+            className: selectedClassObj?.name || 'Kelas',
+            subjectName: reportMode === 'SUBJECT' ? (activeAssignment?.subjectName || '-') : undefined,
+            teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Pengampu',
+            teacherNip: schoolSettings?.teacherNip || '-',
+            headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
+            headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
+            generatedDate: getTodayISO(),
+            attendanceData: {
+              reportMode,
+              totalMeetingsOrDays: effectiveSessionCount,
+              kkm,
+              summaries: activeSummaries.map(s => ({
+                rollNumber: s.rollNumber,
+                nis: s.nis,
+                nisn: s.nisn,
+                name: s.name,
+                gender: s.gender,
+                presentCount: s.presentCount,
+                sickCount: s.sickCount,
+                permittedCount: s.permittedCount,
+                absentCount: s.absentCount,
+                dispensationCount: s.dispensationCount,
+                totalMeetings: s.totalMeetings,
+                presentPercentage: s.presentPercentage
+              })),
+              statistics: stats
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

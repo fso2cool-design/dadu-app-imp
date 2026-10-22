@@ -931,3 +931,384 @@ describe('AttendanceReportPage Denominator Semantics & Correctness', () => {
     expect(publicCriticalCard).toHaveTextContent('1 Siswa');
   });
 });
+
+describe('Priority 5A: Academic Year & Semester Assignment Isolation', () => {
+  const mockGetAllMeetings = vi.fn();
+  const mockGetByClass = vi.fn();
+  const mockGetByAssignment = vi.fn();
+  const mockGetByMeetingIds = vi.fn();
+  const mockGetAllDailyForClass = vi.fn();
+  const mockGetSchoolSettings = vi.fn();
+  const mockGetDocumentSettings = vi.fn();
+  const mockSetSelectedAssignment = vi.fn();
+
+  const mockApp = {
+    meetings: { getAll: mockGetAllMeetings },
+    enrollment: { getByClass: mockGetByClass },
+    attendance: {
+      getByAssignment: mockGetByAssignment,
+      getByMeetingIds: mockGetByMeetingIds,
+      getAllDailyForClass: mockGetAllDailyForClass,
+    },
+    settings: {
+      getSchoolSettings: mockGetSchoolSettings,
+      getDocumentSettings: mockGetDocumentSettings,
+    },
+    reports: {
+      createSharedReport: vi.fn(),
+      getUserSharedReports: vi.fn().mockResolvedValue([]),
+      revokeSharedReport: vi.fn(),
+      getSharedReportByToken: vi.fn(),
+      incrementView: vi.fn(),
+      decrypt: vi.fn(),
+    },
+  } as any;
+
+  const academicYearGanjil = { id: '2026/2027', label: '2026/2027', isArchived: false };
+  const assignmentGanjil = {
+    id: 'asg-ganjil',
+    teacherId: 'teacher-1',
+    classId: 'cls-7a',
+    className: '7A',
+    subjectId: 'sub-fikih',
+    subjectName: 'Fikih Ganjil',
+    academicYearId: '2026/2027',
+    semester: 'GANJIL' as const,
+  };
+  const assignmentGenap = {
+    id: 'asg-genap',
+    teacherId: 'teacher-1',
+    classId: 'cls-7b',
+    className: '7B',
+    subjectId: 'sub-akidah',
+    subjectName: 'Akidah Genap',
+    academicYearId: '2026/2027',
+    semester: 'GENAP' as const,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSchoolSettings.mockResolvedValue({ schoolName: 'MTs DADU Test', city: 'Jakarta', defaultKkm: 75 });
+    mockGetDocumentSettings.mockResolvedValue({ city: 'Jakarta', paperSize: 'A4', orientation: 'LANDSCAPE' });
+    mockGetAllMeetings.mockResolvedValue([]);
+    mockGetByClass.mockResolvedValue([]);
+    mockGetByAssignment.mockResolvedValue([]);
+    mockGetByMeetingIds.mockResolvedValue([]);
+    mockGetAllDailyForClass.mockResolvedValue([]);
+
+    vi.spyOn(authModule, 'useAuth').mockReturnValue({
+      user: { uid: 'teacher-1' },
+      profile: { uid: 'teacher-1', displayName: 'Guru Mapel' },
+    } as any);
+  });
+
+  const renderSubjectReport = () => {
+    return render(
+      <ToastProvider>
+        <ApplicationProvider app={mockApp}>
+          <AttendanceReportPage />
+        </ApplicationProvider>
+      </ToastProvider>
+    );
+  };
+
+  it('TC-REPORT-SEM-01: does not auto-select teachingAssignments[0] when selectedAssignment is null after semester switch', async () => {
+    vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    renderSubjectReport();
+
+    expect(mockSetSelectedAssignment).not.toHaveBeenCalled();
+  });
+
+  it('TC-REPORT-SEM-02: dropdown only renders assignments for active semester and displays placeholder when selectedAssignment is null', async () => {
+    vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    renderSubjectReport();
+
+    expect(screen.getByText('-- Pilih Penugasan Mengajar --')).toBeInTheDocument();
+    expect(screen.queryByText(/Fikih Ganjil/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Akidah Genap/i)).toBeInTheDocument();
+  });
+
+  it('TC-REPORT-SEM-03: does not query meetings or attendance when selectedAssignment does not match active semester', async () => {
+    vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: assignmentGanjil,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    renderSubjectReport();
+
+    expect(mockGetAllMeetings).not.toHaveBeenCalled();
+    expect(mockGetByAssignment).not.toHaveBeenCalled();
+  });
+
+  const sampleMeetings = [
+    { id: 'm-1', date: '2026-08-10', meetingNumber: 1, teachingAssignmentId: 'asg-ganjil', status: 'COMPLETED' as const },
+  ];
+  const sampleStudents = [
+    { id: 'enr-1', studentId: 'std-1', rollNumber: 1, status: 'ACTIVE', student: { id: 'std-1', fullName: 'Ahmad Dahlan', nis: '1001', nisn: '001', gender: 'L' as const } },
+  ];
+  const sampleAttendance = [
+    { id: 'att-1', studentId: 'std-1', date: '2026-08-10', meetingId: 'm-1', status: 'PRESENT' as const },
+  ];
+  const sampleDaily = [
+    { id: 'daily-1', studentId: 'std-1', date: '2026-08-10', status: 'PRESENT' as const },
+  ];
+
+  it('TC-REPORT-TRANSITION-04: dynamic switch from GANJIL with valid assignment to GENAP with null assignment clears data, disables actions, and guards share modal', async () => {
+    mockGetAllMeetings.mockResolvedValue(sampleMeetings);
+    mockGetByClass.mockResolvedValue(sampleStudents);
+    mockGetByAssignment.mockResolvedValue(sampleAttendance);
+
+    const workspaceGanjil = {
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GANJIL',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: assignmentGanjil,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    };
+
+    const workspaceSpy = vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(workspaceGanjil as any);
+
+    const { rerender } = renderSubjectReport();
+
+    // Verify initial data in GANJIL context
+    expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+    const exportBtn = screen.getByRole('button', { name: /Ekspor Excel/i });
+    expect(exportBtn).not.toBeDisabled();
+    const shareBtn = screen.getByRole('button', { name: /Bagikan Tautan Publik/i });
+    expect(shareBtn).not.toBeDisabled();
+
+    // Switch context to GENAP with selectedAssignment = null
+    workspaceSpy.mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    rerender(
+      <ToastProvider>
+        <ApplicationProvider app={mockApp}>
+          <AttendanceReportPage />
+        </ApplicationProvider>
+      </ToastProvider>
+    );
+
+    // Verify derived isolation in GENAP context
+    await waitFor(() => {
+      expect(screen.queryByText('Ahmad Dahlan')).not.toBeInTheDocument();
+      expect(screen.getByText('Sesi Presensi Tercatat').closest('div')).toHaveTextContent('0 Sesi');
+      expect(screen.getByRole('button', { name: /Ekspor Excel/i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /Bagikan Tautan Publik/i })).toBeDisabled();
+      expect(screen.queryByText('Tautan Berbagi Laporan Resmi')).not.toBeInTheDocument();
+    });
+  });
+
+  it('TC-REPORT-TRANSITION-05: fails closed when activeAcademicYear is missing or undefined even with assignments from multiple years matching active semester', async () => {
+    const assignmentGanjilAY25 = {
+      id: 'asg-ay25-ganjil',
+      teacherId: 'teacher-1',
+      classId: 'cls-8a',
+      className: '8A',
+      subjectId: 'sub-fikih',
+      subjectName: 'Fikih 2025 Ganjil',
+      academicYearId: '2025/2026',
+      semester: 'GANJIL' as const,
+    };
+
+    vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+      activeAcademicYear: null,
+      activeSemester: 'GANJIL',
+      teachingAssignments: [assignmentGanjil, assignmentGanjilAY25],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: assignmentGanjil,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    renderSubjectReport();
+
+    // 1. Queries must be suppressed completely
+    expect(mockGetAllMeetings).not.toHaveBeenCalled();
+    expect(mockGetByClass).not.toHaveBeenCalled();
+    expect(mockGetByAssignment).not.toHaveBeenCalled();
+
+    // 2. Dropdown options must have ONLY the placeholder, no assignment options from either year
+    const label = screen.getByText('Mapel & Kelas:');
+    const select = label.parentElement!.querySelector('select')!;
+    const options = select.querySelectorAll('option');
+    expect(options).toHaveLength(1);
+    expect(options[0]).toHaveTextContent('-- Pilih Penugasan Mengajar --');
+    expect(screen.queryByText(/Fikih Ganjil/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Fikih 2025 Ganjil/i)).not.toBeInTheDocument();
+
+    // 3. Stale data must not be exposed
+    expect(screen.getByText('Sesi Presensi Tercatat').closest('div')).toHaveTextContent('0 Sesi');
+    expect(screen.queryByText('Ahmad Dahlan')).not.toBeInTheDocument();
+
+    // 4. Action buttons must be disabled and modal unmounted
+    expect(screen.getByRole('button', { name: /Ekspor Excel/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Bagikan Tautan Publik/i })).toBeDisabled();
+    expect(screen.queryByText('Tautan Berbagi Laporan Resmi')).not.toBeInTheDocument();
+  });
+
+  it('TC-REPORT-TRANSITION-06: homeroom mode operates independently of subject assignment validity', async () => {
+    mockGetAllDailyForClass.mockResolvedValue(sampleDaily);
+    mockGetByClass.mockResolvedValue(sampleStudents);
+
+    vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    renderSubjectReport();
+
+    // Switch to Homeroom tab
+    const homeroomTab = screen.getByRole('button', { name: /Presensi Harian Wali Kelas/i });
+    fireEvent.click(homeroomTab);
+
+    // In Homeroom mode, students load despite subject assignment being null
+    expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+  });
+
+  it('TC-REPORT-TRANSITION-07: obsolete in-flight response resolving after context switch does not leak stale data or corrupt loading', async () => {
+    let resolveInFlightMeetings: (value: any) => void;
+    const inFlightMeetingsPromise = new Promise((resolve) => {
+      resolveInFlightMeetings = resolve;
+    });
+    mockGetAllMeetings.mockReturnValue(inFlightMeetingsPromise);
+    mockGetByClass.mockResolvedValue(sampleStudents);
+    mockGetByAssignment.mockResolvedValue(sampleAttendance);
+
+    const assignmentInFlight = {
+      id: 'asg-ganjil-inflight',
+      teacherId: 'teacher-1',
+      academicYearId: '2026/2027',
+      semester: 'GANJIL' as const,
+      classId: 'cls-7a',
+      className: '7A',
+      subjectId: 'sub-fikih',
+      subjectName: 'Fikih Inflight',
+    };
+
+    const workspaceGanjil = {
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GANJIL',
+      teachingAssignments: [assignmentInFlight, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: assignmentInFlight,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    };
+
+    const workspaceSpy = vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(workspaceGanjil as any);
+
+    const { rerender } = renderSubjectReport();
+
+    // Verify loading indicator is present
+    expect(await screen.findByText(/Memuat kompilasi data presensi/i)).toBeInTheDocument();
+
+    // Now switch context to GENAP with no assignment while the request is still pending
+    workspaceSpy.mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentInFlight, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    rerender(
+      <ToastProvider>
+        <ApplicationProvider app={mockApp}>
+          <AttendanceReportPage />
+        </ApplicationProvider>
+      </ToastProvider>
+    );
+
+    // Resolve the old in-flight request
+    await resolveInFlightMeetings!(sampleMeetings);
+
+    // Stale data must not leak into GENAP context
+    await waitFor(() => {
+      expect(screen.queryByText('Ahmad Dahlan')).not.toBeInTheDocument();
+      expect(screen.getByText('Sesi Presensi Tercatat').closest('div')).toHaveTextContent('0 Sesi');
+      expect(screen.getByRole('button', { name: /Ekspor Excel/i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /Bagikan Tautan Publik/i })).toBeDisabled();
+    });
+  });
+
+  it('TC-REPORT-TRANSITION-08: closes or invalidates ShareReportModal if already open when context changes', async () => {
+    mockGetAllMeetings.mockResolvedValue(sampleMeetings);
+    mockGetByClass.mockResolvedValue(sampleStudents);
+    mockGetByAssignment.mockResolvedValue(sampleAttendance);
+
+    const workspaceGanjil = {
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GANJIL',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: assignmentGanjil,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    };
+
+    const workspaceSpy = vi.spyOn(workspaceModule, 'useWorkspace').mockReturnValue(workspaceGanjil as any);
+
+    const { rerender } = renderSubjectReport();
+
+    expect(await screen.findByText('Ahmad Dahlan')).toBeInTheDocument();
+
+    // Open share modal
+    const shareBtn = screen.getByRole('button', { name: /Bagikan Tautan Publik/i });
+    expect(shareBtn).not.toBeDisabled();
+    fireEvent.click(shareBtn);
+
+    // Modal is open
+    expect(await screen.findByText('Tautan Berbagi Laporan Resmi')).toBeInTheDocument();
+
+    // Switch context to GENAP with selectedAssignment = null
+    workspaceSpy.mockReturnValue({
+      activeAcademicYear: academicYearGanjil,
+      activeSemester: 'GENAP',
+      teachingAssignments: [assignmentGanjil, assignmentGenap],
+      classes: [{ id: 'cls-7a', name: '7A', academicYearId: '2026/2027', isActive: true }],
+      selectedAssignment: null,
+      setSelectedAssignment: mockSetSelectedAssignment,
+    } as any);
+
+    rerender(
+      <ToastProvider>
+        <ApplicationProvider app={mockApp}>
+          <AttendanceReportPage />
+        </ApplicationProvider>
+      </ToastProvider>
+    );
+
+    // Modal must be automatically dismissed/closed
+    expect(screen.queryByText('Tautan Berbagi Laporan Resmi')).not.toBeInTheDocument();
+  });
+});

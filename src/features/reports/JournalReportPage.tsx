@@ -5,6 +5,7 @@ import { PrintDocumentLayout } from './PrintDocumentLayout';
 import { Badge } from '../../components/common/Badge';
 import { useApplication } from '../../application/ApplicationContext';
 import { TeachingAssignment, Meeting, SchoolSettings } from '../../types';
+import { isAssignmentForSemester, filterAssignmentsForSemester } from '../../domain/academic/assignmentPolicy';
 import { formatDateWithDay, getTodayISO } from '../../utils/date';
 import { ShareReportModal } from './ShareReportModal';
 import { loadXlsx } from '../../utils/lazyXlsx';
@@ -35,17 +36,32 @@ export const JournalReportPage: React.FC = () => {
     app.settings.getSchoolSettings(user.uid).then(setSchoolSettings).catch(console.error);
   }, [user]);
 
-  // Initialize selected assignment
-  useEffect(() => {
-    if (teachingAssignments.length > 0 && !selectedAssignment) {
-      setSelectedAssignment(teachingAssignments[0]);
-    }
-  }, [teachingAssignments, selectedAssignment]);
+  const semesterAssignments = useMemo(() => {
+    if (!activeAcademicYear?.id || !activeSemester) return [];
+    return filterAssignmentsForSemester(teachingAssignments, activeAcademicYear.id, activeSemester);
+  }, [teachingAssignments, activeAcademicYear?.id, activeSemester]);
+
+  const isCurrentAssignmentValid = Boolean(
+    activeAcademicYear?.id &&
+    activeSemester &&
+    selectedAssignment &&
+    isAssignmentForSemester(selectedAssignment, activeAcademicYear.id, activeSemester)
+  );
+
+  const activeAssignment = isCurrentAssignmentValid ? selectedAssignment : null;
+  const displayMeetings = isCurrentAssignmentValid ? meetings : [];
 
   // Fetch meetings with SWR
   useEffect(() => {
-      let isMounted = true;
-    if (!user || !activeAcademicYear || !selectedAssignment) return;
+    let isMounted = true;
+    if (!user || !activeAcademicYear?.id || !activeSemester || !isCurrentAssignmentValid || !selectedAssignment) {
+      if (!isCurrentAssignmentValid) {
+        setMeetings([]);
+        setIsShareModalOpen(false);
+        setLoading(false);
+      }
+      return;
+    }
 
     const cacheKey = `${user.uid}_${activeAcademicYear.id}_${activeSemester}_${selectedAssignment.id}`;
     const cached = journalReportCache.get(cacheKey);
@@ -68,44 +84,46 @@ export const JournalReportPage: React.FC = () => {
         journalReportCache.set(cacheKey, mets);
         setMeetings(mets);
       } catch (err) {
-        console.error('Error fetching journal report data:', err);
+        if (isMounted) console.error('Error fetching journal report data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchJournalData();
-      return () => { isMounted = false; };
-  }, [user, activeAcademicYear, activeSemester, selectedAssignment]);
+    return () => { isMounted = false; };
+  }, [user, activeAcademicYear, activeSemester, selectedAssignment, isCurrentAssignmentValid]);
 
   // Filtered meetings
   const filteredMeetings = useMemo(() => {
-    if (!searchQuery.trim()) return meetings;
+    if (!searchQuery.trim()) return displayMeetings;
     const q = searchQuery.toLowerCase();
-    return meetings.filter(m => 
+    return displayMeetings.filter(m =>
       (m.topic || '').toLowerCase().includes(q) ||
       (m.learningObjectives || '').toLowerCase().includes(q) ||
       (m.activities || '').toLowerCase().includes(q) ||
       (m.notes || '').toLowerCase().includes(q)
     );
-  }, [meetings, searchQuery]);
+  }, [displayMeetings, searchQuery]);
 
   // Formatted date helper
   const formatDate = (dateStr: string) => formatDateWithDay(dateStr);
 
   // Export Excel
   const handleExportExcel = async () => {
+    if (!isCurrentAssignmentValid || displayMeetings.length === 0) return;
     const XLSX = await loadXlsx();
-    if (meetings.length === 0) return;
 
     const sheetData: any[] = [];
 
     // Title & Metadata
     sheetData.push(['BUKU AGENDA JURNAL GURU MENGAJAR']);
     sheetData.push([`Tahun Ajaran: ${activeAcademicYear?.label || '-'} (${activeSemester})`]);
-    sheetData.push([`Kelas: ${selectedAssignment?.className || '-'}`]);
-    sheetData.push([`Mata Pelajaran: ${selectedAssignment?.subjectName || '-'}`]);
-    sheetData.push([`Total Pertemuan: ${meetings.length} Pertemuan`]);
+    sheetData.push([`Kelas: ${activeAssignment?.className || '-'}`]);
+    sheetData.push([`Mata Pelajaran: ${activeAssignment?.subjectName || '-'}`]);
+    sheetData.push([`Total Pertemuan: ${displayMeetings.length} Pertemuan`]);
     sheetData.push([]); // Empty row
 
     // Table Header
@@ -151,15 +169,15 @@ export const JournalReportPage: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Jurnal Mengajar');
 
-    const fileName = `Jurnal_Mengajar_${selectedAssignment?.subjectName || 'Mapel'}_${selectedAssignment?.className || 'Kelas'}.xlsx`;
+    const fileName = `Jurnal_Mengajar_${activeAssignment?.subjectName || 'Mapel'}_${activeAssignment?.className || 'Kelas'}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
   const metaItems = [
-    { label: 'Tahun Ajaran', value: `${activeAcademicYear?.label || '-'} (${activeSemester})` },
-    { label: 'Kelas / Rombel', value: selectedAssignment?.className || '-' },
-    { label: 'Mata Pelajaran', value: selectedAssignment?.subjectName || '-' },
-    { label: 'Total Sesi KBM', value: `${meetings.length} Pertemuan` },
+    { label: 'Tahun Ajaran', value: `${activeAcademicYear?.label || '-'} (${activeSemester || '-'})` },
+    { label: 'Kelas / Rombel', value: activeAssignment?.className || '-' },
+    { label: 'Mata Pelajaran', value: activeAssignment?.subjectName || '-' },
+    { label: 'Total Sesi KBM', value: `${displayMeetings.length} Pertemuan` },
   ];
 
   return (
@@ -179,8 +197,12 @@ export const JournalReportPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setIsShareModalOpen(true)}
-            disabled={meetings.length === 0}
+            onClick={() => {
+              if (isCurrentAssignmentValid && displayMeetings.length > 0) {
+                setIsShareModalOpen(true);
+              }
+            }}
+            disabled={!isCurrentAssignmentValid || displayMeetings.length === 0}
             className="px-4 py-2 rounded-xl btn-primary hover:opacity-90 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all disabled:opacity-50 cursor-pointer"
           >
             <ShareNetwork className="w-3.5 h-3.5" />
@@ -195,14 +217,15 @@ export const JournalReportPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <label className="text-xs font-semibold text-[var(--ds-text)]">Pilih Mapel & Kelas:</label>
             <select
-              value={selectedAssignment?.id || ''}
+              value={isCurrentAssignmentValid && selectedAssignment ? selectedAssignment.id : ''}
               onChange={(e) => {
-                const asg = teachingAssignments.find(a => a.id === e.target.value);
+                const asg = semesterAssignments.find(a => a.id === e.target.value);
                 if (asg) setSelectedAssignment(asg);
               }}
               className="px-3 py-1.5 rounded-xl border border-[var(--ds-border)] text-xs font-semibold text-[var(--ds-text)] bg-[var(--ds-surface-muted)] focus:bg-[var(--ds-surface-elevated)] focus:outline-none focus:border-[var(--ds-accent)]"
             >
-              {teachingAssignments.map(asg => (
+              <option value="">-- Pilih Penugasan Mengajar --</option>
+              {semesterAssignments.map(asg => (
                 <option key={asg.id} value={asg.id}>
                   {asg.className} — {asg.subjectName}
                 </option>
@@ -228,7 +251,7 @@ export const JournalReportPage: React.FC = () => {
           <div className="p-2.5 rounded-xl bg-[var(--ds-accent-soft)] border border-[var(--ds-border)] flex items-center justify-between">
             <div>
               <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Pertemuan Terselenggara</span>
-              <span className="text-lg font-black text-[var(--ds-accent)]">{meetings.length} <span className="text-xs font-normal text-[var(--ds-text-muted)]">Sesi</span></span>
+              <span className="text-lg font-black text-[var(--ds-accent)]">{displayMeetings.length} <span className="text-xs font-normal text-[var(--ds-text-muted)]">Sesi</span></span>
             </div>
             <CalendarBlank className="w-6 h-6 text-[var(--ds-accent)]" />
           </div>
@@ -237,7 +260,7 @@ export const JournalReportPage: React.FC = () => {
             <div>
               <span className="text-[10px] uppercase font-bold text-emerald-700 block">Presensi Lengkap</span>
               <span className="text-lg font-black text-emerald-950">
-                {meetings.filter(m => m.attendanceSummary && m.attendanceSummary.total > 0).length} <span className="text-xs font-normal text-emerald-700">Pertemuan</span>
+                {displayMeetings.filter(m => m.attendanceSummary && m.attendanceSummary.total > 0).length} <span className="text-xs font-normal text-emerald-700">Pertemuan</span>
               </span>
             </div>
             <CheckCircle className="w-6 h-6 text-emerald-400" />
@@ -247,8 +270,8 @@ export const JournalReportPage: React.FC = () => {
             <div>
               <span className="text-[10px] uppercase font-bold text-[var(--ds-text-muted)] block">Rata-rata Kehadiran KBM</span>
               <span className="text-lg font-black text-[var(--ds-text)]">
-                {meetings.length > 0
-                  ? Math.round(meetings.reduce((a, m) => a + (m.attendanceSummary?.presentPercentage || 0), 0) / meetings.length)
+                {displayMeetings.length > 0
+                  ? Math.round(displayMeetings.reduce((a, m) => a + (m.attendanceSummary?.presentPercentage || 0), 0) / displayMeetings.length)
                   : 0}%
               </span>
             </div>
@@ -262,7 +285,7 @@ export const JournalReportPage: React.FC = () => {
         title="BUKU JURNAL AGENDA MENGAJAR GURU"
         metaItems={metaItems}
         onExportExcel={handleExportExcel}
-        excelExportDisabled={meetings.length === 0}
+        excelExportDisabled={!isCurrentAssignmentValid || displayMeetings.length === 0}
         signatureType="TEACHER_AND_HEADMASTER"
         customTeacherRole="Guru Mata Pelajaran"
       >
@@ -359,42 +382,44 @@ export const JournalReportPage: React.FC = () => {
       </PrintDocumentLayout>
 
       {/* Public Share via Link Modal */}
-      <ShareReportModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        reportType="JOURNAL"
-        defaultTitle="BUKU JURNAL AGENDA MENGAJAR GURU"
-        payload={{
-          reportType: 'JOURNAL',
-          title: 'BUKU JURNAL AGENDA MENGAJAR GURU',
-          schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
-          schoolLevel: schoolSettings?.schoolLevel || 'MA',
-          kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
-          academicYearLabel: activeAcademicYear?.label || '2026/2027',
-          semester: activeSemester,
-          className: selectedAssignment?.className || 'Kelas',
-          subjectName: selectedAssignment?.subjectName || '-',
-          teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Mata Pelajaran',
-          teacherNip: schoolSettings?.teacherNip || '-',
-          headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
-          headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
-          generatedDate: getTodayISO(),
-          journalData: {
-            meetings: meetings.map((m, idx) => ({
-              meetingNumber: m.meetingNumber || idx + 1,
-              date: m.date,
-              topic: m.topic || 'Kegiatan Pembelajaran',
-              learningObjectives: m.learningObjectives,
-              activities: m.activities,
-              method: m.method,
-              status: m.status,
-              attendancePresent: m.attendanceSummary?.present,
-              attendanceAbsent: m.attendanceSummary?.absent,
-              notes: m.notes
-            }))
-          }
-        }}
-      />
+      {isCurrentAssignmentValid && displayMeetings.length > 0 && (
+        <ShareReportModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          reportType="JOURNAL"
+          defaultTitle="BUKU JURNAL AGENDA MENGAJAR GURU"
+          payload={{
+            reportType: 'JOURNAL',
+            title: 'BUKU JURNAL AGENDA MENGAJAR GURU',
+            schoolName: schoolSettings?.schoolName || 'Madrasah Aliyah / Tsanawiyah',
+            schoolLevel: schoolSettings?.schoolLevel || 'MA',
+            kemenagDistrict: schoolSettings?.district || schoolSettings?.regency || 'Kementerian Agama',
+            academicYearLabel: activeAcademicYear?.label || '2026/2027',
+            semester: activeSemester,
+            className: activeAssignment?.className || 'Kelas',
+            subjectName: activeAssignment?.subjectName || '-',
+            teacherName: schoolSettings?.teacherName || user?.displayName || 'Guru Mata Pelajaran',
+            teacherNip: schoolSettings?.teacherNip || '-',
+            headmasterName: schoolSettings?.headmasterName || 'H. Ahmad Fauzi, M.Pd.I',
+            headmasterNip: schoolSettings?.headmasterNip || '19780512 200501 1 003',
+            generatedDate: getTodayISO(),
+            journalData: {
+              meetings: displayMeetings.map((m, idx) => ({
+                meetingNumber: m.meetingNumber || idx + 1,
+                date: m.date,
+                topic: m.topic || 'Kegiatan Pembelajaran',
+                learningObjectives: m.learningObjectives,
+                activities: m.activities,
+                method: m.method,
+                status: m.status,
+                attendancePresent: m.attendanceSummary?.present,
+                attendanceAbsent: m.attendanceSummary?.absent,
+                notes: m.notes
+              }))
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
