@@ -1,9 +1,11 @@
-import React from 'react';
-import { motion, MotionConfig } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, MotionConfig, useReducedMotion } from 'motion/react';
 import logoSvg from '../../assets/logo.svg';
+import { DaduIsometricCube } from './DaduIsometricCube';
 
 export type AppLogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | number;
 export type AppLogoVariant = 'full' | 'mark' | 'horizontal';
+export type AppLogoAnimationMode = 'default' | 'drop' | 'loading' | 'none';
 
 export interface AppLogoProps {
   /** Size preset or custom numeric pixel value */
@@ -12,6 +14,8 @@ export interface AppLogoProps {
   variant?: AppLogoVariant;
   /** Whether to enable refined entrance and hover micro-interaction */
   animated?: boolean;
+  /** Specialized animation preset */
+  animationMode?: AppLogoAnimationMode;
   /** Container custom CSS classes */
   className?: string;
   /** Custom CSS classes for the text block */
@@ -41,10 +45,19 @@ const SIZE_MAP: Record<string, number> = {
 const LOGO_ANIMATION_STYLES = `
 @keyframes daduCubeFloat {
   0%, 100% {
-    transform: translateY(0px) scale(1);
+    transform: translateY(0px) rotate(0deg) scale(1);
   }
   50% {
-    transform: translateY(-3px) scale(1.020);
+    transform: translateY(-3.5px) rotate(1.2deg) scale(1.02);
+  }
+}
+
+@keyframes daduCubeLoadingFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.2deg) scale(1.02);
   }
 }
 
@@ -71,6 +84,12 @@ const LOGO_ANIMATION_STYLES = `
   will-change: transform;
 }
 
+.dadu-cube-loading {
+  animation: daduCubeLoadingFloat 2.8s ease-in-out infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
 .dadu-shine-sweep {
   animation: daduShineSweep 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   will-change: transform, opacity;
@@ -78,6 +97,7 @@ const LOGO_ANIMATION_STYLES = `
 
 @media (prefers-reduced-motion: reduce) {
   .dadu-cube-animated,
+  .dadu-cube-loading,
   .dadu-shine-sweep {
     animation: none !important;
     transform: none !important;
@@ -87,21 +107,18 @@ const LOGO_ANIMATION_STYLES = `
 
 /**
  * AppLogo - Komponen Resmi Logo DADU (Digitalisasi Data Guru)
- * 
- * Single Source of Truth: `logo.svg` (FloatingCube brand mark)
- * 
- * Desain & Sistem Animasi:
- * - Smooth entrance motion (opacity 0 -> 1, scale 0.94 -> 1, translateY 6 -> 0)
- * - Subtle breathing & float (scale 1.000 -> 1.020, translateY 0px -> -3px, 4s cycle)
- * - Periodic soft shine sweep (4s cycle, mask-clipped to cube facets, active for >=32px)
- * - Micro-interaction hover (scale 1.04, subtle lift y: -1, soft radiant glow)
- * - Reduced-motion accessibility (CSS media query disables continuous animations)
- * - Adaptif untuk Sidebar (expanded/collapsed), Header, Login, Loading, dan Mobile
+ *
+ * Sistem Animasi Terintegrasi:
+ * - Default: 3D Isometric Levitation Float + Exploded Facet Hover via DaduIsometricCube
+ * - Drop: Dice Drop & Settle entrance motion (LoginPage Hero)
+ * - Loading: Auto Explode & Construct rhythmic facet cycle (LoadingScreen)
+ * - Reduced-Motion Aware & WCAG 2.2 Level AA Compliant
  */
 export const AppLogo: React.FC<AppLogoProps> = ({
   size = 'md',
   variant,
   animated = true,
+  animationMode = 'default',
   className = '',
   textClassName = '',
   subtitle = 'Digitalisasi Data Guru',
@@ -111,92 +128,137 @@ export const AppLogo: React.FC<AppLogoProps> = ({
   id = 'dadu-app-logo',
   alt = 'Logo Resmi DADU',
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const isInteractive = Boolean(onClick);
 
   // Compute numeric dimensions
-  const pixelSize = typeof size === 'number' 
-    ? size 
+  const pixelSize = typeof size === 'number'
+    ? size
     : SIZE_MAP[size] || 36;
 
   // Determine effective variant
-  // If showText was passed (legacy), respect it; otherwise respect variant or collapsed state
-  const effectiveVariant: AppLogoVariant = variant 
-    ? variant 
-    : (showText === false || collapsed) 
-      ? 'mark' 
-      : (showText || subtitle) 
-        ? 'full' 
+  const effectiveVariant: AppLogoVariant = variant
+    ? variant
+    : (showText === false || collapsed)
+      ? 'mark'
+      : (showText || subtitle)
+        ? 'full'
         : 'mark';
 
-  const shouldAnimate = animated;
+  const effectiveMode: AppLogoAnimationMode = !animated || shouldReduceMotion
+    ? 'none'
+    : animationMode;
 
-  // Refined entrance configuration (500ms duration, smooth easing, resting at stable state)
-  const entranceAnimation = shouldAnimate ? {
-    initial: { opacity: 0, y: 6, scale: 0.94 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    transition: { 
-      duration: 0.5, 
-      ease: [0.16, 1, 0.3, 1] as const
+  // Entrance motion configuration based on mode
+  const getEntranceAnimation = () => {
+    if (effectiveMode === 'none') return {};
+
+    if (effectiveMode === 'drop') {
+      return {
+        initial: { opacity: 0, y: -45, scale: 0.55, rotate: -25 },
+        animate: { opacity: 1, y: 0, scale: 1, rotate: 0 },
+        transition: {
+          type: 'spring' as const,
+          stiffness: 280,
+          damping: 18,
+          mass: 0.9,
+        },
+      };
+    }
+
+    return {
+      initial: { opacity: 0, y: 6, scale: 0.94 },
+      animate: { opacity: 1, y: 0, scale: 1 },
+      transition: {
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      },
+    };
+  };
+
+  // Micro-interaction hover & click
+  const hoverAnimation = effectiveMode !== 'none' ? {
+    whileHover: {
+      scale: 1.05,
+      y: -1.5,
+      transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as const },
     },
+    whileTap: isInteractive ? {
+      scale: 0.94,
+      rotate: 8,
+      transition: { type: 'spring' as const, stiffness: 450, damping: 15 },
+    } : undefined,
   } : {};
 
-  // Subtle hover micro-interaction (scale 1.04, subtle lift y: -1, smooth transition)
-  const hoverAnimation = shouldAnimate ? {
-    whileHover: { 
-      scale: 1.04,
-      y: -1,
-      transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as const }
-    },
-    whileTap: isInteractive ? { scale: 0.98 } : undefined,
-  } : {};
+  const getContainerAnimationClass = () => {
+    if (effectiveMode === 'loading') return 'dadu-cube-loading';
+    if (effectiveMode !== 'none') return 'dadu-cube-animated';
+    return '';
+  };
 
   const imageElement = (
     <motion.div
       className="relative shrink-0 flex items-center justify-center select-none"
       style={{ width: pixelSize, height: pixelSize }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
       {...hoverAnimation}
     >
-      <div className={`relative w-full h-full flex items-center justify-center ${shouldAnimate ? 'dadu-cube-animated' : ''}`}>
-        <img
-          src={logoSvg}
-          alt={alt}
-          width={pixelSize}
-          height={pixelSize}
-          loading="eager"
-          decoding="async"
-          draggable={false}
-          className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] transition-all duration-300 group-hover:drop-shadow-[0_4px_16px_rgba(139,209,220,0.40)] pointer-events-none"
-        />
-
-        {shouldAnimate && pixelSize >= 32 && (
-          <div
-            className="absolute inset-0 pointer-events-none overflow-hidden select-none"
-            style={{
-              maskImage: `url("${logoSvg}")`,
-              WebkitMaskImage: `url("${logoSvg}")`,
-              maskMode: 'alpha',
-              maskSize: 'contain',
-              WebkitMaskSize: 'contain',
-              maskRepeat: 'no-repeat',
-              WebkitMaskRepeat: 'no-repeat',
-              maskPosition: 'center',
-              WebkitMaskPosition: 'center',
-            }}
-            aria-hidden="true"
-          >
-            <div
-              className="dadu-shine-sweep absolute inset-[-50%] w-[200%] h-[200%] pointer-events-none"
-              style={{
-                background: 'linear-gradient(115deg, transparent 0%, transparent 42%, rgba(255, 255, 255, 0.18) 50%, transparent 58%, transparent 100%)',
-              }}
+      <div
+        className={`relative w-full h-full flex items-center justify-center ${getContainerAnimationClass()}`}
+        role={effectiveMode === 'none' ? undefined : 'img'}
+        aria-label={effectiveMode === 'none' ? undefined : alt}
+      >
+        {effectiveMode === 'none' ? (
+          <img
+            src={logoSvg}
+            alt={alt}
+            width={pixelSize}
+            height={pixelSize}
+            loading="eager"
+            decoding="async"
+            draggable={false}
+            className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] pointer-events-none"
+          />
+        ) : (
+          <div className="relative w-full h-full flex items-center justify-center filter drop-shadow-[0_2px_8px_rgba(80,72,164,0.25)] group-hover:drop-shadow-[0_4px_16px_rgba(139,209,220,0.40)] transition-all duration-300">
+            <DaduIsometricCube
+              size={pixelSize}
+              mode={effectiveMode}
+              isHovered={isHovered}
             />
+
+            {pixelSize >= 32 && (
+              <div
+                className="absolute inset-0 pointer-events-none overflow-hidden select-none"
+                style={{
+                  maskImage: `url("${logoSvg}")`,
+                  WebkitMaskImage: `url("${logoSvg}")`,
+                  maskMode: 'alpha',
+                  maskSize: 'contain',
+                  WebkitMaskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center',
+                  WebkitMaskPosition: 'center',
+                }}
+                aria-hidden="true"
+              >
+                <div
+                  className="dadu-shine-sweep absolute inset-[-50%] w-[200%] h-[200%] pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(115deg, transparent 0%, transparent 42%, rgba(255, 255, 255, 0.18) 50%, transparent 58%, transparent 100%)',
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
     </motion.div>
   );
 
-  // If mark-only, return just the icon image container
   if (effectiveVariant === 'mark') {
     return (
       <MotionConfig reducedMotion="user">
@@ -204,7 +266,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
           id={id}
           className={`inline-flex items-center justify-center ${isInteractive ? 'cursor-pointer' : ''} ${className}`}
           onClick={onClick}
-          {...entranceAnimation}
+          {...getEntranceAnimation()}
         >
           {imageElement}
           <style>{LOGO_ANIMATION_STYLES}</style>
@@ -213,14 +275,13 @@ export const AppLogo: React.FC<AppLogoProps> = ({
     );
   }
 
-  // Horizontal or Full with Typography Block
   return (
     <MotionConfig reducedMotion="user">
       <motion.div
         id={id}
         className={`inline-flex items-center gap-2.5 min-w-0 ${isInteractive ? 'cursor-pointer group' : ''} ${className}`}
         onClick={onClick}
-        {...entranceAnimation}
+        {...getEntranceAnimation()}
       >
         {imageElement}
 
@@ -228,7 +289,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({
           <span className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg tracking-tight truncate font-sans">
             DADU
           </span>
-          
+
           {effectiveVariant === 'full' && subtitle && (
             <span className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 tracking-tight truncate mt-1">
               {subtitle}

@@ -25,7 +25,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
       <div className="relative flex flex-col items-center gap-5 p-8 sm:p-10 rounded-3xl backdrop-blur-xl shadow-2xl border border-[var(--ds-border)] bg-[var(--ds-surface-elevated)] max-w-sm w-full text-center transition-all duration-300 shadow-black/5">
         {/* Embossed circular logo badge with ambient glow */}
         <div className="relative p-4 rounded-3xl border border-[var(--ds-border)] bg-[var(--ds-surface-muted)] shadow-inner flex items-center justify-center transition-colors">
-          <AppLogo size={64} variant="mark" animated={true} />
+          <AppLogo size={64} variant="mark" animated={true} animationMode="loading" />
         </div>
 
         <div className="space-y-1">

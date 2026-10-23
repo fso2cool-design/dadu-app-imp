@@ -112,7 +112,7 @@ export const LoginPage: React.FC = () => {
           {/* Brand Header Inside Card */}
           <div className="flex flex-col items-center text-center mb-6">
             <div className="flex items-center justify-center mb-3.5 p-3 rounded-2xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] shadow-xs group">
-              <AppLogo size={48} variant="mark" animated={true} />
+              <AppLogo size={48} variant="mark" animated={true} animationMode="drop" />
             </div>
 
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--ds-text)]">
