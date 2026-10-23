@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+﻿import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrintDocumentLayout } from './PrintDocumentLayout';
@@ -26,6 +26,9 @@ vi.mock('../../services/firebase/config', () => ({
   db: {},
 }));
 
+const mockGetSchoolSettings = vi.fn();
+const mockGetDocumentSettings = vi.fn();
+
 const mockApp = createMockApplicationOperations({
   auth: {
     getProfile: vi.fn().mockResolvedValue({
@@ -43,17 +46,8 @@ const mockApp = createMockApplicationOperations({
     }),
   },
   settings: {
-    getSchoolSettings: vi.fn().mockResolvedValue({
-      schoolName: 'Madrasah Hebat',
-      headmasterName: 'Drs. H. Ahmad',
-      city: 'Jakarta',
-    }),
-    getDocumentSettings: vi.fn().mockResolvedValue({
-      showLetterhead: true,
-      showSignatures: true,
-      paperSize: 'A4',
-      orientation: 'PORTRAIT',
-    }),
+    getSchoolSettings: mockGetSchoolSettings,
+    getDocumentSettings: mockGetDocumentSettings,
   },
 });
 
@@ -61,6 +55,17 @@ describe('Print Isolation & Screen Rendering', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authStateCallback = null;
+    mockGetSchoolSettings.mockResolvedValue({
+      schoolName: 'Madrasah Hebat',
+      headmasterName: 'Drs. H. Ahmad',
+      city: 'Jakarta',
+    });
+    mockGetDocumentSettings.mockResolvedValue({
+      showLetterhead: true,
+      showSignatures: true,
+      paperSize: 'A4',
+      orientation: 'PORTRAIT',
+    });
   });
 
   it('renders printable document on screen while isolating controls with .no-print classes', async () => {
@@ -74,20 +79,76 @@ describe('Print Isolation & Screen Rendering', () => {
       </ApplicationProvider>
     );
 
-    // Verify document content renders correctly on screen
     expect(screen.getByText('Laporan Hasil Belajar')).toBeInTheDocument();
     expect(screen.getByTestId('document-content')).toBeInTheDocument();
 
-    // Verify print actions/toolbar exist and carry no-print isolation classes
     const printButton = screen.getByRole('button', { name: /Cetak Dokumen/i });
     expect(printButton).toBeInTheDocument();
 
-    // Find all elements marked with no-print
     const noPrintElements = document.querySelectorAll('.no-print');
     expect(noPrintElements.length).toBeGreaterThan(0);
 
-    // Ensure the main printable document does NOT have .no-print (it must be visible in print media)
     const printableArea = screen.getByTestId('document-content').closest('.no-print');
     expect(printableArea).toBeNull();
+  });
+
+  it('initializes paper size, orientation and @page style from document settings when props are not specified', async () => {
+    mockGetDocumentSettings.mockResolvedValue({
+      showLetterhead: true,
+      showSignatures: true,
+      paperSize: 'F4',
+      orientation: 'LANDSCAPE',
+    });
+
+    const { container } = render(
+      <ApplicationProvider app={mockApp}>
+        <AuthProvider>
+          <PrintDocumentLayout title="Laporan Rekap">
+            <div data-testid="document-content">Konten F4 Landscape</div>
+          </PrintDocumentLayout>
+        </AuthProvider>
+      </ApplicationProvider>
+    );
+
+    await waitFor(() => {
+      const docWrapper = container.querySelector('.printable-document');
+      expect(docWrapper).toHaveAttribute('data-paper', 'F4');
+      expect(docWrapper).toHaveAttribute('data-orientation', 'LANDSCAPE');
+    });
+
+    const styleEl = container.querySelector('style');
+    expect(styleEl?.innerHTML).toContain('size: 330mm 215mm');
+  });
+
+  it('prioritizes explicit paper props over documentSettings defaults', async () => {
+    mockGetDocumentSettings.mockResolvedValue({
+      showLetterhead: true,
+      showSignatures: true,
+      paperSize: 'A4',
+      orientation: 'PORTRAIT',
+    });
+
+    const { container } = render(
+      <ApplicationProvider app={mockApp}>
+        <AuthProvider>
+          <PrintDocumentLayout
+            title="Legger Nilai"
+            paperSize="F4"
+            paperOrientation="LANDSCAPE"
+          >
+            <div data-testid="document-content">Tabel Legger F4</div>
+          </PrintDocumentLayout>
+        </AuthProvider>
+      </ApplicationProvider>
+    );
+
+    await waitFor(() => {
+      const docWrapper = container.querySelector('.printable-document');
+      expect(docWrapper).toHaveAttribute('data-paper', 'F4');
+      expect(docWrapper).toHaveAttribute('data-orientation', 'LANDSCAPE');
+    });
+
+    const styleEl = container.querySelector('style');
+    expect(styleEl?.innerHTML).toContain('size: 330mm 215mm');
   });
 });

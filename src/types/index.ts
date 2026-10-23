@@ -1,4 +1,4 @@
-import type { AppearancePresetKey, ColorMode } from '../design-system/tokens';
+﻿import type { AppearancePresetKey, ColorMode } from '../design-system/tokens';
 export type UserRole = 'ADMIN' | 'TEACHER';
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 export type SemesterType = 'GANJIL' | 'GENAP';
@@ -381,7 +381,7 @@ export interface SchoolSettings {
 
 export interface DocumentSettings {
   documentFont: string;
-  paperSize: 'A4' | 'F4' | 'LETTER';
+  paperSize: 'A4' | 'F4';
   defaultOrientation: 'PORTRAIT' | 'LANDSCAPE';
   letterheadStyle?: 'CLASSIC_DOUBLE' | 'MODERN_SINGLE' | 'MINIMAL';
   headerEnabled: boolean;

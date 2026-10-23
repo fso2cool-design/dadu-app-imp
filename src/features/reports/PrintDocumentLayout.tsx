@@ -7,7 +7,7 @@ import { formatOfficialSignatureName, formatOfficialNip } from '../../utils/form
 import { Buildings } from '@phosphor-icons/react';
 import { getOfficialLetterhead } from '../../domain/reports/letterhead';
 import { PrintActionBar, PrintOptions } from '../../components/common/PrintActionBar';
-import { type PaperSizeKey } from '../../constants/print';
+import { PAPER, type PaperSizeKey } from '../../constants/print';
 
 interface PrintDocumentLayoutProps {
   title: string;
@@ -41,8 +41,8 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   customTeacherName,
   customTeacherNip,
   customTeacherRole,
-  paperOrientation = 'PORTRAIT',
-  paperSize = 'A4',
+  paperOrientation,
+  paperSize,
 }) => {
   const { user, profile } = useAuth();
   const app = useApplication();
@@ -51,7 +51,7 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   
   const [printOptions, setPrintOptions] = useState<PrintOptions>({
     paperSize: (paperSize === 'F4' ? 'F4' : 'A4') as 'A4' | 'F4',
-    orientation: paperOrientation,
+    orientation: paperOrientation || 'PORTRAIT',
     useKop: true,
     useSignature: true,
   });
@@ -60,11 +60,13 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   const [customDate, setCustomDate] = useState('');
 
   useEffect(() => {
-    setPrintOptions((prev) => ({
-      ...prev,
-      paperSize: (paperSize === 'F4' ? 'F4' : 'A4') as 'A4' | 'F4',
-      orientation: paperOrientation,
-    }));
+    if (paperSize || paperOrientation) {
+      setPrintOptions((prev) => ({
+        ...prev,
+        ...(paperSize ? { paperSize: paperSize === 'F4' ? 'F4' : 'A4' } : {}),
+        ...(paperOrientation ? { orientation: paperOrientation } : {}),
+      }));
+    }
   }, [paperSize, paperOrientation]);
 
   useEffect(() => {
@@ -83,6 +85,17 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
           setCustomCity(doc.city);
         } else if (school?.district || school?.regency) {
           setCustomCity(school.district || school.regency || 'Kota');
+        }
+        if (doc) {
+          const docOrientation = doc.defaultOrientation ?? (doc as any).orientation;
+          const docUseKop = doc.headerEnabled ?? (doc as any).showLetterhead;
+          const docUseSig = doc.signatureEnabled ?? (doc as any).showSignatures;
+          setPrintOptions((prev) => ({
+            paperSize: paperSize ? (paperSize === 'F4' ? 'F4' : 'A4') : (doc.paperSize === 'F4' ? 'F4' : 'A4'),
+            orientation: paperOrientation ?? docOrientation ?? prev.orientation,
+            useKop: docUseKop ?? prev.useKop,
+            useSignature: docUseSig ?? prev.useSignature,
+          }));
         }
       } catch (err) {
         console.error('Error fetching settings for document layout:', err);
@@ -109,8 +122,24 @@ export const PrintDocumentLayout: React.FC<PrintDocumentLayoutProps> = ({
   const effectiveTeacherNip = customTeacherNip || schoolSettings?.teacherNip || '-';
   const effectiveTeacherRole = customTeacherRole || (signatureType === 'HOMEROOM_AND_HEADMASTER' ? 'Wali Kelas' : 'Guru Mata Pelajaran');
 
+  const pageSize = printOptions.paperSize === 'F4' ? PAPER.F4 : PAPER.A4;
+  const [pageWidthMm, pageHeightMm] = printOptions.orientation === 'LANDSCAPE'
+    ? [pageSize.heightMm, pageSize.widthMm]
+    : [pageSize.widthMm, pageSize.heightMm];
+
   return (
     <div className="space-y-4">
+      {/* Dynamic print page size for the selected preview paper */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @media print {
+            @page {
+              size: ${pageWidthMm}mm ${pageHeightMm}mm;
+              margin: 12mm 10mm;
+            }
+          }
+        `,
+      }} />
       {/* Document Control Bar (Hidden on Print) */}
       <PrintActionBar
         options={printOptions}

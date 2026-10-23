@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Buildings, FloppyDisk } from '@phosphor-icons/react';
 import { DEFAULT_KEMENAG_LOGO } from '../../../components/common/OfficialDocumentHeader';
 import type { DocumentTabProps } from './types';
@@ -14,20 +14,19 @@ export const DocumentTab: React.FC<DocumentTabProps> = ({
     <form onSubmit={onSubmit} className="space-y-6">
       <div className="border-b border-[var(--ds-border)] pb-3">
         <h3 className="font-bold text-sm text-[var(--ds-text)]">Format & Tata Letak Dokumen Resmi</h3>
-        <p className="text-[11px] text-[var(--ds-text-muted)]">Pengaturan ukuran kertas standar, tata letak kop surat, dan posisi titimangsa.</p>
+        <p className="text-[11px] text-[var(--ds-text-muted)]">Ukuran ini hanya menjadi acuan pratinjau. Hasil cetak final tetap diatur melalui dialog printer sistem. Tata letak kop surat dan posisi titimangsa juga dikelola di sini.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Ukuran Kertas Standar</label>
+          <label className="block text-xs font-semibold text-[var(--ds-text)] mb-1.5">Ukuran Pratinjau Default</label>
           <select
-            value={documentData.paperSize}
+            value={documentData.paperSize === 'F4' ? 'F4' : 'A4'}
             onChange={e => setDocumentData(d => ({ ...d, paperSize: e.target.value as any }))}
             className="w-full px-3.5 py-2 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-surface)] text-xs font-medium text-[var(--ds-text)]"
           >
             <option value="A4">A4 (210 x 297 mm)</option>
             <option value="F4">F4 / Folio (215 x 330 mm)</option>
-            <option value="LETTER">US Letter (215 x 279 mm)</option>
           </select>
         </div>
 

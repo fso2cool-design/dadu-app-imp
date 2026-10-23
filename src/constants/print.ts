@@ -1,4 +1,4 @@
-/**
+﻿/**
  * S4.8 — Konstanta kertas dinas terpusat.
  * Satuan: milimeter, sesuai spesifikasi ukuran kertas Indonesia.
  */

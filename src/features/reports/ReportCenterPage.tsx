@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { PAPER } from '../../constants/print';
@@ -131,7 +131,7 @@ const reportCards = [
               <FileCsv className="w-4 h-4 text-[var(--ds-accent)]" />
               Katalog Dokumen Resmi Siap Cetak
             </h3>
-            <span className="text-xs text-[var(--ds-text-muted)] font-medium">6 Format Laporan</span>
+            <span className="text-xs text-[var(--ds-text-muted)] font-medium">{reportCards.length} Format Laporan</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { useApplication } from '../../application/ApplicationContext';
@@ -14,6 +14,7 @@ import {
 } from '../../types';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { DEFAULT_KKM } from '../../constants/grading';
+import { PAPER } from '../../constants/print';
 import { calculateFinalScore } from '../../domain/grading/grading.service';
 import { aggregateAttendance } from '../../domain/attendance/attendanceAggregation';
 import { GraduationCap, Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Users, MagnifyingGlass, Sliders, CheckCircle, WarningCircle, FileText } from '@phosphor-icons/react';
@@ -42,6 +43,8 @@ export const StudentReportsPage: React.FC<StudentReportsPageProps> = ({ onNaviga
   const [showRank, setShowRank] = useState<boolean>(true);
   const [showKop, setShowKop] = useState<boolean>(true);
   const [showSignatures, setShowSignatures] = useState<boolean>(true);
+  const [printPaperSize, setPrintPaperSize] = useState<'A4' | 'F4'>('A4');
+  const [printOrientation, setPrintOrientation] = useState<'PORTRAIT' | 'LANDSCAPE'>('PORTRAIT');
   const [copiedWA, setCopiedWA] = useState<boolean>(false);
 
   // Data states

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { SchoolSettings, DocumentSettings } from '../../types';
 import { Printer, ChatCircle, Check, ShareNetwork, Buildings, Trophy, Sliders } from '@phosphor-icons/react';
 import { formatDateIndonesian, getTodayISO } from '../../utils/date';
+import { PAPER } from '../../constants/print';
 
 interface StudentRaporModalProps {
   isOpen: boolean;

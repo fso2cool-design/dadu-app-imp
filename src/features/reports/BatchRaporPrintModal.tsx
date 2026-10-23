@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { StudentRaporSheet, StudentRaporData } from './StudentRaporSheet';
 import { SchoolSettings, DocumentSettings } from '../../types';
+import { PAPER } from '../../constants/print';
 import { Printer, Buildings, Trophy, Users, WarningCircle } from '@phosphor-icons/react';
 
 interface BatchRaporPrintModalProps {
