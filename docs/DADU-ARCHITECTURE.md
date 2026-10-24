@@ -77,7 +77,7 @@ dadu-app-imp/
 │   │   └── ToastContext.tsx     # Toast notification system
 │   ├── features/
 │   │   ├── admin/               # Admin user management, storage stats, feedback tab
-│   │   ├── auth/                # AuthContext, LoginPage, WorkflowDemoModal
+│   │   ├── auth/                # AuthContext, LoginPage
 │   │   ├── dashboard/           # DashboardPage (with schedule skeletons)
 │   │   ├── grades/              # Assessment items, score entry, paste Excel
 │   │   ├── homeroom/            # Homeroom hub (daily attendance, class schedule, notes)

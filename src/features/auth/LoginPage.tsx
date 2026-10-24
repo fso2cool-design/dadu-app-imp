@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
-import { CaretLeft, WarningCircle, CheckCircle, Lock, Envelope, User as UserIcon, BookOpen, GraduationCap, Play, Eye, EyeSlash, SignIn, UserPlus, ShieldCheck, Check, CalendarCheck } from '@phosphor-icons/react';
-import { WorkflowDemoModal } from './WorkflowDemoModal';
+import { CaretLeft, WarningCircle, CheckCircle, Lock, Envelope, User as UserIcon, Eye, EyeSlash, SignIn, UserPlus, ShieldCheck } from '@phosphor-icons/react';
 import { AppLogo } from '../../components/common/AppLogo';
 import { KemenagLogo } from '../../components/common/KemenagLogo';
 import { KemenagBerdampakLogo } from '../../components/common/KemenagBerdampakLogo';
@@ -21,7 +20,6 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,18 +343,6 @@ export const LoginPage: React.FC = () => {
               )}
             </div>
 
-            {/* Compact Discreet Demo Link */}
-            <div className="pt-1 text-center">
-              <button
-                id="btn-open-workflow-demo"
-                type="button"
-                onClick={() => setIsDemoOpen(true)}
-                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--ds-text-muted)] hover:text-[var(--ds-accent)] transition-colors cursor-pointer py-1"
-              >
-                <Play className="w-3 h-3 text-[var(--ds-accent)] fill-[var(--ds-accent)]/20" />
-                <span>Lihat simulasi alur kerja (Demo 1 Menit)</span>
-              </button>
-            </div>
 
           </form>
 
@@ -384,15 +370,6 @@ export const LoginPage: React.FC = () => {
         </div>
       </footer>
 
-      {/* Workflow Demo Modal */}
-      <WorkflowDemoModal
-        isOpen={isDemoOpen}
-        onClose={() => setIsDemoOpen(false)}
-        onStartSignUp={() => {
-          setMode('signup');
-          setError(null);
-        }}
-      />
     </div>
   );
 };
