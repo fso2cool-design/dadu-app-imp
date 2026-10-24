@@ -20,6 +20,9 @@ export interface AppearanceContextType {
   tokens: InvariantTokens;
   colors: DesignColorTokens;
   mode: ColorMode;
+  animationsEnabled: boolean;
+  toggleAnimations: () => void;
+  setAnimationsEnabled: (enabled: boolean) => void;
   setPreset: (preset: AppearancePresetKey) => void;
   applyAndSavePreset: (preset: AppearancePresetKey) => void;
   setMode: (mode: ColorMode) => void;
@@ -35,6 +38,14 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const [activePreset, setActivePreset] = useState<AppearancePresetKey>(DEFAULT_APPEARANCE_PRESET);
   const [mode, setModeState] = useState<ColorMode>('light');
+  const [animationsEnabled, setAnimationsEnabledState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('app_animations_enabled');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
 
   // Synchronize appearance preset + mode based on authenticated user preference
   useEffect(() => {
@@ -76,6 +87,23 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
   }, [user, profile?.themePreference, profile?.designSystemPreference, profile?.designSystemModePreference]);
+
+  const setAnimationsEnabled = useCallback((enabled: boolean) => {
+    setAnimationsEnabledState(enabled);
+    try {
+      localStorage.setItem('app_animations_enabled', String(enabled));
+    } catch {}
+  }, []);
+
+  const toggleAnimations = useCallback(() => {
+    setAnimationsEnabledState((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('app_animations_enabled', String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
 
   const basePreset =
     APPEARANCE_PRESETS.find((ds) => ds.id === activePreset) ?? APPEARANCE_PRESETS[1];
@@ -133,12 +161,27 @@ export const AppearanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     tokens,
     colors: activeColors,
     mode,
+    animationsEnabled,
+    toggleAnimations,
+    setAnimationsEnabled,
     setPreset: setActivePreset,
     applyAndSavePreset,
     setMode,
     toggleMode,
     applyAndSaveMode,
-  }), [activePreset, tokens, activeColors, mode, applyAndSavePreset, setMode, toggleMode, applyAndSaveMode]);
+  }), [
+    activePreset,
+    tokens,
+    activeColors,
+    mode,
+    animationsEnabled,
+    toggleAnimations,
+    setAnimationsEnabled,
+    applyAndSavePreset,
+    setMode,
+    toggleMode,
+    applyAndSaveMode,
+  ]);
 
   return (
     <AppearanceContext.Provider value={contextValue}>
@@ -153,4 +196,8 @@ export const useAppearance = (): AppearanceContextType => {
     throw new Error('useAppearance must be used within an AppearanceProvider');
   }
   return context;
+};
+
+export const useOptionalAppearance = (): AppearanceContextType | undefined => {
+  return useContext(AppearanceContext);
 };

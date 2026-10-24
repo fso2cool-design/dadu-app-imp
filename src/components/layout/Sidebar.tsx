@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { SquaresFour, BookOpen, Users, Printer, Database, Sliders, ShieldCheck, Heart, X, SidebarSimple, CalendarCheck, CheckSquare, Stack, CalendarDots, CalendarBlank, ChartBar, Clock, UserCheck, Notepad, CaretDown, CaretRight, ClipboardText } from '@phosphor-icons/react';
 import { AppLogo } from '../common/AppLogo';
+import { SidebarFlyoutPopover } from './SidebarFlyoutPopover';
 import { Tooltip } from '../common/Tooltip';
 import { APP_CONFIG } from '../../constants/app';
 
@@ -51,7 +52,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenFeedbackModal,
   onOpenChangeLog,
 }) => {
-  const [hoveredTopToggle, setHoveredTopToggle] = useState(false);
+  const [activeFlyout, setActiveFlyout] = useState<{
+    id: string;
+    title: string;
+    items: SubMenuItem[];
+    triggerRect: DOMRect | null;
+  } | null>(null);
 
   const getGroupForRoute = (route: string): string | null => {
     if (
@@ -105,10 +111,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [currentRoute]);
 
-  // Always reset hover state when sidebar compact mode toggles
+  // Reset active flyout on compact toggle, route change, or mobile drawer toggle
   useEffect(() => {
-    setHoveredTopToggle(false);
-  }, [isCompact]);
+    setActiveFlyout(null);
+  }, [isCompact, currentRoute, isMobileOpen]);
 
   const menuGroups: MenuGroup[] = [
     {
@@ -184,6 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const handleItemClick = (id: string) => {
+    setActiveFlyout(null);
     if (id === 'feedback-modal') {
       if (onOpenFeedbackModal) onOpenFeedbackModal();
       onCloseMobile();
@@ -194,8 +201,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onCloseMobile();
   };
 
-  const handleSubItemClick = (subId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleSubItemClick = (subId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setActiveFlyout(null);
     onNavigate(subId);
     onCloseMobile();
   };
@@ -244,66 +254,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const renderContent = (compact: boolean) => (
     <div className="sidebar-container flex flex-col h-full select-none" style={{ background: "var(--ds-shell-bg, var(--ds-surface))", color: "var(--ds-text)" }}>
-      {/* Brand Header with Hover Toggle */}
+      {/* Brand Header with Permanent Interactive Logo Toggle */}
       <div className={`sidebar-header relative flex items-center transition-all ${
         compact ? 'justify-center px-2 py-3' : 'justify-between px-4 py-3.5'
       }`}>
         {compact ? (
-          /* COMPACT MODE: Hover over logo transforms into toggle button with tooltip */
+          /* COMPACT MODE: Permanent DADU Logo as Toggle Button */
           <div className="w-full flex items-center justify-center">
-            <Tooltip content={hoveredTopToggle ? 'Buka sidebar' : 'DADU Workspace'} position="right">
+            <Tooltip content="Klik untuk buka sidebar" position="right">
               <button
                 type="button"
-                onMouseEnter={() => setHoveredTopToggle(true)}
-                onMouseLeave={() => setHoveredTopToggle(false)}
                 onClick={() => {
-                  setHoveredTopToggle(false);
+                  setActiveFlyout(null);
                   onToggleCompact?.();
                 }}
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-accent)]"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-xs border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-accent)] group"
                 style={{ background: "var(--ds-surface-elevated)", color: "var(--ds-text)", borderColor: "var(--ds-border)" }}
                 aria-label="Buka sidebar"
               >
-                {hoveredTopToggle ? (
-                  <SidebarSimple className="w-5 h-5 animate-in zoom-in-75 duration-150" style={{ color: "var(--ds-accent)" }} />
-                ) : (
-                  <AppLogo size="sm" variant="mark" />
-                )}
+                <AppLogo size="sm" variant="mark" />
               </button>
             </Tooltip>
           </div>
         ) : (
-          /* EXPANDED MODE: Logo + Brand Title + Close Toggle on the Right */
+          /* EXPANDED MODE: Logo + Brand Title as Interactive Toggle + Mobile Close */
           <>
-            <div className="flex items-center overflow-hidden">
-              <AppLogo size="md" variant="full" />
-            </div>
-
-            <div className="flex items-center gap-1">
-              {onToggleCompact && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHoveredTopToggle(false);
-                    onToggleCompact();
-                  }}
-                  className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
-                  aria-label="Tutup sidebar"
-                >
-                  <SidebarSimple className="w-4 h-4" />
-                </button>
-              )}
-
-              {/* Mobile close button */}
+            <Tooltip content="Klik untuk ciutkan sidebar" position="bottom">
               <button
                 type="button"
-                onClick={onCloseMobile}
-                className="lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer" style={{ color: "var(--ds-text-muted)" }}
-                aria-label="Tutup menu"
+                onClick={() => {
+                  setActiveFlyout(null);
+                  onToggleCompact?.();
+                }}
+                className="flex items-center overflow-hidden text-left cursor-pointer rounded-xl p-1 -m-1 transition-colors hover:bg-[var(--ds-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ds-accent)] group"
+                aria-label="Tutup sidebar"
               >
-                <X className="w-5 h-5" />
+                <AppLogo size="md" variant="full" />
               </button>
-            </div>
+            </Tooltip>
+
+            {/* Mobile close button (only visible on mobile drawer) */}
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer"
+              style={{ color: "var(--ds-text-muted)" }}
+              aria-label="Tutup menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </>
         )}
       </div>
@@ -337,11 +336,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
               return (
                 <div key={item.id} className="space-y-0.5">
                   <div className="relative flex items-center">
-                    <Tooltip content={item.label} position="right" disabled={!compact}>
+                    <Tooltip content={item.label} position="right" disabled={!compact || (hasSub && activeFlyout?.id === item.id)}>
                       <button
                         type="button"
-                        onClick={() => handleItemClick(item.id)}
+                        onClick={(e) => {
+                          if (compact && hasSub) {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setActiveFlyout(prev => {
+                              if (prev?.id === item.id) {
+                                return null;
+                              }
+                              return {
+                                id: item.id,
+                                title: item.label,
+                                items: item.subItems || [],
+                                triggerRect: rect,
+                              };
+                            });
+                          } else {
+                            handleItemClick(item.id);
+                          }
+                        }}
                         aria-current={isDirectParentActive ? 'page' : undefined}
+                        aria-haspopup={compact && hasSub ? 'true' : undefined}
+                        aria-expanded={compact && hasSub ? (activeFlyout?.id === item.id) : undefined}
                         data-nav-item="true"
                         data-active={isDirectParentActive || isGroupActive ? 'true' : 'false'}
                         className={`nav-item group relative w-full flex items-center text-xs font-medium cursor-pointer ${
@@ -481,6 +499,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {APP_CONFIG.name}
           </div>
         </div>
+      )}
+
+      {/* Floating Popover for Compact Submenus */}
+      {compact && activeFlyout && (
+        <SidebarFlyoutPopover
+          isOpen={Boolean(activeFlyout)}
+          onClose={() => setActiveFlyout(null)}
+          triggerRect={activeFlyout.triggerRect}
+          groupTitle={activeFlyout.title}
+          items={activeFlyout.items}
+          currentRoute={currentRoute}
+          onSelectSubItem={(subId) => handleSubItemClick(subId)}
+          isSubItemActive={isSubItemActive}
+        />
       )}
     </div>
   );

@@ -408,4 +408,86 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
       expect(disclosureBtn).toHaveAttribute('aria-expanded', 'false');
     });
   });
+
+  describe('Sidebar Compact Flyout Popover & Logo Toggle Interaction', () => {
+    it('uses permanent logo as toggle button in compact mode', () => {
+      const onToggleCompact = vi.fn();
+      render(
+        <Sidebar
+          currentRoute="dashboard"
+          onNavigate={vi.fn()}
+          isMobileOpen={false}
+          onCloseMobile={vi.fn()}
+          isCompact={true}
+          onToggleCompact={onToggleCompact}
+        />
+      );
+
+      const logoToggleBtn = screen.getByRole('button', { name: /Buka sidebar/i });
+      expect(logoToggleBtn).toBeInTheDocument();
+      fireEvent.click(logoToggleBtn);
+      expect(onToggleCompact).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens flyout popover when clicking group item with submenus in compact mode', () => {
+      const onNavigate = vi.fn();
+      render(
+        <Sidebar
+          currentRoute="dashboard"
+          onNavigate={onNavigate}
+          isMobileOpen={false}
+          onCloseMobile={vi.fn()}
+          isCompact={true}
+        />
+      );
+
+      // Initially, flyout popover is not in document
+      expect(screen.queryByTestId('sidebar-flyout-popover')).toBeNull();
+
+      // Click "Ruang Guru" in compact mode
+      const teacherBtn = screen.getByRole('button', { name: /Ruang Guru/i });
+      expect(teacherBtn).toHaveAttribute('aria-haspopup', 'true');
+      expect(teacherBtn).toHaveAttribute('aria-expanded', 'false');
+
+      fireEvent.click(teacherBtn);
+
+      // Popover should now be open
+      expect(teacherBtn).toHaveAttribute('aria-expanded', 'true');
+      const popover = screen.getByTestId('sidebar-flyout-popover');
+      expect(popover).toBeInTheDocument();
+      expect(popover).toHaveAttribute('role', 'menu');
+      expect(popover).toHaveAttribute('aria-label', 'Menu Ruang Guru');
+
+      // Check submenus are present inside the popover
+      const gradesSubmenu = screen.getByRole('menuitem', { name: /Penilaian Siswa/i });
+      expect(gradesSubmenu).toBeInTheDocument();
+
+      // Click sub-item inside popover
+      fireEvent.click(gradesSubmenu);
+      expect(onNavigate).toHaveBeenCalledWith('grades');
+
+      // Popover should close after selecting item
+      expect(screen.queryByTestId('sidebar-flyout-popover')).toBeNull();
+    });
+
+    it('closes flyout popover when Escape key is pressed', () => {
+      render(
+        <Sidebar
+          currentRoute="dashboard"
+          onNavigate={vi.fn()}
+          isMobileOpen={false}
+          onCloseMobile={vi.fn()}
+          isCompact={true}
+        />
+      );
+
+      const teacherBtn = screen.getByRole('button', { name: /Ruang Guru/i });
+      fireEvent.click(teacherBtn);
+      expect(screen.getByTestId('sidebar-flyout-popover')).toBeInTheDocument();
+
+      // Press Escape
+      fireEvent.keyDown(window, { key: 'Escape' });
+      expect(screen.queryByTestId('sidebar-flyout-popover')).toBeNull();
+    });
+  });
 });

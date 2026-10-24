@@ -398,6 +398,34 @@ describe('AppearanceContext Canonical Runtime API', () => {
     });
   });
 
+  describe('Animations Preference Contract', () => {
+    it('defaults to true and toggles correctly', () => {
+      render(
+        <ApplicationProvider app={mockApp}>
+          <AppearanceProvider>
+            <Consumer />
+          </AppearanceProvider>
+        </ApplicationProvider>
+      );
+
+      expect(contextValue.animationsEnabled).toBe(true);
+
+      act(() => {
+        contextValue.toggleAnimations();
+      });
+
+      expect(contextValue.animationsEnabled).toBe(false);
+      expect(localStorage.getItem('app_animations_enabled')).toBe('false');
+
+      act(() => {
+        contextValue.setAnimationsEnabled(true);
+      });
+
+      expect(contextValue.animationsEnabled).toBe(true);
+      expect(localStorage.getItem('app_animations_enabled')).toBe('true');
+    });
+  });
+
   describe('Stage 2 Token Contract & Invariant Separation', () => {
     it('verifies all 3 presets have invariant tokens and distinct light/dark colorModes', () => {
       expect(APPEARANCE_PRESETS).toHaveLength(3);

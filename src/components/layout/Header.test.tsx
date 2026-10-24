@@ -47,6 +47,9 @@ describe('Header Administrator UX & Navigation Affordance', () => {
       setMode: vi.fn(),
       toggleMode: vi.fn(),
       applyAndSaveMode: vi.fn(),
+      animationsEnabled: true,
+      toggleAnimations: vi.fn(),
+      setAnimationsEnabled: vi.fn(),
     });
   });
 

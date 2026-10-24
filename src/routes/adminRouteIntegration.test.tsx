@@ -70,6 +70,9 @@ describe('Router Integration & Admin Route Guarding (/admin)', () => {
       setMode: vi.fn(),
       toggleMode: vi.fn(),
       applyAndSaveMode: vi.fn(),
+      animationsEnabled: true,
+      toggleAnimations: vi.fn(),
+      setAnimationsEnabled: vi.fn(),
     });
   });
 
