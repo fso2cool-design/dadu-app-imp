@@ -53,7 +53,12 @@ export const SidebarFlyoutPopover: React.FC<SidebarFlyoutPopoverProps> = ({
       onClose();
     };
 
-    const handleScrollOrResize = () => {
+    const handleScrollOrResize = (e: Event) => {
+      // Do not close if scrolling inside the popover itself
+      const target = e.target as HTMLElement | null;
+      if (popoverRef.current && target && popoverRef.current.contains(target)) {
+        return;
+      }
       onClose();
     };
 

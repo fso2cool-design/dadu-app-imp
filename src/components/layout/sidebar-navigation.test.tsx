@@ -128,7 +128,7 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
       expect(homeroomDisclosure).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('synchronizes expanded group when currentRoute changes between groups', () => {
+    it('auto-reveals destination group non-destructively when currentRoute changes between groups', () => {
       const onNavigate = vi.fn();
       const onCloseMobile = vi.fn();
 
@@ -154,12 +154,12 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
         />
       );
 
-      // Homeroom opens, teacher auto-collapses (single open accordion)
-      expect(screen.getByRole('button', { name: /Buka menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'false');
+      // Non-destructive auto-reveal: Homeroom opens, and Teacher remains open
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
       expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Wali Kelas/i })).toHaveAttribute('aria-expanded', 'true');
     });
 
-    it('collapses all accordion groups when navigating to independent pages', () => {
+    it('preserves open accordion groups when navigating to independent pages', () => {
       const onNavigate = vi.fn();
       const onCloseMobile = vi.fn();
 
@@ -172,6 +172,8 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
         />
       );
 
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
+
       // Navigate to Dashboard
       rerender(
         <Sidebar
@@ -182,10 +184,8 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
         />
       );
 
-      expect(screen.getByRole('button', { name: /Buka menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'false');
-      expect(screen.getByRole('button', { name: /Buka menu Ruang Wali Kelas/i })).toHaveAttribute('aria-expanded', 'false');
-      expect(screen.getByRole('button', { name: /Buka menu Data Master/i })).toHaveAttribute('aria-expanded', 'false');
-      expect(screen.getByRole('button', { name: /Buka menu Pengaturan/i })).toHaveAttribute('aria-expanded', 'false');
+      // Teacher group remains preserved and open
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
 
       // Navigate to Reports Center
       rerender(
@@ -197,8 +197,62 @@ describe('Sidebar Navigation & Auto-Collapse UX Refinement', () => {
         />
       );
 
+      // Still preserved
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('supports independent multi-open: opening another group does not collapse existing open groups', () => {
+      const onNavigate = vi.fn();
+      const onCloseMobile = vi.fn();
+
+      render(
+        <Sidebar
+          currentRoute="dashboard"
+          onNavigate={onNavigate}
+          isMobileOpen={false}
+          onCloseMobile={onCloseMobile}
+        />
+      );
+
+      // Open Ruang Guru
+      const teacherDisclosure = screen.getByRole('button', { name: /Buka menu Ruang Guru/i });
+      fireEvent.click(teacherDisclosure);
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
+
+      // Open Ruang Wali Kelas
+      const homeroomDisclosure = screen.getByRole('button', { name: /Buka menu Ruang Wali Kelas/i });
+      fireEvent.click(homeroomDisclosure);
+
+      // BOTH Ruang Guru and Ruang Wali Kelas must be expanded simultaneously!
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Wali Kelas/i })).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('auto-reveals children when parent nav button is clicked while collapsed', () => {
+      const onNavigate = vi.fn();
+      const onCloseMobile = vi.fn();
+
+      render(
+        <Sidebar
+          currentRoute="dashboard"
+          onNavigate={onNavigate}
+          isMobileOpen={false}
+          onCloseMobile={onCloseMobile}
+        />
+      );
+
+      // Ruang Guru is initially collapsed
       expect(screen.getByRole('button', { name: /Buka menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'false');
-      expect(screen.getByRole('button', { name: /Buka menu Ruang Wali Kelas/i })).toHaveAttribute('aria-expanded', 'false');
+
+      // Click parent nav label button
+      const navBtn = screen.getByRole('button', { name: /^Ruang Guru$/i });
+      fireEvent.click(navBtn);
+
+      // Navigation is triggered
+      expect(onNavigate).toHaveBeenCalledWith('teacher');
+
+      // Group auto-expands
+      expect(screen.getByRole('button', { name: /Ciutkan menu Ruang Guru/i })).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('does not re-open a manually collapsed submenu when route does not change', () => {

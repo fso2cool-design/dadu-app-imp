@@ -97,17 +97,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const prevRouteRef = useRef(currentRoute);
 
-  // Automatically expand group if currentRoute changes and belongs to it, and auto-collapse others
+  // Automatically expand group if currentRoute changes and belongs to it, non-destructively
   useEffect(() => {
     if (prevRouteRef.current !== currentRoute) {
       prevRouteRef.current = currentRoute;
       const targetGroup = getGroupForRoute(currentRoute);
-      setExpandedGroups({
-        teacher: targetGroup === 'teacher',
-        homeroom: targetGroup === 'homeroom',
-        master: targetGroup === 'master',
-        settings: targetGroup === 'settings',
-      });
+      if (targetGroup) {
+        setExpandedGroups(prev => ({
+          ...prev,
+          [targetGroup]: true,
+        }));
+      }
     }
   }, [currentRoute]);
 
@@ -197,6 +197,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return;
     }
 
+    // Auto-reveal children if clicking a parent accordion group
+    setExpandedGroups(prev => ({
+      ...prev,
+      [id]: true,
+    }));
+
     onNavigate(id);
     onCloseMobile();
   };
@@ -214,16 +220,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (e) {
       e.stopPropagation();
     }
-    setExpandedGroups(prev => {
-      const isCurrentlyOpen = Boolean(prev[groupId]);
-      return {
-        teacher: false,
-        homeroom: false,
-        master: false,
-        settings: false,
-        [groupId]: !isCurrentlyOpen,
-      };
-    });
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
   };
 
   const isSubItemActive = (subId: string) => {
