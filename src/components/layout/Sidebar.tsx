@@ -309,7 +309,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Nav Items List with invisible smooth scrolling */}
       <div 
-        className="flex-1 overflow-y-auto px-2 py-3 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="flex-1 overflow-y-auto px-2 pt-3 pb-8 space-y-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {menuGroups.map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
@@ -494,7 +494,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Workspace Footer: Clean Dadu Workspace label */}
       {!compact && (
-        <div className="sidebar-footer p-3">
+        <div className="sidebar-footer shrink-0 p-3 border-t border-[var(--ds-border)] bg-[var(--ds-surface)] mt-auto">
           <div className="px-2 pt-0.5 text-[11px] font-semibold select-none" style={{ color: "var(--ds-text-muted)" }}>
             {APP_CONFIG.name}
           </div>

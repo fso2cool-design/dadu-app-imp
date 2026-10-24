@@ -1107,16 +1107,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-[var(--ds-text)] text-sm">
+                        <h4 className="font-bold text-[var(--ds-text)] text-sm whitespace-nowrap shrink-0">
                           Kelas {assign.className}
                         </h4>
                         {typeof rawCount === 'number' && rawCount > 0 ? (
-                          <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-100/60 dark:border-emerald-500/30">
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-100/60 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
                             {rawCount} Siswa
                           </span>
                         ) : null}
                       </div>
-                      <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
+                      <p className="text-xs text-[var(--ds-text-muted)] mt-0.5 line-clamp-1 truncate">
                         {assign.subjectName}
                       </p>
                     </div>
@@ -1180,7 +1180,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         ) : (
           /* VIEW MODE B: GRID CARDS */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5">
             {filteredAssignments.map((assign) => {
               const rawCount = studentCountMap.get(assign.classId);
               const metrics = assignmentMetricsMap.get(assign.id) || { totalMeetings: 0, lastTopic: '-', lastDate: '-', avgAttendance: 0 };
@@ -1192,17 +1192,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 font-bold text-xs whitespace-nowrap shrink-0">
                         Kelas {assign.className}
                       </span>
                       {typeof rawCount === 'number' && rawCount > 0 ? (
-                        <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded">
+                        <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded whitespace-nowrap shrink-0">
                           {rawCount} Siswa
                         </span>
                       ) : null}
                     </div>
 
-                    <h4 className="font-bold text-[var(--ds-text)] text-sm leading-tight">
+                    <h4 className="font-bold text-[var(--ds-text)] text-sm leading-tight line-clamp-1 truncate" title={assign.subjectName}>
                       {assign.subjectName}
                     </h4>
                     

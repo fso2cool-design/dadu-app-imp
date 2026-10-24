@@ -228,15 +228,15 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
   const getStatusBadge = (status: MeetingStatus) => {
     switch (status) {
       case 'COMPLETED':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] border border-emerald-500/20">Terlaksana</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] border border-emerald-500/20 whitespace-nowrap inline-flex items-center shrink-0">Terlaksana</span>;
       case 'SCHEDULED':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-[10px] border border-sky-500/20">Terjadwal</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 font-bold text-[10px] border border-sky-500/20 whitespace-nowrap inline-flex items-center shrink-0">Terjadwal</span>;
       case 'SUBSTITUTE':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20">Pengganti</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold text-[10px] border border-purple-500/20 whitespace-nowrap inline-flex items-center shrink-0">Pengganti</span>;
       case 'DRAFT':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-400 font-bold text-[10px] border border-slate-500/20">Draft</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-400 font-bold text-[10px] border border-slate-500/20 whitespace-nowrap inline-flex items-center shrink-0">Draft</span>;
       case 'CANCELLED':
-        return <span className="px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-[10px] border border-rose-500/20">Dibatalkan</span>;
+        return <span className="px-2.5 py-0.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-[10px] border border-rose-500/20 whitespace-nowrap inline-flex items-center shrink-0">Dibatalkan</span>;
       default:
         return null;
     }
@@ -328,11 +328,11 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
         </div>
 
         <div className="col-span-2 sm:col-span-1 bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-2xs flex items-center justify-between">
-          <div>
+          <div className="min-w-0 flex-1 mr-2">
             <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
               Mata Pelajaran
             </span>
-            <div className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5 truncate max-w-[180px]">
+            <div className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5 truncate" title={currentAssignment ? currentAssignment.subjectName : 'Semua Mapel'}>
               {currentAssignment ? currentAssignment.subjectName : 'Semua Mapel'}
             </div>
           </div>
@@ -461,24 +461,24 @@ export const MeetingsJournalPage: React.FC<MeetingsJournalPageProps> = ({
                 {/* Left: Meeting Info */}
                 <div className="space-y-1.5 max-w-2xl">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="btn-primary px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs">
+                    <span className="btn-primary px-2.5 py-0.5 rounded-lg font-mono font-bold text-xs whitespace-nowrap shrink-0">
                       Pertemuan #{meeting.meetingNumber}
                     </span>
                     {meeting.meetingType === 'MADRASAH_ACTIVITY' && (
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 whitespace-nowrap shrink-0">
                         {meeting.activityCategory || 'Kegiatan Madrasah'}
                       </span>
                     )}
-                    <span className="font-bold text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded-md">
+                    <span className="font-bold text-xs text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">
                       Kelas {meeting.className} • {meeting.subjectName}
                     </span>
-                    <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
-                      <CalendarBlank className="w-3.5 h-3.5" />
+                    <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium whitespace-nowrap shrink-0">
+                      <CalendarBlank className="w-3.5 h-3.5 shrink-0" />
                       {meeting.date}
                     </span>
                     {meeting.timeSlot && (
-                      <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
+                      <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 whitespace-nowrap shrink-0">
+                        <Clock className="w-3.5 h-3.5 shrink-0" />
                         {meeting.timeSlot}
                       </span>
                     )}

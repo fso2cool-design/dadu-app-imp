@@ -418,7 +418,7 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {DAYS_OF_WEEK.filter(d => selectedDayFilter === 'ALL' || selectedDayFilter === d.key).map(day => {
             const daySlots = scheduleByDay[day.key] || [];
 
@@ -453,30 +453,30 @@ export const TeacherPersonalSchedulePage: React.FC<TeacherPersonalSchedulePagePr
                         className="p-3 rounded-xl bg-[var(--ds-surface-muted)] border border-[var(--ds-border)] hover:border-[var(--ds-accent)] transition-all"
                       >
                         <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-text font-mono bg-accent-primary-soft px-2 py-0.5 rounded-md">
-                            <Clock className="w-3 h-3" />
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent-text font-mono bg-accent-primary-soft px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">
+                            <Clock className="w-3 h-3 shrink-0" />
                             {slot.timeSlot}
                           </span>
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 whitespace-nowrap shrink-0">
                             Kelas {slot.className}
                           </span>
                         </div>
 
-                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 line-clamp-1 truncate" title={slot.subjectName}>
                           {slot.subjectName}
                         </h4>
 
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/60">
-                          <span className="flex items-center gap-1 font-mono">
+                        <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/60">
+                          <span className="flex items-center gap-1 font-mono shrink-0">
                             {slot.subjectCode ? `[${slot.subjectCode}]` : ''}
                           </span>
                           {slot.room ? (
-                            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                              <MapPin className="w-3 h-3 text-slate-400" />
-                              {slot.room}
+                            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300 truncate max-w-[160px]" title={slot.room}>
+                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span className="truncate">{slot.room}</span>
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-[10px]">R. Kelas</span>
+                            <span className="text-slate-400 text-[10px] shrink-0">R. Kelas</span>
                           )}
                         </div>
                       </div>

@@ -169,7 +169,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[var(--ds-surface-elevated)] p-5 rounded-2xl border border-[var(--ds-border)] shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap shrink-0">
               Wali Kelas
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -239,7 +239,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
       ) : (
         <>
           {/* Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {/* Total Siswa */}
             <div className="bg-[var(--ds-surface-elevated)] p-4 rounded-2xl border border-[var(--ds-border)] shadow-xs flex items-center justify-between">
               <div>
@@ -325,7 +325,7 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
           </div>
 
           {/* Main Content: Watchlist & Roster Summary */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Left 2 Cols: Student Roster & Attendance Status */}
             <div className="lg:col-span-2 bg-[var(--ds-surface-elevated)] rounded-2xl border border-[var(--ds-border)] shadow-xs overflow-hidden">
               <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -375,15 +375,15 @@ export const HomeroomDashboardPage: React.FC<HomeroomDashboardPageProps> = ({ on
                         let todayBadge = <span className="text-[11px] text-slate-400 font-medium">-</span>;
                         if (todayRec) {
                           if (todayRec.status === 'PRESENT') {
-                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">Hadir</span>;
+                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 whitespace-nowrap shrink-0">Hadir</span>;
                           } else if (todayRec.status === 'SICK') {
-                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">Sakit</span>;
+                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 whitespace-nowrap shrink-0">Sakit</span>;
                           } else if (todayRec.status === 'PERMITTED') {
-                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">Izin</span>;
+                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 whitespace-nowrap shrink-0">Izin</span>;
                           } else if (todayRec.status === 'ABSENT') {
-                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300">Alpa</span>;
+                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300 whitespace-nowrap shrink-0">Alpa</span>;
                           } else if (todayRec.status === 'DISPENSATION') {
-                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300">Dispen</span>;
+                            todayBadge = <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-300 whitespace-nowrap shrink-0">Dispen</span>;
                           }
                         }
 

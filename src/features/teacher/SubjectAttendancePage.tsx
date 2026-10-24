@@ -1750,7 +1750,7 @@ export const SubjectAttendancePage = React.forwardRef<SubjectAttendancePageHandl
               </div>
 
               <div className="self-start sm:self-auto sm:text-right shrink-0">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full inline-block ${
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap inline-flex items-center shrink-0 ${
                   stats.percentage !== null && stats.percentage >= 85 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/40' : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-500/40'
                 }`}>
                   {stats.percentage !== null ? `${stats.percentage}%` : '—'} Tingkat Kehadiran

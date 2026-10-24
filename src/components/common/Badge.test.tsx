@@ -14,6 +14,7 @@ describe('Badge Component', () => {
     const badgeElement = container.querySelector('span');
     expect(badgeElement).toHaveClass('bg-slate-100');
     expect(badgeElement).toHaveClass('px-2.5'); // md size default
+    expect(badgeElement).toHaveClass('shrink-0');
   });
 
   it('applies success variant styles', () => {
@@ -35,5 +36,12 @@ describe('Badge Component', () => {
     const badgeElement = container.querySelector('span');
     expect(badgeElement).toHaveClass('px-2');
     expect(badgeElement).toHaveClass('py-0.5');
+  });
+
+  it('applies custom className when provided', () => {
+    const { container } = render(<Badge className="custom-test-class">Custom</Badge>);
+    const badgeElement = container.querySelector('span');
+    expect(badgeElement).toHaveClass('custom-test-class');
+    expect(badgeElement).toHaveClass('shrink-0');
   });
 });

@@ -4,12 +4,14 @@ interface BadgeProps {
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'violet' | 'blue' | 'neutral';
   children: ReactNode;
   size?: 'sm' | 'md';
+  className?: string;
 }
 
 export const Badge: React.FC<BadgeProps> = ({ 
   variant = 'default', 
   children,
-  size = 'md'
+  size = 'md',
+  className = '',
 }) => {
   const variantStyles = {
     default: 'bg-slate-100 dark:bg-[var(--ds-surface-muted)] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-[var(--ds-border)]',
@@ -29,8 +31,10 @@ export const Badge: React.FC<BadgeProps> = ({
     md: 'text-xs font-medium px-2.5 py-1',
   }[size];
 
+  const combinedClass = `inline-flex items-center gap-1 rounded-md border font-medium whitespace-nowrap shrink-0 ${variantStyles} ${sizeStyles} ${className}`.trim();
+
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md border font-medium whitespace-nowrap ${variantStyles} ${sizeStyles}`}>
+    <span className={combinedClass}>
       {children}
     </span>
   );

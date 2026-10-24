@@ -108,7 +108,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         {/* Content Area with clean padding and ample workspace */}
         <main 
           ref={mainContentRef}
-          className="flex-1 p-3.5 sm:p-5 lg:p-7 pb-24 sm:pb-28 lg:pb-8 max-w-7xl w-full mx-auto animate-in fade-in duration-200"
+          className="flex-1 p-3.5 sm:p-5 lg:p-7 pb-24 sm:pb-28 lg:pb-20 max-w-7xl w-full mx-auto animate-in fade-in duration-200"
           key={currentRoute}
         >
           {children}

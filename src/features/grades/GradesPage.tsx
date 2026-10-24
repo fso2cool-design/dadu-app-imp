@@ -1336,7 +1336,7 @@ export const GradesPage: React.FC = () => {
       </div>
 
       {/* KPI Overview Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
         {/* Total Assessments & Progress */}
         <div className="bg-white dark:bg-[var(--ds-surface-elevated)] border border-slate-200/90 dark:border-[var(--ds-border)] rounded-2xl p-4 shadow-2xs flex flex-col justify-between transition-colors">
           <div className="flex items-center justify-between">
@@ -1397,14 +1397,14 @@ export const GradesPage: React.FC = () => {
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tuntas KKTP</span>
             </div>
             <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-              <div>
+              <div className="whitespace-nowrap">
                 <strong className="text-emerald-700 dark:text-emerald-400">{classStats.passedCount}</strong> Tuntas /{' '}
                 <strong className="text-rose-600 dark:text-rose-400">{classStats.remedialCount}</strong> Remedial
               </div>
               {classStats.incompleteCount > 0 && (
-                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
-                  <span>{classStats.incompleteCount} siswa tagihan belum lengkap</span>
+                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5 flex items-center gap-1 leading-tight">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block shrink-0"></span>
+                  <span className="truncate">{classStats.incompleteCount} tagihan belum lengkap</span>
                 </div>
               )}
             </div>

@@ -503,7 +503,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)]">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--ds-accent-soft)] text-[var(--ds-accent)] border border-[var(--ds-border)] whitespace-nowrap shrink-0">
                 Presensi Harian Wali Kelas
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -659,7 +659,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-medium">
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 font-medium whitespace-nowrap shrink-0">
                   Tatap Muka Ditiadakan
                 </span>
                 <button
@@ -674,7 +674,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           )}
 
           {/* Summary KPI Pills */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-2.5">
         <div className="bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] text-center">
           <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase">Total Siswa</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">{summaryStats.total}</p>
@@ -710,7 +710,7 @@ export const HomeroomDailyAttendancePage: React.FC<HomeroomDailyAttendancePagePr
           <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">{summaryStats.unrecorded}</p>
         </div>
 
-        <div className="col-span-2 sm:col-span-1 bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/50 text-center">
+        <div className="col-span-2 sm:col-span-1 xl:col-span-1 bg-[var(--ds-surface-elevated)] p-3.5 rounded-xl border border-[var(--ds-border)] bg-[var(--ds-accent-soft)]/50 text-center">
           <p className="text-[10px] font-semibold text-[var(--ds-text-muted)] uppercase">% Kehadiran</p>
           <p className="text-xl font-bold text-[var(--ds-accent)] mt-0.5">{summaryStats.rate}</p>
         </div>

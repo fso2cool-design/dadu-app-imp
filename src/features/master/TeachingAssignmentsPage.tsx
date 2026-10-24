@@ -286,7 +286,7 @@ export const TeachingAssignmentsPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredAssignments.map((assign) => {
             const isArchived = Boolean(assign.isArchived || assign.isActive === false);
             return (
@@ -299,27 +299,27 @@ export const TeachingAssignmentsPage: React.FC = () => {
                 }`}
               >
                 <div>
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={`px-2.5 py-1 rounded-lg border font-bold text-xs ${
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <span className={`px-2.5 py-1 rounded-lg border font-bold text-xs whitespace-nowrap shrink-0 ${
                       isArchived
                         ? 'bg-[var(--ds-surface-muted)] border-[var(--ds-border)] text-[var(--ds-text-muted)]'
                         : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
                     }`}>
                       Kelas {assign.className}
                     </span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                       {isArchived && (
-                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded whitespace-nowrap shrink-0">
                           Diarsipkan
                         </span>
                       )}
-                      <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-mono font-bold text-[var(--ds-text-muted)] bg-[var(--ds-surface-muted)] px-2 py-0.5 rounded whitespace-nowrap shrink-0">
                         {assign.subjectCode || 'MAPEL'}
                       </span>
                     </div>
                   </div>
 
-                  <h3 className="font-bold text-base text-[var(--ds-text)]">{assign.subjectName}</h3>
+                  <h3 className="font-bold text-base text-[var(--ds-text)] line-clamp-1 truncate" title={assign.subjectName}>{assign.subjectName}</h3>
                   <p className="text-xs text-[var(--ds-text-muted)] mt-0.5">
                     Semester {assign.semester} • TP {activeAcademicYear?.label}
                   </p>

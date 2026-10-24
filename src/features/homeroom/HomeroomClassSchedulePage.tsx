@@ -701,7 +701,7 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
         </PrintDocumentLayout>
       ) : (
         /* Matrix Grid View: Monday to Saturday */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {DAYS_OF_WEEK.map(d => {
             const dayItems = allItemsByDay[d.key];
             const hasItems = dayItems.length > 0;
@@ -777,22 +777,22 @@ export const HomeroomClassSchedulePage: React.FC<HomeroomClassSchedulePageProps>
                               </span>
                             </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <h3 className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                                <h3 className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate max-w-full" title={item.subjectName}>
                                   {item.subjectName}
                                 </h3>
                                 {item.timeSlot && (
-                                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] px-1.5 py-0.2 rounded font-medium">
+                                  <span className="text-[10px] font-mono text-slate-600 dark:text-slate-300 bg-[var(--ds-surface-elevated)] border border-[var(--ds-border)] px-1.5 py-0.2 rounded font-medium whitespace-nowrap shrink-0">
                                     {item.timeSlot}
                                   </span>
                                 )}
                                 {item.isFromPlotting ? (
-                                  <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.2 rounded">
+                                  <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.2 rounded whitespace-nowrap shrink-0">
                                     Plotting
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 px-1.5 py-0.2 rounded">
+                                  <span className="text-[9px] font-bold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 px-1.5 py-0.2 rounded whitespace-nowrap shrink-0">
                                     Khusus
                                   </span>
                                 )}
